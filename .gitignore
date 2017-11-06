@@ -1,0 +1,4 @@
+.idea
+*.pyc
+*.npz
+.DS_Store
