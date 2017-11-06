@@ -1,1 +1,3 @@
-Einfach dass was für den Stefan drinnen ist.
+# TractSeg
+ 
+Tools for fast and accurate white matter bundle segmentation.
