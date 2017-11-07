@@ -1,3 +1,4 @@
+import os
 import argparse
 from os.path import join
 import numpy as np
@@ -12,9 +13,9 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 #Settings and Hyperparameters
 class HP:
     EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
-    EXP_NAME = "HCP_TEST"
+    EXP_NAME = "HCP_normAfter"
 
-    MODEL = "UNet_Pytorch"     # UNet_Multilabel_diceScore / UNet_Pytorch
+    MODEL = "UNet_Multilabel_diceScore"     # UNet_Multilabel_diceScore / UNet_Pytorch
     NUM_EPOCHS = 300
     DATA_AUGMENTATION = True
     # DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8) - Mirror"
@@ -51,8 +52,8 @@ class HP:
     TEST = True  # python ExpRunner.py --train=False --seg=False --test=True --lw=True
     SEGMENT = False
     GET_PROBS = False  # python ExpRunner.py --train=False --seg=False --probs=True --lw=True
-    PREDICT_IMG = None  # python ExpRunner.py --train=False --test=False --lw=True --predict_img=/mnt/jakob/E130-Personal/Wasserthal/VISIS/s01/243g_25mm/peaks.nii.gz
-    PREDICT_IMG_OUT = None
+    PREDICT_IMG = False
+    PREDICT_IMG_OUTPUT = None
 
     # For DM Regression
     # Also adapt LABELS_FOLDER
@@ -76,6 +77,9 @@ class HP:
     INPUT_DIM = (144, 144)
     OUTPUT_MULTIPLE_FILES = False
     VERBOSE = True
+    TRACTSEG_DIR = "tractseg_output"
+    KEEP_INTERMEDIATE_FILES = False
+    CSD_RESOLUTION = "HIGH"   # HIGH / LOW
 
 parser = argparse.ArgumentParser(description="Process some integers.",
                                     epilog="Written by Jakob Wasserthal. Please reference TODO")
@@ -84,8 +88,8 @@ parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Inpu
 #https://stackoverflow.com/questions/20048048/argparse-default-option-based-on-another-option
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
-parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is './bvals'")
-parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is './bvecs'")
+parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'bvals'")
+parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'bvecs'")
 parser.add_argument("--train", action="store_true", help="Train network", default=True)
 parser.add_argument("--test", action="store_true", help="Test network", default=True)
 parser.add_argument("--seg", action="store_true", help="Create binary segmentation", default=False)   #todo: better API
@@ -94,41 +98,60 @@ parser.add_argument("--lw", action="store_true", help="Load weights of pretraine
 parser.add_argument("--en", metavar="name", help="Experiment name")
 parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int, default=0)
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True) #todo: set default to false
+parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
 parser.add_argument('--version', action='version', version='TractQuerier 1.0')
 #todo: optionally supply brain mask (must have same dimensions as dwi)
 args = parser.parse_args()
 
 HP.PREDICT_IMG = args.input is not None
+
+if args.en:
+    HP.EXP_NAME = args.en
+
+if args.output:
+    HP.PREDICT_IMG_OUTPUT = join(args.output, HP.TRACTSEG_DIR)
+elif HP.PREDICT_IMG:
+    HP.PREDICT_IMG_OUTPUT = join(os.path.dirname(args.input), HP.TRACTSEG_DIR)
+
 HP.TRAIN = args.train
 HP.TEST = args.test
 HP.SEGMENT = args.seg
 HP.GET_PROBS = args.probs
 HP.LOAD_WEIGHTS = args.lw
-HP.EXP_NAME = args.en
 HP.CV_FOLD= args.fold
 HP.OUTPUT_MULTIPLE_FILES = args.output_multiple_files
 HP.VERBOSE = args.verbose
+HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
 
 HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
 HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
-
-#todo: set path to delivered pretrained weights
-if HP.WEIGHTS_PATH == "":
-    HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
-
 HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
-EXP_NAME_ORIG = HP.EXP_NAME  # store beginning of exp_name for multi_bundle experiments
+
+if HP.VERBOSE:
+    print("Hyperparameters:")
+    ExpUtils.print_HPs(HP)
 
 if HP.PREDICT_IMG:
     print("Segmenting bundles...")
-    Mrtrix.create_brain_mask(args.input)
-    Mrtrix.create_fods(args.input)
+    if args.bvals:
+        bvals = join(os.path.dirname(args.input), args.bvals)
+    else:
+        bvals = join(os.path.dirname(args.input), "Diffusion.bvals")  # todo: change default to "bvals"
+    if args.bvecs:
+        bvecs = join(os.path.dirname(args.input), args.bvecs)
+    else:
+        bvecs = join(os.path.dirname(args.input), "Diffusion.bvecs")  # todo: change default to "bvecs"
 
-    HP.PREDICT_IMG = "peaks.nii.gz"
-    HP.PREDICT_IMG_OUT = "bundle_segmentation.nii.gz"
+    ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
+    Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
+    Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
+
     HP.LOAD_WEIGHTS = True
+    if HP.WEIGHTS_PATH == "":
+        HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)     # todo: set path to delivered pretrained weights
     ExpRunner.predict_img(HP)
+    Mrtrix.clean_up(HP)
 else:
-    print("Hyperparameters:")
-    ExpUtils.print_HPs(HP)
+    if HP.WEIGHTS_PATH == "":
+        HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)     # todo: set path to delivered pretrained weights
     ExpRunner.experiment(HP)

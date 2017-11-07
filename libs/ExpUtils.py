@@ -31,91 +31,6 @@ plt.ioff()
 class ExpUtils:
 
     @staticmethod
-    def read_program_parameters(argv, HP):
-        try:
-            opts, args = getopt.getopt(argv, "", ["bs=", "np=", "pf=", "sl=", "en=", "lr=", "bun=", "lw=", "sw=", "wpath=",
-                                                  "train=", "test=", "seg=", "probs=", "sdir=", "slope=", "normalize=",
-                                                  "dataset=", "resolution=", "fold=", "type=", "enm=", "wdec=", "lrdec=",
-                                                  "daug=", "nrfilt=", "predict_img=", "predict_img_out=", "vislogger="])
-        except getopt.GetoptError:
-            print('invalid parameters')
-            sys.exit(2)
-        for opt, arg in opts:
-            if opt in ("--bs"):
-                HP.BATCH_SIZE = int(arg)
-            elif opt in ("--np"):
-                HP.NUM_EPOCHS = int(arg)
-            elif opt in ("--pf"):
-                HP.PRINT_FREQ = int(arg)
-            elif opt in ("--sl"):
-                HP.SEQ_LEN = int(arg)
-            elif opt in ("--en"):
-                HP.EXP_NAME = arg
-            elif opt in ("--enm"):
-                HP.EXP_MULTI_NAME = arg
-            elif opt in ("--lr"):
-                HP.LEARNING_RATE = float(arg)
-            elif opt in ("--bun"):
-                HP.BUNDLE = arg
-            elif opt in ("--lw"):
-                HP.LOAD_WEIGHTS = arg == "True"
-            elif opt in ("--sw"):
-                HP.SAVE_WEIGHTS = arg == "True"
-            elif opt in ("--wpath"):
-                HP.WEIGHTS_PATH = arg
-            elif opt in ("--train"):
-                HP.TRAIN = arg == "True"
-            elif opt in ("--test"):
-                HP.TEST = arg == "True"
-            elif opt in ("--seg"):
-                HP.SEGMENT = arg == "True"
-            elif opt in ("--probs"):
-                HP.GET_PROBS = arg == "True"
-            elif opt in ("--sdir"):
-                HP.SLICE_DIRECTION = arg
-            elif opt in ("--slope"):
-                HP.SLOPE = int(arg)
-            elif opt in ("--normalize"):
-                HP.NORMALIZE_DATA = arg == "True"
-            elif opt in ("--dataset"):
-                HP.DATASET = arg
-            elif opt in ("--resolution"):
-                HP.RESOLUTION = arg
-            elif opt in ("--fold"):
-                HP.CV_FOLD= int(arg)
-            elif opt in ("--type"):
-                HP.TYPE = arg
-            elif opt in ("--wdec"):
-                HP.W_DECAY_LEN = int(arg)
-            elif opt in ("--lrdec"):
-                HP.LR_DECAY = float(arg)
-            elif opt in ("--daug"):
-                HP.DATA_AUGMENTATION = arg == "True"
-            elif opt in ("--nrfilt"):
-                HP.UNET_NR_FILT = int(arg)
-            elif opt in ("--predict_img"):
-                HP.PREDICT_IMG = arg
-            elif opt in ("--predict_img_out"):
-                HP.PREDICT_IMG_OUT = arg
-            elif opt in ("--vislogger"):
-                HP.USE_VISLOGGER = arg == "True"
-
-
-
-
-        HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
-        HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
-        if HP.WEIGHTS_PATH == "":
-            HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
-
-        if HP.RESOLUTION == "1.25mm":
-            HP.INPUT_DIM = (144, 144)
-        elif HP.RESOLUTION == "2mm" or HP.RESOLUTION == "2.5mm":
-            HP.INPUT_DIM = (80, 80)
-        return HP
-
-
-    @staticmethod
     def create_experiment_folder(experiment_name, multi_parent_path, train):
         '''
         Create a new experiment folder. If it already exist, create new one with increasing number at the end.
@@ -173,7 +88,6 @@ class ExpUtils:
     @staticmethod
     def get_best_weights_path(exp_path, load_weights):
         if load_weights:
-            print("Getting best weights (path: {})".format(exp_path + "/best_weights_ep*.npz"))
             return glob.glob(exp_path + "/best_weights_ep*.npz")[0]
         else:
             return ""
@@ -181,27 +95,12 @@ class ExpUtils:
     @staticmethod
     def get_bundle_names():
 
-
         #Comment with Indices:
         # bundles = ["BG", "AF_left", "AF_right", "ATR_left", "ATR_right", 5 "CA", "CC_1", "CC_2", "CC_3", "CC_4", "CC_5", "CC_6", 12 "CC_7",
         #            "CG_left", "CG_right", 15 "CST_left", 16 "CST_right", "EMC_left", "EMC_right", "FPT_left", "FPT_right", "FX_left", 22 "FX_right",
         #            "ICP_left", "ICP_right", 25 "IFO_left", 26 "IFO_right", "ILF_left", "ILF_right", "MCP", "OR_left", 31 "OR_right",
         #            "POPT_left", "POPT_right", "SCP_left", "SCP_right", "SLF_I_left", "SLF_I_right", "SLF_II_left", 39 "SLF_II_right",
         #            "SLF_III_left", "SLF_III_right", "STR_left", "STR_right", "UF_left", 45 "UF_right"]
-
-        #New Big    (pre Bram)      (used for many experiments)
-        # bundles = ["AF_left", "AF_right", "ATR_left", "ATR_right", "CA", "CC_1", "CC_2", "CC_3", "CC_4", "CC_5", "CC_6", "CC_7",
-        #            "CG_left", "CG_right", "CST_left", "CST_right", "EMC_left", "EMC_right", "FPT_left", "FPT_right", "FX_left", "FX_right",
-        #            "ICP_left", "ICP_right",  "IFO_left", "IFO_right", "ILF_left", "ILF_right", "MCP", "OR_left", "OR_right",
-        #            "POPT_left", "POPT_right", "SCP_left", "SCP_right", "SLF_I_left", "SLF_I_right", "SLF_II_left", "SLF_II_right",
-        #            "SLF_III_left", "SLF_III_right", "STR_left", "STR_right", "UF_left", "UF_right"]
-
-        # New Big   (after Bram)
-        # bundles = ["AF_left", "AF_right", "ATR_left", "ATR_right", "CA", "CC_1", "CC_2", "CC_3", "CC_4", "CC_5", "CC_6", "CC_7",
-        #            "CG_left", "CG_right", "CST_left", "CST_right", "EMC_left", "EMC_right", "FPT_left", "FPT_right", "FX_left", "FX_right",
-        #            "ICP_left", "ICP_right", "IFO_left", "IFO_right", "ILF_left", "ILF_right", "MCP", "OR_left", "OR_right",
-        #            "POPT_left", "POPT_right", "SCP_left", "SCP_right", "SLF_I_left", "SLF_I_right", "SLF_II_left", "SLF_II_right",
-        #            "SLF_III_left", "SLF_III_right", "STR_left", "STR_right", "UF_left", "UF_right", "CC"]
 
         # New Big   (after Bram and with Projection Tracts)  (74 Tracts)
         bundles = ["AF_left", "AF_right", "ATR_left", "ATR_right", "CA", "CC_1", "CC_2", "CC_3", "CC_4", "CC_5", "CC_6", "CC_7",
@@ -214,19 +113,6 @@ class ExpUtils:
                    "T_POSTC_right", "T_PAR_left", "T_PAR_right", "T_OCC_left", "T_OCC_right", "ST_FO_left", "ST_FO_right", "ST_PREF_left",
                    "ST_PREF_right", "ST_PREM_left", "ST_PREM_right", "ST_PREC_left", "ST_PREC_right", "ST_POSTC_left", "ST_POSTC_right",
                    "ST_PAR_left", "ST_PAR_right", "ST_OCC_left", "ST_OCC_right"]
-
-        #Phantom
-        # bundles = ["CA", "CC", "Cingulum_left", "Cingulum_right", "CP", "CST_left", "CST_right", "Fornix", "FPT_left", "FPT_right",
-        #            "ICP_left", "ICP_right", "ILF_left", "ILF_right", "IOFF_left", "IOFF_right", "MCP", "OR_left", "OR_right",
-        #            "POPT_left", "POPT_right", "SCP_left", "SCP_right", "SLF_left", "SLF_right", "UF_left", "UF_right"]
-
-        #TRACED OLD
-        # bundles = ["CC_2", "CC_7", "CG_left", "CG_right", "CST_left", "CST_right", "FX",  "IFO_left", "IFO_right",
-        #            "SFO_left", "SFO_right", "ILF_left", "ILF_right", "SLF_left", "SLF_right", "UF_left", "UF_right"]
-
-        #TRACED
-        # bundles = ["UF_left", "UF_right", "FX_left", "FX_right", "CC_2", "CG_left", "CG_right", "CST_left", "CST_right", "CC_7",
-        #            "ILF_left", "ILF_right", "SLF_left", "SLF_right", "IFO_left", "IFO_right"]
 
         return ["BG"] + bundles    #Add Background label (is always beginning of list)
 

@@ -176,7 +176,7 @@ class ExpRunner():
     @staticmethod
     def predict_img(HP):
         start_time = time.time()
-        data_img = nib.load(HP.PREDICT_IMG)
+        data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
         data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get_data(), target_size=144)
 
         ModelClass = getattr(importlib.import_module("models." + HP.MODEL), HP.MODEL)
@@ -190,10 +190,10 @@ class ExpRunner():
         seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
 
         seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
-        ExpUtils.print_verbose("Took {}s".format(round(time.time() - start_time, 2)))
+        ExpUtils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
 
         if HP.OUTPUT_MULTIPLE_FILES:
-            ImgUtils.save_multilabel_img_as_multiple_files(seg, data_img.get_affine(), os.path.dirname(HP.PREDICT_IMG_OUT))   # Save as several files
+            ImgUtils.save_multilabel_img_as_multiple_files(seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)   # Save as several files
         else:
             img = nib.Nifti1Image(seg, data_img.get_affine())
-            nib.save(img, HP.PREDICT_IMG_OUT)
+            nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))

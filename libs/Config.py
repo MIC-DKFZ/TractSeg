@@ -10,7 +10,7 @@ def get_config_file():
     '''
     with open(join(expanduser("~"), ".tractseg")) as f:
         lines = f.readlines()
-    paths = {l.strip().split["="][0]:l.strip().split["="][1] for l in lines}
+    paths = {l.strip().split("=")[0]:l.strip().split("=")[1] for l in lines}
     return paths
 
 class Config:
