@@ -9,7 +9,6 @@ if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
 import numpy as np
 import cPickle
 import bz2
-import psutil
 
 class Utils:
 
@@ -154,6 +153,7 @@ class Utils:
 
     @staticmethod
     def mem_usage(print_usage=True):
+        import psutil
         process = psutil.Process()
         gb = process.memory_info().rss / 1e9
         gb = round(gb, 3)

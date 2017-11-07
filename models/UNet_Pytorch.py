@@ -106,9 +106,11 @@ class UNet(torch.nn.Module):
         contr_4_2 = self.contr_4_2(contr_4_1)
         pool_4 = self.pool_4(contr_4_2)
 
-        dropout = self.dropout(pool_4)
+        #todo important: change
+        # dropout = self.dropout(pool_4)
 
-        encode_1 = self.encode_1(dropout)
+        # encode_1 = self.encode_1(dropout)
+        encode_1 = self.encode_1(pool_4)
         encode_2 = self.encode_2(encode_1)
         deconv_1 = self.deconv_1(encode_2)
 

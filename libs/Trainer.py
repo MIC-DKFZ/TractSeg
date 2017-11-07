@@ -74,7 +74,7 @@ class Trainer:
                 print_loss = []
                 start_time_batch_gen = time.time()
 
-                batch_generator = self.dataManager.get_batches(batch_size=HP.BATCH_SIZE, shuffle=HP.SHUFFLE,
+                batch_generator = self.dataManager.get_batches(batch_size=HP.BATCH_SIZE,
                                                                type=type, subjects=getattr(HP, type.upper() + "_SUBJECTS"))
                 batch_gen_time = time.time() - start_time_batch_gen
                 # print("batch_gen_time: {}s".format(batch_gen_time))
@@ -151,7 +151,7 @@ class Trainer:
 
             # Save Weights
             start_time_saving = time.time()
-            if HP.SAVE_WEIGHTS and HP.FRAMEWORK == "Lasagne":
+            if HP.SAVE_WEIGHTS:
                 self.model.save_model(metrics, epoch_nr)
             saving_time += time.time() - start_time_saving
 

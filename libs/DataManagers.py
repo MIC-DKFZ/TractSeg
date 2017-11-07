@@ -127,7 +127,7 @@ class DataManagerTrainingNiftiImgs:
         self.HP = HP
         print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
 
-    def get_batches(self, batch_size=128, shuffle=None, type=None, subjects=None):
+    def get_batches(self, batch_size=128, type=None, subjects=None):
         data = subjects
         seg = []
 

@@ -22,7 +22,7 @@ from libs.Layers import theano_f1_score
 from libs.Layers import theano_binary_dice_per_instance_and_class
 from libs.Layers import theano_binary_dice_per_instance_and_class_for_loss
 
-class UNet_Lasagne(BaseModel):
+class UNet_Multilabel_diceLoss(BaseModel):
 
     @staticmethod
     def get_UNet(n_input_channels=1, BATCH_SIZE=None, num_output_classes=2, pad='same', nonlinearity=L.nonlinearities.rectify,

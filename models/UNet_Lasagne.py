@@ -22,7 +22,7 @@ from libs.Layers import theano_f1_score
 # from libs.Layers import theano_f1_score_soft
 from libs.Layers import theano_binary_dice_per_instance_and_class
 
-class UNet_Multilabel_diceScore(BaseModel):
+class UNet_Lasagne(BaseModel):
 
     #L.nonlinearities.rectify
     # L.nonlinearities.leaky_rectify
