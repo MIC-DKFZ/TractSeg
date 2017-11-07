@@ -215,8 +215,6 @@ class ExpUtils:
                    "ST_PREF_right", "ST_PREM_left", "ST_PREM_right", "ST_PREC_left", "ST_PREC_right", "ST_POSTC_left", "ST_POSTC_right",
                    "ST_PAR_left", "ST_PAR_right", "ST_OCC_left", "ST_OCC_right"]
 
-        # bundles = ["CA"]
-
         #Phantom
         # bundles = ["CA", "CC", "Cingulum_left", "Cingulum_right", "CP", "CST_left", "CST_right", "Fornix", "FPT_left", "FPT_right",
         #            "ICP_left", "ICP_right", "ILF_left", "ILF_right", "IOFF_left", "IOFF_right", "MCP", "OR_left", "OR_right",
@@ -303,22 +301,16 @@ class ExpUtils:
         return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
 
     @staticmethod
-    #For TRACED
-    def get_cv_fold_TRACED(fold):
-        '''
-        :return:
-        '''
-        subjects = ["s1_0", "s1_1", "s1_2", "s1_3", "s1_4", "s1_5", "s1_6", "s1_7", "s1_8", "s1_9",
-                    "s2_0", "s2_1", "s2_2", "s2_3", "s2_4", "s2_5", "s2_6", "s2_7", "s2_8", "s2_9"]
-        return [], [], subjects
-
-
-    @staticmethod
     def print_and_save(HP, text):
         print(text)
         with open(join(HP.EXP_PATH, "Log.txt"), "a") as f:  # a for append
             f.write(text)
             f.write("\n")
+
+    @staticmethod
+    def print_verbose(HP, text):
+        if HP.VERBOSE:
+            print(text)
 
     @staticmethod
     def XXX_create_exp_plot(metrics, path, exp_name, small=False, only_f1=False):
@@ -364,14 +356,6 @@ class ExpUtils:
             plt4, = ax2.plot(range(5, len(metrics["f1_macro_train"])), metrics["f1_macro_train"][5:], "g:", label='f1_macro_train')
             plt5, = ax2.plot(range(5, len(metrics["f1_macro_validate"])), metrics["f1_macro_validate"][5:], "g", label='f1_macro_val')
             plt6, = ax2.plot(range(5, len(metrics["f1_macro_test"])), metrics["f1_macro_test"][5:], "g--", label='f1_macro_test')
-
-            # plt7, = ax2.plot(range(5, len(metrics["overlap_train"])), metrics["overlap_train"][5:], "k:", label='overl_train')
-            # plt9, = ax2.plot(range(5, len(metrics["overlap_validate"])), metrics["overlap_validate"][5:], "k", label='overl_val')
-            # plt8, = ax2.plot(range(5, len(metrics["overlap_test"])), metrics["overlap_test"][5:], "k--", label='overl_test')
-
-            # plt10, = ax2.plot(range(5, len(metrics["overreach_train"])), metrics["overreach_train"][5:], "b:", label='overr_train')
-            # plt11, = ax2.plot(range(5, len(metrics["overreach_test"])), metrics["overreach_test"][5:], "b", label='overr_test')
-            # plt12, = ax2.plot(range(5, len(metrics["overreach_validate"])), metrics["overreach_validate"][5:], "b--", label='overr_val')
 
             plt.legend(handles=[plt1, plt2, plt3, plt4, plt5, plt6],
                        loc=2,
@@ -419,18 +403,5 @@ class ExpUtils:
 
         fig.text(0.12, 0.95, exp_name, size=12, weight="bold")
         fig.text(0.12, 0.02, description)
-        # plt.show()
         fig.savefig(join(path, fig_name), dpi=100)
         plt.close()
-
-
-# exp_path = ExpUtils.create_experiment_folder("test_exp")
-# print(exp_path)
-
-# import glob
-# for fl in glob.glob(join("/Users/jakob/dev/dl-tracking/exp/test_exp_2", "weights_ep*")):
-#     os.remove(fl)
-
-# a = [1, 3, 6, 4, 6, 8, 9, 12, 3, 5]
-# ExpUtils.create_exp_plot(a, "/Users/jakob/dev/dl-tracking/exp/test_exp")
-# ExpUtils.create_exp_plot(a, "")

@@ -223,21 +223,10 @@ class ImgUtils:
         return mask_ml.astype(labels_type)
 
     @staticmethod
-    def save_multilabel_img_as_multiple_files(HP, img, subject):
+    def save_multilabel_img_as_multiple_files(img, affine, path):
         bundles = ExpUtils.get_bundle_names()
-        for idx, bundle in enumerate(bundles[1:]): #Do not ouput Background label
-            img_seg = nib.Nifti1Image(img[:,:,:,idx+1], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
-            nib.save(img_seg, join(HP.EXP_PATH, "segmentations", subject + "_" + bundle + "_segmentation.nii.gz"))
-
-    # @staticmethod
-    # def downsample_img(img_data):
-    #     '''
-    #     Halve resolution of img_data
-    #     :param img_data: (x,y,z)
-    #     :return: (x,y,z)
-    #     '''
-    #
-    #     # do not use interpolation, otherwise we get float values -> bad for binary masks
-    #     return scipy.ndimage.zoom(img_data[:, :, :], 0.5, order=0)
-
+        for idx, bundle in enumerate(bundles):
+            img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
+            ExpUtils.make_dir(join(path, "segmentations"))
+            nib.save(img_seg, join(path, "segmentations", bundle + ".nii.gz"))
 

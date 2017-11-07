@@ -229,13 +229,8 @@ class Trainer:
 
         return metrics
 
-    def get_seg_single_img(self, HP, probs=False, scale_to_world_shape=True):
-        if HP.TYPE == "3D":
-            return self.get_seg_predictions_3D(HP, probs=probs, scale_to_world_shape=scale_to_world_shape)
-        else:
-            return self.get_seg_predictions_2D(HP, probs=probs, scale_to_world_shape=scale_to_world_shape)
 
-    def get_seg_predictions_2D(self, HP, probs=False, scale_to_world_shape=True):
+    def get_seg_single_img(self, HP, probs=False, scale_to_world_shape=True):
         '''
         Returns layers for one image (batch manager is only allowed to return batches for one image)
 
@@ -308,39 +303,3 @@ class Trainer:
         layers_y = layers_y.astype(np.float32)
 
         return layers_seg, layers_y   # (Prediction, Groundtruth)
-
-
-    #TODO: Adapt für Multilabel
-    def get_seg_predictions_3D(self, HP, probs=False, scale_to_world_shape=True):
-        '''
-        Returns layers for one image (batch manager is only allowed to return batches for one image)
-        :param HP:
-        :return:
-        '''
-        batch_generator = self.dataManager.get_batches(batch_size=1)
-        for batch in batch_generator:
-            x, y = batch
-            x = np.array(x)     # (1, 33, 80, 80, 80)
-            segmentation = self.model.get_probs(x)
-
-            # Remove 1 element dimension
-            segmentation = np.squeeze(segmentation)  # (1,80,80,80) -> (80,80,80)    (first dim ist 1, weil in get_segmentation schon argmax mache)
-
-            if HP.RESOLUTION == "dwi":
-                y = np.reshape(y, (144, 144, 144))
-            elif HP.RESOLUTION == "dwi_sm":
-                y = np.reshape(y, (80, 80, 80))
-
-        if HP.RESOLUTION == "dwi":
-            img_seg = ImgUtils.pad_3d_image(segmentation, np.array([2, 30, 2]), pad_value=0)      # (146, 174, 146)
-            img_y = ImgUtils.pad_3d_image(y, np.array([2, 30, 2]), pad_value=0)          # (146, 174, 146)
-        elif HP.RESOLUTION == "dwi_sm":
-            img_seg = ImgUtils.pad_3d_image(segmentation, np.array([10, 28, 10]), pad_value=0)    # (146, 174, 146)
-            img_y = ImgUtils.pad_3d_image(y, np.array([10, 28, 10]), pad_value=0)        # (146, 174, 146)
-
-        img_seg = img_seg.astype(np.float32)
-        img_y = img_y.astype(np.float32)
-
-        print("img_seg final: ", img_seg.shape)
-        print("img_y final: ", img_y.shape)
-        return img_seg, img_y

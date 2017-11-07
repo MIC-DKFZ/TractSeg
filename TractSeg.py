@@ -4,6 +4,7 @@ import numpy as np
 from libs.Config import Config as C
 from libs.ExpUtils import ExpUtils
 from libs.Mrtrix import Mrtrix
+from ExpRunner import ExpRunner
 
 import warnings
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
@@ -73,13 +74,15 @@ class HP:
     NORMALIZE_DATA = True
     BEST_EPOCH = 0
     INPUT_DIM = (144, 144)
+    OUTPUT_MULTIPLE_FILES = False
+    VERBOSE = True
 
 parser = argparse.ArgumentParser(description="Process some integers.",
                                     epilog="Written by Jakob Wasserthal. Please reference TODO")
 #todo: make input optional -> if no input => expert training mode
 parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)")
 #https://stackoverflow.com/questions/20048048/argparse-default-option-based-on-another-option
-parser.add_argument("-o", metavar="filename", dest="output", help="Output segmentation file")
+parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
 parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is './bvals'")
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is './bvecs'")
@@ -90,17 +93,21 @@ parser.add_argument("--probs", action="store_true", help="Create probmap segment
 parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net", default=False)   #todo: better API
 parser.add_argument("--en", metavar="name", help="Experiment name")
 parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int, default=0)
+parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True) #todo: set default to false
 parser.add_argument('--version', action='version', version='TractQuerier 1.0')
+#todo: optionally supply brain mask (must have same dimensions as dwi)
 args = parser.parse_args()
 
 HP.PREDICT_IMG = args.input is not None
 HP.TRAIN = args.train
 HP.TEST = args.test
-HP.seg = args.seg
-HP.probs = args.probs
-HP.lw = args.lw
-HP.en = args.en
-HP.fold = args.fold
+HP.SEGMENT = args.seg
+HP.GET_PROBS = args.probs
+HP.LOAD_WEIGHTS = args.lw
+HP.EXP_NAME = args.en
+HP.CV_FOLD= args.fold
+HP.OUTPUT_MULTIPLE_FILES = args.output_multiple_files
+HP.VERBOSE = args.verbose
 
 HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
 HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
@@ -109,18 +116,19 @@ HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
 if HP.WEIGHTS_PATH == "":
     HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
 
-
+HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
+EXP_NAME_ORIG = HP.EXP_NAME  # store beginning of exp_name for multi_bundle experiments
 
 if HP.PREDICT_IMG:
     print("Segmenting bundles...")
     Mrtrix.create_brain_mask(args.input)
     Mrtrix.create_fods(args.input)
 
-    #todo: run Experiment Runner
-    # python ~/dev/dl-tracking/ExpRunner.py --train=False --test=False --lw=True \
-    # --en=HCP_fold0\
-    # --predict_img=peaks.nii.gz \
-    # --predict_img_out=bundle_segmentation.nii.gz
+    HP.PREDICT_IMG = "peaks.nii.gz"
+    HP.PREDICT_IMG_OUT = "bundle_segmentation.nii.gz"
+    HP.LOAD_WEIGHTS = True
+    ExpRunner.predict_img(HP)
 else:
-    #todo train
-    a = 0
+    print("Hyperparameters:")
+    ExpUtils.print_HPs(HP)
+    ExpRunner.experiment(HP)
