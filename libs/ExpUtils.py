@@ -6,7 +6,6 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(ins
 if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
 
 import sys
-import getopt
 import os
 import re
 from os.path import join
@@ -19,7 +18,7 @@ import glob
 import copy
 
 import matplotlib
-matplotlib.use('Agg') #maybe solves error I get with ssh after a while => schein das Problem gelöst zu haben
+matplotlib.use('Agg') #Solves error with ssh and plotting
 
 #https://www.quora.com/If-a-Python-program-already-has-numerous-matplotlib-plot-functions-what-is-the-quickest-way-to-convert-them-all-to-a-way-where-all-the-plots-can-be-produced-as-hard-images-with-minimal-modification-of-code
 import matplotlib.pyplot as plt
@@ -161,11 +160,6 @@ class ExpUtils:
         :return:
         '''
 
-        #For Dev
-        # train, validate, test = [0, 1, 2, 3, 4, 5, 6, 7], [8], [9]
-        # train, validate, test = [0, 1, 2, 3, 4, 5], [8], [9]  #HCP80
-        # train, validate, test = [0, 1, 2], [8], [9]     #HCP50
-
         #For CV
         if fold == 0:
             train, validate, test = [0, 1, 2], [3], [4]
@@ -181,7 +175,6 @@ class ExpUtils:
         # subjects = list(Utils.chunks(get_all_subjects()[:100], 10))   #10 folds
         subjects = list(Utils.chunks(get_all_subjects(), 21))   #5 folds a 21 subjects
         # => 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
-        #       -> and by selecting best epoch during CV we get +1% -> in the end same performance if 3 or 4 folds for training
 
         subjects = np.array(subjects)
         return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
@@ -199,12 +192,12 @@ class ExpUtils:
             print(text)
 
     @staticmethod
-    def XXX_create_exp_plot(metrics, path, exp_name, small=False, only_f1=False):
+    def XXX_create_exp_plot(metrics, path, exp_name, small=False):
         #tmp method to avoid matplotlib
-        a = 0
+        pass
 
     @staticmethod
-    def create_exp_plot(metrics, path, exp_name, small=False, only_f1=False):
+    def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
 
         min_loss_test = np.min(metrics["loss_validate"])
         min_loss_test_epoch_idx = np.argmin(metrics["loss_validate"])
@@ -234,7 +227,7 @@ class ExpUtils:
         box2 = ax2.get_position()
         ax2.set_position([box2.x0, box2.y0, box2.width * 0.95, box2.height])
 
-        if small:
+        if without_first_epochs:
             plt1, = ax.plot(range(5, len(metrics["loss_train"])), metrics["loss_train"][5:], "r:", label='loss train')
             plt2, = ax.plot(range(5, len(metrics["loss_validate"])), metrics["loss_validate"][5:], "r", label='loss val')
             plt3, = ax.plot(range(5, len(metrics["loss_test"])), metrics["loss_test"][5:], "r--", label='loss test')
@@ -248,27 +241,7 @@ class ExpUtils:
                        borderaxespad=0.,
                        bbox_to_anchor=(1.03, 1))  # wenn weiter von Achse weg soll: 1.05 -> 1.15
 
-            fig_name = "metrics_small.png"
-
-        elif only_f1:
-            plt1, = ax2.plot(range(5, len(metrics["f1_binary_train"])), metrics["f1_binary_train"][5:], "g:", label='f1_binary_train')
-            plt2, = ax2.plot(range(5, len(metrics["f1_binary_validate"])), metrics["f1_binary_validate"][5:], "g", label='f1_binary_val')
-            plt3, = ax2.plot(range(5, len(metrics["f1_binary_test"])), metrics["f1_binary_test"][5:], "g--", label='f1_binary_test')
-
-            plt4, = ax.plot(range(5, len(metrics["f1_micro_train"])), metrics["f1_micro_train"][5:], "k:", label='f1_micro_train')
-            plt5, = ax.plot(range(5, len(metrics["f1_micro_validate"])), metrics["f1_micro_validate"][5:], "k", label='f1_micro_val')
-            plt6, = ax.plot(range(5, len(metrics["f1_micro_test"])), metrics["f1_micro_test"][5:], "k--", label='f1_micro_test')
-
-            plt7, = ax2.plot(range(5, len(metrics["f1_macro_train"])), metrics["f1_macro_train"][5:], "b:", label='f1_macro_train')
-            plt8, = ax2.plot(range(5, len(metrics["f1_macro_validate"])), metrics["f1_macro_validate"][5:], "b", label='f1_macro_val')
-            plt9, = ax2.plot(range(5, len(metrics["f1_macro_test"])), metrics["f1_macro_test"][5:], "b--", label='f1_macro_test')
-
-            plt.legend(handles=[plt1, plt2, plt3, plt4, plt5, plt6, plt7, plt8, plt9],
-                       loc=2,
-                       borderaxespad=0.,
-                       bbox_to_anchor=(1.03, 1))
-
-            fig_name = "metrics_f1.png"
+            fig_name = "metrics.png"
 
         else:
             plt1, = ax.plot(metrics["loss_train"], "r:", label='loss train')
@@ -284,7 +257,7 @@ class ExpUtils:
                        borderaxespad=0.,
                        bbox_to_anchor=(1.03, 1))
 
-            fig_name = "metrics.png"
+            fig_name = "metrics_all.png"
 
 
         fig.text(0.12, 0.95, exp_name, size=12, weight="bold")

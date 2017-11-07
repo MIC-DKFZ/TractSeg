@@ -49,7 +49,6 @@ class DirectionMerger:
 
         probs_x, probs_y, probs_z = prob_slices
         new_shape = probs_x.shape + (1,)  # (146, 174, 146, 45)  -> (146, 174, 146, 45, 1)
-        # print("new shape: {}".format(new_shape))
         probs_x = np.reshape(probs_x, new_shape)
         probs_y = np.reshape(probs_y, new_shape)
         probs_z = np.reshape(probs_z, new_shape)

@@ -13,7 +13,6 @@ import pickle
 from pprint import pprint
 
 import numpy as np
-# import lasagne as L
 from libs.Utils import Utils
 from libs.ExpUtils import ExpUtils
 from libs.MetricUtils import MetricUtils
@@ -49,17 +48,7 @@ class Trainer:
         for type in ["train", "test", "validate"]:
             metrics_new = {
                 "loss_" + type: [0],
-                "acc_" + type: [0],
-                "f1_binary_" + type: [0],
-                "f1_samples_" + type: [0],
-                "f1_micro_" + type: [0],
                 "f1_macro_" + type: [0],
-                # "recall_" + type: [0],
-                # "precision_" + type: [0],
-                # "overlap_" + type: [0],
-                # "overreach_" + type: [0],
-                # "dice_" + type: [0],
-                # "dice_manual_" + type: [0],
             }
             metrics = dict(metrics.items() + metrics_new.items())
 
@@ -85,24 +74,21 @@ class Trainer:
                 print_loss = []
                 start_time_batch_gen = time.time()
 
-                # When switching this, also adapt NR_OF_GRADIENTS in UNet.py and get_batch() in get_seg_prediction()
                 batch_generator = self.dataManager.get_batches(batch_size=HP.BATCH_SIZE, shuffle=HP.SHUFFLE,
                                                                type=type, subjects=getattr(HP, type.upper() + "_SUBJECTS"))
-                # batch_generator = self.dataManager.get_batches_3D(batch_size=HP.BATCH_SIZE, shuffle=HP.SHUFFLE)
                 batch_gen_time = time.time() - start_time_batch_gen
                 # print("batch_gen_time: {}s".format(batch_gen_time))
 
                 print("Start looping batches...")
                 start_time_batch_part = time.time()
-                for batch in batch_generator: #getting next batch takes around 0.14s -> second largest Time part after UNet!
+                for batch in batch_generator:                   #getting next batch takes around 0.14s -> second largest Time part after UNet!
 
                     start_time_data_preparation = time.time()
                     batch_nr[type] += 1
 
                     x = batch["data"] # (bs, nr_of_channels, x, y)
                     y = batch["seg"]  # (bs, nr_of_classes, x, y)
-                    y = y.astype(HP.LABELS_TYPE)    #somehow since using new BatchGenerator y is not int anymore but float
-                    # y = np.reshape(y, (-1, y.shape[-1]))  # (bs*x*y, nr_of_classes)
+                    y = y.astype(HP.LABELS_TYPE)    #since using new BatchGenerator y is not int anymore but float -> would be good for Pytorch but not Lasagne
 
                     data_preparation_time += time.time() - start_time_data_preparation
                     # self.model.learning_rate.set_value(np.float32(current_lr))
@@ -115,16 +101,6 @@ class Trainer:
                     elif type == "test":
                         loss, probs, f1 = self.model.predict(x, y)
                     network_time += time.time() - start_time_network
-
-                    # For testing:
-                    # Transfer to one-hot encoding
-                    # y2 = np.zeros((y.shape[0], 2))
-                    # y2[np.arange(y.shape[0]), y] = 1
-                    # y2 = y2.astype(np.float32)
-                    # probs = y2
-
-                    # print(probs.shape)
-                    # print(probs[1000:1005])
 
                     start_time_metrics = time.time()
                     #Following two lines increase metrics_time by 30s (without < 1s)
@@ -170,7 +146,6 @@ class Trainer:
             metrics = MetricUtils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
             metrics = MetricUtils.normalize_last_element(metrics, batch_nr["test"], type="test")
 
-            # Prints
             print("  Epoch {}, Average Epoch loss = {}".format(epoch_nr, metrics["loss_train"][-1]))
             print("  Epoch {}, nr_of_updates {}".format(epoch_nr, nr_of_updates))
 
@@ -178,42 +153,22 @@ class Trainer:
             start_time_saving = time.time()
             if HP.SAVE_WEIGHTS and HP.FRAMEWORK == "Lasagne":
                 self.model.save_model(metrics, epoch_nr)
-                # max_f1_idx = np.argmax(metrics["f1_macro_validate"])
-                # max_f1 = np.max(metrics["f1_macro_validate"])
-                # if epoch_nr == max_f1_idx and max_f1 > 0.01:     #saving to network drives takes 5s (to local only 0.5s) -> do not save so often
-                #     print("  Saving weights...")
-                #     for fl in glob.glob(join(HP.EXP_PATH, "best_weights_ep*")): #remove weights from previous epochs
-                #         os.remove(fl)
-                #     try:
-                #         np.savez(join(HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), *L.layers.get_all_param_values(self.model.output))
-                #     except IOError:
-                #         print("\nERROR: Could not save weights because of IO Error\n")
-                #     HP.BEST_EPOCH = epoch_nr
             saving_time += time.time() - start_time_saving
 
             # Create Plots
             start_time_plotting = time.time()
             pickle.dump(metrics, open(join(HP.EXP_PATH, "metrics.pkl"), "wb")) # wb -> write (override) and binary (binary only needed on windows, on unix also works without) # for loading: pickle.load(open("metrics.pkl", "rb"))
             ExpUtils.create_exp_plot(metrics, HP.EXP_PATH, HP.EXP_NAME)
-            ExpUtils.create_exp_plot(metrics, HP.EXP_PATH, HP.EXP_NAME, small=True)
-            ExpUtils.create_exp_plot(metrics, HP.EXP_PATH, HP.EXP_NAME, only_f1=True)
+            ExpUtils.create_exp_plot(metrics, HP.EXP_PATH, HP.EXP_NAME, without_first_epochs=True)
             plotting_time += time.time() - start_time_plotting
 
             epoch_time = time.time() - start_time
             epoch_times.append(epoch_time)
 
-            # print("  Epoch {}, time total {}s".format(epoch_nr, epoch_time))
-            # # print("  Epoch {}, time data preparation: {}s".format(epoch_nr, data_preparation_time))
-            # print("  Epoch {}, time UNet: {}s".format(epoch_nr, network_time))
-            # print("  Epoch {}, time metrics: {}s".format(epoch_nr, metrics_time))
-            # print("  Epoch {}, time saving files: {}s".format(epoch_nr, saving_time))
-            # # print("  Epoch {}, time plots: {}s".format(epoch_nr, plotting_time))  # < 1s (also on network drive)
-
             ExpUtils.print_and_save(HP, "  Epoch {}, time total {}s".format(epoch_nr, epoch_time))
             ExpUtils.print_and_save(HP, "  Epoch {}, time UNet: {}s".format(epoch_nr, network_time))
             ExpUtils.print_and_save(HP, "  Epoch {}, time metrics: {}s".format(epoch_nr, metrics_time))
             ExpUtils.print_and_save(HP, "  Epoch {}, time saving files: {}s".format(epoch_nr, saving_time))
-
 
             # Adding next Epoch
             if epoch_nr < HP.NUM_EPOCHS-1:

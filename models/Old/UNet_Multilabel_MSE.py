@@ -24,7 +24,7 @@ class UNet_Multilabel_MSE(BaseModel):
 
     @staticmethod
     def get_UNet(n_input_channels=1, BATCH_SIZE=None, num_output_classes=2, pad='same', nonlinearity=L.nonlinearities.rectify,
-                   input_dim=(128, 128), base_n_filters=128, do_dropout=False):
+                   input_dim=(128, 128), base_n_filters=128):
 
         net = OrderedDict()
         net['input'] = InputLayer((BATCH_SIZE, n_input_channels, input_dim[0], input_dim[1]))
@@ -44,8 +44,8 @@ class UNet_Multilabel_MSE(BaseModel):
         net['contr_4_1'] = ConvLayer(net['pool3'], base_n_filters * 8, 3, nonlinearity=nonlinearity, pad=pad)
         net['contr_4_2'] = ConvLayer(net['contr_4_1'], base_n_filters * 8, 3, nonlinearity=nonlinearity, pad=pad)
         l = net['pool4'] = Pool2DLayer(net['contr_4_2'], 2)
+
         # the paper does not really describe where and how dropout is added. Feel free to try more options
-        # if do_dropout:
         l = DropoutLayer(l, p=0.4)
 
         net['encode_1'] = ConvLayer(l, base_n_filters * 16, 3, nonlinearity=nonlinearity, pad=pad)
@@ -76,20 +76,9 @@ class UNet_Multilabel_MSE(BaseModel):
         net['dimshuffle'] = DimshuffleLayer(net['final_layer'], (1, 0, 2, 3))  # (nrClasses, bs, x, y)
         net['reshapeSeg'] = ReshapeLayer(net['dimshuffle'], (num_output_classes, -1))  # (nrClasses, bs*x*y)
         net['dimshuffle2'] = DimshuffleLayer(net['reshapeSeg'], (1, 0))  # (bs*x*y, nrClasses)
-        # net['output_flat'] = NonlinearityLayer(net['dimshuffle2'], nonlinearity=L.nonlinearities.sigmoid)  # (bs*x*y, nrClasses)
         net['output_flat'] = NonlinearityLayer(net['dimshuffle2'], nonlinearity=L.nonlinearities.linear)  # (bs*x*y, nrClasses)
         img_shape = net["final_layer"].output_shape
         net['output'] = ReshapeLayer(net['output_flat'], (-1, img_shape[2], img_shape[3], img_shape[1]))  # (bs, x, y, nrClasses)
-        # net['output_for_dice'] = DimshuffleLayer(net['output'], (0, 3, 1, 2))  # (bs, nrClasses, x, y)
-
-        #Network ending form Paul:
-        # net['dimshuffle3'] = DimshuffleLayer(net['output_flattened'], (1, 0))
-        # target_shape = list(net['dimshuffle'].output_shape)
-        # target_shape[1] = -1
-        # target_shape = tuple(target_shape)
-        # net['reshapeSeg2'] = ReshapeLayer(net['dimshuffle3'], target_shape)
-        # net['dimshuffle4'] = DimshuffleLayer(net['reshapeSeg2'], (1, 0, 2, 3))
-        # net['array_output'] = net['dimshuffle4']
 
         return net
 
@@ -135,10 +124,9 @@ class UNet_Multilabel_MSE(BaseModel):
         y_sym_flat = y_sym.dimshuffle((0, 2, 3, 1))  # (bs, x, y, nr_of_classes)
         y_sym_flat = y_sym_flat.reshape((-1, y_sym_flat.shape[3]))  # (bs*x*y, nr_of_classes)
 
-        # add some weight decay -> ???
+        # add some weight decay
         # l2_loss = L.regularization.regularize_network_params(output_layer_for_loss, L.regularization.l2) * 1e-5
 
-        # the distinction between prediction_train and test is important only if we enable dropout
         ##Train
         prediction_train = L.layers.get_output(output_layer_for_loss, X_sym, deterministic=False)
         loss_vec_train = L.objectives.squared_error(prediction_train, y_sym_flat)
@@ -178,14 +166,12 @@ class UNet_Multilabel_MSE(BaseModel):
 
         train_fn = theano.function([X_sym, y_sym, w_sym], [loss_train, prediction_train, f1_train], updates=updates) #prediction_TEST, weil hier auch nicht Dropout will bei Score??
         predict_fn = theano.function([X_sym, y_sym, w_sym], [loss_test, prediction_test, f1_test])
-        get_probs_flat = theano.function([X_sym], prediction_test) # we need this for calculating the AUC score
         get_probs = theano.function([X_sym], output)
 
         #Exporting variables
         self.learning_rate = learning_rate
         self.train = train_fn
         self.predict = predict_fn
-        self.get_probs_flat = get_probs_flat    # (bs*x*y, nrClasses)
         self.get_probs = get_probs    # (bs, x, y, nrClasses)
         self.net = net
         self.output = output_layer_for_loss     # this is used for saving weights (could probably also be simplified)

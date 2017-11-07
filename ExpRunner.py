@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import importlib
 import pickle
-import sys
 import time
 from os.path import join
 from pprint import pprint
 import nibabel as nib
 import numpy as np
-from libs.Config import Config as C
 from libs.ExpUtils import ExpUtils
 from libs.ImgUtils import ImgUtils
 from libs.MetricUtils import MetricUtils
@@ -18,11 +15,6 @@ from libs.Trainer import Trainer
 from libs.DatasetUtils import DatasetUtils
 from libs.DirectionMerger import DirectionMerger
 
-
-'''
-Adapt for Predict by file:
-- search for "Adapt for PredictByFile" -> 2 places
-'''
 
 '''
 Adapt for Fusion Training:
@@ -38,7 +30,6 @@ Adapt for 32g_25mm prediction:
 - FEATURES_FILENAME=32g_25mm_peaks
 - 32g_25mm_peaks not available on new Cluster at the moment
 '''
-
 
 class ExpRunner():
 
@@ -56,10 +47,6 @@ class ExpRunner():
             # Metrics traditional
             metrics = {
                 "loss_" + type: [0],
-                "acc_" + type: [0],
-                "f1_binary_" + type: [0],
-                "f1_samples_" + type: [0],
-                "f1_micro_" + type: [0],
                 "f1_macro_" + type: [0],
             }
 

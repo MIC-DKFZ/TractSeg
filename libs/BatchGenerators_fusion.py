@@ -18,9 +18,7 @@ from libs.DatasetUtils import DatasetUtils
 
 '''
 Info:
-Dimensions order for DeepLearningBatchGenerator:
-
-(batch_size, channels, x, y, [z])
+Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
 '''
 
 class SlicesBatchGeneratorNpyImg_fusion(BatchGeneratorBase):

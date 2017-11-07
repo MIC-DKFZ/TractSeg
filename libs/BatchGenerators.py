@@ -18,14 +18,12 @@ from libs.DatasetUtils import DatasetUtils
 
 '''
 Info:
-Dimensions order for DeepLearningBatchGenerator:
-
-(batch_size, channels, x, y, [z])
+Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
 '''
 
 class SlicesBatchGenerator(BatchGeneratorBase):
     '''
-    Returns 2D slices (x direction) from data in ordered way.
+    Returns 2D slices in ordered way.
     '''
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
@@ -78,7 +76,7 @@ class SlicesBatchGenerator(BatchGeneratorBase):
 
 class SlicesBatchGeneratorRandom(BatchGeneratorBase):
     '''
-    Randomly sample 2D slices from list of 2D slices. (no SLICE_DIRECTION possible)
+    Randomly sample 2D slices from list of 2D slices.
 
     About 1.6-2s per 54-batch 45 bundles 1.25mm.
     ( a bit faster than SlicesBatchGeneratorRandomNiftiImg but not much)
@@ -114,7 +112,6 @@ class SlicesBatchGeneratorRandomNiftiImg(BatchGeneratorBase):
         self.HP = None
 
     def generate_train_batch(self):
-
         subjects = self._data[0]
         subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
 
@@ -123,7 +120,6 @@ class SlicesBatchGeneratorRandomNiftiImg(BatchGeneratorBase):
             data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
         else:
             data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
-
         seg = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
 
         data = np.nan_to_num(data)    # Needed otherwise not working
@@ -136,8 +132,7 @@ class SlicesBatchGeneratorRandomNiftiImg(BatchGeneratorBase):
         else:
             seg = DatasetUtils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
 
-
-        slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)  # todo: try replace=True
+        slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
 
         # Randomly sample slice orientation
         slice_direction = int(round(random.uniform(0,2)))
@@ -157,55 +152,6 @@ class SlicesBatchGeneratorRandomNiftiImg(BatchGeneratorBase):
             y = seg[:, :, slice_idxs].astype(self.HP.LABELS_TYPE)
             x = np.array(x).transpose(2, 3, 0, 1)
             y = np.array(y).transpose(2, 3, 0, 1)
-
-        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
-                     "seg": y}      # (batch_size, channels, x, y, [z])
-        return data_dict
-
-'''
-OLD
-'''
-class SlicesBatchGeneratorRandom3DImgNpy(BatchGeneratorBase):
-    '''
-    Randomly sample 2D slices from list of 3D images.
-
-    This needs 2-3x as long as loading from one big npy file.
-
-    #Important: Expects square images as input  (because randomly chooses 2D orientation / slice direction)
-
-    About 4s per 54-batch 75 bundles 1.25mm. (and some very random long outliers sometimes)
-    '''
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-        self.HP = None
-
-    def generate_train_batch(self):
-        nr_subjects = len(self._data[0])
-        nr_slices_per_image = self._data[0][0].shape[0]
-
-        subject_idxs = np.random.choice(nr_subjects, self.BATCH_SIZE, True, None)
-        slice_idxs = np.random.choice(nr_slices_per_image, self.BATCH_SIZE, False, None)
-
-        x = []
-        y = []
-
-        # Randomly sample slice orientation
-        slice_direction = int(round(random.uniform(0,2)))
-        for i, subject_idx in enumerate(subject_idxs):
-            if slice_direction == 0:
-                x.append(np.array(self._data[0][subject_idx][slice_idxs[i], :, :]).astype(np.float32))
-                y.append(np.array(self._data[1][subject_idx][slice_idxs[i], :, :]).astype(self.HP.LABELS_TYPE))
-            elif slice_direction == 1:
-                x.append(np.array(self._data[0][subject_idx][:, slice_idxs[i], :]).astype(np.float32))
-                y.append(np.array(self._data[1][subject_idx][:, slice_idxs[i], :]).astype(self.HP.LABELS_TYPE))
-            elif slice_direction == 2:
-                x.append(np.array(self._data[0][subject_idx][:, :, slice_idxs[i]]).astype(np.float32))
-                y.append(np.array(self._data[1][subject_idx][:, :, slice_idxs[i]]).astype(self.HP.LABELS_TYPE))
-
-        x = np.array(x).transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
-        y = np.array(y).transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-
-
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])

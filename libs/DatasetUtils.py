@@ -16,8 +16,6 @@ class DatasetUtils():
         '''
         Scale input image to right isotropic resolution and pad/cut image to make it square to fit UNet input shape
 
-        todo: implement Phantom
-
         :param img4d: (x, y, z, userdefined)  (userdefined could be gradients or classes)
         :param resolution: "1.25mm" / "2mm" / "2.5mm"     results in UNet input shape of (144,144,144) or (80,80,80)
         :return: img with dim 1mm: (144,144,144,none) or 2mm: (80,80,80,none) or 2.5mm: (80,80,80,none)
@@ -35,8 +33,6 @@ class DatasetUtils():
                 return img4d[1:, 15:159, 1:]  # (144,144,144)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '1.25mm' not supported for dataset 'TRACED'")
-                # elif dataset == "Phantom":
-                #     todo
 
         elif resolution == "2mm":
             if dataset == "HCP":  # (145,174,145)
@@ -50,8 +46,6 @@ class DatasetUtils():
                 return img4d[5:85, 14:94, 5:85, :]  # (80,80,80)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '2mm' not supported for dataset 'TRACED'")
-                # elif dataset == "Phantom":
-                #     todo
 
         elif resolution == "2.5mm":
             if dataset == "HCP":  # (145,174,145)
@@ -77,15 +71,11 @@ class DatasetUtils():
                 bg = bg + img4d[0, 0, 0, :]  # make bg have same value as bg from original img
                 bg[1:79, :, 3:78, :] = img4d[:, 7:87, :, :]
                 return bg  # (80,80,80)
-                # elif dataset == "Phantom":
-                #     todo
 
     @staticmethod
     def scale_input_to_world_shape(img4d, dataset, resolution="1.25mm"):
         '''
         Scale input image to original resolution and pad/cut image to make it original size
-
-        todo: implement Phantom
 
         :param img4d: (x, y, z, userdefined)  (userdefined could be gradients or classes)
         :param resolution: "1.25mm" / "2mm" / "2.5mm"
@@ -101,8 +91,6 @@ class DatasetUtils():
                 return ImgUtils.pad_4d_image_left(img4d, np.array([1,15,1,0]), [146,174,146,img4d.shape[3]], pad_value=0)  # (146, 174, 146, none)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '1.25mm' not supported for dataset 'TRACED'")
-                # elif dataset == "Phantom":
-                #     todo
 
         elif resolution == "2mm":
             if dataset == "HCP":  # (80,80,80)
@@ -113,8 +101,6 @@ class DatasetUtils():
                 return ImgUtils.pad_4d_image_left(img4d, np.array([5,14,5,0]), [90,108,90,img4d.shape[3]], pad_value=0)  # (90, 108, 90, none)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '2mm' not supported for dataset 'TRACED'")
-            # elif dataset == "Phantom":
-                #     todo
 
         elif resolution == "2.5mm":
             if dataset == "HCP":  # (80,80,80)
@@ -129,8 +115,6 @@ class DatasetUtils():
             elif dataset == "TRACED":  # (80,80,80)
                 img4d = ImgUtils.pad_4d_image_left(img4d, np.array([0,7,0,0]), [80,93,80,img4d.shape[3]],pad_value=0)  # (80,93,80,none)
                 return img4d[1:79, :, 3:78, :]  # (78,93,75,none)
-            # elif dataset == "Phantom":
-                #     todo
 
     @staticmethod
     def pad_and_scale_img_to_square_img(data, target_size=144):

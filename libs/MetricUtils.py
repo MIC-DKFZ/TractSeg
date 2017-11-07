@@ -149,29 +149,15 @@ class MetricUtils:
             class_probs[class_probs < threshold] = 0                      # bit slow
             pred_class = class_probs.astype(np.int16)     #is float32     #slow
 
-            y[y >= threshold] = 1   # 0.001               # bit slow
+            y[y >= threshold] = 1                         # bit slow
             y[y < threshold] = 0                          # bit slow
             y = y.astype(np.int16)    #is int16           #slow
 
-
         metrics["loss_"+type][-1] += loss
-        metrics["acc_"+type][-1] += 0
-
-        metrics["f1_binary_"+type][-1] += 0
-        metrics["f1_samples_"+type][-1] += 0    #f1_score(y, pred_class, average="samples")
-        metrics["f1_micro_"+type][-1] += 0      #f1_score(y, pred_class, average="micro")
-
-        # metrics["f1_macro_"+type][-1] += f1_score(y, pred_class, average="binary")
-        # metrics["f1_macro_"+type][-1] += f1_score(y, pred_class, average="macro")  #super slow
         if f1 is None:
-            score = MetricUtils.my_f1_score_macro(y, pred_class)
-            metrics["f1_macro_"+type][-1] += score
+            metrics["f1_macro_"+type][-1] += MetricUtils.my_f1_score_macro(y, pred_class)
         else:
             metrics["f1_macro_"+type][-1] += f1
-
-        # metrics["overlap_"+type][-1] += MetricUtils.calc_overlap(y, pred_class)
-        # metrics["overreach_"+type][-1] += MetricUtils.calc_overreach(y, pred_class)
-        # metrics["hausdorff_" + type][-1] += metric.binary.hd(y, pred_class)
 
         return metrics
 

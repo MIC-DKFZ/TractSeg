@@ -194,7 +194,7 @@ class UNet_Pytorch(BaseModel):
             NR_OF_GRADIENTS = 33
 
         net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
-        criterion = nn.BCEWithLogitsLoss()  # todo: use BCEWithLogitsLoss and remove sigmoid further up
+        criterion = nn.BCEWithLogitsLoss()
         optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
 
         if self.HP.LOAD_WEIGHTS:
@@ -204,6 +204,5 @@ class UNet_Pytorch(BaseModel):
         self.train = train
         self.predict = test
         self.get_probs = predict
-        self.get_probs_flat = -1
         self.save_model = save_model
         self.load_model = load_model
