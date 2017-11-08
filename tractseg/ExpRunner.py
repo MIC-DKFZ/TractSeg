@@ -18,17 +18,18 @@
 import importlib
 import pickle
 import time
-from os.path import join
 from pprint import pprint
+
 import nibabel as nib
 import numpy as np
-from libs.ExpUtils import ExpUtils
-from libs.ImgUtils import ImgUtils
-from libs.MetricUtils import MetricUtils
-from libs.Trainer import Trainer
-from libs.DatasetUtils import DatasetUtils
-from libs.DirectionMerger import DirectionMerger
+from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs.DirectionMerger import DirectionMerger
+from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs.MetricUtils import MetricUtils
+from os.path import join
 
+from tractseg.libs.Trainer import Trainer
 
 '''
 Adapt for Fusion Training:

@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='TractSeg',
         version='0.5',
@@ -8,6 +8,7 @@ setup(name='TractSeg',
         author_email='j.wasserthal@dkfz-heidelberg.de',
         python_requires='>=2.6, <3',
         license='Apache 2.0',
+        packages=find_packages(),
         #Torch/Lasagne has to be installed manually
         install_requires=[
             'numpy',

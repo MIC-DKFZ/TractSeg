@@ -15,23 +15,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import argparse
 import distutils.util
-from os.path import join
-import numpy as np
-from libs.Config import Config as C
-from libs.ExpUtils import ExpUtils
-from libs.Mrtrix import Mrtrix
-from ExpRunner import ExpRunner
 
+import numpy as np
+import os
 import warnings
+from os.path import join
+
+from tractseg.ExpRunner import ExpRunner
+from tractseg.libs.Config import Config as C
+from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs.Mrtrix import Mrtrix
+
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
 #Settings and Hyperparameters
 class HP:
     EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
-    EXP_NAME = "HCP_Pytorch_Mir"       # HCP_normAfter
+    EXP_NAME = "HCP_TEST"       # HCP_normAfter
     MODEL = "UNet_Pytorch"     # UNet_Lasagne / UNet_Pytorch
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
