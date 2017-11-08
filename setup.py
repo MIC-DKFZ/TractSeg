@@ -7,7 +7,7 @@ setup(name='batchgenerators',
         author='Jakob Wasserthal',
         author_email='j.wasserthal@dkfz-heidelberg.de',
         python_requires='>=2.6, <3',
-        license='MIT',
+        license='Apache 2.0',
         # packages=['batchgenerators', 'batchgenerators.augmentations', 'batchgenerators.generators',
         # 'batchgenerators.examples', 'batchgenerators.transforms', 'batchgenerators.dataloading'],
         requires=[
