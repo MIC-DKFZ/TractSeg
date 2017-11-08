@@ -8,8 +8,11 @@ setup(name='batchgenerators',
         author_email='j.wasserthal@dkfz-heidelberg.de',
         python_requires='>=2.6, <3',
         license='MIT',
-        packages=['batchgenerators', 'batchgenerators.augmentations', 'batchgenerators.generators',
-        'batchgenerators.examples', 'batchgenerators.transforms', 'batchgenerators.dataloading'],
+        # packages=['batchgenerators', 'batchgenerators.augmentations', 'batchgenerators.generators',
+        # 'batchgenerators.examples', 'batchgenerators.transforms', 'batchgenerators.dataloading'],
+        requires=[
+            'numpy(>=1.6)'
+        ],
         zip_safe=False,
         #Add pretrained Weights here ?
         # data_files=[('my_data', ['data/data_file'])],
@@ -19,6 +22,17 @@ setup(name='batchgenerators',
         #         'sample=sample:main',
         #     ],
         # },
+        classifiers=[
+            'Intended Audience :: Science/Research',
+            'Programming Language :: Python',
+            'Topic :: Scientific/Engineering',
+            'Operating System :: Unix',
+            'Operating System :: MacOS'
+            # 'Operating System :: Microsoft :: Windows',
+        ],
+        scripts=[
+            'TractSeg'
+        ],
 
       )
 
