@@ -1,17 +1,21 @@
 from setuptools import setup
 
-setup(name='batchgenerators',
-        version='1.0',
+setup(name='TractSeg',
+        version='0.5',
         description='Fast and accurate segmentation of white matter bundles',
         url='todo',
         author='Jakob Wasserthal',
         author_email='j.wasserthal@dkfz-heidelberg.de',
         python_requires='>=2.6, <3',
         license='Apache 2.0',
-        # packages=['batchgenerators', 'batchgenerators.augmentations', 'batchgenerators.generators',
-        # 'batchgenerators.examples', 'batchgenerators.transforms', 'batchgenerators.dataloading'],
-        requires=[
-            'numpy(>=1.6)'
+        #Torch/Lasagne has to be installed manually
+        install_requires=[
+            'numpy',
+            'nibabel',
+            'torch',
+            'matplotlib',
+            'sklearn',
+            'scipy'
         ],
         zip_safe=False,
         #Add pretrained Weights here ?
@@ -31,7 +35,7 @@ setup(name='batchgenerators',
             # 'Operating System :: Microsoft :: Windows',
         ],
         scripts=[
-            'TractSeg'
+            'TractSeg.py'   #todo: can we remove file ending?
         ],
 
       )

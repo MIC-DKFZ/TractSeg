@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from __future__ import division
 import os, sys, inspect
@@ -21,11 +22,11 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(ins
 if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
 
 import numpy as np
-from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import roc_auc_score
+# from sklearn.metrics import accuracy_score
+# from sklearn.metrics import recall_score
+# from sklearn.metrics import precision_score
+# from sklearn.metrics import roc_auc_score
 # from medpy import metric
 
 class MetricUtils:
