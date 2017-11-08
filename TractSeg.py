@@ -27,13 +27,14 @@ from tractseg.ExpRunner import ExpRunner
 from tractseg.libs.Config import Config as C
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.Mrtrix import Mrtrix
+from tractseg.libs.Utils import Utils
 
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
 #Settings and Hyperparameters
 class HP:
     EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
-    EXP_NAME = "HCP_TEST"       # HCP_normAfter
+    EXP_NAME = "HCP_Pytorch_Mir"       # HCP_normAfter
     MODEL = "UNet_Pytorch"     # UNet_Lasagne / UNet_Pytorch
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
@@ -67,7 +68,7 @@ class HP:
     OUTPUT_MULTIPLE_FILES = False
     TRACTSEG_DIR = "tractseg_output"
     KEEP_INTERMEDIATE_FILES = False
-    CSD_RESOLUTION = "HIGH"  # HIGH / LOW
+    CSD_RESOLUTION = "LOW"  # HIGH / LOW
 
     #Unimportant / rarly changed:
     LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
@@ -138,24 +139,25 @@ if HP.VERBOSE:
 
 if HP.PREDICT_IMG:
     print("Segmenting bundles...")
-    if args.bvals:
-        bvals = join(os.path.dirname(args.input), args.bvals)
-    else:
-        bvals = join(os.path.dirname(args.input), "Diffusion.bvals")  # todo: change default to "bvals"
-    if args.bvecs:
-        bvecs = join(os.path.dirname(args.input), args.bvecs)
-    else:
-        bvecs = join(os.path.dirname(args.input), "Diffusion.bvecs")  # todo: change default to "bvecs"
+
+    Utils.download_pretrained_weights()
+
+    bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
 
     ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
-    Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
-    Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
+    # Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
+    # Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
 
+    HP.TRAIN = False
+    HP.TEST = False
+    HP.SEGMENT = False
+    HP.GET_PROBS = False
     HP.LOAD_WEIGHTS = True
+    # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights.npz")
     if HP.WEIGHTS_PATH == "":
         HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)     # todo: set path to delivered pretrained weights
     ExpRunner.predict_img(HP)
-    Mrtrix.clean_up(HP)
+    # Mrtrix.clean_up(HP)
 else:
     if HP.WEIGHTS_PATH == "":
         HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)     # todo: set path to delivered pretrained weights

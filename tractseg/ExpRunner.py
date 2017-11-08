@@ -123,13 +123,7 @@ class ExpRunner():
             print("Loading best epoch: {}".format(HP.BEST_EPOCH))
             HP.WEIGHTS_PATH = HP.EXP_PATH + "/best_weights_ep" + str(HP.BEST_EPOCH) + ".npz"
             HP.LOAD_WEIGHTS = True
-            # model_test = ModelClass(HP) #takes long; has to recompile model
             trainer.model.load_model(join(HP.EXP_PATH, HP.WEIGHTS_PATH))
-            # print("Loading weights ... ({})".format(join(HP.EXP_PATH, HP.WEIGHTS_PATH)))
-            # with np.load(join(HP.EXP_PATH, HP.WEIGHTS_PATH)) as f:
-            #     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
-            # L.layers.set_all_param_values(trainer.model.output, param_values)
-
             model_test = trainer.model
         else:
             # Weight_path already set to best model (wenn reading program parameters) -> will be loaded automatically

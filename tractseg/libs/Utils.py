@@ -24,6 +24,8 @@ if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
 import numpy as np
 import cPickle
 import bz2
+import urllib
+from tractseg.libs.Config import Config as C
 
 class Utils:
 
@@ -175,3 +177,18 @@ class Utils:
         if print_usage:
             print("PID {} using {} GB".format(os.getpid(), gb))
         return gb
+
+    @staticmethod
+    def download_pretrained_weights():
+        weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
+        WEIGHTS_URL = "https://www.dropbox.com/s/fcge4dtlgevwbc3/best_weights_ep38.npz?dl=1"
+
+        if not os.path.exists(weights_path):
+            print("Downloading pretrained weights...")
+            if not os.path.exists(C.TRACT_SEG_HOME):
+                os.makedirs(C.TRACT_SEG_HOME)
+            urllib.urlretrieve(WEIGHTS_URL, weights_path)
+            print("Done")
+        # else:
+        #     print("Pretrained weights already downloaded")
+

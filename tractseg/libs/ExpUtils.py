@@ -106,6 +106,18 @@ class ExpUtils:
             return ""
 
     @staticmethod
+    def get_bvals_bvecs_path(args):
+        if args.bvals:
+            bvals = join(os.path.dirname(args.input), args.bvals)
+        else:
+            bvals = join(os.path.dirname(args.input), "Diffusion.bvals")  # todo: change default to "bvals"
+        if args.bvecs:
+            bvecs = join(os.path.dirname(args.input), args.bvecs)
+        else:
+            bvecs = join(os.path.dirname(args.input), "Diffusion.bvecs")  # todo: change default to "bvecs"
+        return bvals, bvecs
+
+    @staticmethod
     def get_bundle_names():
 
         #Comment with Indices:

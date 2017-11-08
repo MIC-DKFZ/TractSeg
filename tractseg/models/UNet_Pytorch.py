@@ -177,8 +177,8 @@ class UNet_Pytorch(BaseModel):
             return loss.data[0], outputs, f1
 
         def predict(X):
-            X = torch.from_numpy(X.astype(np.float32), volatile=True)
-            X = Variable(X.cuda())
+            X = torch.from_numpy(X.astype(np.float32))
+            X = Variable(X.cuda(), volatile=True)
             net.train(False)
             outputs = net(X)  # forward
             return outputs

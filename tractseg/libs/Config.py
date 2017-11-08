@@ -22,7 +22,7 @@ def get_config_file():
     '''
     Read variables in ~/.tractseg
     '''
-    with open(join(expanduser("~"), ".tractseg")) as f:
+    with open(join(expanduser("~"), ".tractseg", "config.txt")) as f:
         lines = f.readlines()
     paths = {l.strip().split("=")[0]:l.strip().split("=")[1] for l in lines}
     return paths
@@ -44,5 +44,7 @@ class Config:
         EXP_PATH = join(NETWORK_DRIVE, "hcp_exp_nodes")
     else:
         EXP_PATH = join(HOME, "hcp_exp")
+
+    TRACT_SEG_HOME = os.path.join(os.path.expanduser('~'), '.tractseg')
 
 
