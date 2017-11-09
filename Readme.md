@@ -6,8 +6,11 @@ More documentation will follow soon. Work in Progress.
 
 ## Install
 
-Pytorch: Conda install uses all CPU cores. Pip uninstall not.
- 
+### Install Prerequisites
+* [Pytorch](http://pytorch.org/) (if you do not have a GPU, install Pytorch via conda as this is fastest on CPU)
+* [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
+* [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask this is not needed)
+* BatchGenerator: see below
 ```
 git clone https://phabricator.mitk.org/source/dldabg.git
 cd dldabg
@@ -15,18 +18,20 @@ git checkout 0c01469
 pip install .
 ```
 
+### Install TractSeg
 ```
 pip install https://github.com/MIC-DKFZ/TractSeg/zipball/master
 ```
 
 ## Usage
-
+To segment the bundles on a Diffusion Nifti image run the following command. You can use the example image provided in this repository under 'examples'.  
 ```
 TractSeg.py -i Diffusion.nii.gz
 ```
-This create a 
-
-List of extracted bundles. The number shows the index of the bundle in the output file.
+This will create a folder 'tractseg_ouput' inside of the same directory as your input file. 
+This folder contains 'bundle_segmentations.nii.gz' which is a 4D Nifti image ('[x,y,z,bundle]'). 
+The fourth dimension contains the binary bundle segmentations. The following list shows the index of 
+each extracted bundle in the output file.
 ```
 0: Background
 1: AF_left         (Arcuate fascicle)
@@ -106,3 +111,16 @@ List of extracted bundles. The number shows the index of the bundle in the outpu
 ```
 
 ## Train your own model
+
+## If you have problems
+You can check if you installed Mrtrix correctly if you can run the following command on your terminal:
+```
+dwi2response -help
+```
+
+You can check if you installed FSL correctly if you can run the following command on your terminal:
+```
+bet -help
+```
+
+TractSeg uses these commands so they have to be available.
