@@ -23,10 +23,9 @@ import os
 import warnings
 from os.path import join
 
-from tractseg.ExpRunner import ExpRunner
+from ExpRunner import ExpRunner
 from tractseg.libs.Config import Config as C
 from tractseg.libs.ExpUtils import ExpUtils
-from tractseg.libs.Mrtrix import Mrtrix
 from tractseg.libs.Utils import Utils
 
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
