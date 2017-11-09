@@ -6,7 +6,8 @@ More documentation will follow soon. Work in Progress.
 
 ## Install
 
-
+Pytorch: Conda install uses all CPU cores. Pip uninstall not.
+ 
 ```
 git clone https://phabricator.mitk.org/source/dldabg.git
 cd dldabg

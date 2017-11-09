@@ -134,8 +134,8 @@ if HP.VERBOSE:
 if HP.TRAIN:
     HP.EXP_PATH = ExpUtils.create_experiment_folder(HP.EXP_NAME, HP.MULTI_PARENT_PATH, HP.TRAIN)
 
-DataManagerSingleSubjectById = getattr(importlib.import_module("libs." + "DataManagers"), "DataManagerSingleSubjectById")
-DataManagerTraining = getattr(importlib.import_module("libs." + "DataManagers"), "DataManagerTrainingNiftiImgs")
+DataManagerSingleSubjectById = getattr(importlib.import_module("tractseg.libs." + "DataManagers"), "DataManagerSingleSubjectById")
+DataManagerTraining = getattr(importlib.import_module("tractseg.libs." + "DataManagers"), "DataManagerTrainingNiftiImgs")
 
 def test_whole_subject(HP, model, subjects, type):
 
@@ -188,7 +188,7 @@ def test_whole_subject(HP, model, subjects, type):
 
 
 dataManager = DataManagerTraining(HP)
-ModelClass = getattr(importlib.import_module("models." + HP.MODEL), HP.MODEL)
+ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)
 model = ModelClass(HP)
 trainer = Trainer(model, dataManager)
 

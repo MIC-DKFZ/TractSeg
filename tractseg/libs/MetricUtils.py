@@ -17,16 +17,8 @@
 
 
 from __future__ import division
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 import numpy as np
 from sklearn.metrics import f1_score
-# from sklearn.metrics import accuracy_score
-# from sklearn.metrics import recall_score
-# from sklearn.metrics import precision_score
-# from sklearn.metrics import roc_auc_score
 # from medpy import metric
 
 class MetricUtils:

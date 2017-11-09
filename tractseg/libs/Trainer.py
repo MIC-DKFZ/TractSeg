@@ -15,22 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 from os.path import join
-import os
-import glob
 import time
 import pickle
 from pprint import pprint
 
 import numpy as np
-from libs.Utils import Utils
-from libs.ExpUtils import ExpUtils
-from libs.MetricUtils import MetricUtils
-from libs.ImgUtils import ImgUtils
+from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs.MetricUtils import MetricUtils
 from tractseg.libs.DatasetUtils import DatasetUtils
 import socket
 from tqdm import tqdm

@@ -15,21 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 import sys
 import os
 import re
 from os.path import join
-from libs.Config import Config as C
-from libs.Subjects import get_all_subjects
-from libs.Utils import Utils
 import numpy as np
 from pprint import pprint
 import glob
 import copy
+
+from tractseg.libs.Config import Config as C
+from tractseg.libs.Subjects import get_all_subjects
+from tractseg.libs.Utils import Utils
+
 
 import matplotlib
 matplotlib.use('Agg') #Solves error with ssh and plotting

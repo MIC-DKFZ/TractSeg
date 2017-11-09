@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, sys, inspect
-
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 import glob
 from os.path import join
 import numpy as np
@@ -26,9 +21,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 
-from libs.PytorchUtils import PytorchUtils
-from libs.ExpUtils import ExpUtils
-from models.BaseModel import BaseModel
+from tractseg.libs.PytorchUtils import PytorchUtils
+from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.models.BaseModel import BaseModel
 
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):

@@ -15,18 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
-import os
-import sys
-
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 import numpy as np
 import random
 from DeepLearningBatchGeneratorUtils.DataGeneratorBase import BatchGeneratorBase
 from os.path import join
-from libs.Config import Config as C
+from tractseg.libs.Config import Config as C
 
 '''
 Info:

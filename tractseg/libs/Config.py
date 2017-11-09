@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys, os, inspect
+import os
 from os.path import join
 from os.path import expanduser
-import getpass
-import socket
 
 def get_config_file():
     '''

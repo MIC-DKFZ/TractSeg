@@ -15,16 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
-
+import os, sys
 import numpy as np
 import cPickle
 import bz2
-import urllib
+import urllib2
 from tractseg.libs.Config import Config as C
 
 class Utils:
@@ -188,15 +183,12 @@ class Utils:
             if not os.path.exists(C.TRACT_SEG_HOME):
                 os.makedirs(C.TRACT_SEG_HOME)
 
+            #This results in an SSL Error on CentOS
             # urllib.urlretrieve(WEIGHTS_URL, weights_path)
 
-            import urllib2
-            f = urllib2.urlopen(WEIGHTS_URL)
-            data = f.read()
-            with open(weights_path, "wb") as imgfile:
-                imgfile.write(data)
+            data = urllib2.urlopen(WEIGHTS_URL).read()
+            with open(weights_path, "wb") as weight_file:
+                weight_file.write(data)
 
             print("Done")
-        # else:
-        #     print("Pretrained weights already downloaded")
 

@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 import lasagne
 import theano
 import theano.tensor as T
 from lasagne.layers.conv import BaseConvLayer
 from theano.tensor import nnet
-# from theano.tensor.nnet.abstract_conv import AbstractConv3d_gradInputs
 from lasagne import init
 from lasagne import nonlinearities
 from lasagne.utils import as_tuple
@@ -29,7 +24,7 @@ from lasagne.layers.conv import conv_input_length, conv_output_length
 import theano.tensor.signal.pool
 from lasagne.layers.pool import pool_output_length
 from lasagne.layers import Layer
-from libs.ExpUtils import ExpUtils
+from tractseg.libs.ExpUtils import ExpUtils
 
 class Conv3DLayer(BaseConvLayer):
     def __init__(self, incoming, num_filters, filter_size, stride=(1, 1, 1),

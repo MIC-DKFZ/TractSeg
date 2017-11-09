@@ -15,20 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 from os.path import expanduser, join, isfile
 import numpy as np
 import nibabel as nib
 import time
 import logging
-from libs.Utils import Utils
+from tractseg.libs.Utils import Utils
 from dipy.align.imwarp import SymmetricDiffeomorphicRegistration
 from dipy.align.metrics import CCMetric
 from dipy.align.imaffine import AffineMap
-from libs.Config import Config as C
+from tractseg.libs.Config import Config as C
 
 logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of output
 logging.getLogger().setLevel(logging.INFO)

@@ -14,7 +14,7 @@
 
 import sys
 import math
-from libs.Utils import Utils
+from tractseg.libs.Utils import Utils
 
 #All FINAL  (for Training)
 # (bad subjects removed: 994273, 937160, 885975, 788876, 713239)

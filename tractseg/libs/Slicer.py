@@ -12,22 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 from os.path import join
 import nibabel as nib
 import numpy as np
 from sklearn.utils import shuffle as sk_shuffle
 import scipy.ndimage
-from libs.ImgUtils import ImgUtils
-from libs.ExpUtils import ExpUtils
-from libs.Config import Config as C
-from libs.MetricUtils import MetricUtils
+from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs.Config import Config as C
+from tractseg.libs.MetricUtils import MetricUtils
 import time
 from tractseg.libs.DatasetUtils import DatasetUtils
-from libs.Subjects import get_all_subjects
+from tractseg.libs.Subjects import get_all_subjects
 
 np.random.seed(1337)
 

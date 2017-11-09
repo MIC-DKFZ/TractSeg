@@ -140,7 +140,7 @@ start_time = time.time()
 data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
 data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get_data(), target_size=144)
 
-ModelClass = getattr(importlib.import_module("models." + HP.MODEL), HP.MODEL)
+ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)
 model = ModelClass(HP)
 seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
 seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)

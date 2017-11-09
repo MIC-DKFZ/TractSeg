@@ -15,19 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 import numpy as np
 import nibabel as nib
-from libs.Utils import Utils
 from scipy import ndimage
 from os.path import join
-from libs.Config import Config as C
-from libs.ExpUtils import ExpUtils
-import scipy.ndimage
+from tractseg.libs.Config import Config as C
+from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs.Utils import Utils
 
 class ImgUtils:
     

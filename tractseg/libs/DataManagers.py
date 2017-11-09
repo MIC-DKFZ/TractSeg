@@ -15,31 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
-import os
-import sys
-
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 from os.path import join
 import nibabel as nib
-from libs.ImgUtils import ImgUtils
-from libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
-from libs.BatchGenerators import SlicesBatchGenerator
-from libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
-from libs.BatchGenerators_fusion import SlicesBatchGeneratorNpyImg_fusion
-from tractseg.libs.DatasetUtils import DatasetUtils
-from libs.Config import Config as C
-from libs.ExpUtils import ExpUtils
-from tractseg.libs.AugmentationGenerators import *
-
 from DeepLearningBatchGeneratorUtils.MultiThreadedGenerator import MultiThreadedGenerator
 from DeepLearningBatchGeneratorUtils.SpatialTransformGenerators import *
 from DeepLearningBatchGeneratorUtils.ResamplingAugmentationGenerators import linear_downsampling_generator_scipy
 from DeepLearningBatchGeneratorUtils.SampleNormalizationGenerators import zero_one_normalization_generator
 from DeepLearningBatchGeneratorUtils.ColorAugmentationGenerators import *
 from DeepLearningBatchGeneratorUtils.NoiseGenerators import gaussian_noise_generator
+
+from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
+from tractseg.libs.BatchGenerators import SlicesBatchGenerator
+from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
+from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorNpyImg_fusion
+from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs.Config import Config as C
+from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs.AugmentationGenerators import *
 
 np.random.seed(1337)  # for reproducibility
 

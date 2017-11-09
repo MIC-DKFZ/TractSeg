@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 from os.path import join
 import numpy as np
 from collections import OrderedDict
@@ -24,18 +20,17 @@ import glob
 from lasagne.layers import InputLayer, ConcatLayer, Pool2DLayer, ReshapeLayer, DimshuffleLayer, NonlinearityLayer, DropoutLayer, Upscale2DLayer
 # from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
 from lasagne.layers import Conv2DLayer as ConvLayer
-
 import theano
 import theano.tensor as T
 import lasagne as L
 
-from libs.Config import Config as C
-from models.BaseModel import BaseModel
-from libs.Layers import soft_dice_paul
-from libs.Layers import theano_f1_score
+from tractseg.libs.Config import Config as C
+from tractseg.models.BaseModel import BaseModel
+from tractseg.libs.Layers import soft_dice_paul
+from tractseg.libs.Layers import theano_f1_score
 # from libs.Layers import theano_f1_score_soft
-from libs.Layers import theano_binary_dice_per_instance_and_class
-from libs.ExpUtils import ExpUtils
+from tractseg.libs.Layers import theano_binary_dice_per_instance_and_class
+from tractseg.libs.ExpUtils import ExpUtils
 
 class UNet_Lasagne(BaseModel):
 

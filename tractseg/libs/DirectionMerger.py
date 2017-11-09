@@ -15,13 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
-import os
-import sys
-
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 import importlib
 import numpy as np
 
@@ -42,9 +35,9 @@ class DirectionMerger:
         from tractseg.libs.Trainer import Trainer
 
         if subject:
-            DataManagerSingleSubject = getattr(importlib.import_module("libs." + "DataManagers"), "DataManagerSingleSubjectById")
+            DataManagerSingleSubject = getattr(importlib.import_module("tractseg.libs." + "DataManagers"), "DataManagerSingleSubjectById")
         else:
-            DataManagerSingleSubject = getattr(importlib.import_module("libs." + "DataManagers"), "DataManagerSingleSubjectByFile")
+            DataManagerSingleSubject = getattr(importlib.import_module("tractseg.libs." + "DataManagers"), "DataManagerSingleSubjectByFile")
 
         prob_slices = []
         directions = ["x", "y", "z"]
