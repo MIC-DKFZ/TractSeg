@@ -22,10 +22,14 @@ def get_config_file():
     '''
     Read variables in ~/.tractseg
     '''
-    with open(join(expanduser("~"), ".tractseg", "config.txt")) as f:
-        lines = f.readlines()
-    paths = {l.strip().split("=")[0]:l.strip().split("=")[1] for l in lines}
-    return paths
+    path = join(expanduser("~"), ".tractseg", "config.txt")
+    if os.path.exists(path):
+        with open(path) as f:
+            lines = f.readlines()
+        paths = {l.strip().split("=")[0]:l.strip().split("=")[1] for l in lines}
+        return paths
+    else:
+        return {}
 
 class Config:
     paths = get_config_file()
