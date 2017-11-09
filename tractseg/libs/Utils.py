@@ -187,7 +187,15 @@ class Utils:
             print("Downloading pretrained weights (~140MB) ...")
             if not os.path.exists(C.TRACT_SEG_HOME):
                 os.makedirs(C.TRACT_SEG_HOME)
-            urllib.urlretrieve(WEIGHTS_URL, weights_path)
+
+            # urllib.urlretrieve(WEIGHTS_URL, weights_path)
+
+            import urllib2
+            f = urllib2.urlopen(WEIGHTS_URL)
+            data = f.read()
+            with open(weights_path, "wb") as imgfile:
+                imgfile.write(data)
+
             print("Done")
         # else:
         #     print("Pretrained weights already downloaded")
