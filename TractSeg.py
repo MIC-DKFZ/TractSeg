@@ -97,6 +97,10 @@ parser = argparse.ArgumentParser(description="Segment white matter bundles in a 
 parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)", required=True)
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
+parser.add_argument("--use_msmt_csd", action="store_true", help="Use mrtrix multi-shell multi-tissue CSD to generate peaks. " +
+                                                                "A little better results but also slower on high resolution data. Only works if " +
+                                                                "you have more than one shell of gradients. Otherwise standard mrtrix CSD on b=1000mm/s^2 is used. " +
+                                                                "If input image contains more shells all but b=1000mm/s^2 are discarded.", default=False)
 parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'Diffusion.bvals' in same directory as input")  #todo: change default
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs' in same directory as input")
 parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
@@ -114,6 +118,8 @@ elif HP.PREDICT_IMG:
 HP.OUTPUT_MULTIPLE_FILES = args.output_multiple_files
 HP.VERBOSE = args.verbose
 HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
+if args.use_msmt_csd:
+    HP.CSD_RESOLUTION = "HIGH"
 HP.TRAIN = False
 HP.TEST = False
 HP.SEGMENT = False

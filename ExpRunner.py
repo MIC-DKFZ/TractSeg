@@ -26,7 +26,6 @@ from os.path import join
 import nibabel as nib
 import numpy as np
 
-from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.DirectionMerger import DirectionMerger
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.ImgUtils import ImgUtils
@@ -45,9 +44,9 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
 #Settings and Hyperparameters
 class HP:
-    EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
-    EXP_NAME = "HCP_TEST"       # HCP_normAfter
-    MODEL = "UNet_Pytorch"     # UNet_Lasagne / UNet_Pytorch
+    EXP_MULTI_NAME = ""             #CV Parent Dir name # leave empty for Single Bundle Experiment
+    EXP_NAME = "HCP_TEST"           # HCP_normAfter
+    MODEL = "UNet_Pytorch"          # UNet_Lasagne / UNet_Pytorch
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8) - Mirror"
@@ -71,16 +70,10 @@ class HP:
     TRAIN_SUBJECTS = []
     TEST_SUBJECTS = []
     TRAIN = True
-    TEST = True  # python ExpRunner.py --train=False --seg=False --test=True --lw=True
+    TEST = True         # python ExpRunner.py --train=False --seg=False --test=True --lw=True
     SEGMENT = False
-    GET_PROBS = False  # python ExpRunner.py --train=False --seg=False --probs=True --lw=True
-
-    # PREDICT_IMG = False
-    # PREDICT_IMG_OUTPUT = None
+    GET_PROBS = False   # python ExpRunner.py --train=False --seg=False --probs=True --lw=True
     OUTPUT_MULTIPLE_FILES = False
-    # TRACTSEG_DIR = "tractseg_output"
-    # KEEP_INTERMEDIATE_FILES = False
-    # CSD_RESOLUTION = "LOW"  # HIGH / LOW
 
     #Unimportant / rarly changed:
     LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32

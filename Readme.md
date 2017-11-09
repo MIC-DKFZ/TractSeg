@@ -1,8 +1,14 @@
 # TractSeg
  
-Tool for fast and accurate white matter bundle segmentation. TODO: Link to Paper
+Tool for fast and accurate white matter bundle segmentation from Diffusion MRI.
 
+The tool works very good for HCP style data. For other MRI datasets it also works but results 
+will have lower quality.
+
+TODO: Link to Paper
+ 
 ## Install
+TractSeg only runs on Linux and OSX.
 
 ### Install Prerequisites
 * [Pytorch](http://pytorch.org/) (if you do not have a GPU, install Pytorch via conda as this is fastest on CPU)
@@ -15,7 +21,6 @@ cd dldabg
 git checkout 0c01469
 pip install .
 ```
-TractSeg only runs on Linux and OSX.
 
 ### Install TractSeg
 ```
@@ -23,7 +28,8 @@ pip install https://github.com/MIC-DKFZ/TractSeg/zipball/master
 ```
 
 ## Usage
-To segment the bundles on a Diffusion Nifti image run the following command. You can use the example image provided in this repository under 'examples'.  
+To segment the bundles on a Diffusion Nifti image run the following command. 
+You can use the example image provided in this repository under `examples`.  
 ```
 TractSeg -i Diffusion.nii.gz
 ```
@@ -114,17 +120,24 @@ each extracted bundle in the output file.
 Run `TractSeg -help` for more advanced options. For example you can specify your own `brain_mask`,
 `bvals` and `bvecs`.
 
+If you have multi-shell data and you do not need super fast runtime use `--use_msmt_csd` for slightly better results.
 
-## If you have problems
+
+## FAQ
+**My output segmentation does not look like any bundle at all**
+
+The input image must have the same "orientation" as the Human Connectome Project data. If the image 
+orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
+you are fine. Otherwise you might have to flip the sign of your gradients and/or image.
+
+
+**Did I install the prerequisites correct?**
+
 You can check if you installed Mrtrix correctly if you can run the following command on your terminal:
-```
-dwi2response -help
-```
+`dwi2response -help`
 
-You can check if you installed FSL correctly if you can run the following command on your terminal:
-```
-bet -help
-```
+You can check if you installed FSL correctly if you can run the following command on your terminal: 
+`bet -help`
 
 TractSeg uses these commands so they have to be available.
 
