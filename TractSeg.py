@@ -134,7 +134,7 @@ Utils.download_pretrained_weights()
 bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
-if HP.SKIP_PEAK_EXTRACTION:
+if not HP.SKIP_PEAK_EXTRACTION:
     Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
     Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
 
