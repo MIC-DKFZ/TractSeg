@@ -13,7 +13,6 @@ setup(name='TractSeg',
         install_requires=[
             'numpy',
             'nibabel',
-            'torch',
             'matplotlib',
             'sklearn',
             'scipy',
