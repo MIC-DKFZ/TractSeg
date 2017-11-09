@@ -181,10 +181,10 @@ class Utils:
     @staticmethod
     def download_pretrained_weights():
         weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
-        WEIGHTS_URL = "https://www.dropbox.com/s/fcge4dtlgevwbc3/best_weights_ep38.npz?dl=1"
+        WEIGHTS_URL = "https://www.dropbox.com/s/sg11layswzwwl8r/unet_weights.npz?dl=1"
 
         if not os.path.exists(weights_path):
-            print("Downloading pretrained weights...")
+            print("Downloading pretrained weights (~140MB) ...")
             if not os.path.exists(C.TRACT_SEG_HOME):
                 os.makedirs(C.TRACT_SEG_HOME)
             urllib.urlretrieve(WEIGHTS_URL, weights_path)

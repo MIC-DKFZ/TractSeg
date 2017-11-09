@@ -164,7 +164,9 @@ class UNet_Pytorch(BaseModel):
             loss.backward()  # backward
             optimizer.step()  # optimise
             f1 = PytorchUtils.f1_score_macro(y.data, outputs.data)
-            return loss.data[0], outputs, f1
+            # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            probs = None    #faster
+            return loss.data[0], probs, f1
 
         def test(X, y):
             X = torch.from_numpy(X.astype(np.float32))
@@ -174,14 +176,17 @@ class UNet_Pytorch(BaseModel):
             outputs = net(X)  # forward
             loss = criterion(outputs, y)
             f1 = PytorchUtils.f1_score_macro(y.data, outputs.data)
-            return loss.data[0], outputs, f1
+            # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            probs = None  # faster
+            return loss.data[0], probs, f1
 
         def predict(X):
             X = torch.from_numpy(X.astype(np.float32))
             X = Variable(X.cuda(), volatile=True)
             net.train(False)
             outputs = net(X)  # forward
-            return outputs
+            probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            return probs
 
         def save_model(metrics, epoch_nr):
             max_f1_idx = np.argmax(metrics["f1_macro_validate"])

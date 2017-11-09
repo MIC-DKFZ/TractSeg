@@ -109,6 +109,9 @@ parser.add_argument('--version', action='version', version='TractQuerier 1.0')
 #todo: optionally supply brain mask (must have same dimensions as dwi)
 args = parser.parse_args()
 
+#todo important: change
+args.input = "/mnt/jakob/E130-Personal/Wasserthal/data/SoftSigns/subject01/test/Diffusion.nii.gz"
+
 HP.PREDICT_IMG = args.input is not None
 
 if args.en:
@@ -134,7 +137,7 @@ HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
 HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
 
 if HP.VERBOSE:
-    print("Hyperparameters:")
+    print("Hyperparameters: 3")
     ExpUtils.print_HPs(HP)
 
 if HP.PREDICT_IMG:
@@ -153,9 +156,9 @@ if HP.PREDICT_IMG:
     HP.SEGMENT = False
     HP.GET_PROBS = False
     HP.LOAD_WEIGHTS = True
-    # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights.npz")
-    if HP.WEIGHTS_PATH == "":
-        HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)     # todo: set path to delivered pretrained weights
+    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights.npz")
+    # if HP.WEIGHTS_PATH == "":
+    #     HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)     # todo: set path to delivered pretrained weights
     ExpRunner.predict_img(HP)
     # Mrtrix.clean_up(HP)
 else:
