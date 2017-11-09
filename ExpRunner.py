@@ -99,7 +99,7 @@ class HP:
     INPUT_DIM = (144, 144)
     VERBOSE = True
 
-parser = argparse.ArgumentParser(description="Process some integers.",
+parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
                                     epilog="Written by Jakob Wasserthal. Please reference TODO")
 parser.add_argument("--train", metavar="True/False", help="Train network", type=distutils.util.strtobool, default=True)
 parser.add_argument("--test", metavar="True/False", help="Test network", type=distutils.util.strtobool, default=True)
@@ -109,7 +109,7 @@ parser.add_argument("--lw", action="store_true", help="Load weights of pretraine
 parser.add_argument("--en", metavar="name", help="Experiment name")
 parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int, default=0)
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True) #todo: set default to false
-parser.add_argument('--version', action='version', version='TractQuerier 1.0')
+parser.add_argument('--version', action='version', version='TractSeg 0.5')
 args = parser.parse_args()
 
 if args.en:

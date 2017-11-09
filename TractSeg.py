@@ -92,7 +92,7 @@ class HP:
     INPUT_DIM = (144, 144)
     VERBOSE = True
 
-parser = argparse.ArgumentParser(description="Process some integers.",
+parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
                                     epilog="Written by Jakob Wasserthal. Please reference TODO")
 parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)", required=True)
 #https://stackoverflow.com/questions/20048048/argparse-default-option-based-on-another-option
@@ -102,7 +102,7 @@ parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs'")
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True) #todo: set default to false
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
-parser.add_argument('--version', action='version', version='TractQuerier 1.0')
+parser.add_argument('--version', action='version', version='TractSeg 0.5')
 #todo: optionally supply brain mask (must have same dimensions as dwi)
 args = parser.parse_args()
 
