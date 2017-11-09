@@ -56,17 +56,16 @@ class HP:
     LEARNING_RATE = 0.002
     UNET_NR_FILT = 64
     LOAD_WEIGHTS = False
-    # WEIGHTS_PATH = join(C.EXP_PATH, "HCP100_45B_UNet_x_DM_lr002_slope2_dec992_ep800/best_weights_ep64.npz")    # Can be absolute path or relative like "exp_folder/weights.npz"
-    WEIGHTS_PATH = ""   # if empty string: autoloading the best_weights in get_best_weights_path()
+    WEIGHTS_PATH = ""
     TYPE = "single_direction"       # single_direction / combined
     CV_FOLD = 0
     VALIDATE_SUBJECTS = []
     TRAIN_SUBJECTS = []
     TEST_SUBJECTS = []
     TRAIN = True
-    TEST = True  # python ExpRunner.py --train=False --seg=False --test=True --lw=True
+    TEST = True
     SEGMENT = False
-    GET_PROBS = False  # python ExpRunner.py --train=False --seg=False --probs=True --lw=True
+    GET_PROBS = False
 
     PREDICT_IMG = False
     PREDICT_IMG_OUTPUT = None
@@ -75,11 +74,11 @@ class HP:
     KEEP_INTERMEDIATE_FILES = False
     CSD_RESOLUTION = "LOW"  # HIGH / LOW
 
-    #Unimportant / rarly changed:
+    #Rarly changed:
     LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
-    THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
+    THRESHOLD = 0.5         # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
-    SLICE_DIRECTION = "x"  #no effect at the moment     # x, y, z  (combined needs z)
+    SLICE_DIRECTION = "x"   #no effect at the moment     # x, y, z  (combined needs z)
     USE_VISLOGGER = False
     INFO = "74 BNew, DMNifti, newSplit, 90gAnd270g, NormBeforeDAug, Fusion: 32gAnd270g"
     SAVE_WEIGHTS = True
@@ -100,7 +99,7 @@ parser.add_argument("-o", metavar="directory", dest="output", help="Output direc
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
 parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'Diffusion.bvals'")  #todo: change default
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs'")
-parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False) #todo: set default to false
+parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 0.5')
 #todo: optionally supply brain mask (must have same dimensions as dwi)

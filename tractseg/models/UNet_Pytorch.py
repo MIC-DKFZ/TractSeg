@@ -53,11 +53,6 @@ class UNet(torch.nn.Module):
         self.in_channel = n_input_channels
         self.n_classes = n_classes
 
-        # todo:
-        # - besser ohne Bias?
-        # - besser mit Conv statt MaxPooling?
-        # - Add Dropout
-
         self.contr_1_1 = conv2d(n_input_channels, n_filt, bias=True)
         self.contr_1_2 = conv2d(n_filt, n_filt, bias=True)
         self.pool_1 = nn.MaxPool2d((2, 2))
