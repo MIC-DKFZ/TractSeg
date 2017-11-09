@@ -49,9 +49,9 @@ class Mrtrix():
             os.system("sh2peaks WM_FODs.mif peaks.nii.gz")
         else:   #LOW
             # CSD Tournier
-            os.system("dwi2response tournier " + input_file + " response.txt -mask nodif_brain_mask.nii.gz -fslgrad " + bvecs + " " + bvals + " -force")
-            os.system("dwi2fod csd " + input_file + " response.txt WM_FODs.mif -shell 1000 -mask nodif_brain_mask.nii.gz -fslgrad " + bvecs + " " + bvals + " -force")
-            os.system("sh2peaks WM_FODs.mif peaks.nii.gz -force")
+            os.system("dwi2response tournier " + input_file + " response.txt -mask nodif_brain_mask.nii.gz -fslgrad " + bvecs + " " + bvals + "")
+            os.system("dwi2fod csd " + input_file + " response.txt WM_FODs.mif -shell 1000 -mask nodif_brain_mask.nii.gz -fslgrad " + bvecs + " " + bvals + "")
+            os.system("sh2peaks WM_FODs.mif peaks.nii.gz")
 
     @staticmethod
     def clean_up(HP):

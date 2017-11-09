@@ -46,7 +46,7 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 #Settings and Hyperparameters
 class HP:
     EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
-    EXP_NAME = "HCP_Pytorch_Mir"       # HCP_normAfter
+    EXP_NAME = "HCP_TEST"       # HCP_normAfter
     MODEL = "UNet_Pytorch"     # UNet_Lasagne / UNet_Pytorch
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
