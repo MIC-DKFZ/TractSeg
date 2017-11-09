@@ -106,14 +106,22 @@ class ExpUtils:
     @staticmethod
     def get_bvals_bvecs_path(args):
         if args.bvals:
-            bvals = join(os.path.dirname(args.input), args.bvals)
+            bvals = args.bvals
         else:
             bvals = join(os.path.dirname(args.input), "Diffusion.bvals")  # todo: change default to "bvals"
         if args.bvecs:
-            bvecs = join(os.path.dirname(args.input), args.bvecs)
+            bvecs = args.bvecs
         else:
             bvecs = join(os.path.dirname(args.input), "Diffusion.bvecs")  # todo: change default to "bvecs"
         return bvals, bvecs
+
+    @staticmethod
+    def get_brain_mask_path(args):
+        if args.brain_mask:
+            brain_mask = args.brain_mask
+        else:
+            brain_mask = join(os.path.dirname(args.input), "nodif_brain_mask.nii.gz")
+        return brain_mask
 
     @staticmethod
     def get_bundle_names():

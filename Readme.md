@@ -1,8 +1,6 @@
 # TractSeg
  
-Tool for fast and accurate white matter bundle segmentation.
-
-More documentation will follow soon. Work in Progress.
+Tool for fast and accurate white matter bundle segmentation. TODO: Link to Paper
 
 ## Install
 
@@ -10,13 +8,14 @@ More documentation will follow soon. Work in Progress.
 * [Pytorch](http://pytorch.org/) (if you do not have a GPU, install Pytorch via conda as this is fastest on CPU)
 * [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask this is not needed)
-* BatchGenerator: see below
+* BatchGenerator: see below (TODO: install automatically from git in install_requires)
 ```
 git clone https://phabricator.mitk.org/source/dldabg.git
 cd dldabg
 git checkout 0c01469
 pip install .
 ```
+TractSeg only runs on Linux and OSX.
 
 ### Install TractSeg
 ```
@@ -26,10 +25,10 @@ pip install https://github.com/MIC-DKFZ/TractSeg/zipball/master
 ## Usage
 To segment the bundles on a Diffusion Nifti image run the following command. You can use the example image provided in this repository under 'examples'.  
 ```
-TractSeg.py -i Diffusion.nii.gz
+TractSeg -i Diffusion.nii.gz
 ```
-This will create a folder 'tractseg_ouput' inside of the same directory as your input file. 
-This folder contains 'bundle_segmentations.nii.gz' which is a 4D Nifti image ('[x,y,z,bundle]'). 
+This will create a folder `tractseg_ouput` inside of the same directory as your input file. 
+This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
 The fourth dimension contains the binary bundle segmentations. The following list shows the index of 
 each extracted bundle in the output file.
 ```
@@ -110,7 +109,11 @@ each extracted bundle in the output file.
 74: ST_OCC_right
 ```
 
-## Train your own model
+
+## Advanced Options
+Run `TractSeg -help` for more advanced options. For example you can specify your own `brain_mask`,
+`bvals` and `bvecs`.
+
 
 ## If you have problems
 You can check if you installed Mrtrix correctly if you can run the following command on your terminal:
@@ -124,3 +127,28 @@ bet -help
 ```
 
 TractSeg uses these commands so they have to be available.
+
+
+## Train your own model
+TractSeg uses a pretrained model. However, you can also train your own model on your own data.
+But be aware: This is more complicated than just running with the pretrained model. The following 
+guide is quite short and you might have problems following every step. Contact the author if
+you need help training your own model.
+
+1. The folder structure of your training data should be the following:
+```
+custom_path/HCP/subject_01/
+      '-> 270g_125mm_peaks.nii.gz   (mrtrix CSD peaks;  shape: [x,y,z,9])
+      '-> bundle_masks.nii.gz       (Reference bundle masks; shape: [x,y,z,nr_bundles])
+custom_path/HCP/subject_02/
+      ...
+```
+2. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory, e.g.
+`working_dir=custom_path`.
+3. Adapt `tractseg.libs.DatasetUtils.scale_input_to_unet_shape()` to scale your input data to the 
+UNet input size of `144x144`. This is not very convenient. Contact the author if you need help.
+4. Adapt `tractseg.libs.ExpUtils.get_bundle_names()` with the bundles you use in your reference data.
+4. Adapt `tractseg.libs.Subjects` with the list of your subject IDs.
+5. Run `ExpRunner --en my_experiment_name` 
+6. `custom_path/hcp_exp/my_experiment_name` contains the results
+

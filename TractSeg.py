@@ -95,19 +95,16 @@ class HP:
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
                                     epilog="Written by Jakob Wasserthal. Please reference TODO")
 parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)", required=True)
-#https://stackoverflow.com/questions/20048048/argparse-default-option-based-on-another-option
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
-parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'Diffusion.bvals'")  #todo: change default
-parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs'")
+parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'Diffusion.bvals' in same directory as input")  #todo: change default
+parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs' in same directory as input")
+parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
 parser.add_argument("--skip_peak_extraction", action="store_true", help="Do not calculate input peaks. You have to provide them yourself then.", default=False)
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 0.5')
-#todo: optionally supply brain mask (must have same dimensions as dwi)
 args = parser.parse_args()
-
-# args.input = "/mnt/jakob/E130-Personal/Wasserthal/data/SoftSigns/subject01/test/Diffusion.nii.gz"
 
 HP.PREDICT_IMG = args.input is not None
 if args.output:
@@ -128,15 +125,15 @@ if HP.VERBOSE:
     print("Hyperparameters:")
     ExpUtils.print_HPs(HP)
 
-print("Segmenting bundles...")
-
 Utils.download_pretrained_weights()
 bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
+brain_mask = ExpUtils.get_brain_mask_path(args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
 if not HP.SKIP_PEAK_EXTRACTION:
-    Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
-    Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
+    if not args.brain_mask:
+        Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
+    Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_RESOLUTION)
 
 start_time = time.time()
 data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
