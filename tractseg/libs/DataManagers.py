@@ -31,6 +31,7 @@ from libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
 from libs.BatchGenerators_fusion import SlicesBatchGeneratorNpyImg_fusion
 from tractseg.libs.DatasetUtils import DatasetUtils
 from libs.Config import Config as C
+from libs.ExpUtils import ExpUtils
 from tractseg.libs.AugmentationGenerators import *
 
 from DeepLearningBatchGeneratorUtils.MultiThreadedGenerator import MultiThreadedGenerator
@@ -119,7 +120,7 @@ class DataManagerSingleSubjectByFile:
     def __init__(self, HP, data):
         self.data = data
         self.HP = HP
-        print("Loading data from PREDICT_IMG input file")
+        ExpUtils.print_verbose(self.HP, "Loading data from PREDICT_IMG input file")
 
     def get_batches(self, batch_size=1):
         data = np.nan_to_num(self.data)

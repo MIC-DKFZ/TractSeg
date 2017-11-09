@@ -19,7 +19,6 @@ if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
 
 import glob
 from os.path import join
-from models.BaseModel import BaseModel
 import numpy as np
 import torch
 import torch.nn as nn
@@ -28,6 +27,8 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 from libs.PytorchUtils import PytorchUtils
+from libs.ExpUtils import ExpUtils
+from models.BaseModel import BaseModel
 
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
@@ -230,7 +231,7 @@ class UNet_Pytorch(BaseModel):
         optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
 
         if self.HP.LOAD_WEIGHTS:
-            print("Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
+            ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
 
         self.train = train

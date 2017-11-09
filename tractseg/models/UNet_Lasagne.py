@@ -35,6 +35,7 @@ from libs.Layers import soft_dice_paul
 from libs.Layers import theano_f1_score
 # from libs.Layers import theano_f1_score_soft
 from libs.Layers import theano_binary_dice_per_instance_and_class
+from libs.ExpUtils import ExpUtils
 
 class UNet_Lasagne(BaseModel):
 
@@ -124,7 +125,7 @@ class UNet_Lasagne(BaseModel):
                 self.HP.BEST_EPOCH = epoch_nr
 
         def load_model(path):
-            print("Loading weights ... ({})".format(path))
+            ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(path))
             with np.load(path) as f: #if both pathes are absolute and beginning of pathes are the same, join will merge the beginning
                 param_values = [f['arr_%d' % i] for i in range(len(f.files))]
             L.layers.set_all_param_values(output_layer_for_loss, param_values)
@@ -150,10 +151,6 @@ class UNet_Lasagne(BaseModel):
         output_layer_for_loss = net["output_flat"]
 
         if self.HP.LOAD_WEIGHTS:
-            # print("Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
-            # with np.load(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)) as f: #if both pathes are absolute and beginning of pathes are the same, join will merge the beginning
-            #     param_values = [f['arr_%d' % i] for i in range(len(f.files))]
-            # L.layers.set_all_param_values(output_layer_for_loss, param_values)
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
 
 

@@ -100,7 +100,7 @@ parser.add_argument("-o", metavar="directory", dest="output", help="Output direc
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
 parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'Diffusion.bvals'")  #todo: change default
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs'")
-parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True) #todo: set default to false
+parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False) #todo: set default to false
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 0.5')
 #todo: optionally supply brain mask (must have same dimensions as dwi)
@@ -133,8 +133,8 @@ Utils.download_pretrained_weights()
 bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
-Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
-Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
+# Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
+# Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
 
 start_time = time.time()
 data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
@@ -154,4 +154,4 @@ else:
     img = nib.Nifti1Image(seg, data_img.get_affine())
     nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
 
-Mrtrix.clean_up(HP)
+# Mrtrix.clean_up(HP)

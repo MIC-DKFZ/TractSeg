@@ -41,31 +41,29 @@ class DirectionMerger:
         '''
         from tractseg.libs.Trainer import Trainer
 
-        #todo important: change
-        #Adapt for PredictByFile
-        # DataManagerSingleSubject = getattr(importlib.import_module("libs." + "DataManagers"), "DataManagerSingleSubjectById")
-        DataManagerSingleSubject = getattr(importlib.import_module("libs." + "DataManagers"), "DataManagerSingleSubjectByFile")
+        if subject:
+            DataManagerSingleSubject = getattr(importlib.import_module("libs." + "DataManagers"), "DataManagerSingleSubjectById")
+        else:
+            DataManagerSingleSubject = getattr(importlib.import_module("libs." + "DataManagers"), "DataManagerSingleSubjectByFile")
 
         prob_slices = []
         directions = ["x", "y", "z"]
-        # directions = ["x"]
-        for direction in directions:
+        for idx, direction in enumerate(directions):
             HP.SLICE_DIRECTION = direction
-            print("Using direction: " + HP.SLICE_DIRECTION)
+            print("Processing direction ({} of 3)".format(idx+1))
+            # print("Processing direction " + HP.SLICE_DIRECTION)
 
-            #todo important: change
-            # Adapt for PredictByFile
-            # dataManagerSingle = DataManagerSingleSubject(HP, subject=subject)
-            dataManagerSingle = DataManagerSingleSubject(HP, data=data)
+            if subject:
+                dataManagerSingle = DataManagerSingleSubject(HP, subject=subject)
+            else:
+                dataManagerSingle = DataManagerSingleSubject(HP, data=data)
 
             trainerSingle = Trainer(model, dataManagerSingle)
             img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=scale_to_world_shape)    # (x, y, z, nrClasses)
             prob_slices.append(img_probs)
-            # img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  # Flatten all dims except nrClasses dim
-            # img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
 
         probs_x, probs_y, probs_z = prob_slices
-        new_shape = probs_x.shape + (1,)  # (146, 174, 146, 45)  -> (146, 174, 146, 45, 1)
+        new_shape = probs_x.shape + (1,)  # (x, y, z, nr_classes)  -> (x, y, z, nr_classes, 1)
         probs_x = np.reshape(probs_x, new_shape)
         probs_y = np.reshape(probs_y, new_shape)
         probs_z = np.reshape(probs_z, new_shape)
@@ -79,7 +77,7 @@ class DirectionMerger:
         :param img: 5D Image with probability per direction, shape: (x, y, z, nr_classes, 3)
         :return: 4D image, shape (x, y, z, nr_classes)
         '''
-        print("Taking Mean")
+        # print("Taking Mean")
         probs_mean = img.mean(axis=4)
         if not probs:
             probs_mean[probs_mean >= threshold] = 1
@@ -89,11 +87,13 @@ class DirectionMerger:
 
     @staticmethod
     def majority_fusion(threshold, img, probs=None):
-        #Combine with Majority Voting
-        #  -> no so good because lose probability information (only binary afterwards)
-        #  -> with mean slightly better results (+0.002)
-        #  => Use mean
-        print("Majority Voting")
+        '''
+        Combine with Majority Voting
+          -> no so good because lose probability information (only binary afterwards)
+          -> with mean slightly better results (+0.002)
+          => Use mean
+        '''
+        # print("Majority Voting")
         img[img >= threshold] = 1
         img[img < threshold] = 0
         probs_combined = img.astype(np.int16)

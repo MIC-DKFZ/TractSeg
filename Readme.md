@@ -6,6 +6,19 @@ More documentation will follow soon. Work in Progress.
 
 ##Install
 
+
+```
+git clone https://phabricator.mitk.org/source/dldabg.git
+cd dldabg
+git checkout 0c01469
+pip install .
+```
+
 ```
 pip install https://github.com/MIC-DKFZ/TractSeg/zipball/master
 ```
+
+
+##Channel - Bundle association
+
+todo: which channel contains which bundle

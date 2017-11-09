@@ -33,6 +33,7 @@ from libs.MetricUtils import MetricUtils
 from libs.ImgUtils import ImgUtils
 from tractseg.libs.DatasetUtils import DatasetUtils
 import socket
+from tqdm import tqdm
 
 try:
     from vislogger import NumpyVisdomLogger as Nvl
@@ -215,11 +216,13 @@ class Trainer:
             layers_seg = []
             layers_y = []
             batch_generator = self.dataManager.get_batches(batch_size=1)
-            for batch in batch_generator:
-                x = batch["data"]  # (bs, nr_of_channels, x, y)
-                y = batch["seg"]  # (bs, x, y, nr_of_classes)
+            batch_generator = list(batch_generator)
+            for j in tqdm(range(len(batch_generator))):
+                batch = batch_generator[j]
+                x = batch["data"]   # (bs, nr_of_channels, x, y)
+                y = batch["seg"]    # (bs, x, y, nr_of_classes)
                 y = y.astype(HP.LABELS_TYPE)
-                y = np.squeeze(y) # remove bs dimension which is only 1 -> (x, y, nrClasses)
+                y = np.squeeze(y)   # remove bs dimension which is only 1 -> (x, y, nrClasses)
 
                 #For normal prediction
                 layer_probs = self.model.get_probs(x)  # (bs, x, y, nrClasses)
@@ -238,9 +241,8 @@ class Trainer:
                 # #layer_probs = np.std(samples, axis=0)    #use std
 
                 if probs:
-                    seg = layer_probs   # (144, 144, nrClasses)
+                    seg = layer_probs   # (x, y, nrClasses)
                 else:
-                    # seg = np.squeeze(seg)   # (1,80,80) -> (80,80) ??s
                     seg = layer_probs
                     seg[seg >= HP.THRESHOLD] = 1
                     seg[seg < HP.THRESHOLD] = 0
@@ -253,8 +255,8 @@ class Trainer:
 
         #Get in right order (x,y,z) and
         if HP.SLICE_DIRECTION == "x":
-            layers_seg = layers_seg.transpose(0, 1, 2, 3)   # (145, 144, 144)
-            layers_y = layers_y.transpose(0, 1, 2, 3)           # (145, 144, 144)
+            layers_seg = layers_seg.transpose(0, 1, 2, 3)
+            layers_y = layers_y.transpose(0, 1, 2, 3)
 
         elif HP.SLICE_DIRECTION == "y":
             layers_seg = layers_seg.transpose(1, 0, 2, 3)

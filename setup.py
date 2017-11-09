@@ -16,7 +16,8 @@ setup(name='TractSeg',
             'torch',
             'matplotlib',
             'sklearn',
-            'scipy'
+            'scipy',
+            'tqdm'
         ],
         zip_safe=False,
         classifiers=[
