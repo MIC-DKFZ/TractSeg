@@ -18,15 +18,21 @@
 import argparse
 import distutils.util
 
+import importlib
 import numpy as np
 import os
 import warnings
+import time
+import nibabel as nib
 from os.path import join
 
-from ExpRunner import ExpRunner
 from tractseg.libs.Config import Config as C
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.Utils import Utils
+from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs.DirectionMerger import DirectionMerger
+from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs.Mrtrix import Mrtrix
 
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
@@ -88,79 +94,64 @@ class HP:
 
 parser = argparse.ArgumentParser(description="Process some integers.",
                                     epilog="Written by Jakob Wasserthal. Please reference TODO")
-#todo: make input optional -> if no input => expert training mode
-parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)")
+parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)", required=True)
 #https://stackoverflow.com/questions/20048048/argparse-default-option-based-on-another-option
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
-parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'bvals'")
-parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'bvecs'")
-parser.add_argument("--train", metavar="True/False", help="Train network", type=distutils.util.strtobool, default=True)
-parser.add_argument("--test", metavar="True/False", help="Test network", type=distutils.util.strtobool, default=True)
-parser.add_argument("--seg", action="store_true", help="Create binary segmentation", default=False)   #todo: better API
-parser.add_argument("--probs", action="store_true", help="Create probmap segmentation", default=False)   #todo: better API
-parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net", default=False)   #todo: better API
-parser.add_argument("--en", metavar="name", help="Experiment name")
-parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int, default=0)
+parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'Diffusion.bvals'")  #todo: change default
+parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs'")
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True) #todo: set default to false
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
 parser.add_argument('--version', action='version', version='TractQuerier 1.0')
 #todo: optionally supply brain mask (must have same dimensions as dwi)
 args = parser.parse_args()
 
-#todo important: change
-args.input = "/mnt/jakob/E130-Personal/Wasserthal/data/SoftSigns/subject01/test/Diffusion.nii.gz"
+# args.input = "/mnt/jakob/E130-Personal/Wasserthal/data/SoftSigns/subject01/test/Diffusion.nii.gz"
 
 HP.PREDICT_IMG = args.input is not None
-
-if args.en:
-    HP.EXP_NAME = args.en
-
 if args.output:
     HP.PREDICT_IMG_OUTPUT = join(args.output, HP.TRACTSEG_DIR)
 elif HP.PREDICT_IMG:
     HP.PREDICT_IMG_OUTPUT = join(os.path.dirname(args.input), HP.TRACTSEG_DIR)
-
-HP.TRAIN = bool(args.train)
-HP.TEST = bool(args.test)
-HP.SEGMENT = args.seg
-HP.GET_PROBS = args.probs
-HP.LOAD_WEIGHTS = args.lw
-HP.CV_FOLD= args.fold
 HP.OUTPUT_MULTIPLE_FILES = args.output_multiple_files
 HP.VERBOSE = args.verbose
 HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
-
-HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
-HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
-HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
+HP.TRAIN = False
+HP.TEST = False
+HP.SEGMENT = False
+HP.GET_PROBS = False
+HP.LOAD_WEIGHTS = True
+HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights.npz")
 
 if HP.VERBOSE:
-    print("Hyperparameters: 3")
+    print("Hyperparameters:")
     ExpUtils.print_HPs(HP)
 
-if HP.PREDICT_IMG:
-    print("Segmenting bundles...")
+print("Segmenting bundles...")
 
-    Utils.download_pretrained_weights()
+Utils.download_pretrained_weights()
+bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
+ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
-    bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
+Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
+Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
 
-    ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
-    # Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
-    # Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, HP.CSD_RESOLUTION)
+start_time = time.time()
+data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
+data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get_data(), target_size=144)
 
-    HP.TRAIN = False
-    HP.TEST = False
-    HP.SEGMENT = False
-    HP.GET_PROBS = False
-    HP.LOAD_WEIGHTS = True
-    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights.npz")
-    # if HP.WEIGHTS_PATH == "":
-    #     HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)     # todo: set path to delivered pretrained weights
-    ExpRunner.predict_img(HP)
-    # Mrtrix.clean_up(HP)
+ModelClass = getattr(importlib.import_module("models." + HP.MODEL), HP.MODEL)
+model = ModelClass(HP)
+seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
+seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
+
+seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
+ExpUtils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
+
+if HP.OUTPUT_MULTIPLE_FILES:
+    ImgUtils.save_multilabel_img_as_multiple_files(seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
 else:
-    if HP.WEIGHTS_PATH == "":
-        HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)     # todo: set path to delivered pretrained weights
-    ExpRunner.experiment(HP)
+    img = nib.Nifti1Image(seg, data_img.get_affine())
+    nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
+
+Mrtrix.clean_up(HP)

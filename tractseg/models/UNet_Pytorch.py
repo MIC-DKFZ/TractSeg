@@ -156,7 +156,10 @@ class UNet_Pytorch(BaseModel):
         def train(X, y):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
-            X, y = Variable(X.cuda()), Variable(y.cuda())  # X: (bs, features, x, y)   y: (bs, classes, x, y)
+            if torch.cuda.is_available():
+                X, y = Variable(X.cuda()), Variable(y.cuda())  # X: (bs, features, x, y)   y: (bs, classes, x, y)
+            else:
+                X, y = Variable(X), Variable(y)
             optimizer.zero_grad()
             net.train()
             outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
@@ -171,7 +174,10 @@ class UNet_Pytorch(BaseModel):
         def test(X, y):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
-            X, y = Variable(X.cuda(), volatile=True), Variable(y.cuda(), volatile=True)
+            if torch.cuda.is_available():
+                X, y = Variable(X.cuda(), volatile=True), Variable(y.cuda(), volatile=True)
+            else:
+                X, y = Variable(X, volatile=True), Variable(y, volatile=True)
             net.train(False)
             outputs = net(X)  # forward
             loss = criterion(outputs, y)
@@ -182,7 +188,10 @@ class UNet_Pytorch(BaseModel):
 
         def predict(X):
             X = torch.from_numpy(X.astype(np.float32))
-            X = Variable(X.cuda(), volatile=True)
+            if torch.cuda.is_available():
+                X = Variable(X.cuda(), volatile=True)
+            else:
+                X = Variable(X, volatile=True)
             net.train(False)
             outputs = net(X)  # forward
             probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
@@ -213,7 +222,10 @@ class UNet_Pytorch(BaseModel):
         else:
             NR_OF_GRADIENTS = 33
 
-        net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
+        if torch.cuda.is_available():
+            net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
+        else:
+            net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
         criterion = nn.BCEWithLogitsLoss()
         optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
 

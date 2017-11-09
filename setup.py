@@ -27,7 +27,7 @@ setup(name='TractSeg',
             'Operating System :: MacOS'
         ],
         scripts=[
-            'TractSeg.py'   #todo: can we remove file ending?
+            'TractSeg.py', 'ExpRunner.py'   #todo: can we remove file ending?
         ],
       )
 
