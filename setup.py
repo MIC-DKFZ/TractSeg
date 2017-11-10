@@ -17,7 +17,7 @@ setup(name='TractSeg',
             'sklearn',
             'scipy',
             'tqdm',
-            'https://github.com/MIC-DKFZ/batchgenerators/zipball/master=0.17'
+            'https://github.com/MIC-DKFZ/batchgenerators/zipball/tractseg_stable'
         ],
         zip_safe=False,
         classifiers=[
@@ -28,7 +28,7 @@ setup(name='TractSeg',
             'Operating System :: MacOS'
         ],
         scripts=[
-            'TractSeg', 'ExpRunner'   #todo: can we remove file ending?
+            'bin/TractSeg', 'bin/ExpRunner'
         ],
       )
 
