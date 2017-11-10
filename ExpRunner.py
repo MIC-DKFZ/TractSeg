@@ -45,11 +45,11 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 #Settings and Hyperparameters
 class HP:
     EXP_MULTI_NAME = ""             #CV Parent Dir name # leave empty for Single Bundle Experiment
-    EXP_NAME = "HCP_TEST"           # HCP_normAfter
+    EXP_NAME = "HCP_Pytorch_TEST"           # HCP_normAfter
     MODEL = "UNet_Pytorch"          # UNet_Lasagne / UNet_Pytorch
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
-    DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8) - Mirror"
+    DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8)"
     DATASET = "HCP"  # HCP / HCP_32g
     RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
     FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz

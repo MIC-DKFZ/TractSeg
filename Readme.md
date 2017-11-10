@@ -8,7 +8,7 @@ will have lower quality.
 TODO: Link to Paper
  
 ## Install
-TractSeg only runs on Linux and OSX.
+TractSeg only runs on Linux and OSX. It uses Python 2.
 
 ### Install Prerequisites
 * [Pytorch](http://pytorch.org/) (if you do not have a GPU, install Pytorch via conda as this is fastest on CPU)

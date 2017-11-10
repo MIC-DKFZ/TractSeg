@@ -178,7 +178,7 @@ class DataManagerTrainingNiftiImgs:
                 batch_gen = gaussian_noise_generator(batch_gen, noise_variance=(0, 0.05))
                 batch_gen = brightness_augmentation_by_multiplication_generator(batch_gen, multiplier_range=(0.7, 1.3), per_channel=False)
 
-                batch_gen = mirror_axis_generator(batch_gen)
+                # batch_gen = mirror_axis_generator(batch_gen)
                 # batch_gen = gamma_augmentation_generator(batch_gen, gamma_range=(0.75, 1.5))  # produces Loss=NaN; maybe because data not in 0-1
 
 
