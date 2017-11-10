@@ -17,7 +17,11 @@ setup(name='TractSeg',
             'sklearn',
             'scipy',
             'tqdm',
-            'https://github.com/MIC-DKFZ/batchgenerators/zipball/tractseg_stable'
+            'batchgenerators==0.17'
+            # 'https://github.com/MIC-DKFZ/batchgenerators/zipball/tractseg_stable'
+        ],
+        dependency_links=[
+            'https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip#egg=batchgenerators-0.17'
         ],
         zip_safe=False,
         classifiers=[
