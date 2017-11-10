@@ -17,7 +17,8 @@
 
 import numpy as np
 import random
-from DeepLearningBatchGeneratorUtils.DataGeneratorBase import BatchGeneratorBase
+from batchgenerators.dataloading.data_loader import DataLoaderBase
+
 import nibabel as nib
 from os.path import join
 from tractseg.libs.Config import Config as C
@@ -28,7 +29,7 @@ Info:
 Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
 '''
 
-class SlicesBatchGenerator(BatchGeneratorBase):
+class SlicesBatchGenerator(DataLoaderBase):
     '''
     Returns 2D slices in ordered way.
     '''
@@ -81,7 +82,7 @@ class SlicesBatchGenerator(BatchGeneratorBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandom(BatchGeneratorBase):
+class SlicesBatchGeneratorRandom(DataLoaderBase):
     '''
     Randomly sample 2D slices from list of 2D slices.
 
@@ -107,7 +108,7 @@ class SlicesBatchGeneratorRandom(BatchGeneratorBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNiftiImg(BatchGeneratorBase):
+class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
     '''
     Randomly sample 2D slices from a .nii.gz image.
 
@@ -165,7 +166,7 @@ class SlicesBatchGeneratorRandomNiftiImg(BatchGeneratorBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNpyImg(BatchGeneratorBase):
+class SlicesBatchGeneratorRandomNpyImg(DataLoaderBase):
     '''
     Randomly sample 2D slices from a npy file for each subject.
 

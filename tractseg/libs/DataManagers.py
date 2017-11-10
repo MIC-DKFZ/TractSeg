@@ -17,12 +17,15 @@
 
 from os.path import join
 import nibabel as nib
-from DeepLearningBatchGeneratorUtils.MultiThreadedGenerator import MultiThreadedGenerator
-from DeepLearningBatchGeneratorUtils.SpatialTransformGenerators import *
-from DeepLearningBatchGeneratorUtils.ResamplingAugmentationGenerators import linear_downsampling_generator_scipy
-from DeepLearningBatchGeneratorUtils.SampleNormalizationGenerators import zero_one_normalization_generator
-from DeepLearningBatchGeneratorUtils.ColorAugmentationGenerators import *
-from DeepLearningBatchGeneratorUtils.NoiseGenerators import gaussian_noise_generator
+import numpy as np
+
+from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
+from batchgenerators.transforms.resample_transforms import ResampleTransform
+from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
+from batchgenerators.transforms.spatial_transforms import Mirror, SpatialTransform
+from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
+from batchgenerators.transforms.abstract_transforms import Compose
+from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
@@ -84,28 +87,30 @@ class DataManagerSingleSubjectById:
             batch_gen = SlicesBatchGenerator((data, seg), BATCH_SIZE=batch_size)
 
         batch_gen.HP = self.HP
+        tfs = []  # transforms
 
         if self.HP.NORMALIZE_DATA:
-            batch_gen = zero_one_normalization_generator(batch_gen)
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=True))
 
         if self.HP.TEST_TIME_DAUG:
             center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-            batch_gen = ultimate_transform_generator_v2(batch_gen, self.HP.INPUT_DIM,
-                                                        patch_center_dist_from_border=center_dist_from_border,
-                                                        do_elastic_deform=True, alpha=(90., 120.), sigma=(9., 11.),
-                                                        do_rotation=True, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
-                                                        angle_z=(-0.8, 0.8),
-                                                        do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
-                                                        border_cval_data=0,
-                                                        order_data=3,
-                                                        border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True)
-            # batch_gen = linear_downsampling_generator_scipy(batch_gen, zoom_range=(0.5, 1))
-            # batch_gen = gaussian_noise_generator(batch_gen, noise_variance=(0, 0.05))
-            batch_gen = contrast_augmentation_generator(batch_gen, contrast_range=(0.7, 1.3), per_channel=False)
-            batch_gen = brightness_augmentation_by_multiplication_generator(batch_gen, multiplier_range=(0.7, 1.3), per_channel=False)
+            tfs.append(SpatialTransform(self.HP.INPUT_DIM,
+                                        patch_center_dist_from_border=center_dist_from_border,
+                                        do_elastic_deform=True, alpha=(90., 120.), sigma=(9., 11.),
+                                        do_rotation=True, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
+                                        angle_z=(-0.8, 0.8),
+                                        do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
+                                        border_cval_data=0,
+                                        order_data=3,
+                                        border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
+            # tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
+            # tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
+            tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
+            tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
 
-        batch_gen = reorder_seg_generator(batch_gen)    #reorder seg so we can easily compute F1 manually
-        batch_gen = MultiThreadedGenerator(batch_gen, num_processes=num_processes, num_cached_per_queue=2) # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
+
+        tfs.append(ReorderSegTransform())
+        batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=2, seeds=None) # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
         return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)
 
 
@@ -123,13 +128,12 @@ class DataManagerSingleSubjectByFile:
         num_processes = 1  # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
         batch_gen = SlicesBatchGenerator((data, seg), BATCH_SIZE=batch_size)
         batch_gen.HP = self.HP
+        tfs = []  # transforms
 
         if self.HP.NORMALIZE_DATA:
-            batch_gen = zero_one_normalization_generator(batch_gen)
-        # batch_gen = linear_downsampling_generator(batch_gen, max_downsampling_factor=2, isotropic=True)
-        batch_gen = reorder_seg_generator(batch_gen)    #reorder seg so we can easily compute F1 manually
-
-        batch_gen = MultiThreadedGenerator(batch_gen, num_processes=num_processes, num_cached_per_queue=2) # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=True))
+        tfs.append(ReorderSegTransform())
+        batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=2, seeds=None)  # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
         return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)
 
 
@@ -154,34 +158,32 @@ class DataManagerTrainingNiftiImgs:
             batch_gen = SlicesBatchGeneratorRandomNiftiImg((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
 
         batch_gen.HP = self.HP
+        tfs = []  #transforms
 
         if self.HP.NORMALIZE_DATA:
-            batch_gen = zero_one_normalization_generator(batch_gen)
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=True))
 
         if self.HP.DATA_AUGMENTATION:
             if type == "train":
-                #scale: inverted: 0.5 -> bigger; 2 -> smaller
-                #patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
+                # scale: inverted: 0.5 -> bigger; 2 -> smaller
+                # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
                 center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-                batch_gen = ultimate_transform_generator_v2(batch_gen, self.HP.INPUT_DIM,
-                                                            patch_center_dist_from_border=center_dist_from_border,
-                                                            do_elastic_deform=True, alpha=(90., 120.), sigma=(9., 11.),
-                                                            do_rotation=True, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
-                                                            angle_z=(-0.8, 0.8),
-                                                            do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
-                                                            border_cval_data=0,
-                                                            order_data=3,
-                                                            border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True)
+                tfs.append(SpatialTransform(self.HP.INPUT_DIM,
+                                                    patch_center_dist_from_border=center_dist_from_border,
+                                                    do_elastic_deform=True, alpha=(90., 120.), sigma=(9., 11.),
+                                                    do_rotation=True, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
+                                                    angle_z=(-0.8, 0.8),
+                                                    do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
+                                                    border_cval_data=0,
+                                                    order_data=3,
+                                                    border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
+                tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
+                tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
+                tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
+                tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
+                # tfs.append(Mirror(batch_gen))
+                # tfs.append(GammaTransform(gamma_range=(0.75, 1.5))) # produces Loss=NaN; maybe because data not in 0-1
 
-                batch_gen = linear_downsampling_generator_scipy(batch_gen, zoom_range=(0.5, 1))                 #UNet results the same for Scipy and Nilearn. But Scipy about 30% faster.
-                batch_gen = contrast_augmentation_generator(batch_gen, contrast_range=(0.7, 1.3), per_channel=False)
-                batch_gen = gaussian_noise_generator(batch_gen, noise_variance=(0, 0.05))
-                batch_gen = brightness_augmentation_by_multiplication_generator(batch_gen, multiplier_range=(0.7, 1.3), per_channel=False)
-
-                # batch_gen = mirror_axis_generator(batch_gen)
-                # batch_gen = gamma_augmentation_generator(batch_gen, gamma_range=(0.75, 1.5))  # produces Loss=NaN; maybe because data not in 0-1
-
-
-
-        batch_gen = MultiThreadedGenerator(batch_gen, num_processes=num_processes, num_cached_per_queue=1)
+        #todo: num_cached_per_queue=2 better?
+        batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
         return batch_gen    # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)

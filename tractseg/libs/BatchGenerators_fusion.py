@@ -17,7 +17,7 @@
 
 import numpy as np
 import random
-from DeepLearningBatchGeneratorUtils.DataGeneratorBase import BatchGeneratorBase
+from batchgenerators.dataloading.data_loader import DataLoaderBase
 from os.path import join
 from tractseg.libs.Config import Config as C
 
@@ -26,7 +26,7 @@ Info:
 Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
 '''
 
-class SlicesBatchGeneratorNpyImg_fusion(BatchGeneratorBase):
+class SlicesBatchGeneratorNpyImg_fusion(DataLoaderBase):
     '''
     Returns 2D slices ordered way. Takes data in form of a npy file for each image. Npy file is already cropped to right size.
     '''
@@ -104,7 +104,7 @@ class SlicesBatchGeneratorNpyImg_fusion(BatchGeneratorBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNpyImg_fusion(BatchGeneratorBase):
+class SlicesBatchGeneratorRandomNpyImg_fusion(DataLoaderBase):
     '''
     Randomly sample 2D slices from a npy file for each subject.
 
@@ -175,15 +175,12 @@ class SlicesBatchGeneratorRandomNpyImg_fusion(BatchGeneratorBase):
         # x = x[:, (0, 5, 75, 80, 150, 155), :, :]
         # y = y[:, (0, 5), :, :]
 
-        # print("data 2: {}".format(x.shape))
-        # print("seg 2: {}".format(y.shape))
-
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNpyImg_fusionMean(BatchGeneratorBase):
+class SlicesBatchGeneratorRandomNpyImg_fusionMean(DataLoaderBase):
     '''
     take mean of xyz channel and return slices (x,y,nrBundles)
     '''
@@ -237,9 +234,6 @@ class SlicesBatchGeneratorRandomNpyImg_fusionMean(BatchGeneratorBase):
 
         x = np.nan_to_num(x)
         y = np.nan_to_num(y)
-
-        # print("data 2: {}".format(x.shape))
-        # print("seg 2: {}".format(y.shape))
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])

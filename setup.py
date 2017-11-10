@@ -16,7 +16,8 @@ setup(name='TractSeg',
             'matplotlib',
             'sklearn',
             'scipy',
-            'tqdm'
+            'tqdm',
+            'https://github.com/MIC-DKFZ/batchgenerators/zipball/master=0.17'
         ],
         zip_safe=False,
         classifiers=[
