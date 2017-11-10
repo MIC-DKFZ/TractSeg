@@ -146,7 +146,7 @@ class DataManagerTrainingNiftiImgs:
         data = subjects
         seg = []
 
-        num_processes = 3 #todo important: change #16
+        num_processes = 6 #todo important: change #16
         nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
         num_batches = int(nr_of_samples / batch_size / num_processes)
 
