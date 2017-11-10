@@ -17,14 +17,11 @@ setup(name='TractSeg',
             'sklearn',
             'scipy',
             'tqdm',
-            'batchgenerators==0.17'
-            # 'https://github.com/MIC-DKFZ/batchgenerators/zipball/tractseg_stable'
+            # 'batchgenerators==0.17'   #results in error (version...)
         ],
-        dependency_links=[
-            'https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip#egg=batchgenerators-0.17'
-            # "git+ssh://github.com/MIC-DKFZ/batchgenerators.git@0.17#egg=batchgenerators-0.17"
-            # "git+ssh://github.com/MIC-DKFZ/batchgenerators.git#egg=batchgenerators-0.17"
-        ],
+        # dependency_links=[
+        #     'https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip#egg=batchgenerators-0.17'
+        # ],
         zip_safe=False,
         classifiers=[
             'Intended Audience :: Science/Research',
@@ -37,5 +34,3 @@ setup(name='TractSeg',
             'bin/TractSeg', 'bin/ExpRunner'
         ],
       )
-
-#https://stackoverflow.com/questions/8247605/configuring-so-that-pip-install-can-work-from-github
