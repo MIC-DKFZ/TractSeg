@@ -146,7 +146,7 @@ class DataManagerTrainingNiftiImgs:
         data = subjects
         seg = []
 
-        num_processes = 16
+        num_processes = 6  # 6 is a bit faster than 16
         nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
         num_batches = int(nr_of_samples / batch_size / num_processes)
 
@@ -184,5 +184,6 @@ class DataManagerTrainingNiftiImgs:
                 # tfs.append(Mirror(batch_gen))
                 # tfs.append(GammaTransform(gamma_range=(0.75, 1.5))) # produces Loss=NaN; maybe because data not in 0-1
 
+        #num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
         return batch_gen    # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)

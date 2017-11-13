@@ -220,6 +220,7 @@ class UNet_Pytorch(BaseModel):
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
         criterion = nn.BCEWithLogitsLoss()
         optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
+        # optimizer = optim.Adam(net.parameters(), lr=self.HP.LEARNING_RATE)
 
         if self.HP.LOAD_WEIGHTS:
             ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
