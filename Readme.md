@@ -25,7 +25,7 @@ pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
 To segment the bundles on a Diffusion Nifti image run the following command. 
 You can use the example image provided in this repository under `examples`.  
 ```
-TractSeg -i Diffusion.nii.gz
+TractSeg -i Diffusion.nii.gz    # expects Diffusion.bvals and Diffusion.bvecs to be in the same directory
 ```
 This will create a folder `tractseg_ouput` inside of the same directory as your input file. 
 This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
