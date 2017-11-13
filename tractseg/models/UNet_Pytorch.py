@@ -54,46 +54,48 @@ class UNet(torch.nn.Module):
         self.in_channel = n_input_channels
         self.n_classes = n_classes
 
-        self.contr_1_1 = conv2d(n_input_channels, n_filt, bias=True)
-        self.contr_1_2 = conv2d(n_filt, n_filt, bias=True)
+        self.contr_1_1 = conv2d(n_input_channels, n_filt)
+        self.contr_1_2 = conv2d(n_filt, n_filt)
         self.pool_1 = nn.MaxPool2d((2, 2))
 
-        self.contr_2_1 = conv2d(n_filt, n_filt * 2, bias=True)
-        self.contr_2_2 = conv2d(n_filt * 2, n_filt * 2, bias=True)
+        self.contr_2_1 = conv2d(n_filt, n_filt * 2)
+        self.contr_2_2 = conv2d(n_filt * 2, n_filt * 2)
         self.pool_2 = nn.MaxPool2d((2, 2))
 
-        self.contr_3_1 = conv2d(n_filt * 2, n_filt * 4, bias=True)
-        self.contr_3_2 = conv2d(n_filt * 4, n_filt * 4, bias=True)
+        self.contr_3_1 = conv2d(n_filt * 2, n_filt * 4)
+        self.contr_3_2 = conv2d(n_filt * 4, n_filt * 4)
         self.pool_3 = nn.MaxPool2d((2, 2))
 
-        self.contr_4_1 = conv2d(n_filt * 4, n_filt * 8, bias=True)
-        self.contr_4_2 = conv2d(n_filt * 8, n_filt * 8, bias=True)
+        self.contr_4_1 = conv2d(n_filt * 4, n_filt * 8)
+        self.contr_4_2 = conv2d(n_filt * 8, n_filt * 8)
         self.pool_4 = nn.MaxPool2d((2, 2))
 
         self.dropout = nn.Dropout(p=0.4)
 
-        self.encode_1 = conv2d(n_filt * 8, n_filt * 16, bias=True)
-        self.encode_2 = conv2d(n_filt * 16, n_filt * 16, bias=True)
-        self.deconv_1 = deconv2d(n_filt * 16, n_filt * 16, kernel_size=2, stride=2, bias=True)
-        # nn.Upsample(scale_factor=(2, 2, 1))
+        self.encode_1 = conv2d(n_filt * 8, n_filt * 16)
+        self.encode_2 = conv2d(n_filt * 16, n_filt * 16)
+        self.deconv_1 = deconv2d(n_filt * 16, n_filt * 16, kernel_size=2, stride=2)
+        # self.deconv_1 = nn.Upsample(scale_factor=2)     #does only upscale width and height
 
-        self.expand_1_1 = conv2d(n_filt * 8 + n_filt * 16, n_filt * 8, bias=True)
-        self.expand_1_2 = conv2d(n_filt * 8, n_filt * 8, bias=True)
-        self.deconv_2 = deconv2d(n_filt * 8, n_filt * 8, kernel_size=2, stride=2, bias=True)
+        self.expand_1_1 = conv2d(n_filt * 8 + n_filt * 16, n_filt * 8)
+        self.expand_1_2 = conv2d(n_filt * 8, n_filt * 8)
+        self.deconv_2 = deconv2d(n_filt * 8, n_filt * 8, kernel_size=2, stride=2)
+        # self.deconv_2 = nn.Upsample(scale_factor=2)
 
-        self.expand_2_1 = conv2d(n_filt * 4 + n_filt * 8, n_filt * 4, stride=1, bias=True)
-        self.expand_2_2 = conv2d(n_filt * 4, n_filt * 4, stride=1, bias=True)
-        self.deconv_3 = deconv2d(n_filt * 4, n_filt * 4, kernel_size=2, stride=2, bias=True)
+        self.expand_2_1 = conv2d(n_filt * 4 + n_filt * 8, n_filt * 4, stride=1)
+        self.expand_2_2 = conv2d(n_filt * 4, n_filt * 4, stride=1)
+        self.deconv_3 = deconv2d(n_filt * 4, n_filt * 4, kernel_size=2, stride=2)
+        # self.deconv_3 = nn.Upsample(scale_factor=2)
 
-        self.expand_3_1 = conv2d(n_filt * 2 + n_filt * 4, n_filt * 2, stride=1, bias=True)
-        self.expand_3_2 = conv2d(n_filt * 2, n_filt * 2, stride=1, bias=True)
-        self.deconv_4 = deconv2d(n_filt * 2, n_filt * 2, kernel_size=2, stride=2, bias=True)
+        self.expand_3_1 = conv2d(n_filt * 2 + n_filt * 4, n_filt * 2, stride=1)
+        self.expand_3_2 = conv2d(n_filt * 2, n_filt * 2, stride=1)
+        self.deconv_4 = deconv2d(n_filt * 2, n_filt * 2, kernel_size=2, stride=2)
+        # self.deconv_4 = nn.Upsample(scale_factor=2)
 
-        self.expand_4_1 = conv2d(n_filt + n_filt * 2, n_filt, stride=1, bias=True)
-        self.expand_4_2 = conv2d(n_filt, n_filt, stride=1, bias=True)
+        self.expand_4_1 = conv2d(n_filt + n_filt * 2, n_filt, stride=1)
+        self.expand_4_2 = conv2d(n_filt, n_filt, stride=1)
 
-        self.conv_5 = nn.Conv2d(n_filt, n_classes, kernel_size=1, stride=1, padding=0,
-                                bias=True)  # no activation function, because is in LossFunction (...WithLogits)
+        self.conv_5 = nn.Conv2d(n_filt, n_classes, kernel_size=1, stride=1, padding=0, bias=True)  # no activation function, because is in LossFunction (...WithLogits)
 
     def forward(self, inpt):
         contr_1_1 = self.contr_1_1(inpt)
