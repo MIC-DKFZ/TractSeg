@@ -96,11 +96,12 @@ parser = argparse.ArgumentParser(description="Segment white matter bundles in a 
 parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)", required=True)
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
-parser.add_argument("--csd_type", metavar="type", choices=["csd", "csd_msmt", "csd_msmt_5tt"], help="Which csd type", default="csd")
-# parser.add_argument("--use_msmt_csd", action="store_true", help="Use mrtrix multi-shell multi-tissue CSD to generate peaks. " +
-#                                                                 "A little better results but also slower on high resolution data. Only works if " +
-#                                                                 "you have more than one shell of gradients. Otherwise standard mrtrix CSD on b=1000mm/s^2 is used and " +
-#                                                                 "if input image contains more shells all but b=1000mm/s^2 are discarded.", default=False)
+parser.add_argument("--csd_type", metavar="type", choices=["csd", "csd_msmt", "csd_msmt_5tt"],
+                    help="Which MRtrix constrained spherical deconvolution (CSD) is used for peak generation.\n" +
+                         "'csd': Standard CSD. Very fast. Only uses b=1000mm/s^2. (if input image contains more shells all but b=1000mm/s^2 are discarded)\n" +
+                         "'csd_msmt': Multi-shell multi-tissue CSD DHollander algorithm. Medium fast. Needs more than one b-value shell.\n" +
+                         "'csd_msmt_5tt': Multi-shell multi-tissue CSD 5TT. Slow on large images. Needs more than one b-value shell." +
+                         "Needs a T1 image (a file T1w_acpc_dc_restore_brain.nii.gz must be in the input directory).", default="csd")
 parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 'Diffusion.bvals' in same directory as input")  #todo: change default
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs' in same directory as input")
 parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
