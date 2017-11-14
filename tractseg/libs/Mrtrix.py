@@ -22,39 +22,50 @@ class Mrtrix():
         print("Creating brain mask...")
         input_dir = os.path.dirname(input_file)
         input_file_without_ending = os.path.basename(input_file).split(".")[0]
-        os.chdir(output_dir)
-        # os.system("pwd")
-        os.system('bet ' + join(input_dir, input_file_without_ending) + ' nodif_brain_mask.nii.gz  -f 0.3 -g 0 -m')
-        os.system('rm nodif_brain_mask.nii.gz')           #masked brain
-        os.system('mv nodif_brain_mask_mask.nii.gz nodif_brain_mask.nii.gz')
+        os.system("bet " + join(input_dir, input_file_without_ending) + " " + output_dir + "/nodif_brain_mask.nii.gz  -f 0.3 -g 0 -m")
+        os.system("rm " + output_dir + "/nodif_brain_mask.nii.gz")           #masked brain
+        os.system("mv " + output_dir + "/nodif_brain_mask_mask.nii.gz " + output_dir + "/nodif_brain_mask.nii.gz")
 
     @staticmethod
-    def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_resolution):
-        os.chdir(output_dir)
-
-        if csd_resolution == "HIGH":
+    def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type):
+        if csd_type == "csd_msmt_5tt":
             # MSMT 5TT
-            # t1_file = join(os.path.dirname(input_file), "T1w_acpc_dc_restore_brain.nii.gz")
-            # os.system("5ttgen fsl " + t1_file + " 5TT.mif -premasked")
-            # os.system("dwi2response msmt_5tt " + input_file + " 5TT.mif RF_WM.txt RF_GM.txt RF_CSF.txt -voxels RF_voxels.mif -fslgrad " + bvecs + " " + bvals)         # multi-shell, multi-tissue
-            # os.system("dwi2fod msmt_csd " + input_file + " RF_WM.txt WM_FODs.mif RF_GM.txt GM.mif RF_CSF.txt CSF.mif -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals)       # multi-shell, multi-tissue
-
+            print("Creating peaks (1 of 4)...")
+            t1_file = join(os.path.dirname(input_file), "T1w_acpc_dc_restore_brain.nii.gz")
+            os.system("5ttgen fsl " + t1_file + " " + output_dir + "/5TT.mif -premasked")
+            print("Creating peaks (2 of 4)...")
+            os.system("dwi2response msmt_5tt " + input_file + " " + output_dir + "/5TT.mif " + output_dir + "/RF_WM.txt " +
+                      output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -voxels " + output_dir + "/RF_voxels.mif -fslgrad " +
+                      bvecs + " " + bvals)         # multi-shell, multi-tissue
+            print("Creating peaks (3 of 4)...")
+            os.system("dwi2fod msmt_csd " + input_file + " " + output_dir + "/RF_WM.txt " + output_dir +
+                      "/WM_FODs.mif " + output_dir + "/RF_GM.txt " + output_dir + "/GM.mif " + output_dir +
+                      "/RF_CSF.txt " + output_dir + "/CSF.mif -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals)       # multi-shell, multi-tissue
+            print("Creating peaks (4 of 4)...")
+            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet")
+        elif csd_type == "csd_msmt":
             # MSMT DHollander    (only works with msmt_csd, not with csd)
             # dhollander does not need a T1 image to estimate the response function (more recent (2016) than tournier (2013))
             print("Creating peaks (1 of 3)...")
-            os.system("dwi2response dhollander -mask " + brain_mask + " " + input_file + " RF_WM.txt RF_GM.txt RF_CSF.txt -fslgrad " + bvecs + " " + bvals)
+            os.system("dwi2response dhollander -mask " + brain_mask + " " + input_file + " " + output_dir + "/RF_WM.txt " +
+                      output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -fslgrad " + bvecs + " " + bvals)
             print("Creating peaks (2 of 3)...")
-            os.system("dwi2fod msmt_csd " + input_file + " RF_WM.txt WM_FODs.mif -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask + "")
+            os.system("dwi2fod msmt_csd " + input_file + " " + output_dir + "/RF_WM.txt " + output_dir +
+                      "/WM_FODs.mif -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask + "")
             print("Creating peaks (3 of 3)...")
-            os.system("sh2peaks WM_FODs.mif peaks.nii.gz -quiet")
-        else:   #LOW
+            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet")
+        elif csd_type == "csd":
             # CSD Tournier
             print("Creating peaks (1 of 3)...")
-            os.system("dwi2response tournier " + input_file + " response.txt -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet")
+            os.system("dwi2response tournier " + input_file + " " + output_dir + "/response.txt -mask " + brain_mask +
+                      " -fslgrad " + bvecs + " " + bvals + " -quiet")
             print("Creating peaks (2 of 3)...")
-            os.system("dwi2fod csd " + input_file + " response.txt WM_FODs.mif -shell 1000 -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet")
+            os.system("dwi2fod csd " + input_file + " " + output_dir + "/response.txt " + output_dir +
+                      "/WM_FODs.mif -shell 1000 -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet")
             print("Creating peaks (3 of 3)...")
-            os.system("sh2peaks WM_FODs.mif peaks.nii.gz -quiet")
+            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet")
+        else:
+            raise ValueError("'csd_type' contains invalid String")
 
     @staticmethod
     def clean_up(HP):
@@ -65,7 +76,7 @@ class Mrtrix():
             os.system("rm -f WM_FODs.mif")
             os.system("rm -f peaks.nii.gz")
 
-            if HP.CSD_RESOLUTION == "HIGH":
+            if HP.CSD_TYPE == "csd_msmt" or HP.CSD_TYPE == "csd_msmt_5tt":
                 os.system("rm -f 5TT.mif")
                 os.system("rm -f RF_WM.txt")
                 os.system("rm -f RF_GM.txt")
