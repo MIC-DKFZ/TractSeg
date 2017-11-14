@@ -75,7 +75,7 @@ class UNet(torch.nn.Module):
         self.encode_1 = conv2d(n_filt * 8, n_filt * 16)
         self.encode_2 = conv2d(n_filt * 16, n_filt * 16)
         self.deconv_1 = deconv2d(n_filt * 16, n_filt * 16, kernel_size=2, stride=2)
-        # self.deconv_1 = nn.Upsample(scale_factor=2)     #does only upscale width and height
+        # self.deconv_1 = nn.Upsample(scale_factor=2)     #does only upscale width and height  #Similar results to deconv2d
 
         self.expand_1_1 = conv2d(n_filt * 8 + n_filt * 16, n_filt * 8)
         self.expand_1_2 = conv2d(n_filt * 8, n_filt * 8)
@@ -222,7 +222,7 @@ class UNet_Pytorch(BaseModel):
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
         criterion = nn.BCEWithLogitsLoss()
         optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
-        # optimizer = optim.Adam(net.parameters(), lr=self.HP.LEARNING_RATE)
+        # optimizer = optim.Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
 
         if self.HP.LOAD_WEIGHTS:
             ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))

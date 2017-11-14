@@ -17,6 +17,8 @@
 
 import importlib
 import numpy as np
+from tractseg.libs.DataManagers import DataManagerSingleSubjectById
+from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 
 class DirectionMerger:
 
@@ -34,11 +36,6 @@ class DirectionMerger:
         '''
         from tractseg.libs.Trainer import Trainer
 
-        if subject:
-            DataManagerSingleSubject = getattr(importlib.import_module("tractseg.libs." + "DataManagers"), "DataManagerSingleSubjectById")
-        else:
-            DataManagerSingleSubject = getattr(importlib.import_module("tractseg.libs." + "DataManagers"), "DataManagerSingleSubjectByFile")
-
         prob_slices = []
         directions = ["x", "y", "z"]
         for idx, direction in enumerate(directions):
@@ -47,9 +44,9 @@ class DirectionMerger:
             # print("Processing direction " + HP.SLICE_DIRECTION)
 
             if subject:
-                dataManagerSingle = DataManagerSingleSubject(HP, subject=subject)
+                dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject)
             else:
-                dataManagerSingle = DataManagerSingleSubject(HP, data=data)
+                dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
 
             trainerSingle = Trainer(model, dataManagerSingle)
             img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=scale_to_world_shape)    # (x, y, z, nrClasses)
