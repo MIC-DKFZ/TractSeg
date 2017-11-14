@@ -47,8 +47,8 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 #Settings and Hyperparameters
 class HP:
     EXP_MULTI_NAME = ""             #CV Parent Dir name # leave empty for Single Bundle Experiment
-    EXP_NAME = "HCP_Pytorch_TEST"           # HCP_normAfter
-    MODEL = "UNet_Pytorch"          # UNet_Lasagne / UNet_Pytorch
+    EXP_NAME = "HCP_fold0"           # HCP_normAfter
+    MODEL = "UNet_Lasagne"          # UNet_Lasagne / UNet_Pytorch
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8)"
@@ -121,6 +121,9 @@ HP.VERBOSE = args.verbose
 HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
 HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
 HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
+
+if HP.WEIGHTS_PATH == "":
+    HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
 
 if HP.VERBOSE:
     print("Hyperparameters:")
@@ -212,6 +215,7 @@ if HP.SEGMENT:
         trainerSingle = Trainer(model_test, dataManagerSingle)
         img_seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False)  # only x or y or z
         # img_seg, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject)  #returns probs not binary seg
+        # img_seg = DirectionMerger.mean_fusion(HP.THRESHOLD, img_seg, probs=False)
 
         # ImgUtils.save_multilabel_img_as_multiple_files(HP, img_seg, subject)   # Save as several files
         img = nib.Nifti1Image(img_seg, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))

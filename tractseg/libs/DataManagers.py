@@ -90,7 +90,7 @@ class DataManagerSingleSubjectById:
         tfs = []  # transforms
 
         if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=True))
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=False))
 
         if self.HP.TEST_TIME_DAUG:
             center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62

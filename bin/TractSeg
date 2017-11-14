@@ -40,7 +40,7 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 class HP:
     EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
     EXP_NAME = "HCP_Pytorch"       # HCP_normAfter
-    MODEL = "UNet_Pytorch"     # UNet_Lasagne / UNet_Pytorch
+    MODEL = "UNet_Lasagne"     # UNet_Lasagne / UNet_Pytorch
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8) - Mirror"
@@ -73,7 +73,6 @@ class HP:
     TRACTSEG_DIR = "tractseg_output"
     KEEP_INTERMEDIATE_FILES = False
     CSD_RESOLUTION = "LOW"  # HIGH / LOW
-    SKIP_PEAK_EXTRACTION = False
 
     #Rarly changed:
     LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
@@ -106,7 +105,7 @@ parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs' in same directory as input")
 parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
-parser.add_argument("--skip_peak_extraction", action="store_true", help="Do not calculate input peaks. You have to provide them yourself then.", default=False)
+parser.add_argument("--skip_peak_extraction", action="store_true", help="Do not calculate input peaks. You have to provide them yourself them as argument to -i", default=False)
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 0.5')
 args = parser.parse_args()
@@ -125,7 +124,7 @@ HP.TEST = False
 HP.SEGMENT = False
 HP.GET_PROBS = False
 HP.LOAD_WEIGHTS = True
-HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights.npz")
+HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_lasagne.npz")
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
 
 if HP.VERBOSE:
@@ -137,13 +136,16 @@ bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
 brain_mask = ExpUtils.get_brain_mask_path(args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
-if not HP.SKIP_PEAK_EXTRACTION:
+if not args.skip_peak_extraction:
     if not args.brain_mask:
         Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
     Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE)
 
 start_time = time.time()
-data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
+if args.skip_peak_extraction:
+    data_img = nib.load(args.input)
+else:
+    data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
 data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get_data(), target_size=144)
 
 model = ModelClass(HP)

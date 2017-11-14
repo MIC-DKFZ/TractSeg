@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from os.path import join
 import numpy as np
 from collections import OrderedDict
@@ -137,7 +138,6 @@ class UNet_Lasagne(BaseModel):
             NR_OF_GRADIENTS = 33
 
         print("Building network ...")
-        print("(Model UNet)")
         # Lasagne Seed for Reproducibility
         L.random.set_rng(np.random.RandomState(1))
 
