@@ -131,7 +131,7 @@ class DataManagerSingleSubjectByFile:
         tfs = []  # transforms
 
         if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=True))
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=False))
         tfs.append(ReorderSegTransform())
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=2, seeds=None)  # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
         return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)
@@ -161,7 +161,7 @@ class DataManagerTrainingNiftiImgs:
         tfs = []  #transforms
 
         if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=True))
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=False))
 
         if self.HP.DATA_AUGMENTATION:
             if type == "train":
@@ -181,7 +181,7 @@ class DataManagerTrainingNiftiImgs:
                 tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
                 tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
                 tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
-                # tfs.append(Mirror(batch_gen))
+                # tfs.append(Mirror())
                 # tfs.append(GammaTransform(gamma_range=(0.75, 1.5))) # produces Loss=NaN; maybe because data not in 0-1
 
         #num_cached_per_queue 1 or 2 does not really make a difference

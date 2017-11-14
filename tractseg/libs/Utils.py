@@ -175,10 +175,10 @@ class Utils:
 
     @staticmethod
     def download_pretrained_weights():
-        weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_lasagne.npz')    # pretrained_weights / pretrained_weights_lasagne / pretrained_weights_lasagne_Mir
-        # WEIGHTS_URL = "https://www.dropbox.com/s/ol1i5mhmsu9kqi7/unet_weights_Mir_ep470.npz?dl=1"
+        weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')    # pretrained_weights / pretrained_weights_lasagne / pretrained_weights_lasagne_Mir
+        WEIGHTS_URL = "https://www.dropbox.com/s/ol1i5mhmsu9kqi7/unet_weights_Mir_ep470.npz?dl=1"
         # WEIGHTS_URL = "https://www.dropbox.com/s/ys9eupjnhm196vd/unet_lasagne_weights_Mir_ep372.npz?dl=1"
-        WEIGHTS_URL = "https://www.dropbox.com/s/56d2vaxexcwolrq/unet_lasagne_weights_ep486.npz?dl=1"
+        # WEIGHTS_URL = "https://www.dropbox.com/s/56d2vaxexcwolrq/unet_lasagne_weights_ep486.npz?dl=1"
 
         if not os.path.exists(weights_path):
             print("Downloading pretrained weights (~140MB) ...")
