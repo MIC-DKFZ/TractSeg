@@ -5,8 +5,10 @@ Tool for fast and accurate white matter bundle segmentation from Diffusion MRI.
 The tool works very good for HCP style data. For other MRI datasets it also works but results 
 will have lower quality.
 
-TODO: Link to Paper
- 
+TractSeg is the code for the paper [Direct White Matter Bundle Segmentation using Stacked U-Nets](https://arxiv.org/abs/1703.02036) 
+with further improvements (e.g. extract all bundles in one run). Please cite the paper if you use it. 
+
+
 ## Install
 TractSeg only runs on Linux and OSX. It uses Python 2.
 
