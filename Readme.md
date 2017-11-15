@@ -118,14 +118,14 @@ If you have multi-shell data and you do not need super fast runtime use `--use_m
 
 
 ## FAQ
-**My output segmentation does not look like any bundle at all**
+**My output segmentation does not look like any bundle at all!**
 
 The input image must have the same "orientation" as the Human Connectome Project data. If the image 
 orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
 you are fine. Otherwise you might have to flip the sign of your gradients and/or image.
 
 
-**Did I install the prerequisites correct?**
+**Did I install the prerequisites correctly?**
 
 You can check if you installed Mrtrix correctly if you can run the following command on your terminal:
 `dwi2response -help`
