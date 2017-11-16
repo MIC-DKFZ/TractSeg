@@ -105,14 +105,15 @@ class ExpUtils:
 
     @staticmethod
     def get_bvals_bvecs_path(args):
+        input_file_without_ending = os.path.basename(args.input).split(".")[0]
         if args.bvals:
             bvals = args.bvals
         else:
-            bvals = join(os.path.dirname(args.input), "Diffusion.bvals")  # todo: change default to "bvals"
+            bvals = join(os.path.dirname(args.input), input_file_without_ending + ".bvals")
         if args.bvecs:
             bvecs = args.bvecs
         else:
-            bvecs = join(os.path.dirname(args.input), "Diffusion.bvecs")  # todo: change default to "bvecs"
+            bvecs = join(os.path.dirname(args.input), input_file_without_ending + ".bvecs")
         return bvals, bvecs
 
     @staticmethod
