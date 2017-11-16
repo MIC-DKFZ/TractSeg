@@ -93,7 +93,8 @@ class HP:
     VERBOSE = True
 
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
-                                    epilog="Written by Jakob Wasserthal. Please reference TODO")
+                                    epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
+                                           "Direct White Matter Bundle Segmentation using Stacked U-Nets. https://arxiv.org/abs/1703.02036)'")
 parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)", required=True)
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)

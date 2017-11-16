@@ -95,7 +95,8 @@ class HP:
     VERBOSE = True
 
 parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
-                                    epilog="Written by Jakob Wasserthal. Please reference TODO")
+                                    epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
+                                           "Direct White Matter Bundle Segmentation using Stacked U-Nets. https://arxiv.org/abs/1703.02036)'")
 parser.add_argument("--train", metavar="True/False", help="Train network", type=distutils.util.strtobool, default=True)
 parser.add_argument("--test", metavar="True/False", help="Test network", type=distutils.util.strtobool, default=True)
 parser.add_argument("--seg", action="store_true", help="Create binary segmentation", default=False)

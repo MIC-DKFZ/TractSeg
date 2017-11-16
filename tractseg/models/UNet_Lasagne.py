@@ -111,9 +111,6 @@ class UNet_Lasagne(BaseModel):
                 for fl in glob.glob(join(self.HP.EXP_PATH, "best_weights_ep*")):  # remove weights from previous epochs
                     os.remove(fl)
                 try:
-                    # np.savez(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"),
-                    #          *L.layers.get_all_param_values(self.model.output))
-                    #todo: does self.output work correctly?
                     np.savez(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"),
                              *L.layers.get_all_param_values(self.output))
                 except IOError:
