@@ -95,7 +95,7 @@ class HP:
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
                                            "Direct White Matter Bundle Segmentation using Stacked U-Nets. https://arxiv.org/abs/1703.02036)'")
-parser.add_argument("-i", metavar="filename", dest="input", help="Diffusion Input image (Nifti image)", required=True)
+parser.add_argument("-i", metavar="filepath", dest="input", help="Diffusion Input image path (Nifti image)", required=True)
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
 parser.add_argument("--csd_type", metavar="type", choices=["csd", "csd_msmt", "csd_msmt_5tt"],
@@ -108,9 +108,9 @@ parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is 'Diffusion.bvecs' in same directory as input")
 parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
-parser.add_argument("--skip_peak_extraction", action="store_true", help="Do not calculate input peaks. You have to provide them yourself them as argument to -i", default=False)
+parser.add_argument("--skip_peak_extraction", action="store_true", help="Do not calculate input peaks. You have to provide them yourself as argument to -i", default=False)
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
-parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Faster to view than nifti output image.", default=False)
+parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Faster to view than nifti output image. Requires VTK.", default=False)
 parser.add_argument("--flip", action="store_true", help="Use model that works independently of the image orientation. Slightly worse results than standard model.", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 1.0')
 args = parser.parse_args()

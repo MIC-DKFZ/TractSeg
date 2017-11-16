@@ -122,11 +122,12 @@ If you have multi-shell data and you do not need super fast runtime use `--use_m
 ## FAQ
 **My output segmentation does not look like any bundle at all!**
 
-The input image must have the same "orientation" as the Human Connectome Project data. If the image 
+The input image must have the same "orientation" as the Human Connectome Project data (LEFT must be 
+on the same side as LEFT of the HCP data). If the image 
 orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
 you are fine. If your image has different orientation you can use the flag `--flip`. This will use a 
-model that was trained with mirroring data augmentation. 
-So it works with any orientation. But it has slightly worse results (about 1 dice point less).
+model that was trained with mirroring data augmentation. So it works with any orientation. 
+But it has slightly worse results (about 1 dice point less).
 If it is still not working your gradients probably have the wrong orientation. You have to manually 
 flip the sign of your gradients. 
 
