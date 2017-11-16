@@ -24,6 +24,8 @@ pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
 ```
 
 ## Usage
+
+#### Simple example:
 To segment the bundles on a Diffusion Nifti image run the following command. 
 You can use the example image provided in this repository under `examples`.  
 ```
@@ -31,7 +33,24 @@ TractSeg -i Diffusion.nii.gz    # expects Diffusion.bvals and Diffusion.bvecs to
 ```
 This will create a folder `tractseg_ouput` inside of the same directory as your input file. 
 This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
-The fourth dimension contains the binary bundle segmentations. The following list shows the index of 
+The fourth dimension contains the binary bundle segmentations. 
+
+#### Custom input and output path:
+```
+TractSeg -i my/path/my_diffusion_image.nii.gz
+         -o my/output/directory
+         --bvals my/other/path/my.bvals
+         --bvecs yet/another/path/my.bvecs
+         --output_multiple_files
+```
+
+#### Use existing peaks
+```
+TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
+```
+
+#### Bundle names
+The following list shows the index of 
 each extracted bundle in the output file.
 ```
 0: Background
@@ -112,11 +131,11 @@ each extracted bundle in the output file.
 ```
 
 
-## Advanced Options
-Run `TractSeg -help` for more advanced options. For example you can specify your own `brain_mask`,
+#### Advanced Options
+Run `TractSeg --help` for more advanced options. For example you can specify your own `brain_mask`,
 `bvals` and `bvecs`.
 
-If you have multi-shell data and you do not need super fast runtime use `--use_msmt_csd` for slightly better results.
+If you have multi-shell data and you do not need super fast runtime use `--csd_type csd_msmt_5tt` for slightly better results.
 
 
 ## FAQ
