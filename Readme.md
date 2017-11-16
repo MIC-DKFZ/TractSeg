@@ -124,7 +124,11 @@ If you have multi-shell data and you do not need super fast runtime use `--use_m
 
 The input image must have the same "orientation" as the Human Connectome Project data. If the image 
 orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
-you are fine. Otherwise you might have to flip the sign of your gradients and/or image.
+you are fine. If your image has different orientation you can use the flag `--flip`. This will use a 
+model that was trained with mirroring data augmentation. 
+So it works with any orientation. But it has slightly worse results (about 1 dice point less).
+If it is still not working your gradients probably have the wrong orientation. You have to manually 
+flip the sign of your gradients. 
 
 
 **Did I install the prerequisites correctly?**
@@ -136,6 +140,10 @@ You can check if you installed FSL correctly if you can run the following comman
 `bet -help`
 
 TractSeg uses these commands so they have to be available.
+
+**My image does not contain any b=1000mm/s^2 values.**
+
+Use `--csd_type csd_msmt` or `--csd_type csd_msmt_5tt`. Those work for any b-value.
 
 
 ## Train your own model

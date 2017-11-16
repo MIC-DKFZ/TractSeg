@@ -174,11 +174,20 @@ class Utils:
         return gb
 
     @staticmethod
-    def download_pretrained_weights():
-        weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')    # pretrained_weights / pretrained_weights_lasagne / pretrained_weights_lasagne_Mir
-        WEIGHTS_URL = "https://www.dropbox.com/s/to41ws00ah2cmli/unet_weights_ep229.npz?dl=1"
-        # WEIGHTS_URL = "https://www.dropbox.com/s/ys9eupjnhm196vd/unet_lasagne_weights_Mir_ep372.npz?dl=1"
-        # WEIGHTS_URL = "https://www.dropbox.com/s/56d2vaxexcwolrq/unet_lasagne_weights_ep486.npz?dl=1"
+    def download_pretrained_weights(flip=False):
+        '''
+
+        :param flip: Use weights trained on a network with Mirror data augmentation.
+        :return:
+        '''
+        if flip:
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_Mir.npz')    # pretrained_weights_Mir / pretrained_weights_lasagne_Mir
+            WEIGHTS_URL = "https://www.dropbox.com/s/3hkpi7pifq61why/unet_weights_Mir_ep267.npz?dl=1"
+            # WEIGHTS_URL = "https://www.dropbox.com/s/ys9eupjnhm196vd/unet_lasagne_weights_Mir_ep372.npz?dl=1"
+        else:
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')  # pretrained_weights / pretrained_weights_lasagne
+            WEIGHTS_URL = "https://www.dropbox.com/s/to41ws00ah2cmli/unet_weights_ep229.npz?dl=1"
+            # WEIGHTS_URL = "https://www.dropbox.com/s/56d2vaxexcwolrq/unet_lasagne_weights_ep486.npz?dl=1"
 
         if not os.path.exists(weights_path):
             print("Downloading pretrained weights (~140MB) ...")
