@@ -137,7 +137,7 @@ if HP.VERBOSE:
 
 Utils.download_pretrained_weights()
 bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
-brain_mask = ExpUtils.get_brain_mask_path(args)
+brain_mask = ExpUtils.get_brain_mask_path(HP, args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
 if not args.skip_peak_extraction:

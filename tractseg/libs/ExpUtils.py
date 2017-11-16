@@ -116,11 +116,11 @@ class ExpUtils:
         return bvals, bvecs
 
     @staticmethod
-    def get_brain_mask_path(args):
+    def get_brain_mask_path(HP, args):
         if args.brain_mask:
             brain_mask = args.brain_mask
         else:
-            brain_mask = join(os.path.dirname(args.input), "nodif_brain_mask.nii.gz")
+            brain_mask = join(HP.PREDICT_IMG_OUTPUT, "nodif_brain_mask.nii.gz")
         return brain_mask
 
     @staticmethod

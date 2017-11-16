@@ -8,7 +8,7 @@ class PlotUtils:
     def plot_tracts(bundle_segmentations, out_dir):
         '''
         By default this does not work on a remote server connection (ssh -X) because -X does not support OpenGL.
-        On the remote Server you can do 'export DISPLAY:":0"' (you should set the value you get if you do 'echo $DISPLAY' if you
+        On the remote Server you can do 'export DISPLAY=":0"' (you should set the value you get if you do 'echo $DISPLAY' if you
         login locally on the remote server). Then all graphics will get rendered locally and not via -X.
         '''
 
@@ -34,13 +34,13 @@ class PlotUtils:
                         focal_point=(71.01, 90.47, 56.05),
                         view_up=(0.03, 0.14, 0.99))
         # window.show(ren, size=(1000, 1000), reset_camera=False)
-        window.record(ren, out_path=join(out_dir, "front_preview.png"), size=(600, 600))
+        window.record(ren, out_path=join(out_dir, "preview_front.png"), size=(600, 600))
 
         #Second View (Top)
         ren.set_camera(position=(69.76, 144.06, 278.23),
                        focal_point=(71.01, 90.47, 56.05),
                        view_up=(0.01, -0.97, 0.23))
-        window.record(ren, out_path=join(out_dir, "top_preview.png"), size=(600, 600))
+        window.record(ren, out_path=join(out_dir, "preview_top.png"), size=(600, 600))
 
         # ren.camera_info()  #to print manually selected camera angle
 
