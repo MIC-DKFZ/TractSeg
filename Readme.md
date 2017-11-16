@@ -12,13 +12,13 @@ with further improvements (e.g. extract all bundles in one run). Please cite the
 ## Install
 TractSeg only runs on Linux and OSX. It uses Python 2.
 
-### Install Prerequisites
+#### Install Prerequisites
 * [Pytorch](http://pytorch.org/) (if you do not have a GPU, install Pytorch via conda as this is fastest on CPU)
 * [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask this is not needed)
 * BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip`
 
-### Install TractSeg
+#### Install TractSeg
 ```
 pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
 ```
