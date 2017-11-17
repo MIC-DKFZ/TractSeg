@@ -31,21 +31,26 @@ from tractseg.models.BaseModel import BaseModel
 # channel -> same as in_channel conv
 # reduction -> number of neurons in FC (?)
 class SELayer(nn.Module):
+    '''
+    Benefit: We make mean for each channel und then 2 FC (with bottleneck) -> can learn dependencies between layers
+                -> dependencies are then multiplied to original signal (similar to attention/gating)
+    '''
     def __init__(self, channel, reduction=16):  #reduction=16
         super(SELayer, self).__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)     #results in [batch_size, channels, 1, 1]
         self.fc = nn.Sequential(
-                nn.Linear(channel, reduction),
+                nn.Linear(channel, reduction),      #squeeze to #reduction neurons
                 nn.ReLU(inplace=True),
-                nn.Linear(reduction, channel),
+                nn.Linear(reduction, channel),      #excitate to #channel neurons (original size)
                 nn.Sigmoid()
         )
 
     def forward(self, x):
         b, c, _, _ = x.size()
-        y = self.avg_pool(x).view(b, c)
-        y = self.fc(y).view(b, c, 1, 1)
-        return x * y
+        y = self.avg_pool(x).view(b, c)     #view needed to squeeze: [batch_size, channels, 1, 1] -> [batch_size, channels]  (?)
+        y = self.fc(y).view(b, c, 1, 1)     #view needed to expand: [batch_size, channels] -> [batch_size, channels,  1, 1]
+        #y is a scalar for each channel -> simply multiply this scalar to original image
+        return x * y    # multiplay SE path with original input ("skip connection")     => we need no manual extra skip connections! (?)
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
     if batchnorm:
@@ -261,9 +266,8 @@ class UNet(torch.nn.Module):
         contr_4_2 = self.se_c4(contr_4_2)
         pool_4 = self.pool_4(contr_4_2)
 
-        dropout = self.dropout(pool_4)
+        pool_4 = self.dropout(pool_4)
 
-        # encode_1 = self.encode_1(dropout)
         encode_1 = self.encode_1(pool_4)
         encode_2 = self.encode_2(encode_1)
         encode_2 = self.se_e1(encode_2)
@@ -369,13 +373,11 @@ class UNet_Pytorch_SE(BaseModel):
             NR_OF_GRADIENTS = 33
 
         if torch.cuda.is_available():
-            #todo important: change
-            # net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
-            net = UNet_Skip(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
+            net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
+            # net = UNet_Skip(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
         else:
-            #todo important: change
-            # net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
-            net = UNet_Skip(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
+            net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
+            # net = UNet_Skip(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
         criterion = nn.BCEWithLogitsLoss()
         optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
         # optimizer = optim.Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange

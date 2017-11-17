@@ -39,34 +39,11 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
 #Settings and Hyperparameters
 class HP:
-    EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
-    EXP_NAME = "HCP_Pytorch"       # HCP_normAfter
     MODEL = "UNet_Pytorch"     # UNet_Lasagne / UNet_Pytorch
-    NUM_EPOCHS = 500
-    DATA_AUGMENTATION = True
-    DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8) - Mirror"
-    DATASET = "HCP"  # HCP / HCP_32g
-    RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
-    FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_masks"     # bundle_masks / bundle_masks_45       #Only used when using DataManagerNifti
-    DATASET_FOLDER = "HCP"  # HCP / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
-    LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
-    MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
-    EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
-    BATCH_SIZE = 46  # Lasagne: 56  # Lasagne combined: 42   #Pytorch: 46
-    LEARNING_RATE = 0.002
     UNET_NR_FILT = 64
     LOAD_WEIGHTS = False
     WEIGHTS_PATH = ""
     TYPE = "single_direction"       # single_direction / combined
-    CV_FOLD = 0
-    VALIDATE_SUBJECTS = []
-    TRAIN_SUBJECTS = []
-    TEST_SUBJECTS = []
-    TRAIN = True
-    TEST = True
-    SEGMENT = False
-    GET_PROBS = False
 
     PREDICT_IMG = False
     PREDICT_IMG_OUTPUT = None
@@ -91,6 +68,32 @@ class HP:
     BEST_EPOCH = 0
     INPUT_DIM = (144, 144)
     VERBOSE = True
+    EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
+    EXP_NAME = "HCP_TEST"       # HCP_normAfter
+    MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
+    EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
+    LEARNING_RATE = 0.002
+
+    #Remove?
+    # NUM_EPOCHS = 500
+    # DATA_AUGMENTATION = True
+    # DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8) - Mirror"
+    # DATASET = "HCP"  # HCP / HCP_32g
+    # RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
+    # FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
+    # LABELS_FILENAME = "bundle_masks"  # bundle_masks / bundle_masks_45       #Only used when using DataManagerNifti
+    # DATASET_FOLDER = "HCP"  # HCP / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
+    # LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
+    # CV_FOLD = 0
+    # VALIDATE_SUBJECTS = []
+    # TRAIN_SUBJECTS = []
+    # TEST_SUBJECTS = []
+    # TRAIN = True
+    # TEST = True
+    # SEGMENT = False
+    # GET_PROBS = False
+    # BATCH_SIZE = 46  # Lasagne: 56  # Lasagne combined: 42   #Pytorch: 46
+
 
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
