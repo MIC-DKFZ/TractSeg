@@ -213,8 +213,9 @@ class ExpUtils:
         return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
 
     @staticmethod
-    def print_and_save(HP, text):
-        print(text)
+    def print_and_save(HP, text, only_log=False):
+        if not only_log:
+            print(text)
         with open(join(HP.EXP_PATH, "Log.txt"), "a") as f:  # a for append
             f.write(text)
             f.write("\n")

@@ -219,6 +219,10 @@ class UNet_Pytorch(BaseModel):
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
         else:
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
+
+        if self.HP.TRAIN:
+            ExpUtils.print_and_save(self.HP, str(net), only_log=True)
+
         criterion = nn.BCEWithLogitsLoss()
         optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
         # optimizer = optim.Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange

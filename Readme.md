@@ -19,6 +19,11 @@ TractSeg only runs on Linux and OSX. It uses Python 2.
 * BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip`
 
 #### Install TractSeg
+Stable version:
+```
+pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.0.zip
+```
+Bleeding-edge version:
 ```
 pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
 ```
