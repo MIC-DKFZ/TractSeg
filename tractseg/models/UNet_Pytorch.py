@@ -145,6 +145,7 @@ class UNet(torch.nn.Module):
 
 class UNet_Pytorch(BaseModel):
     def create_network(self):
+        # torch.backends.cudnn.benchmark = True     #not faster
 
         def train(X, y):
             X = torch.from_numpy(X.astype(np.float32))
@@ -219,6 +220,8 @@ class UNet_Pytorch(BaseModel):
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
         else:
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
+
+        # net = nn.DataParallel(net, device_ids=[0,1])
 
         if self.HP.TRAIN:
             ExpUtils.print_and_save(self.HP, str(net), only_log=True)

@@ -26,6 +26,7 @@ from tractseg.libs.MetricUtils import MetricUtils
 from tractseg.libs.DatasetUtils import DatasetUtils
 import socket
 from tqdm import tqdm
+import datetime
 
 try:
     from vislogger import NumpyVisdomLogger as Nvl
@@ -176,6 +177,7 @@ class Trainer:
             ExpUtils.print_and_save(HP, "  Epoch {}, time UNet: {}s".format(epoch_nr, network_time))
             ExpUtils.print_and_save(HP, "  Epoch {}, time metrics: {}s".format(epoch_nr, metrics_time))
             ExpUtils.print_and_save(HP, "  Epoch {}, time saving files: {}s".format(epoch_nr, saving_time))
+            ExpUtils.print_and_save(HP, str(datetime.datetime.now()))
 
             # Adding next Epoch
             if epoch_nr < HP.NUM_EPOCHS-1:

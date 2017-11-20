@@ -18,11 +18,13 @@
 import numpy as np
 import random
 from batchgenerators.dataloading.data_loader import DataLoaderBase
+from time import sleep
 
 import nibabel as nib
 from os.path import join
 from tractseg.libs.Config import Config as C
 from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs.ExpUtils import ExpUtils
 
 '''
 Info:
@@ -123,12 +125,20 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
         subjects = self._data[0]
         subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
 
-        # data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
-        if np.random.random() < 0.5:
-            data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
-        else:
-            data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
-        seg = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
+        for i in range(20):
+            try:
+                # data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
+                if np.random.random() < 0.5:
+                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                else:
+                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                seg = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
+                break
+            except IOError:
+                ExpUtils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
+            ExpUtils.print_and_save(self.HP, "Sleeping 20s")
+            sleep(20)
+        # ExpUtils.print_and_save(self.HP, "Successfully loaded input.")
 
         data = np.nan_to_num(data)    # Needed otherwise not working
         seg = np.nan_to_num(seg)

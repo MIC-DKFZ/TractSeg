@@ -167,6 +167,7 @@ class DataManagerTrainingNiftiImgs:
             if type == "train":
                 # scale: inverted: 0.5 -> bigger; 2 -> smaller
                 # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
+
                 center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
                 tfs.append(SpatialTransform(self.HP.INPUT_DIM,
                                                     patch_center_dist_from_border=center_dist_from_border,
@@ -181,6 +182,7 @@ class DataManagerTrainingNiftiImgs:
                 tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
                 tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
                 tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
+
                 # tfs.append(Mirror())
                 # tfs.append(GammaTransform(gamma_range=(0.75, 1.5))) # produces Loss=NaN; maybe because data not in 0-1
 
