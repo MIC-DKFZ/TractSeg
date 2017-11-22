@@ -48,7 +48,7 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 class HP:
     EXP_MULTI_NAME = ""             #CV Parent Dir name # leave empty for Single Bundle Experiment
     EXP_NAME = "HCP_TEST"           # HCP_TEST
-    MODEL = "UNet_Pytorch_SE"          # UNet_Lasagne / UNet_Pytorch
+    MODEL = "UNet_Pytorch"          # UNet_Lasagne / UNet_Pytorch
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8)"
@@ -60,8 +60,8 @@ class HP:
     LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
-    BATCH_SIZE = 45  #max:  Lasagne: 56  # Lasagne combined: 42   #Pytorch: 50   #Pytorch UpSample: 56   #Pytorch_SE_r16: 45    #Pytorch_SE_r64: 45
-    LEARNING_RATE = 0.002  # 0.002 #LR find: 0.000143 ?
+    BATCH_SIZE = 50  #max:  Lasagne: 56  # Lasagne combined: 42   #Pytorch: 50   #Pytorch UpSample: 56   #Pytorch_SE_r16: 45    #Pytorch_SE_r64: 45
+    LEARNING_RATE = 0.002  # 0.002 #LR find: 0.000143 ?  # 0.001
     UNET_NR_FILT = 64
     LOAD_WEIGHTS = False
     # WEIGHTS_PATH = join(C.EXP_PATH, "HCP100_45B_UNet_x_DM_lr002_slope2_dec992_ep800/best_weights_ep64.npz")    # Can be absolute path or relative like "exp_folder/weights.npz"
@@ -83,7 +83,7 @@ class HP:
     TEST_TIME_DAUG = False
     SLICE_DIRECTION = "x"  #no effect at the moment     # x, y, z  (combined needs z)
     USE_VISLOGGER = False
-    INFO = "74 BNew, DMNifti, newSplit, 90gAnd270g, NormBeforeDAug, Fusion: 32gAnd270g"
+    INFO = "Dropout, Deconv"
     SAVE_WEIGHTS = True
     NR_OF_CLASSES = len(ExpUtils.get_bundle_names())
     SEG_INPUT = "Peaks"     # Gradients/ Peaks

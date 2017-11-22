@@ -219,25 +219,21 @@ class UNet(torch.nn.Module):
         self.encode_2 = conv2d(n_filt * 16, n_filt * 16)
         self.se_e1 = SELayer(n_filt * 16)
         self.deconv_1 = deconv2d(n_filt * 16, n_filt * 16, kernel_size=2, stride=2)
-        # self.deconv_1 = nn.Upsample(scale_factor=2)     #does only upscale width and height  #Similar results to deconv2d
 
         self.expand_1_1 = conv2d(n_filt * 8 + n_filt * 16, n_filt * 8)
         self.expand_1_2 = conv2d(n_filt * 8, n_filt * 8)
         self.se_e2 = SELayer(n_filt * 8)
         self.deconv_2 = deconv2d(n_filt * 8, n_filt * 8, kernel_size=2, stride=2)
-        # self.deconv_2 = nn.Upsample(scale_factor=2)
 
         self.expand_2_1 = conv2d(n_filt * 4 + n_filt * 8, n_filt * 4, stride=1)
         self.expand_2_2 = conv2d(n_filt * 4, n_filt * 4, stride=1)
         self.se_e3 = SELayer(n_filt * 4)
         self.deconv_3 = deconv2d(n_filt * 4, n_filt * 4, kernel_size=2, stride=2)
-        # self.deconv_3 = nn.Upsample(scale_factor=2)
 
         self.expand_3_1 = conv2d(n_filt * 2 + n_filt * 4, n_filt * 2, stride=1)
         self.expand_3_2 = conv2d(n_filt * 2, n_filt * 2, stride=1)
         self.se_e4 = SELayer(n_filt * 2)
         self.deconv_4 = deconv2d(n_filt * 2, n_filt * 2, kernel_size=2, stride=2)
-        # self.deconv_4 = nn.Upsample(scale_factor=2)
 
         self.expand_4_1 = conv2d(n_filt + n_filt * 2, n_filt, stride=1)
         self.expand_4_2 = conv2d(n_filt, n_filt, stride=1)
