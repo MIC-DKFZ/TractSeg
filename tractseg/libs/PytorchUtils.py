@@ -70,3 +70,22 @@ class PytorchUtils:
             return np.array(f1s)
         else:
             return np.mean(np.array(f1s))
+
+    @staticmethod
+    def sum_tensor(input, axes, keepdim=False):
+        axes = np.unique(axes)
+        if keepdim:
+            for ax in axes:
+                input = input.sum(ax, keepdim=True)
+        else:
+            for ax in sorted(axes, reverse=True):
+                input = input.sum(ax)
+        return input
+
+    @staticmethod
+    def soft_dice(net_output, gt, eps=1e-6):
+        axes = tuple(range(2, len(net_output.size())))
+        intersect = PytorchUtils.sum_tensor(net_output * gt, axes, keepdim=False)
+        denom = PytorchUtils.sum_tensor(net_output + gt, axes, keepdim=False)
+        return - (2 * intersect / (denom + eps)).mean()
+
