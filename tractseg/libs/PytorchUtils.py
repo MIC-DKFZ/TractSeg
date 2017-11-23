@@ -42,7 +42,7 @@ class PytorchUtils:
         return kwargs
 
     @staticmethod
-    def f1_score_macro(y_true, y_pred):
+    def f1_score_macro(y_true, y_pred, per_class=False):
         '''
         Macro f1
 
@@ -66,4 +66,7 @@ class PytorchUtils:
             denominator = torch.sum(y_true[:, i]) + torch.sum(y_pred[:, i])  # works because all multiplied by 0 gets 0
             f1 = (2 * intersect) / (denominator + 1e-6)
             f1s.append(f1)
-        return np.mean(np.array(f1s))
+        if per_class:
+            return np.array(f1s)
+        else:
+            return np.mean(np.array(f1s))

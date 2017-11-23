@@ -35,7 +35,7 @@ class SELayer(nn.Module):
     Benefit: We make mean for each channel und then 2 FC (with bottleneck) -> can learn dependencies between layers
                 -> dependencies are then multiplied to original signal (similar to attention/gating)
     '''
-    def __init__(self, channel, reduction=16):  #reduction=16
+    def __init__(self, channel, reduction=64):  #reduction=16
         super(SELayer, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)     #results in [batch_size, channels, 1, 1]
         self.fc = nn.Sequential(
@@ -312,7 +312,7 @@ class UNet_Pytorch_SE(BaseModel):
             loss = criterion(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data)
+            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None    #faster
             return loss.data[0], probs, f1
@@ -327,7 +327,7 @@ class UNet_Pytorch_SE(BaseModel):
             net.train(False)
             outputs = net(X)  # forward
             loss = criterion(outputs, y)
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data)
+            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1

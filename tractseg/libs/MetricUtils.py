@@ -141,7 +141,7 @@ class MetricUtils:
         return metrics
 
     @staticmethod
-    def calculate_metrics(metrics, y, class_probs, loss, f1=None, type="train", threshold=0.5):
+    def calculate_metrics(metrics, y, class_probs, loss, f1=None, f1_per_bundle=None, type="train", threshold=0.5):
         '''
         y -> Ground Truth
 
@@ -165,6 +165,10 @@ class MetricUtils:
             metrics["f1_macro_"+type][-1] += MetricUtils.my_f1_score_macro(y, pred_class)
         else:
             metrics["f1_macro_"+type][-1] += f1
+            if f1_per_bundle is not None:
+                metrics["f1_CA_" + type][-1] += f1_per_bundle["CA"]
+                metrics["f1_FX_left_" + type][-1] += f1_per_bundle["FX_left"]
+                metrics["f1_FX_right_" + type][-1] += f1_per_bundle["FX_right"]
 
         return metrics
 

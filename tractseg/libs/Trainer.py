@@ -57,6 +57,9 @@ class Trainer:
             metrics_new = {
                 "loss_" + type: [0],
                 "f1_macro_" + type: [0],
+                "f1_CA_" + type: [0],
+                "f1_FX_left_" + type: [0],
+                "f1_FX_right_" + type: [0],
             }
             metrics = dict(metrics.items() + metrics_new.items())
 
@@ -114,7 +117,8 @@ class Trainer:
                     #Following two lines increase metrics_time by 30s (without < 1s)
                     y_flat = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
                     y_flat = np.reshape(y_flat, (-1, y_flat.shape[-1]))  # (bs*x*y, nr_of_classes)
-                    metrics = MetricUtils.calculate_metrics(metrics, y_flat, probs, loss, f1=f1, type=type, threshold=HP.THRESHOLD)
+                    metrics = MetricUtils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD,
+                                                            f1_per_bundle={"CA": f1[5], "FX_left": f1[23], "FX_right": f1[24]})
                     metrics_time += time.time() - start_time_metrics
 
                     print_loss.append(loss)

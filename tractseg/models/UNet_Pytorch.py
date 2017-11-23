@@ -26,17 +26,19 @@ from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.models.BaseModel import BaseModel
 
+nonlinearity = nn.ReLU()
+# nonlinearity = nn.LeakyReLU()
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
     if batchnorm:
         layer = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=bias),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU())
+            nonlinearity)
     else:
         layer = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=bias),
-            nn.ReLU())
+            nonlinearity)
     return layer
 
 
@@ -44,7 +46,7 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
     layer = nn.Sequential(
         nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride,
                            padding=padding, output_padding=output_padding, bias=bias),
-        nn.ReLU())
+        nonlinearity)
     return layer
 
 
@@ -114,7 +116,7 @@ class UNet(torch.nn.Module):
         contr_4_2 = self.contr_4_2(contr_4_1)
         pool_4 = self.pool_4(contr_4_2)
 
-        pool_4 = self.dropout(pool_4)
+        # pool_4 = self.dropout(pool_4)
 
         encode_1 = self.encode_1(pool_4)
         encode_2 = self.encode_2(encode_1)
@@ -160,7 +162,7 @@ class UNet_Pytorch(BaseModel):
             loss = criterion(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data)
+            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None    #faster
             return loss.data[0], probs, f1
@@ -175,7 +177,7 @@ class UNet_Pytorch(BaseModel):
             net.train(False)
             outputs = net(X)  # forward
             loss = criterion(outputs, y)
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data)
+            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1
