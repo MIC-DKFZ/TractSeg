@@ -1,0 +1,615 @@
+import FreeSurfer.qry
+
+##################################################################################################
+# Definition of bigger regions that combine smaller regions (makes it easier to define queries later on)
+##################################################################################################
+
+HEMISPHERE.left |= '*.left'
+HEMISPHERE.right |= '*.right'
+
+middlefrontalgyrus.side |= (
+    rostralmiddlefrontal.side or
+    caudalmiddlefrontal.side
+)
+
+inferiorfrontalgyrus.side |= (
+    parsopercularis.side or
+    parstriangularis.side or
+    parsorbitalis.side
+)
+
+orbitofrontalgyrus.side |= (
+    lateralorbitofrontal.side or
+    medialorbitofrontal.side
+)
+
+superior_parietal_lobule.side |= (
+    precuneus.side or
+    superiorparietal.side
+)
+
+inferior_parietal_lobule.side |= supramarginal.side or inferiorparietal.side
+
+posterior_parietal_lobule.side |= (
+    supramarginal.side or
+    inferiorparietal.side
+)
+
+superior_temporal_lobule.side |= (
+    superiortemporal.side or
+    middletemporal.side or
+    bankssts.side or
+    transversetemporal.side
+)
+inferior_temporal_lobule.side |= (
+    fusiform.side or
+    lingual.side or
+    inferiortemporal.side
+)
+
+cingular.side |= (
+    caudalanteriorcingulate.side or
+    isthmuscingulate.side or
+    posteriorcingulate.side or
+    rostralanteriorcingulate.side or
+    corpuscallosum.side
+)
+
+occipital.side |= (
+    lingual.side or
+    pericalcarine.side or
+    cuneus.side or
+    lateraloccipital.side or
+    lingual.side or
+    pericalcarine.side or
+    cuneus.side or
+    lateraloccipital.side
+)
+
+parietal.side |= (
+    postcentral.side or
+    precuneus.side or
+    supramarginal.side or
+    superiorparietal.side or
+    inferiorparietal.side
+)
+
+temporal.side |= (
+    entorhinal.side or
+    parahippocampal.side or
+    temporalpole.side or
+    fusiform.side or
+    superiortemporal.side or
+    middletemporal.side or
+    inferiortemporal.side or
+    transversetemporal.side or
+    bankssts.side
+)
+
+frontal.side |= (
+    superiorfrontal.side or
+    middlefrontalgyrus.side or
+    inferiorfrontalgyrus.side or
+    orbitofrontalgyrus.side or
+    frontalpole.side or
+    precentral.side or
+    paracentral.side
+)
+
+prefrontal.side |= (
+    parstriangularis.side or
+    parsorbitalis.side or
+    superiorfrontal.side or
+    rostralmiddlefrontal.side or
+    frontalpole.side or
+    lateralorbitofrontal.side
+)
+
+motor.side |= precentral.side
+
+premotor.side |= caudalmiddlefrontal.side or ctx_parsopercularis.side
+
+thalamus.side |= thalamus.side or thalamus_proper.side
+
+striatum.side |= putamen.side or pallidum.side or caudate.side
+
+cortex |= 'ctx_*'
+
+cerebellum.side |= (
+    Cerebellum_Exterior.side or
+    Cerebellum_White_Matter.side or
+    Cerebellum_Cortex.side
+)
+
+CC_middle |= (
+    CC_Posterior or
+    CC_Mid_Posterior or
+    CC_Central or
+    CC_Mid_Anterior or
+    CC_Anterior
+)
+
+#Some of the subcortical gray matter structures
+subcortical_structures.side |= (
+    thalamus.side or
+    Putamen.side or
+    striatum.side or
+    Hippocampus.side
+)
+
+ctx_frontal.side |= (
+    frontal.side or
+    prefrontal.side
+)
+
+ctx_postal.side |= (
+    occipital.side or
+    parietal.side or
+    temporal.side
+)
+
+
+
+##################################################################################################
+# Queries for different tracts
+##################################################################################################
+
+#Cingulum bundle
+CG.side = only(cingular.side
+    and (
+        middlefrontalgyrus.side or
+        cuneus.side or
+        entorhinal.side or
+        superiorfrontal.side or
+        inferiorparietal.side or
+        fusiform.side or
+        medialorbitofrontal.side or
+        lateralorbitofrontal.side or
+        parahippocampal.side or
+        precuneus.side or
+        lingual.side or
+        centrum_semiovale.side
+    )
+)
+
+#Extreme capsule
+EmC.side = (
+    (endpoints_in(
+        inferiorfrontalgyrus.side or
+        middlefrontalgyrus.side
+        )
+    and endpoints_in(inferior_parietal_lobule.side)
+    and temporal.side
+    and insula.side
+    )
+not in hemisphere.opposite)
+
+#Middle longitudinal fascicle
+MLF.side = (
+    (
+        (temporal.side and anterior_of(amygdala.side)) or
+        superiortemporal.side
+    )
+    and (inferior_parietal_lobule.side or superior_parietal_lobule.side)
+    and only(temporal.side or centrum_semiovale.side or parietal.side)
+)
+
+#Inferior longitudinal fascicle
+ILF.side = (
+    only(temporal.side and occipital.side)
+    and anterior_of(hippocampus.side)
+    not in parahippocampal.side
+)
+
+#Inferior occipito-frontal fascicle for NoACT Tracking
+IFO.side = (
+    endpoints_in (
+        ##inferiorfrontalgyrus.side##
+        parsopercularis.side or    #leave out if we only want lower part
+        parstriangularis.side or   #leave out if we only want lower part
+        parsorbitalis.side or
+
+        ##middlefrontalgyrus.side##
+        #caudalmiddlefrontal               #good to leave out in general
+        rostralmiddlefrontal.side or       #leave out if we only want lower part
+
+        orbitofrontalgyrus.side      #needed
+    )
+    and endpoints_in(occipital.side)
+    and insula.side
+    and temporal.side
+    not in hemisphere.opposite
+    not in wm_medialorbitofrontal.side
+    not in ctx_medialorbitofrontal.side
+    not in Pallidum.side
+    not in entorhinal.side
+    not in Accumbens_area.side
+)
+
+
+#Uncinate fascicle for Tracking without anatomical constraints
+UF.side = (
+    (
+    endpoints_in (
+        parsorbitalis.side or
+        orbitofrontalgyrus.side
+    )
+    and
+    endpoints_in (
+        temporal.side and anterior_of(amygdala.side))
+    )
+    not in occipital.side
+    not in parietal.side
+    not in cingular.side
+    not in posterior_of(putamen.side)
+    not in hemisphere.opposite
+    not in wm_medialorbitofrontal.side
+    not in Pallidum.side
+    not in Accumbens_area.side
+    not in VentralDC.side
+)
+
+#Cortico-spinal tract
+CST.side = (
+    (
+    endpoints_in(brain_stem)
+    and
+    endpoints_in(precentral.side)
+    )
+    not in hemisphere.opposite
+)
+
+#Fornix
+# Results of this query not ideal (catches more than only Fornix),
+# but after one manual ROI quite good
+FX = (
+    endpoints_in(
+        Unknown or
+        wm_medialorbitofrontal.left or
+        ctx_unknown.right or
+        VentralDC.right or
+        VentralDC.left
+    )
+)
+
+#Superior cerebellar peduncle
+SCP.side = (
+    endpoints_in(thalamus.side)
+    and
+    endpoints_in(Cerebellum_Cortex.side)
+)
+
+#Middle cerebellar peduncle
+MCP = (
+    endpoints_in(Cerebellum_Cortex.right)
+    and
+    endpoints_in(Cerebellum_Cortex.left)
+    and
+    Brain_Stem              # should be pons/Pontine_nuclei, but freesurfer has only Brain_stem and not more fine grained parcellation
+)
+
+#Inferior cerebellar peduncle
+ICP.side = (
+    endpoints_in(Cerebellum_Cortex.side)
+    and
+    Brain_Stem
+    not in hemisphere.opposite
+    and superior_of(Cerebellum_Cortex.side)
+)
+
+#Fronto-pontine tract
+FPT.side = (
+    (
+    endpoints_in(brain_stem)
+    and
+    endpoints_in(superiorfrontal.side)
+    )
+    not in hemisphere.opposite
+)
+
+#Parieto‐occipital pontine tract:
+POPT.side = (
+    (
+    endpoints_in(brain_stem)
+    and
+    endpoints_in(superiorparietal.side or postcentral.side)
+    )
+    not in hemisphere.opposite
+)
+
+#Optic radiation
+OR.side = (
+    endpoints_in(thalamus.side)
+    and
+    endpoints_in(ctx_lingual.side or ctx_pericalcarine.side or ctx_cuneus.side or ctx_lateraloccipital.side)
+)
+
+#Anterior Thalamic Radiation
+prefrontal_sm.side |= (
+    parstriangularis.side or
+    parsorbitalis.side or
+    rostralmiddlefrontal.side or
+    frontalpole.side or
+    lateralorbitofrontal.side
+)
+ATR.side = (
+    endpoints_in(thalamus.side)
+    and
+    endpoints_in(prefrontal_sm.side)
+)
+
+#Superior Thalamic Radiation
+STR.side = (
+    endpoints_in(thalamus.side)
+    and
+    endpoints_in(ctx_paracentral.side)
+)
+
+#Corpus Callosum (CC) in one big part
+CC = (
+    CC_middle
+    and
+    endpoints_in(HEMISPHERE.left)
+    and
+    endpoints_in(HEMISPHERE.right)
+    and
+    endpoints_in(cortex)
+    and
+    #Removes majority of diagonal fibers
+    (
+        (
+            endpoints_in(ctx_frontal.left)
+            and
+            endpoints_in(ctx_frontal.right)
+        )
+        or
+        (
+            endpoints_in(ctx_postal.left)
+            and
+            endpoints_in(ctx_postal.right)
+        )
+    )
+    not in cerebellum.left
+    not in cerebellum.right
+    not in subcortical_structures.left
+    not in subcortical_structures.right
+)
+
+#CC subdivided into several parts
+
+#Rostrum
+CC_1 = (
+    endpoints_in(orbitofrontalgyrus.left)
+    and endpoints_in(orbitofrontalgyrus.right)
+)
+
+#Genu
+CC_2 = endpoints_in(prefrontal.left) and endpoints_in(prefrontal.right)
+
+#Rostral body (Premotor)
+CC_3 = endpoints_in(premotor.left) and endpoints_in(premotor.right)
+
+#Anterior midbody (Primary Motor)
+CC_4 = endpoints_in(motor.left) and endpoints_in(motor.right)
+
+#Posterior midbody (Primary Somatosensory)
+CC_5 = (
+    endpoints_in(
+        postcentral.left or
+        posteriorcingulate.left or
+        paracentral.left
+    )
+    and endpoints_in(
+        postcentral.right or
+        posteriorcingulate.right or
+        paracentral.right
+    )
+)
+
+#Isthmus NEW (more complete)
+CC_6 = (
+    endpoints_in(
+        superior_temporal_lobule.left or
+        posterior_parietal_lobule.left or
+        isthmuscingulate.left or
+        superior_parietal_lobule.left or
+        inferior_parietal_lobule.left
+    )
+    and endpoints_in(
+        superior_temporal_lobule.right or
+        posterior_parietal_lobule.right or
+        isthmuscingulate.right or
+        superior_parietal_lobule.right or
+        inferior_parietal_lobule.right
+    )
+)
+
+#Splenium (Occipital)
+CC_7 = (
+    endpoints_in(
+        occipital.left or
+        inferior_temporal_lobule.left
+    )
+    and endpoints_in(
+        occipital.right or
+        inferior_temporal_lobule.right
+    )
+)
+
+#Superior longitudinal fascicle I
+SLF_I.side = (
+    endpoints_in(superiorparietal.side)
+    and
+    endpoints_in(
+        middlefrontalgyrus.side or
+        superiorfrontal.side
+    )
+    and only(
+        frontal.side or
+        parietal.side or
+        centrum_semiovale.side
+    )
+)
+
+#Superior longitudinal fascicle II
+SLF_II.side = (
+    endpoints_in(
+        inferiorparietal.side or
+        lateraloccipital.side
+    )
+    and
+    endpoints_in(
+        middlefrontalgyrus.side or
+        superiorfrontal.side
+    )
+    and only(
+        frontal.side or
+        parietal.side or
+        centrum_semiovale.side
+    )
+)
+
+#Superior longitudinal fascicle III
+SLF_III.side = (
+    endpoints_in(supramarginal.side)
+    and endpoints_in(inferiorfrontalgyrus.side)
+    and only(
+        wm_insula.side or                   # needed, otherwise in middle incomplete
+        frontal.side or
+        parietal.side or
+        centrum_semiovale.side
+    ))
+
+#Arcuate fascicle
+AF.side = (
+    endpoints_in(
+        inferiorfrontalgyrus.side or
+        middlefrontalgyrus.side or
+        precentral.side
+    )
+    and endpoints_in(temporal.side)
+    #not in medial_of(supramarginal.side)   # not good, because removes too much in middle
+    not in superiorfrontal.side             # removes a few spurious fibers
+    not in superiorparietal.side            # removes a few spurious fibers
+    and only(
+        wm_insula.side or                   # needed, otherwise in middle incomplete
+        frontal.side or
+        temporal.side or
+        parietal.side or
+        centrum_semiovale.side
+    )
+)
+
+#Commissure Anterior (query is very rough, because precise query, that robustly works for all subjects, is not possible
+# with the freesurfer parcellation)
+
+#For sure CA is not in these parts
+CA_exclusion.side |= (
+    prefrontal.side or
+    parietal.side or
+    occipital.side or
+    postcentral.side or
+    precentral.side or
+    brain_stem or
+    CC_middle
+)
+
+#inclusion (a lot so we do not get any false negatives)
+CA_middle_parts |= (
+    wm_medialorbitofrontal.left or  #3014
+    Caudate.left or #11
+    Thalamus_Proper.left or #10
+    Accumbens_area.left or #26
+    VentralDC.left or #28
+    Pallidum.left or #13
+    centrum_semiovale.left or #5001
+    UnsegmentedWhiteMatter.left or #5001
+    Putamen.left or #12
+    vessel.left or #30
+    Amygdala.left or #18
+    ctx_insula.left or #1035
+    wm_insula.left or #3035
+    wm_fusiform.left #3007
+)
+
+Cingulate.side |= (
+    caudalanteriorcingulate.side or
+    posteriorcingulate.side or
+    isthmuscingulate.side or
+    rostralanteriorcingulate.side
+)
+
+CA = (
+    CA_middle_parts
+    not in posterior_of(CC_Mid_Posterior)
+    not in CA_exclusion.left
+    not in CA_exclusion.right
+    not in Cingulate.left
+    not in Cingulate.right
+)
+
+
+#Thalamo-prefrontal
+T_PREF.side = (
+    endpoints_in(thalamus.side) and endpoints_in(prefrontal.side)
+)
+
+#Thalamo-premotor
+T_PREM.side = (
+    endpoints_in(thalamus.side) and endpoints_in(premotor.side)
+)
+
+#Thalamo-precentral
+T_PREC.side = (
+    endpoints_in(thalamus.side) and endpoints_in(precentral.side)
+)
+
+#Thalamo-postcentral
+T_POSTC.side = (
+    endpoints_in(thalamus.side) and endpoints_in(postcentral.side)
+)
+
+#Thalamo-parietal
+T_PAR.side = (
+    endpoints_in(thalamus.side) and endpoints_in(parietal.side)
+)
+
+#Thalamo-occipital
+T_OCC.side = (
+    endpoints_in(thalamus.side) and endpoints_in(occipital.side)
+)
+
+#Striato-fronto-orbital
+ST_FO.side = (
+    endpoints_in(striatum.side) and endpoints_in(orbitofrontalgyrus.side)
+)
+
+#Striato-prefrontal
+ST_PREF.side = (
+    endpoints_in(striatum.side) and endpoints_in(prefrontal.side)
+)
+
+#Striato-premotor
+ST_PREM.side = (
+    endpoints_in(striatum.side) and endpoints_in(premotor.side)
+)
+
+#Striato-precentral
+ST_PREC.side = (
+    endpoints_in(striatum.side) and endpoints_in(precentral.side)
+)
+
+#Striato-postcentral
+ST_POSTC.side = (
+    endpoints_in(striatum.side) and endpoints_in(postcentral.side)
+)
+
+#Striato-parietal
+ST_PAR.side = (
+    endpoints_in(striatum.side) and endpoints_in(parietal.side)
+)
+
+#Striato-occipital
+ST_OCC.side = (
+    endpoints_in(striatum.side) and endpoints_in(occipital.side)
+)
