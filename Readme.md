@@ -75,7 +75,7 @@ each extracted bundle in the output file.
 14: CG_right   
 15: CST_left       (Corticospinal tract
 16: CST_right 
-17: EMC_left       (Extreme capsule)
+17: EMC_left       (Extreme capsule)   [incorretly defined; will be removed soon]
 18: EMC_right 
 19: MLF_left       (Middle longitudinal fascicle)
 20: MLF_right
