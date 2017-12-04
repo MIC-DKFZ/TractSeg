@@ -153,6 +153,11 @@ class Trainer:
             # Post Training tasks (each epoch)
             ###################################
 
+            #Adapt LR
+            # self.model.scheduler.step()
+            # self.model.scheduler.step(f1)
+            # self.model.print_current_lr()
+
             # Average loss per batch over entire epoch
             metrics = MetricUtils.normalize_last_element(metrics, batch_nr["train"], type="train")
             metrics = MetricUtils.normalize_last_element(metrics, batch_nr["validate"], type="validate")

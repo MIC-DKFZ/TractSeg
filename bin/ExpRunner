@@ -55,13 +55,13 @@ class HP:
     DATASET = "HCP"  # HCP / HCP_32g
     RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
     FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_masks"     # bundle_masks / bundle_masks_45       #Only used when using DataManagerNifti
+    LABELS_FILENAME = "bundle_masks_72"     # bundle_masks / bundle_masks_72 / bundle_masks_45       #Only used when using DataManagerNifti
     DATASET_FOLDER = "HCP"  # HCP / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
     LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
-    BATCH_SIZE = 42  #max:  Lasagne: 56  # Lasagne combined: 42   #Pytorch: 50   #Pytorch UpSample: 56   #Pytorch_SE_r16: 45    #Pytorch_SE_r64: 45
-    LEARNING_RATE = 0.002  # 0.002 #LR find: 0.000143 ?  # 0.001
+    BATCH_SIZE = 50  #max:  Lasagne: 56  # Lasagne combined: 42   #Pytorch: 50   #Pytorch UpSample: 56   #Pytorch_SE_r16: 45    #Pytorch_SE_r64: 45
+    LEARNING_RATE = 0.001  # 0.002 #LR find: 0.000143 ?  # 0.001
     UNET_NR_FILT = 64
     LOAD_WEIGHTS = False
     # WEIGHTS_PATH = join(C.EXP_PATH, "HCP100_45B_UNet_x_DM_lr002_slope2_dec992_ep800/best_weights_ep64.npz")    # Can be absolute path or relative like "exp_folder/weights.npz"
@@ -83,7 +83,7 @@ class HP:
     TEST_TIME_DAUG = False
     SLICE_DIRECTION = "x"  #no effect at the moment     # x, y, z  (combined needs z)
     USE_VISLOGGER = False
-    INFO = "no Dropout, Deconv"
+    INFO = "no Dropout, Deconv, LeakyRelu, lr_schedule: 100ep reduce 0.1"
     SAVE_WEIGHTS = True
     NR_OF_CLASSES = len(ExpUtils.get_bundle_names())
     SEG_INPUT = "Peaks"     # Gradients/ Peaks

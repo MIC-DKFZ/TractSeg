@@ -19,15 +19,16 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
+from torch.optim import Adamax
+import torch.optim.lr_scheduler as lr_scheduler
 from torch.autograd import Variable
 
 from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.models.BaseModel import BaseModel
 
-nonlinearity = nn.ReLU()
-# nonlinearity = nn.LeakyReLU()
+# nonlinearity = nn.ReLU()
+nonlinearity = nn.LeakyReLU()
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
     if batchnorm:
@@ -212,6 +213,10 @@ class UNet_Pytorch(BaseModel):
         def load_model(path):
             PytorchUtils.load_checkpoint(path, unet=net)
 
+        def print_current_lr():
+            for param_group in optimizer.param_groups:
+                ExpUtils.print_and_save(self.HP, "current learning rate: {}".format(param_group['lr']))
+
 
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":
             NR_OF_GRADIENTS = 9
@@ -231,8 +236,10 @@ class UNet_Pytorch(BaseModel):
             ExpUtils.print_and_save(self.HP, str(net), only_log=True)
 
         criterion = nn.BCEWithLogitsLoss()
-        optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
-        # optimizer = optim.Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
+        optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
+        # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
+        # scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
+        # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
 
         if self.HP.LOAD_WEIGHTS:
             ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
@@ -243,3 +250,5 @@ class UNet_Pytorch(BaseModel):
         self.get_probs = predict
         self.save_model = save_model
         self.load_model = load_model
+        self.print_current_lr = print_current_lr
+        # self.scheduler = scheduler
