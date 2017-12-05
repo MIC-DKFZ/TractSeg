@@ -127,11 +127,19 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
 
         for i in range(20):
             try:
-                # data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
                 if np.random.random() < 0.5:
                     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
                 else:
                     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+
+                # rnd_choice = np.random.random()
+                # if rnd_choice < 0.33:
+                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                # elif rnd_choice < 0.66:
+                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                # else:
+                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "12g_125mm_peaks.nii.gz")).get_data()
+
                 seg = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
                 break
             except IOError:
@@ -173,6 +181,88 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])
+        return data_dict
+
+
+class SlicesBatchGeneratorRandomNiftiImg_5slices(DataLoaderBase):
+    '''
+    Randomly sample 2D slices from a .nii.gz image.
+    Always 2 slices above and bellow.
+
+    About 2.5s per 54-batch 75 bundles 1.25mm. ?
+    About 2s per 54-batch 45 bundles 1.25mm.
+    '''
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.HP = None
+
+    def generate_train_batch(self):
+        subjects = self._data[0]
+        subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
+
+        for i in range(20):
+            try:
+                # data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
+                if np.random.random() < 0.5:
+                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                else:
+                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                seg = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
+                break
+            except IOError:
+                ExpUtils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
+            ExpUtils.print_and_save(self.HP, "Sleeping 20s")
+            sleep(20)
+        # ExpUtils.print_and_save(self.HP, "Successfully loaded input.")
+
+        data = np.nan_to_num(data)    # Needed otherwise not working
+        seg = np.nan_to_num(seg)
+
+        data = DatasetUtils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)    # (x, y, z, channels)
+        if self.HP.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
+            # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
+            seg = DatasetUtils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
+        else:
+            seg = DatasetUtils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
+
+        slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
+
+        # Randomly sample slice orientation
+        slice_direction = int(round(random.uniform(0,2)))
+
+        if slice_direction == 0:
+            y = seg[slice_idxs, :, :].astype(self.HP.LABELS_TYPE)
+            y = np.array(y).transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
+        elif slice_direction == 1:
+            y = seg[:, slice_idxs, :].astype(self.HP.LABELS_TYPE)
+            y = np.array(y).transpose(1, 3, 0, 2)
+        elif slice_direction == 2:
+            y = seg[:, :, slice_idxs].astype(self.HP.LABELS_TYPE)
+            y = np.array(y).transpose(2, 3, 0, 1)
+
+        data_pad = np.zeros((data.shape[0]+4, data.shape[1]+4, data.shape[2]+4, data.shape[3])).astype(data.dtype)
+        data_pad[2:-2, 2:-2, 2:-2, :] = data   #padded with two slices of zeros on all sides
+        batch=[]
+        for s_idx in slice_idxs:
+            if slice_direction == 0:
+                #(s_idx+2)-2:(s_idx+2)+3 = s_idx:s_idx+5
+                x = data_pad[s_idx:s_idx+5:, 2:-2, 2:-2, :].astype(np.float32)      # (5, y, z, channels)
+                x = np.array(x).transpose(0, 3, 1, 2)  # channels dim has to be before width and height for Unet (but after batches)
+                x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
+                batch.append(x)
+            elif slice_direction == 1:
+                x = data_pad[2:-2, s_idx:s_idx+5, 2:-2, :].astype(np.float32)  # (5, y, z, channels)
+                x = np.array(x).transpose(1, 3, 0, 2)  # channels dim has to be before width and height for Unet (but after batches)
+                x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
+                batch.append(x)
+            elif slice_direction == 2:
+                x = data_pad[2:-2, 2:-2, s_idx:s_idx+5, :].astype(np.float32)  # (5, y, z, channels)
+                x = np.array(x).transpose(2, 3, 0, 1)  # channels dim has to be before width and height for Unet (but after batches)
+                x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
+                batch.append(x)
+        data_dict = {"data": np.array(batch),     # (batch_size, channels, x, y, [z])
+                     "seg": y}                    # (batch_size, channels, x, y, [z])
+
         return data_dict
 
 

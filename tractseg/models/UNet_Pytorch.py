@@ -220,6 +220,7 @@ class UNet_Pytorch(BaseModel):
 
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":
             NR_OF_GRADIENTS = 9
+            # NR_OF_GRADIENTS = 9 * 5
         elif self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "combined":
             NR_OF_GRADIENTS = 3*self.HP.NR_OF_CLASSES
         else:

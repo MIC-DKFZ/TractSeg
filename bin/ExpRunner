@@ -83,7 +83,7 @@ class HP:
     TEST_TIME_DAUG = False
     SLICE_DIRECTION = "x"  #no effect at the moment     # x, y, z  (combined needs z)
     USE_VISLOGGER = False
-    INFO = "no Dropout, Deconv, LeakyRelu, lr_schedule: 100ep reduce 0.1"
+    INFO = "no Dropout, Deconv, 72bundles, LeakyRelu, "
     SAVE_WEIGHTS = True
     NR_OF_CLASSES = len(ExpUtils.get_bundle_names())
     SEG_INPUT = "Peaks"     # Gradients/ Peaks

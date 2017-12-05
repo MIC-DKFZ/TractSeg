@@ -155,7 +155,7 @@ class Trainer:
 
             #Adapt LR
             # self.model.scheduler.step()
-            # self.model.scheduler.step(f1)
+            # self.model.scheduler.step(np.mean(f1))
             # self.model.print_current_lr()
 
             # Average loss per batch over entire epoch

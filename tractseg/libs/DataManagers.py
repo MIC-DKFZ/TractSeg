@@ -29,6 +29,7 @@ from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAu
 
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
+from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg_5slices
 from tractseg.libs.BatchGenerators import SlicesBatchGenerator
 from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
 from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorNpyImg_fusion
@@ -156,6 +157,7 @@ class DataManagerTrainingNiftiImgs:
             # batch_gen = SlicesBatchGeneratorRandomNpyImg_fusionMean((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
         else:
             batch_gen = SlicesBatchGeneratorRandomNiftiImg((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
+            # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
 
         batch_gen.HP = self.HP
         tfs = []  #transforms
