@@ -26,6 +26,35 @@ from torch.autograd import Variable
 from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.models.BaseModel import BaseModel
+from tractseg.libs.Config import Config as C
+
+import matplotlib.pyplot as plt
+def plot_kernels(tensor, num_cols=6):
+    '''
+    Not so interesting as kernels have size 3x3 -> do not see much
+    (Alexnet had bigger kernels)
+    :param tensor: numpy array
+    :param num_cols:
+    :return:
+    '''
+    if not tensor.ndim==4:
+        raise Exception("assumes a 4D tensor")
+    if not tensor.shape[-1]==3:
+        raise Exception("last dim needs to be 3 to plot")
+    num_kernels = tensor.shape[0]
+    num_rows = 1+ num_kernels // num_cols
+    fig = plt.figure(figsize=(num_cols,num_rows))
+    for i in range(tensor.shape[0]):
+        ax1 = fig.add_subplot(num_rows,num_cols,i+1)
+        ax1.imshow(tensor[i])
+        ax1.axis('off')
+        ax1.set_xticklabels([])
+        ax1.set_yticklabels([])
+
+    plt.subplots_adjust(wspace=0.1, hspace=0.1)
+    #plt.show()
+    plt.savefig(join(C.NETWORK_DRIVE, "my_plot.png"), dpi=200)
+
 
 # nonlinearity = nn.ReLU()
 nonlinearity = nn.LeakyReLU()
@@ -143,10 +172,10 @@ class UNet(torch.nn.Module):
         expand_4_2 = self.expand_4_2(expand_4_1)
 
         conv_5 = self.conv_5(expand_4_2)
-        return conv_5
+        return conv_5, (deconv_2, contr_3_2, contr_1_2)
 
 
-class UNet_Pytorch(BaseModel):
+class UNet_Pytorch_Vis(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
@@ -159,7 +188,9 @@ class UNet_Pytorch(BaseModel):
                 X, y = Variable(X), Variable(y)
             optimizer.zero_grad()
             net.train()
-            outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
+
+            outputs, intermediate = net(X)  # forward     # outputs: (bs, classes, x, y)
+
             loss = criterion(outputs, y)
             # loss = PytorchUtils.soft_dice(outputs, y)
             loss.backward()  # backward
@@ -171,7 +202,7 @@ class UNet_Pytorch(BaseModel):
             else:
                 probs = None    #faster
 
-            return loss.data[0], probs, f1
+            return loss.data[0], probs, f1, intermediate
 
         def test(X, y):
             X = torch.from_numpy(X.astype(np.float32))
@@ -249,6 +280,12 @@ class UNet_Pytorch(BaseModel):
         if self.HP.LOAD_WEIGHTS:
             ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
+
+        #plot feature weights
+        # weights = list(list(net.children())[0].children())[0].weight.cpu().data.numpy()   # sequential -> conv2d   # (64, 9, 3, 3)
+        # weights = weights[:, 0:1, :, :]  # select one input channel to plot       # (64, 1, 3, 3)
+        # weights = (weights*100).astype(np.uint8) # can not plot negative values (and if float only 0-1 allowed) -> not good: we remove negatives
+        # plot_kernels(weights)
 
         self.train = train
         self.predict = test
