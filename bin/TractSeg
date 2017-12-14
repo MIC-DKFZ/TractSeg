@@ -136,6 +136,7 @@ if args.flip:
     HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_Mir.npz")
 else:
     HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights.npz")
+    # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_12g.npz")
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
 
 if HP.VERBOSE:
