@@ -133,10 +133,10 @@ HP.SEGMENT = False
 HP.GET_PROBS = False
 HP.LOAD_WEIGHTS = True
 if args.flip:
-    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_Mir.npz")
+    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_Mir_v1.npz")
 else:
-    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights.npz")
-    # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_12g.npz")
+    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_v1.npz")
+    # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_12g_ep420.npz")
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
 
 if HP.VERBOSE:

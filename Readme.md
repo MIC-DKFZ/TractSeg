@@ -71,64 +71,62 @@ each extracted bundle in the output file.
 14: CG_right   
 15: CST_left       (Corticospinal tract
 16: CST_right 
-17: EMC_left       (Extreme capsule)   [incorretly defined; will be removed soon]
-18: EMC_right 
-19: MLF_left       (Middle longitudinal fascicle)
-20: MLF_right
-21: FPT_left       (Fronto-pontine tract)
-22: FPT_right 
-23: FX_left        (Fornix)
-24: FX_right
-25: ICP_left       (Inferior cerebellar peduncle)
-26: ICP_right 
-27: IFO_left       (Inferior occipito-frontal fascicle) 
-28: IFO_right
-29: ILF_left       (Inferior longitudinal fascicle) 
-30: ILF_right 
-31: MCP            (Middle cerebellar peduncle)
-32: OR_left        (Optic radiation) 
-33: OR_right
-34: POPT_left      (Parieto‐occipital pontine)
-35: POPT_right 
-36: SCP_left       (Superior cerebellar peduncle)
-37: SCP_right 
-38: SLF_I_left     (Superior longitudinal fascicle I)
-39: SLF_I_right 
-40: SLF_II_left    (Superior longitudinal fascicle II)
-41: SLF_II_right
-42: SLF_III_left   (Superior longitudinal fascicle III)
-43: SLF_III_right 
-44: STR_left       (Superior Thalamic Radiation)
-45: STR_right 
-46: UF_left        (Uncinate fascicle) 
-47: UF_right 
-48: CC             (Corpus Callosum - all)
-49: T_PREF_left    (Thalamo-prefrontal)
-50: T_PREF_right 
-51: T_PREM_left    (Thalamo-premotor)
-52: T_PREM_right 
-53: T_PREC_left    (Thalamo-precentral)
-54: T_PREC_right 
-55: T_POSTC_left   (Thalamo-postcentral)
-56: T_POSTC_right 
-57: T_PAR_left     (Thalamo-parietal)
-58: T_PAR_right 
-59: T_OCC_left     (Thalamo-occipital)
-60: T_OCC_right 
-61: ST_FO_left     (Striato-fronto-orbital)
-62: ST_FO_right 
-63: ST_PREF_left   (Striato-prefrontal)
-64: ST_PREF_right 
-65: ST_PREM_left   (Striato-premotor)
-66: ST_PREM_right 
-67: ST_PREC_left   (Striato-precentral)
-68: ST_PREC_right 
-69: ST_POSTC_left  (Striato-postcentral)
-70: ST_POSTC_right
-71: ST_PAR_left    (Striato-parietal)
-72: ST_PAR_right 
-73: ST_OCC_left    (Striato-occipital)
-74: ST_OCC_right
+17: MLF_left       (Middle longitudinal fascicle)
+18: MLF_right
+19: FPT_left       (Fronto-pontine tract)
+20: FPT_right 
+21: FX_left        (Fornix)
+22: FX_right
+23: ICP_left       (Inferior cerebellar peduncle)
+24: ICP_right 
+25: IFO_left       (Inferior occipito-frontal fascicle) 
+26: IFO_right
+27: ILF_left       (Inferior longitudinal fascicle) 
+28: ILF_right 
+29: MCP            (Middle cerebellar peduncle)
+30: OR_left        (Optic radiation) 
+31: OR_right
+32: POPT_left      (Parieto‐occipital pontine)
+33: POPT_right 
+34: SCP_left       (Superior cerebellar peduncle)
+35: SCP_right 
+36: SLF_I_left     (Superior longitudinal fascicle I)
+37: SLF_I_right 
+38: SLF_II_left    (Superior longitudinal fascicle II)
+39: SLF_II_right
+40: SLF_III_left   (Superior longitudinal fascicle III)
+41: SLF_III_right 
+42: STR_left       (Superior Thalamic Radiation)
+43: STR_right 
+44: UF_left        (Uncinate fascicle) 
+45: UF_right 
+46: CC             (Corpus Callosum - all)
+47: T_PREF_left    (Thalamo-prefrontal)
+48: T_PREF_right 
+49: T_PREM_left    (Thalamo-premotor)
+50: T_PREM_right 
+51: T_PREC_left    (Thalamo-precentral)
+52: T_PREC_right 
+53: T_POSTC_left   (Thalamo-postcentral)
+54: T_POSTC_right 
+55: T_PAR_left     (Thalamo-parietal)
+56: T_PAR_right 
+57: T_OCC_left     (Thalamo-occipital)
+58: T_OCC_right 
+59: ST_FO_left     (Striato-fronto-orbital)
+60: ST_FO_right 
+61: ST_PREF_left   (Striato-prefrontal)
+62: ST_PREF_right 
+63: ST_PREM_left   (Striato-premotor)
+64: ST_PREM_right 
+65: ST_PREC_left   (Striato-precentral)
+66: ST_PREC_right 
+67: ST_POSTC_left  (Striato-postcentral)
+68: ST_POSTC_right
+69: ST_PAR_left    (Striato-parietal)
+70: ST_PAR_right 
+71: ST_OCC_left    (Striato-occipital)
+72: ST_OCC_right
 ```
 
 

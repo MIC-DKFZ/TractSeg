@@ -181,13 +181,19 @@ class Utils:
         :return:
         '''
         if flip:
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_Mir.npz')    # pretrained_weights_Mir / pretrained_weights_lasagne_Mir
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_Mir.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_Mir_v1.npz')    # pretrained_weights_Mir / pretrained_weights_lasagne_Mir
             WEIGHTS_URL = "https://www.dropbox.com/s/3hkpi7pifq61why/unet_weights_Mir_ep267.npz?dl=1"
             # WEIGHTS_URL = "https://www.dropbox.com/s/ys9eupjnhm196vd/unet_lasagne_weights_Mir_ep372.npz?dl=1"
         else:
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')  # pretrained_weights / pretrained_weights_lasagne
-            WEIGHTS_URL = "https://www.dropbox.com/s/to41ws00ah2cmli/unet_weights_ep229.npz?dl=1"
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_v1.npz')  # pretrained_weights / pretrained_weights_lasagne
+            # WEIGHTS_URL = "https://www.dropbox.com/s/to41ws00ah2cmli/unet_weights_ep229.npz?dl=1"
+            WEIGHTS_URL = "https://www.dropbox.com/s/tp4gmt8nlbrbkt8/unet_weights_72b_ep389.npz?dl=1"
             # WEIGHTS_URL = "https://www.dropbox.com/s/56d2vaxexcwolrq/unet_lasagne_weights_ep486.npz?dl=1"
+
+        if os.path.exists(weights_path_old):
+            os.remove(weights_path_old)
 
         if not os.path.exists(weights_path):
             print("Downloading pretrained weights (~140MB) ...")
