@@ -22,6 +22,7 @@ import torch.nn.functional as F
 from torch.optim import Adamax
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.autograd import Variable
+import math
 
 from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs.ExpUtils import ExpUtils
@@ -100,6 +101,15 @@ class UNet(torch.nn.Module):
 
         self.conv_5 = nn.Conv2d(n_filt, n_classes, kernel_size=1, stride=1, padding=0, bias=True)  # no activation function, because is in LossFunction (...WithLogits)
 
+        # for m in self.modules():
+        #     if isinstance(m, nn.Conv2d):
+        #         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+        #         m.weight.data.normal_(0, math.sqrt(2. / n))
+        #     elif isinstance(m, nn.BatchNorm2d):
+        #         m.weight.data.fill_(1)
+        #         m.bias.data.zero_()
+
+
     def forward(self, inpt):
         contr_1_1 = self.contr_1_1(inpt)
         contr_1_2 = self.contr_1_2(contr_1_1)
@@ -146,7 +156,7 @@ class UNet(torch.nn.Module):
         return conv_5
 
 
-class UNet_Pytorch(BaseModel):
+class UNet_Pytorch_Init(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
@@ -236,6 +246,17 @@ class UNet_Pytorch(BaseModel):
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
         else:
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
+
+        #Initialisation from U-Net Paper
+        def weights_init(m):
+            classname = m.__class__.__name__
+            # Do not use with batchnorm -> has to be adapted for batchnorm
+            if classname.find('Conv') != -1:
+                N = m.in_channels * m.kernel_size[0] * m.kernel_size[0]
+                std = math.sqrt(2. / N)
+                m.weight.data.normal_(0.0, std)
+
+        net.apply(weights_init)
 
         # net = nn.DataParallel(net, device_ids=[0,1])
 
