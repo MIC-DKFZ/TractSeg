@@ -3,3 +3,4 @@
 *.npz
 .DS_Store
 *.egg-info
+unet_weights_72b_ep389.npz
