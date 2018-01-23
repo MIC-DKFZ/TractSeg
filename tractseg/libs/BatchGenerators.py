@@ -127,10 +127,12 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
 
         for i in range(20):
             try:
-                if np.random.random() < 0.5:
-                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
-                else:
-                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+
+                # if np.random.random() < 0.5:
+                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                # else:
+                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
 
                 # rnd_choice = np.random.random()
                 # if rnd_choice < 0.33:
