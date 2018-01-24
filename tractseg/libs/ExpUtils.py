@@ -236,7 +236,7 @@ class ExpUtils:
         subjects = np.array(subjects)
         #todo important: change
         # return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
-        return ["994273", "994273", "994273"], ["994273", "994273", "994273"], ["994273", "994273"]
+        return ["994273", "994273", "994273", "994273", "994273", "994273", "994273", "994273"], ["994273", "994273", "994273"], ["994273", "994273", "994273"]
 
     @staticmethod
     def print_and_save(HP, text, only_log=False):
