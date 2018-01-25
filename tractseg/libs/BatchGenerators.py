@@ -19,6 +19,7 @@ import numpy as np
 import random
 from batchgenerators.dataloading.data_loader import DataLoaderBase
 from time import sleep
+import os
 
 import nibabel as nib
 from os.path import join
@@ -328,3 +329,21 @@ class SlicesBatchGeneratorRandomNpyImg(DataLoaderBase):
         return data_dict
 
 
+class SlicesBatchGeneratorPrecomputedBatches(DataLoaderBase):
+    '''
+    '''
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.HP = None
+
+    def generate_train_batch(self):
+
+        type = self._data[0]
+        path = join(C.HOME, self.HP.DATASET_FOLDER, type)
+        nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))])
+        idx = int(random.uniform(0, int(nr_of_files / 2.)))
+
+        data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()
+        seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()
+
+        return {"data": data, "seg": seg}

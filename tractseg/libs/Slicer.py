@@ -24,9 +24,18 @@ from tractseg.libs.MetricUtils import MetricUtils
 import time
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.Subjects import get_all_subjects
+from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
+from tractseg.libs.DataManagers import DataManagerTrainingNiftiImgs
+
+from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
+from batchgenerators.transforms.resample_transforms import ResampleTransform
+from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
+from batchgenerators.transforms.spatial_transforms import Mirror, SpatialTransform
+from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
+from batchgenerators.transforms.abstract_transforms import Compose
+from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 
 np.random.seed(1337)
-
 
 class Slicer:
 
@@ -275,5 +284,56 @@ class Slicer:
             np.save(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s, "bundle_masks.npy"), seg)
             print("Took {}s".format(time.time() - start_time))
 
+    @staticmethod
+    def precompute_batches():
+        '''
+        9000 slices per epoch -> 200 batches (batchsize=44) per epoch
+        => 200-1000 batches needed
+        '''
+
+        class HP:
+            NORMALIZE_DATA = False
+            DATA_AUGMENTATION = False
+            CV_FOLD = 0
+            INPUT_DIM = (144, 144)
+            BATCH_SIZE = 44
+            DATASET_FOLDER = "HCP"
+            TYPE = "single_direction"
+            EXP_PATH = "~"
+            LABELS_FILENAME = "bundle_peaks"
+            FEATURES_FILENAME = "270g_125mm_peaks"
+            DATASET = "HCP"
+            RESOLUTION = "1.25mm"
+            LABELS_TYPE = np.float32
+
+        HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
+
+        num_batches_base = 200
+        num_batches = {
+            "train": num_batches_base,
+            "validate": int(num_batches_base / 3.),
+            "test": int(num_batches_base / 3.),
+        }
+
+        for type in ["train", "validate", "test"]:
+
+            dataManager = DataManagerTrainingNiftiImgs(HP)
+            batch_gen = dataManager.get_batches(batch_size=HP.BATCH_SIZE, type=type,
+                                                subjects=getattr(HP, type.upper() + "_SUBJECTS"), num_batches=num_batches[type])
+
+            for idx, batch in enumerate(batch_gen):
+                print("Processing: {}".format(idx))
+                ExpUtils.make_dir(join(C.HOME, "HCP_batches", type))
+
+                data = nib.Nifti1Image(batch["data"], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
+                nib.save(data, join(C.HOME, "HCP_batches", type, "batch_" + str(idx) + "_data.nii.gz"))
+
+                seg = nib.Nifti1Image(batch["seg"], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
+                nib.save(seg, join(C.HOME, "HCP_batches", type, "batch_" + str(idx) + "_seg.nii.gz"))
+
+                # np.save(join(C.HOME, "HCP_batches", type, "batch_" + str(idx) + ".npy"), batch)
+                # np.save(join(C.HOME, "HCP_batches", type + "_" + str(idx) + ".npy"), batch)
+
+
 if __name__ == "__main__":
-    Slicer.save_fusion_nifti_as_npy()
+    Slicer.precompute_batches()

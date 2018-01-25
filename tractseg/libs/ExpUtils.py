@@ -234,9 +234,7 @@ class ExpUtils:
         # => 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
 
         subjects = np.array(subjects)
-        #todo important: change
-        # return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
-        return ["994273", "994273", "994273", "994273", "994273", "994273", "994273", "994273"], ["994273", "994273", "994273"], ["994273", "994273", "994273"]
+        return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
 
     @staticmethod
     def print_and_save(HP, text, only_log=False):

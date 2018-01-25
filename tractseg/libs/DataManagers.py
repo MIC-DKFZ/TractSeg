@@ -18,6 +18,8 @@
 from os.path import join
 import nibabel as nib
 import numpy as np
+import random
+import os
 
 from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
 from batchgenerators.transforms.resample_transforms import ResampleTransform
@@ -29,6 +31,7 @@ from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAu
 
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
+from tractseg.libs.BatchGenerators import SlicesBatchGeneratorPrecomputedBatches
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg_5slices
 from tractseg.libs.BatchGenerators import SlicesBatchGenerator
 from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
@@ -143,21 +146,25 @@ class DataManagerTrainingNiftiImgs:
         self.HP = HP
         print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
 
-    def get_batches(self, batch_size=128, type=None, subjects=None):
+    def get_batches(self, batch_size=128, type=None, subjects=None, num_batches=None):
         data = subjects
         seg = []
 
-        num_processes = 6  # 6 is a bit faster than 16
+        num_processes = 1  # 6 is a bit faster than 16
         nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
-        num_batches = int(nr_of_samples / batch_size / num_processes)
+        if num_batches is None:
+            num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
+        else:
+            num_batches_multithr = int(num_batches / num_processes)
+
 
         if self.HP.TYPE == "combined":
             # Simple with .npy  -> just a little bit faster than Nifti (<10%) and f1 not better => use Nifti
-            batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
-            # batch_gen = SlicesBatchGeneratorRandomNpyImg_fusionMean((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
+            batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
+            # batch_gen = SlicesBatchGeneratorRandomNpyImg_fusionMean((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
         else:
-            batch_gen = SlicesBatchGeneratorRandomNiftiImg((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
-            # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
+            batch_gen = SlicesBatchGeneratorRandomNiftiImg((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
+            # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
 
         batch_gen.HP = self.HP
         tfs = []  #transforms
@@ -191,3 +198,50 @@ class DataManagerTrainingNiftiImgs:
         #num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
         return batch_gen    # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)
+
+
+class DataManagerPrecomputedBatches:
+    def __init__(self, HP):
+        self.HP = HP
+        print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
+
+    def get_batches(self, batch_size=128, type=None, subjects=None, num_batches=None):
+        data = type
+        seg = []
+
+        num_processes = 1  # 6 is a bit faster than 16
+        nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
+        if num_batches is None:
+            num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
+        else:
+            num_batches_multithr = int(num_batches / num_processes)
+
+        batch_gen = SlicesBatchGeneratorPrecomputedBatches((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
+        batch_gen.HP = self.HP
+
+        batch_gen = MultiThreadedAugmenter(batch_gen, Compose([]), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
+        return batch_gen
+
+
+class DataManagerPrecomputedBatches_noDLBG:
+    def __init__(self, HP):
+        self.HP = HP
+        print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
+
+    def get_batches(self, batch_size=None, type=None, subjects=None, num_batches=None):
+        num_processes = 1
+        nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
+        if num_batches is None:
+            num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
+        else:
+            num_batches_multithr = int(num_batches / num_processes)
+
+        for i in range(num_batches_multithr):
+
+            path = join(C.HOME, self.HP.DATASET_FOLDER, type)
+            nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))])
+            idx = int(random.uniform(0, int(nr_of_files / 2.)))
+
+            data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()
+            seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()
+            yield {"data": data, "seg": seg}
