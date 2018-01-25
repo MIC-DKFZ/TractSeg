@@ -221,27 +221,3 @@ class DataManagerPrecomputedBatches:
 
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose([]), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
         return batch_gen
-
-
-class DataManagerPrecomputedBatches_noDLBG:
-    def __init__(self, HP):
-        self.HP = HP
-        print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
-
-    def get_batches(self, batch_size=None, type=None, subjects=None, num_batches=None):
-        num_processes = 1
-        nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
-        if num_batches is None:
-            num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
-        else:
-            num_batches_multithr = int(num_batches / num_processes)
-
-        for i in range(num_batches_multithr):
-
-            path = join(C.HOME, self.HP.DATASET_FOLDER, type)
-            nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))])
-            idx = int(random.uniform(0, int(nr_of_files / 2.)))
-
-            data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()
-            seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()
-            yield {"data": data, "seg": seg}

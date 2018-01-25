@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 from os.path import join
 import nibabel as nib
 import numpy as np
@@ -24,16 +25,7 @@ from tractseg.libs.MetricUtils import MetricUtils
 import time
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.Subjects import get_all_subjects
-from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
 from tractseg.libs.DataManagers import DataManagerTrainingNiftiImgs
-
-from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
-from batchgenerators.transforms.resample_transforms import ResampleTransform
-from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
-from batchgenerators.transforms.spatial_transforms import Mirror, SpatialTransform
-from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
-from batchgenerators.transforms.abstract_transforms import Compose
-from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 
 np.random.seed(1337)
 
@@ -285,10 +277,13 @@ class Slicer:
             print("Took {}s".format(time.time() - start_time))
 
     @staticmethod
-    def precompute_batches():
+    def precompute_batches(custom_type=None):
         '''
         9000 slices per epoch -> 200 batches (batchsize=44) per epoch
         => 200-1000 batches needed
+
+
+        270g_125mm_bundle_peaks_Y: no DAug
         '''
 
         class HP:
@@ -308,32 +303,42 @@ class Slicer:
 
         HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
 
-        num_batches_base = 200
+        num_batches_base = 1000
         num_batches = {
             "train": num_batches_base,
             "validate": int(num_batches_base / 3.),
             "test": int(num_batches_base / 3.),
         }
 
-        for type in ["train", "validate", "test"]:
+        if custom_type is None:
+            types = ["train", "validate", "test"]
+        else:
+            types = [custom_type]
 
+        for type in types:
             dataManager = DataManagerTrainingNiftiImgs(HP)
             batch_gen = dataManager.get_batches(batch_size=HP.BATCH_SIZE, type=type,
                                                 subjects=getattr(HP, type.upper() + "_SUBJECTS"), num_batches=num_batches[type])
 
             for idx, batch in enumerate(batch_gen):
                 print("Processing: {}".format(idx))
-                ExpUtils.make_dir(join(C.HOME, "HCP_batches", type))
+
+                DATASET_DIR = "HCP_batches/270g_125mm_bundle_peaks_Y"
+                ExpUtils.make_dir(join(C.HOME, DATASET_DIR, type))
 
                 data = nib.Nifti1Image(batch["data"], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
-                nib.save(data, join(C.HOME, "HCP_batches", type, "batch_" + str(idx) + "_data.nii.gz"))
+                nib.save(data, join(C.HOME, DATASET_DIR, type, "batch_" + str(idx) + "_data.nii.gz"))
 
                 seg = nib.Nifti1Image(batch["seg"], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
-                nib.save(seg, join(C.HOME, "HCP_batches", type, "batch_" + str(idx) + "_seg.nii.gz"))
-
-                # np.save(join(C.HOME, "HCP_batches", type, "batch_" + str(idx) + ".npy"), batch)
-                # np.save(join(C.HOME, "HCP_batches", type + "_" + str(idx) + ".npy"), batch)
+                nib.save(seg, join(C.HOME, DATASET_DIR, type, "batch_" + str(idx) + "_seg.nii.gz"))
 
 
 if __name__ == "__main__":
-    Slicer.precompute_batches()
+
+    args = sys.argv[1:]
+    if len(args) > 0:
+        type = args[0]
+        Slicer.precompute_batches(custom_type=type)
+    else:
+        Slicer.precompute_batches()
+

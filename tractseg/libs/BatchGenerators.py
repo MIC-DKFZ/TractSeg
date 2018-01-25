@@ -164,7 +164,9 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
         slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
 
         # Randomly sample slice orientation
-        slice_direction = int(round(random.uniform(0,2)))
+        #todo important: change
+        # slice_direction = int(round(random.uniform(0,2)))
+        slice_direction = 1 #always use Y
 
         if slice_direction == 0:
             x = data[slice_idxs, :, :].astype(np.float32)      # (batch_size, y, z, channels)
