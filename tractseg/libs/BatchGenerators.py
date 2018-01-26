@@ -342,7 +342,8 @@ class SlicesBatchGeneratorPrecomputedBatches(DataLoaderBase):
 
         type = self._data[0]
         path = join(C.HOME, self.HP.DATASET_FOLDER, type)
-        nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))])
+        # do not use last batch, because might be corrupted if aborted batch precompution early
+        nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 1
         idx = int(random.uniform(0, int(nr_of_files / 2.)))
 
         data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()

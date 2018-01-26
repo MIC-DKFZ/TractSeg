@@ -239,3 +239,12 @@ class ImgUtils:
             ExpUtils.make_dir(join(path, "segmentations"))
             nib.save(img_seg, join(path, "segmentations", bundle + ".nii.gz"))
 
+    @staticmethod
+    def save_multilabel_img_as_multiple_files_peaks(img, affine, path):
+        bundles = ExpUtils.get_bundle_names()[1:]
+        for idx, bundle in enumerate(bundles):
+            img_seg = nib.Nifti1Image(img[:, :, :, (idx*3):(idx*3)+3], affine)
+            ExpUtils.make_dir(join(path))
+            nib.save(img_seg, join(path, bundle + ".nii.gz"))
+
+

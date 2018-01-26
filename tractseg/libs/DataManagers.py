@@ -157,7 +157,6 @@ class DataManagerTrainingNiftiImgs:
         else:
             num_batches_multithr = int(num_batches / num_processes)
 
-
         if self.HP.TYPE == "combined":
             # Simple with .npy  -> just a little bit faster than Nifti (<10%) and f1 not better => use Nifti
             batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
@@ -216,8 +215,44 @@ class DataManagerPrecomputedBatches:
         else:
             num_batches_multithr = int(num_batches / num_processes)
 
+
         batch_gen = SlicesBatchGeneratorPrecomputedBatches((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
         batch_gen.HP = self.HP
 
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose([]), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
         return batch_gen
+
+
+class DataManagerPrecomputedBatches_noDLBG:
+    '''
+    Somehow MultiThreadedAugmenter (with num_processes=1 and num_cached_per_queue=1) in ep1 fast (7s) but after
+    that slower (10s). With this manual Iterator time is always the same (7.5s).
+    '''
+    def __init__(self, HP):
+        self.HP = HP
+        print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
+
+    def get_batches(self, batch_size=None, type=None, subjects=None, num_batches=None):
+        num_processes = 1
+
+        #todo important: change (use all test and validate again)
+        if type == "train":
+            nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
+            if num_batches is None:
+                num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
+            else:
+                num_batches_multithr = int(num_batches / num_processes)
+        else:
+            num_batches_multithr = 11
+
+        #todo important: change
+        num_batches_multithr = 11
+
+        for i in range(num_batches_multithr):
+            path = join(C.HOME, self.HP.DATASET_FOLDER, type)
+            nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 1
+            idx = int(random.uniform(0, int(nr_of_files / 2.)))
+
+            data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()
+            seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()
+            yield {"data": data, "seg": seg}

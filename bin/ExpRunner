@@ -35,6 +35,7 @@ from tractseg.libs.Trainer import Trainer
 from tractseg.libs.DataManagers import DataManagerSingleSubjectById
 from tractseg.libs.DataManagers import DataManagerTrainingNiftiImgs
 from tractseg.libs.DataManagers import DataManagerPrecomputedBatches
+from tractseg.libs.DataManagers import DataManagerPrecomputedBatches_noDLBG
 
 '''
 Adapt for 32g_25mm prediction:
@@ -187,7 +188,8 @@ def test_whole_subject(HP, model, subjects, type):
 
 #todo important: change
 # dataManager = DataManagerTrainingNiftiImgs(HP)
-dataManager = DataManagerPrecomputedBatches(HP)
+# dataManager = DataManagerPrecomputedBatches(HP)
+dataManager = DataManagerPrecomputedBatches_noDLBG(HP)
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)
 model = ModelClass(HP)
 trainer = Trainer(model, dataManager)
@@ -234,17 +236,20 @@ if HP.TEST:
 if HP.GET_PROBS:
     ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps"))
     # ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps_32g_25mm"))
-    all_subjects = HP.TEST_SUBJECTS
+    # all_subjects = HP.TEST_SUBJECTS
+    all_subjects = ["599469"]
     # all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS
     for subject in all_subjects:
         print("Get_probs subject {}".format(subject))
 
-        # dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject, use_gt_mask=False)
-        # trainerSingle = Trainer(model_test, dataManagerSingle)
-        # img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
-        img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
+        dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject, use_gt_mask=False)
+        trainerSingle = Trainer(model_test, dataManagerSingle)
+        img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
+        # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
 
         #Save as one probmap for further combined training
-        img = nib.Nifti1Image(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
-        nib.save(img, join(HP.EXP_PATH, "probmaps", subject + "_probmap.nii.gz"))
+        ImgUtils.save_multilabel_img_as_multiple_files_peaks(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+                                                             join(HP.EXP_PATH, "probmaps_" + subject))
+        # img = nib.Nifti1Image(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
+        # nib.save(img, join(HP.EXP_PATH, "probmaps", subject + "_probmap.nii.gz"))
 

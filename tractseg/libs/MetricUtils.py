@@ -173,6 +173,11 @@ class MetricUtils:
         return metrics
 
     @staticmethod
+    def calculate_metrics_onlyLoss(metrics, loss, type="train"):
+        metrics["loss_"+type][-1] += loss
+        return metrics
+
+    @staticmethod
     def calculate_metrics_each_bundle(metrics, y, class_probs, bundles, threshold=0.5):
         '''
         bundles -> have to be in same order as classes in predictions

@@ -99,7 +99,8 @@ class Trainer:
 
                     x = batch["data"] # (bs, nr_of_channels, x, y)
                     y = batch["seg"]  # (bs, nr_of_classes, x, y)
-                    y = y.astype(HP.LABELS_TYPE)    #since using new BatchGenerator y is not int anymore but float -> would be good for Pytorch but not Lasagne
+                    # since using new BatchGenerator y is not int anymore but float -> would be good for Pytorch but not Lasagne
+                    # y = y.astype(HP.LABELS_TYPE)  #for bundle_peaks regression: is already float -> saves 0.2s/batch if left out
 
                     data_preparation_time += time.time() - start_time_data_preparation
                     # self.model.learning_rate.set_value(np.float32(current_lr))
@@ -115,11 +116,12 @@ class Trainer:
                     network_time += time.time() - start_time_network
 
                     start_time_metrics = time.time()
-                    #Following two lines increase metrics_time by 30s (without < 1s)
-                    y_flat = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-                    y_flat = np.reshape(y_flat, (-1, y_flat.shape[-1]))  # (bs*x*y, nr_of_classes)
-                    metrics = MetricUtils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD,
-                                                            f1_per_bundle={"CA": f1[5], "FX_left": f1[23], "FX_right": f1[24]})
+                    #Following two lines increase metrics_time by 30s (without < 1s); time per batch increases by 1.5s by these lines
+                    # y_flat = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
+                    # y_flat = np.reshape(y_flat, (-1, y_flat.shape[-1]))  # (bs*x*y, nr_of_classes)
+                    # metrics = MetricUtils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD,
+                    #                                         f1_per_bundle={"CA": f1[5], "FX_left": f1[23], "FX_right": f1[24]})
+                    metrics = MetricUtils.calculate_metrics_onlyLoss(metrics, loss, type=type)
                     metrics_time += time.time() - start_time_metrics
 
                     print_loss.append(loss)

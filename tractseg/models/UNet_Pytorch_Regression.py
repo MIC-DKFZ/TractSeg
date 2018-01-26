@@ -164,7 +164,8 @@ class UNet_Pytorch_Regression(BaseModel):
             # loss = PytorchUtils.soft_dice(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+            # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+            f1 = np.ones(outputs.shape[3])
 
             if self.HP.USE_VISLOGGER:
                 probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
@@ -184,7 +185,8 @@ class UNet_Pytorch_Regression(BaseModel):
             outputs = net(X)  # forward
             loss = criterion(outputs, y)
             # loss = PytorchUtils.soft_dice(outputs, y)
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+            # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+            f1 = np.ones(outputs.shape[3])
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1
@@ -201,18 +203,19 @@ class UNet_Pytorch_Regression(BaseModel):
             return probs
 
         def save_model(metrics, epoch_nr):
-            max_f1_idx = np.argmax(metrics["f1_macro_validate"])
-            max_f1 = np.max(metrics["f1_macro_validate"])
-            if epoch_nr == max_f1_idx and max_f1 > 0.01:  # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
-                print("  Saving weights...")
-                for fl in glob.glob(join(self.HP.EXP_PATH, "best_weights_ep*")):  # remove weights from previous epochs
-                    os.remove(fl)
-                try:
-                    #Actually is a pkl not a npz
-                    PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
-                except IOError:
-                    print("\nERROR: Could not save weights because of IO Error\n")
-                self.HP.BEST_EPOCH = epoch_nr
+            # max_f1_idx = np.argmax(metrics["f1_macro_validate"])
+            # max_f1 = np.max(metrics["f1_macro_validate"])
+            # if epoch_nr == max_f1_idx and max_f1 > 0.01:  # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
+
+            print("  Saving weights...")
+            for fl in glob.glob(join(self.HP.EXP_PATH, "best_weights_ep*")):  # remove weights from previous epochs
+                os.remove(fl)
+            try:
+                #Actually is a pkl not a npz
+                PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
+            except IOError:
+                print("\nERROR: Could not save weights because of IO Error\n")
+            self.HP.BEST_EPOCH = epoch_nr
 
         def load_model(path):
             PytorchUtils.load_checkpoint(path, unet=net)
