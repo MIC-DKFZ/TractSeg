@@ -20,6 +20,7 @@ def get_config_file():
     '''
     Read variables in ~/.tractseg
     '''
+    #todo important: change: do not use config_ssd.txt
     path = join(expanduser("~"), ".tractseg", "config.txt")
     if os.path.exists(path):
         with open(path) as f:

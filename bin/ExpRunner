@@ -59,7 +59,9 @@ class HP:
     FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
     LABELS_FILENAME = "bundle_peaks"     # bundle_masks / bundle_masks_72 / bundle_masks_45       #Only used when using DataManagerNifti
     #todo important: change
-    DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
+    # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
+    DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y"
+    # DATASET_FOLDER = "HCP"
     LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
@@ -85,7 +87,7 @@ class HP:
     THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
     #todo important: change
-    SLICE_DIRECTION = "y"  #no effect at the moment     # x, y, z  (combined needs z)
+    SLICE_DIRECTION = "x"  #no effect at the moment     # x, y, z  (combined needs z)
     USE_VISLOGGER = False
     INFO = "no Dropout, Deconv, 72bundles, LeakyRelu, Test1"
     SAVE_WEIGHTS = True

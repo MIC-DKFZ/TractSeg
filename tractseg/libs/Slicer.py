@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import sys
+import warnings
 from os.path import join
 import nibabel as nib
 import numpy as np
@@ -28,6 +29,8 @@ from tractseg.libs.Subjects import get_all_subjects
 from tractseg.libs.DataManagers import DataManagerTrainingNiftiImgs
 
 np.random.seed(1337)
+
+warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
 class Slicer:
 
@@ -283,11 +286,13 @@ class Slicer:
         => 200-1000 batches needed
 
 
-        270g_125mm_bundle_peaks_Y: no DAug
+        270g_125mm_bundle_peaks_Y: no DAug, no Norm, only Y
+        All_sizes_DAug_XYZ: 12g, 90g, 270g, DAug (no rotation, no elastic deform), Norm, XYZ
+        270g_125mm_bundle_peaks_XYZ: no DAug, Norm, XYZ
         '''
 
         class HP:
-            NORMALIZE_DATA = False
+            NORMALIZE_DATA = True
             DATA_AUGMENTATION = False
             CV_FOLD = 0
             INPUT_DIM = (144, 144)
@@ -303,7 +308,7 @@ class Slicer:
 
         HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
 
-        num_batches_base = 1000
+        num_batches_base = 5000
         num_batches = {
             "train": num_batches_base,
             "validate": int(num_batches_base / 3.),
@@ -323,7 +328,9 @@ class Slicer:
             for idx, batch in enumerate(batch_gen):
                 print("Processing: {}".format(idx))
 
-                DATASET_DIR = "HCP_batches/270g_125mm_bundle_peaks_Y"
+                # DATASET_DIR = "HCP_batches/270g_125mm_bundle_peaks_Y"
+                # DATASET_DIR = "HCP_batches/All_sizes_DAug_XYZ"
+                DATASET_DIR = "HCP_batches/270g_125mm_bundle_peaks_XYZ"
                 ExpUtils.make_dir(join(C.HOME, DATASET_DIR, type))
 
                 data = nib.Nifti1Image(batch["data"], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))

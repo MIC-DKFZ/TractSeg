@@ -150,7 +150,8 @@ class DataManagerTrainingNiftiImgs:
         data = subjects
         seg = []
 
-        num_processes = 1  # 6 is a bit faster than 16
+        #6 -> >30GB RAM
+        num_processes = 2  # 6 is a bit faster than 16
         nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
         if num_batches is None:
             num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
@@ -179,17 +180,17 @@ class DataManagerTrainingNiftiImgs:
                 center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
                 tfs.append(SpatialTransform(self.HP.INPUT_DIM,
                                                     patch_center_dist_from_border=center_dist_from_border,
-                                                    do_elastic_deform=True, alpha=(90., 120.), sigma=(9., 11.),
-                                                    do_rotation=True, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
+                                                    do_elastic_deform=False, alpha=(90., 120.), sigma=(9., 11.),
+                                                    do_rotation=False, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
                                                     angle_z=(-0.8, 0.8),
                                                     do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
                                                     border_cval_data=0,
                                                     order_data=3,
                                                     border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
                 tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
-                tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
+                # tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
                 tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
-                tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
+                # tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
 
                 # tfs.append(Mirror())
                 # tfs.append(GammaTransform(gamma_range=(0.75, 1.5))) # produces Loss=NaN; maybe because data not in 0-1
@@ -236,21 +237,21 @@ class DataManagerPrecomputedBatches_noDLBG:
         num_processes = 1
 
         #todo important: change (use all test and validate again)
-        if type == "train":
-            nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
-            if num_batches is None:
-                num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
-            else:
-                num_batches_multithr = int(num_batches / num_processes)
-        else:
-            num_batches_multithr = 11
+        # if type == "train":
 
-        #todo important: change
-        num_batches_multithr = 11
+        nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
+        if num_batches is None:
+            num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
+        else:
+            num_batches_multithr = int(num_batches / num_processes)
+
+        # else:
+        #     num_batches_multithr = 11
 
         for i in range(num_batches_multithr):
             path = join(C.HOME, self.HP.DATASET_FOLDER, type)
-            nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 1
+            #todo: only -1 (-2 to be save when still creating)
+            nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 2
             idx = int(random.uniform(0, int(nr_of_files / 2.)))
 
             data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()
