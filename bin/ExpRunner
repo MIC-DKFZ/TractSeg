@@ -43,6 +43,15 @@ Adapt for Prediction:
 - command: ExpRunner --en HCP_Peaks_Y --train=False --test=False --probs --lw
 '''
 
+'''
+Adapt for DM Regression:
+- SlicesBatchGeneratorRandomNiftiImg: only y direction instead of random
+- HP.NR_OF_CLASSES: remove 3*
+- ExpRunner: Use DataManagerTrainingNiftiImgs
+- LABELS_FILENAME = "bundle_masks_dm"
+- INFO
+'''
+
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
 #Settings and Hyperparameters
@@ -56,11 +65,11 @@ class HP:
     DATASET = "HCP"  # HCP / HCP_32g
     RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
     FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_peaks"     # bundle_masks / bundle_masks_72 / bundle_masks_45       #Only used when using DataManagerNifti
+    LABELS_FILENAME = "bundle_masks_dm"     # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
     #todo important: change
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
-    DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y"
-    # DATASET_FOLDER = "HCP"
+    # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y"
+    DATASET_FOLDER = "HCP"
     LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
@@ -86,11 +95,12 @@ class HP:
     THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
     #todo important: change
-    SLICE_DIRECTION = "y"  #no effect at the moment     # x, y, z  (combined needs z)
+    SLICE_DIRECTION = "y"    # x, y, z  (combined needs z)
     USE_VISLOGGER = False
-    INFO = "no Dropout, Deconv, 72bundles, LeakyRelu, Test1"
+    INFO = "no Dropout, Deconv, 72bundles, LeakyRelu, Regression: Only 270g_125mm"
     SAVE_WEIGHTS = True
-    NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names()[1:])
+    # NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names()[1:])
+    NR_OF_CLASSES = len(ExpUtils.get_bundle_names()[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
     PRINT_FREQ = 10  #20
@@ -188,9 +198,9 @@ def test_whole_subject(HP, model, subjects, type):
     return metrics
 
 #todo important: change
-# dataManager = DataManagerTrainingNiftiImgs(HP)
+dataManager = DataManagerTrainingNiftiImgs(HP)
 # dataManager = DataManagerPrecomputedBatches(HP)
-dataManager = DataManagerPrecomputedBatches_noDLBG(HP)
+# dataManager = DataManagerPrecomputedBatches_noDLBG(HP)
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)
 model = ModelClass(HP)
 trainer = Trainer(model, dataManager)
