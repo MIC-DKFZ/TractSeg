@@ -38,10 +38,9 @@ from tractseg.libs.DataManagers import DataManagerPrecomputedBatches
 from tractseg.libs.DataManagers import DataManagerPrecomputedBatches_noDLBG
 
 '''
-Adapt for 32g_25mm prediction:
-- DATASET=HCP_32g
-- FEATURES_FILENAME=32g_25mm_peaks
-- 32g_25mm_peaks not available on new Cluster at the moment
+Adapt for Prediction:
+- set: DATASET_FOLDER = "HCP"
+- command: ExpRunner --en HCP_Peaks_Y --train=False --test=False --probs --lw
 '''
 
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
@@ -87,7 +86,7 @@ class HP:
     THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
     #todo important: change
-    SLICE_DIRECTION = "x"  #no effect at the moment     # x, y, z  (combined needs z)
+    SLICE_DIRECTION = "y"  #no effect at the moment     # x, y, z  (combined needs z)
     USE_VISLOGGER = False
     INFO = "no Dropout, Deconv, 72bundles, LeakyRelu, Test1"
     SAVE_WEIGHTS = True
@@ -254,4 +253,5 @@ if HP.GET_PROBS:
                                                              join(HP.EXP_PATH, "probmaps_" + subject))
         # img = nib.Nifti1Image(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
         # nib.save(img, join(HP.EXP_PATH, "probmaps", subject + "_probmap.nii.gz"))
+
 
