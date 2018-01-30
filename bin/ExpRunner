@@ -50,6 +50,14 @@ Adapt for DM Regression:
 - ExpRunner: Use DataManagerTrainingNiftiImgs
 - LABELS_FILENAME = "bundle_masks_dm"
 - INFO
+- ExpRunner: Comment ImgUtils.save_multilabel_img_as_multiple_files_peaks
+'''
+
+'''
+Adapt for SingleClass Peaks:
+- SlicesBatchGeneratorRandomNiftiImg: only y direction instead of random
+- adapt ExpUtils.get_bundle_names
+ 
 '''
 
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
@@ -259,7 +267,10 @@ if HP.GET_PROBS:
         # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
 
         #Save as one probmap for further combined training
-        ImgUtils.save_multilabel_img_as_multiple_files_peaks(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+        # ImgUtils.save_multilabel_img_as_multiple_files_peaks(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+        #                                                      join(HP.EXP_PATH, "probmaps_" + subject))
+
+        ImgUtils.save_multilabel_img_as_multiple_files(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
                                                              join(HP.EXP_PATH, "probmaps_" + subject))
         # img = nib.Nifti1Image(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
         # nib.save(img, join(HP.EXP_PATH, "probmaps", subject + "_probmap.nii.gz"))

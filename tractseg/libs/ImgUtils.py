@@ -233,7 +233,7 @@ class ImgUtils:
 
     @staticmethod
     def save_multilabel_img_as_multiple_files(img, affine, path):
-        bundles = ExpUtils.get_bundle_names()
+        bundles = ExpUtils.get_bundle_names()[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
             ExpUtils.make_dir(join(path, "segmentations"))
