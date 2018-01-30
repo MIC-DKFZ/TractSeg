@@ -158,8 +158,13 @@ class ExpUtils:
         #            "ST_PREF_right", "ST_PREM_left", "ST_PREM_right", "ST_PREC_left", "ST_PREC_right", "ST_POSTC_left", "ST_POSTC_right",
         #            "ST_PAR_left", "ST_PAR_right", "ST_OCC_left", "ST_OCC_right"]
         #
-        # return ["BG"] + bundles    #Add Background label (is always beginning of list)
-        return ["BG", "CST_right"]
+
+        # 11 Major tracts
+        bundles = ["CST_left", "CST_right", "IFO_left", "IFO_right", "CA", "CG_left", "CG_right",
+                   "FX_left", "FX_right", "UF_left", "UF_right"]
+
+        return ["BG"] + bundles    #Add Background label (is always beginning of list)
+        # return ["BG", "CST_right"]
 
     @staticmethod
     def get_ACT_noACT_bundle_names():

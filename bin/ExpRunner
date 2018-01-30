@@ -70,6 +70,15 @@ Adapt for SingleClass Peaks:
     - INPUT_DIM = (80, 80)
 '''
 
+'''
+Adapt for 11 Classes:
+- adapt ExpUtils.get_bundle_names
+- adapt LABELS_FILENAME
+- if doing 32g_25mm:
+    - comment scale_input_to_unet_shape() in BatchGenerators for seg
+'''
+
+
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
 #Settings and Hyperparameters
@@ -77,13 +86,13 @@ class HP:
     EXP_MULTI_NAME = ""             #CV Parent Dir name # leave empty for Single Bundle Experiment
     EXP_NAME = "HCP_TEST"           # HCP_TEST
     MODEL = "UNet_Pytorch_DeepSup_Regression"          # UNet_Lasagne / UNet_Pytorch
-    NUM_EPOCHS = 500
+    NUM_EPOCHS = 300
     DATA_AUGMENTATION = False
-    DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8)"
-    DATASET = "HCP_32g"  # HCP / HCP_32g
-    RESOLUTION = "2.5mm"  # 1.25mm (/ 2.5mm)
-    FEATURES_FILENAME = "32g_25mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_peaks/CST_right"     # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
+    DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05)"
+    DATASET = "HCP"  # HCP / HCP_32g
+    RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
+    FEATURES_FILENAME = "90g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
+    LABELS_FILENAME = "bundle_peaks_11"     # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
     #todo important: change
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y"
@@ -124,15 +133,15 @@ class HP:
     PRINT_FREQ = 20  #20
     NORMALIZE_DATA = True
     BEST_EPOCH = 0
-    # INPUT_DIM = (144, 144)
-    INPUT_DIM = (80, 80)
+    INPUT_DIM = (144, 144)
+    # INPUT_DIM = (80, 80)
     VERBOSE = True
 
 parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
                                            "Direct White Matter Bundle Segmentation using Stacked U-Nets. https://arxiv.org/abs/1703.02036)'")
 parser.add_argument("--train", metavar="True/False", help="Train network", type=distutils.util.strtobool, default=True)
-parser.add_argument("--test", metavar="True/False", help="Test network", type=distutils.util.strtobool, default=True)
+parser.add_argument("--test", metavar="True/False", help="Test network", type=distutils.util.strtobool, default=False)
 parser.add_argument("--seg", action="store_true", help="Create binary segmentation", default=False)
 parser.add_argument("--probs", action="store_true", help="Create probmap segmentation", default=False)
 parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net", default=False)
@@ -268,6 +277,7 @@ if HP.GET_PROBS:
     # ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps_32g_25mm"))
     # all_subjects = HP.TEST_SUBJECTS
     all_subjects = ["599469"]
+    # all_subjects = ["992774"]
     # all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS
     for subject in all_subjects:
         print("Get_probs subject {}".format(subject))

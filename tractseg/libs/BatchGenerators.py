@@ -156,6 +156,8 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
         seg = np.nan_to_num(seg)
 
         data = DatasetUtils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)    # (x, y, z, channels)
+
+        #todo important: change
         if self.HP.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
             # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
             seg = DatasetUtils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)

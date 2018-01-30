@@ -162,6 +162,11 @@ class UNet(torch.nn.Module):
         return final
 
 
+def my_MSE(y_pred, y_true, weights):
+    loss = weights * ((y_pred - y_true) ** 2)
+    return torch.mean(loss)
+
+
 class UNet_Pytorch_DeepSup_Regression(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
@@ -176,14 +181,13 @@ class UNet_Pytorch_DeepSup_Regression(BaseModel):
             optimizer.zero_grad()
             net.train()
             outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
-            loss = criterion(outputs, y)
 
-            # my_loss = my_MSE(outputs, y)
-            # print("----")
-            # print("mse loss: \t{}".format(loss.data.cpu().numpy()[0]))
-            # print("my  loss: \t{}".format(my_loss.data.cpu().numpy()[0]))
+            # loss = criterion(outputs, y)
+            weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+            bundle_mask = y > 0
+            weights[bundle_mask.data] *= 10
+            loss = my_MSE(outputs, y, Variable(weights))
 
-            # loss = PytorchUtils.soft_dice(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
             # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
@@ -205,8 +209,15 @@ class UNet_Pytorch_DeepSup_Regression(BaseModel):
                 X, y = Variable(X, volatile=True), Variable(y, volatile=True)
             net.train(False)
             outputs = net(X)  # forward
-            loss = criterion(outputs, y)
-            # loss = PytorchUtils.soft_dice(outputs, y)
+
+            # loss = criterion(outputs, y)
+            weights = torch.ones(
+                (self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+            bundle_mask = y > 0
+            weights[bundle_mask.data] *= 10
+            loss = my_MSE(outputs, y, Variable(weights))
+
+
             # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
             f1 = np.ones(outputs.shape[3])
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
