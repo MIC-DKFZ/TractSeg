@@ -111,7 +111,7 @@ class ImgUtils:
                              [0.,  0.,  2.,  -72.],
                              [0.,  0.,  0.,   1.]])
 
-        elif (dataset == "HCP" or dataset == "HCP_2.5mm") and resolution == "2.5mm":
+        elif (dataset == "HCP" or dataset == "HCP_32g" or dataset == "HCP_2.5mm") and resolution == "2.5mm":
             # Size (73,87,73)
             return np.array([[-2.5, 0.,  0.,   90.],
                              [0.,  2.5,  0.,  -126.],

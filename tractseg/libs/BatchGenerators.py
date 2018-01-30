@@ -26,6 +26,7 @@ from os.path import join
 from tractseg.libs.Config import Config as C
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs.ImgUtils import ImgUtils
 
 '''
 Info:

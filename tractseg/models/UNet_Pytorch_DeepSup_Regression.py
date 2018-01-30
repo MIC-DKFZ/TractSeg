@@ -90,10 +90,16 @@ class UNet(torch.nn.Module):
         self.deconv_3 = deconv2d(n_filt * 4, n_filt * 4, kernel_size=2, stride=2)
         # self.deconv_3 = nn.Upsample(scale_factor=2)
 
+        self.output_2 = nn.Conv2d(n_filt * 4 + n_filt * 8, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
+        self.output_2_up = nn.Upsample(scale_factor=2, mode='nearest')  # nearest/bilinear # does only upscale width and height
+
         self.expand_3_1 = conv2d(n_filt * 2 + n_filt * 4, n_filt * 2, stride=1)
         self.expand_3_2 = conv2d(n_filt * 2, n_filt * 2, stride=1)
         self.deconv_4 = deconv2d(n_filt * 2, n_filt * 2, kernel_size=2, stride=2)
         # self.deconv_4 = nn.Upsample(scale_factor=2)
+
+        self.output_3 = nn.Conv2d(n_filt * 2 + n_filt * 4, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
+        self.output_3_up = nn.Upsample(scale_factor=2, mode='nearest')  # does only upscale width and height
 
         self.expand_4_1 = conv2d(n_filt + n_filt * 2, n_filt, stride=1)
         self.expand_4_2 = conv2d(n_filt, n_filt, stride=1)
@@ -117,7 +123,7 @@ class UNet(torch.nn.Module):
         contr_4_2 = self.contr_4_2(contr_4_1)
         pool_4 = self.pool_4(contr_4_2)
 
-        pool_4 = self.dropout(pool_4)
+        # pool_4 = self.dropout(pool_4)
 
         encode_1 = self.encode_1(pool_4)
         encode_2 = self.encode_2(encode_1)
@@ -133,25 +139,30 @@ class UNet(torch.nn.Module):
         expand_2_2 = self.expand_2_2(expand_2_1)
         deconv_3 = self.deconv_3(expand_2_2)
 
+        output_2 = self.output_2(concat2)
+        output_2_up = self.output_2_up(output_2)
+
         concat3 = torch.cat([deconv_3, contr_2_2], 1)
         expand_3_1 = self.expand_3_1(concat3)
         expand_3_2 = self.expand_3_2(expand_3_1)
         deconv_4 = self.deconv_4(expand_3_2)
+
+        output_3 = output_2_up + self.output_3(concat3)
+        output_3_up = self.output_3_up(output_3)
 
         concat4 = torch.cat([deconv_4, contr_1_2], 1)
         expand_4_1 = self.expand_4_1(concat4)
         expand_4_2 = self.expand_4_2(expand_4_1)
 
         conv_5 = self.conv_5(expand_4_2)
-        return conv_5
+
+        final = output_3_up + conv_5
+
+        # return conv_5
+        return final
 
 
-def my_MSE(y_pred, y_true, weights):
-    loss = weights * ((y_pred - y_true) ** 2)
-    return torch.mean(loss)
-
-
-class UNet_Pytorch_Regression(BaseModel):
+class UNet_Pytorch_DeepSup_Regression(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
