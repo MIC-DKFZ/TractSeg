@@ -38,7 +38,7 @@ from tractseg.libs.DataManagers import DataManagerPrecomputedBatches
 from tractseg.libs.DataManagers import DataManagerPrecomputedBatches_noDLBG
 
 '''
-Adapt for Prediction:
+Adapt for Peak Prediction (after Training):
 - set: DATASET_FOLDER = "HCP"
 - command: ExpRunner --en HCP_Peaks_Y --train=False --test=False --probs --lw
 '''
@@ -57,7 +57,17 @@ Adapt for DM Regression:
 Adapt for SingleClass Peaks:
 - SlicesBatchGeneratorRandomNiftiImg: only y direction instead of random
 - adapt ExpUtils.get_bundle_names
- 
+- adapt LABELS_FILENAME
+- DATASET_FOLDER = "HCP"
+- HP.NR_OF_CLASSES: 3*
+- ExpRunner: Use ImgUtils.save_multilabel_img_as_multiple_files_peaks
+- PRINT_FREQ = 20
+
+- If 32g_25mm
+    - FEATURES_FILENAME = "32g_25mm_peaks"
+    - DATASET = "HCP_32g"
+    - RESOLUTION = "2.5mm"
+    - INPUT_DIM = (80, 80)
 '''
 
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
@@ -70,10 +80,10 @@ class HP:
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = False
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Contrast(0.7,1.3) - Gaussian(0,0.05) - BrightnessMult(0.7,1.3) - RotateUltimate(-0.8,0.8)"
-    DATASET = "HCP"  # HCP / HCP_32g
-    RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
-    FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_masks_dm"     # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
+    DATASET = "HCP_32g"  # HCP / HCP_32g
+    RESOLUTION = "2.5mm"  # 1.25mm (/ 2.5mm)
+    FEATURES_FILENAME = "32g_25mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
+    LABELS_FILENAME = "bundle_peaks/CST_right"     # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
     #todo important: change
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y"
@@ -105,16 +115,17 @@ class HP:
     #todo important: change
     SLICE_DIRECTION = "y"    # x, y, z  (combined needs z)
     USE_VISLOGGER = False
-    INFO = "no Dropout, Deconv, 72bundles, LeakyRelu, Regression: Only 270g_125mm"
+    INFO = "no Dropout, Deconv, 72bundles, LeakyRelu"
     SAVE_WEIGHTS = True
-    # NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names()[1:])
-    NR_OF_CLASSES = len(ExpUtils.get_bundle_names()[1:])
+    NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names()[1:])
+    # NR_OF_CLASSES = len(ExpUtils.get_bundle_names()[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
-    PRINT_FREQ = 10  #20
+    PRINT_FREQ = 20  #20
     NORMALIZE_DATA = True
     BEST_EPOCH = 0
-    INPUT_DIM = (144, 144)
+    # INPUT_DIM = (144, 144)
+    INPUT_DIM = (80, 80)
     VERBOSE = True
 
 parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
@@ -267,11 +278,11 @@ if HP.GET_PROBS:
         # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
 
         #Save as one probmap for further combined training
-        # ImgUtils.save_multilabel_img_as_multiple_files_peaks(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
-        #                                                      join(HP.EXP_PATH, "probmaps_" + subject))
-
-        ImgUtils.save_multilabel_img_as_multiple_files(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+        ImgUtils.save_multilabel_img_as_multiple_files_peaks(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
                                                              join(HP.EXP_PATH, "probmaps_" + subject))
+
+        # ImgUtils.save_multilabel_img_as_multiple_files(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+        #                                                      join(HP.EXP_PATH, "probmaps_" + subject))
         # img = nib.Nifti1Image(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
         # nib.save(img, join(HP.EXP_PATH, "probmaps", subject + "_probmap.nii.gz"))
 
