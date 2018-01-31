@@ -37,6 +37,10 @@ from tractseg.libs.PlotUtils import PlotUtils
 
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
+'''
+TractSeg -i peaks.nii.gz --output_multiple_files --skip_peak_extraction
+'''
+
 #Settings and Hyperparameters
 class HP:
     MODEL = "UNet_Pytorch"     # UNet_Lasagne / UNet_Pytorch
@@ -48,7 +52,7 @@ class HP:
     PREDICT_IMG = False
     PREDICT_IMG_OUTPUT = None
     OUTPUT_MULTIPLE_FILES = False
-    TRACTSEG_DIR = "tractseg_output"
+    TRACTSEG_DIR = "tractseg_output_peaks"
     KEEP_INTERMEDIATE_FILES = False
     CSD_RESOLUTION = "LOW"  # HIGH / LOW
 
@@ -60,7 +64,7 @@ class HP:
     USE_VISLOGGER = False
     INFO = "74 BNew, DMNifti, newSplit, 90gAnd270g, NormBeforeDAug, Fusion: 32gAnd270g"
     SAVE_WEIGHTS = True
-    NR_OF_CLASSES = len(ExpUtils.get_bundle_names())
+    NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names()[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
     PRINT_FREQ = 20
@@ -72,7 +76,7 @@ class HP:
     EXP_NAME = "HCP_TEST"       # HCP_normAfter
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
-    LEARNING_RATE = 0.002
+    LEARNING_RATE = 0.001
 
     #Remove?
     # NUM_EPOCHS = 500
@@ -135,7 +139,8 @@ HP.LOAD_WEIGHTS = True
 if args.flip:
     HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_Mir_v1.npz")
 else:
-    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_v1.npz")
+    # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_v1.npz")
+    HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "HCP_Peaks11_xyz_12g90g270g_DO_LossW10-2_DAug1", "best_weights_ep46.npz")
     # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_12g_ep420.npz")
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
 
@@ -162,7 +167,8 @@ data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get
 
 model = ModelClass(HP)
 seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
+# seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
+seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
 
 seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
 ExpUtils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
@@ -172,7 +178,8 @@ if args.preview:
     PlotUtils.plot_tracts(seg, HP.PREDICT_IMG_OUTPUT)
 
 if HP.OUTPUT_MULTIPLE_FILES:
-    ImgUtils.save_multilabel_img_as_multiple_files(seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
+    # ImgUtils.save_multilabel_img_as_multiple_files(seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
+    ImgUtils.save_multilabel_img_as_multiple_files_peaks(seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
 else:
     img = nib.Nifti1Image(seg, data_img.get_affine())
     nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))

@@ -90,10 +90,10 @@ class HP:
     DATA_AUGMENTATION = False
     # DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05)"
-    DATASET = "HCP_32g"  # HCP / HCP_32g
-    RESOLUTION = "2.5mm"  # 1.25mm (/ 2.5mm)
-    FEATURES_FILENAME = "32g_25mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_peaks"     # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
+    DATASET = "HCP"  # HCP / HCP_32g
+    RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
+    FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
+    LABELS_FILENAME = "bundle_peaks_11"     # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
     #todo important: change
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_XYZ"
@@ -136,8 +136,8 @@ class HP:
     NORMALIZE_DATA = True
     BEST_EPOCH = 0
     #todo important: change
-    # INPUT_DIM = (144, 144)
-    INPUT_DIM = (80, 80)
+    INPUT_DIM = (144, 144)
+    # INPUT_DIM = (80, 80)
     VERBOSE = True
 
 parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
