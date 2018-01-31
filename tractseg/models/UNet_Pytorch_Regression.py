@@ -155,7 +155,7 @@ class UNet_Pytorch_Regression(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
-        def train(X, y):
+        def train(X, y, weight_factor=10):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
             if torch.cuda.is_available():
@@ -169,7 +169,7 @@ class UNet_Pytorch_Regression(BaseModel):
             # loss = criterion(outputs, y)
             weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
-            weights[bundle_mask.data] *= 10
+            weights[bundle_mask.data] *= weight_factor  #10
             loss = my_MSE(outputs, y, Variable(weights))
 
             loss.backward()  # backward
@@ -184,7 +184,7 @@ class UNet_Pytorch_Regression(BaseModel):
 
             return loss.data[0], probs, f1
 
-        def test(X, y):
+        def test(X, y, weight_factor=10):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
             if torch.cuda.is_available():
@@ -195,10 +195,9 @@ class UNet_Pytorch_Regression(BaseModel):
             outputs = net(X)  # forward
 
             # loss = criterion(outputs, y)
-            weights = torch.ones(
-                (self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+            weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
-            weights[bundle_mask.data] *= 10
+            weights[bundle_mask.data] *= weight_factor  #10
             loss = my_MSE(outputs, y, Variable(weights))
 
             # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)

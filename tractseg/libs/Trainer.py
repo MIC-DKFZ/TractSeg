@@ -81,6 +81,12 @@ class Trainer:
                 "validate": 0
             }
 
+            # weight_factor = 10   #0
+            if epoch_nr < 100:
+                weight_factor = -(8./100.) * epoch_nr + 10.   #ep0: 10 -> linear decrease -> ep100: 2
+            else:
+                weight_factor = 2.
+
             for type in ["train", "test", "validate"]:
                 print_loss = []
                 start_time_batch_gen = time.time()
@@ -107,12 +113,12 @@ class Trainer:
                     start_time_network = time.time()
                     if type == "train":
                         nr_of_updates += 1
-                        loss, probs, f1 = self.model.train(x, y)    # probs: # (bs, x, y, nrClasses)
+                        loss, probs, f1 = self.model.train(x, y, weight_factor=weight_factor)    # probs: # (bs, x, y, nrClasses)
                         # loss, probs, f1, intermediate = self.model.train(x, y)
                     elif type == "validate":
-                        loss, probs, f1 = self.model.predict(x, y)
+                        loss, probs, f1 = self.model.predict(x, y, weight_factor=weight_factor)
                     elif type == "test":
-                        loss, probs, f1 = self.model.predict(x, y)
+                        loss, probs, f1 = self.model.predict(x, y, weight_factor=weight_factor)
                     network_time += time.time() - start_time_network
 
                     start_time_metrics = time.time()
