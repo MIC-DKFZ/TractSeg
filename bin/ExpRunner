@@ -40,7 +40,7 @@ from tractseg.libs.DataManagers import DataManagerPrecomputedBatches_noDLBG
 '''
 Adapt for Peak Prediction (after Training):
 - set: DATASET_FOLDER = "HCP"
-- command: ExpRunner --en HCP_Peaks_Y --train=False --test=False --probs --lw
+- command: ExpRunner --train=False --test=False --probs --lw --en HCP_Peaks_Y
 '''
 
 '''
@@ -86,15 +86,22 @@ class HP:
     EXP_MULTI_NAME = ""             #CV Parent Dir name # leave empty for Single Bundle Experiment
     EXP_NAME = "HCP_TEST"           # HCP_TEST
     MODEL = "UNet_Pytorch_Regression"          # UNet_Lasagne / UNet_Pytorch
-    NUM_EPOCHS = 300
-    DATA_AUGMENTATION = False
+
+    NUM_EPOCHS = 400
+    DATA_AUGMENTATION = True
+    NUM_PROCESSES = 6
     # DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
-    DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05)"
+    DAUG_INFO = " DownsampScipy(0.5,1)"
     DATASET = "HCP"  # HCP / HCP_32g
     RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
     FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_peaks_11"     # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
-    #todo important: change
+    LABELS_FILENAME = "bundle_peaks/CST"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
+    INPUT_DIM = (144, 144)
+    # INPUT_DIM = (80, 80)
+    LOSS_WEIGHT = 10
+    SLICE_DIRECTION = "y"    # x, y, z  (combined needs z)
+    INFO = "Dropout, Deconv, 11bundles, LeakyRelu"
+
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_XYZ"
     DATASET_FOLDER = "HCP"
@@ -123,10 +130,7 @@ class HP:
     LABELS_TYPE = np.float32  # Binary: np.int16, Regression: np.float32
     THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
-    #todo important: change
-    SLICE_DIRECTION = "x"    # x, y, z  (combined needs z)
     USE_VISLOGGER = False
-    INFO = "Dropout, Deconv, 72bundles, LeakyRelu"
     SAVE_WEIGHTS = True
     NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names()[1:])
     # NR_OF_CLASSES = len(ExpUtils.get_bundle_names()[1:])
@@ -135,9 +139,6 @@ class HP:
     PRINT_FREQ = 20  #20
     NORMALIZE_DATA = True
     BEST_EPOCH = 0
-    #todo important: change
-    INPUT_DIM = (144, 144)
-    # INPUT_DIM = (80, 80)
     VERBOSE = True
 
 parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
@@ -279,17 +280,16 @@ if HP.GET_PROBS:
     ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps"))
     # ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps_32g_25mm"))
     # all_subjects = HP.TEST_SUBJECTS
-    # all_subjects = ["599469"]
-    all_subjects = ["992774"]
+    all_subjects = ["599469", "992774"]
     # all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS
     for subject in all_subjects:
         print("Get_probs subject {}".format(subject))
 
-        # dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject, use_gt_mask=False)
-        # trainerSingle = Trainer(model_test, dataManagerSingle)
-        # img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
-        img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
-        img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
+        dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject, use_gt_mask=False)
+        trainerSingle = Trainer(model_test, dataManagerSingle)
+        img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
+        # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
+        # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
 
         ImgUtils.save_multilabel_img_as_multiple_files_peaks(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
                                                              join(HP.EXP_PATH, "probmaps_" + subject))

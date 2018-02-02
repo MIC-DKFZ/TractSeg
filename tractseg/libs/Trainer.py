@@ -82,10 +82,13 @@ class Trainer:
             }
 
             # weight_factor = 10   #0
+            # if epoch_nr < HP.NUM_EPOCHS:
             if epoch_nr < 100:
-                weight_factor = -(8./100.) * epoch_nr + 10.   #ep0: 10 -> linear decrease -> ep100: 2
+                # weight_factor = -(9./100.) * epoch_nr + 10.   #ep0: 10 -> linear decrease -> ep100: 1
+                # weight_factor = -((HP.LOSS_WEIGHT-1)/float(HP.NUM_EPOCHS)) * epoch_nr + float(HP.LOSS_WEIGHT)
+                weight_factor = -((HP.LOSS_WEIGHT-1)/float(100)) * epoch_nr + float(HP.LOSS_WEIGHT)
             else:
-                weight_factor = 2.
+                weight_factor = 1.
 
             for type in ["train", "test", "validate"]:
                 print_loss = []
