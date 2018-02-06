@@ -19,6 +19,7 @@
 from __future__ import division
 import numpy as np
 from sklearn.metrics import f1_score
+from tractseg.libs.ExpUtils import ExpUtils
 # from medpy import metric
 
 class MetricUtils:
@@ -167,8 +168,10 @@ class MetricUtils:
             metrics["f1_macro_"+type][-1] += f1
             if f1_per_bundle is not None:
                 metrics["f1_CA_" + type][-1] += f1_per_bundle["CA"]
-                metrics["f1_FX_left_" + type][-1] += f1_per_bundle["FX_left"]
-                metrics["f1_FX_right_" + type][-1] += f1_per_bundle["FX_right"]
+                # metrics["f1_FX_left_" + type][-1] += f1_per_bundle["FX_left"]
+                # metrics["f1_FX_right_" + type][-1] += f1_per_bundle["FX_right"]
+                metrics["f1_CST_right_" + type][-1] += f1_per_bundle["CST_right"]
+                metrics["f1_UF_left_" + type][-1] += f1_per_bundle["UF_left"]
 
         return metrics
 
@@ -220,6 +223,79 @@ class MetricUtils:
 
         return metrics_avg
 
+    @staticmethod
+    def calc_peak_dice_onlySeg(y_pred, y_true):
+        '''
+        Create binary mask of peaks by simple thresholding. Then calculate Dice.
+
+        :param y_pred:
+        :param y_true:
+        :return:
+        '''
+
+        score_per_bundle = {}
+        bundles = ExpUtils.get_bundle_names()[1:]
+        for idx, bundle in enumerate(bundles):
+            y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
+            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
+
+            # 0.1 -> keep some outliers, but also some holes already; 0.2 also ok (still looks like e.g. CST)
+            #  Resulting dice for 0.1 and 0.2 very similar
+            y_pred_binary = np.abs(y_pred_bund).sum(axis=-1) > 0.2
+            y_true_binary = np.abs(y_true_bund).sum(axis=-1) > 1e-3
+
+            f1 = f1_score(y_true_binary.flatten(), y_pred_binary.flatten(), average="binary")
+            score_per_bundle[bundle] = f1
+
+        return score_per_bundle
+
+    @staticmethod
+    def calc_peak_dice(y_pred, y_true, max_angle_error=0.9):
+        '''
+
+        :param y_pred:
+        :param y_true:
+        :param max_angle_error:  0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
+        :return:
+        '''
+
+        def angle(a, b):
+            '''
+            Calculate the angle between two 1d-arrays (2 vectors) along the last dimension
+
+            without anything further: 1->0°, 0.7->45°, 0->90°
+            np.arccos -> returns degree in pi (90°: 0.5*pi)
+            '''
+            return abs(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
+
+        def angle_last_dim(a, b):
+            '''
+            Calculate the angle between two nd-arrays (array of vectors) along the last dimension
+
+            without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
+            np.arccos -> returns degree in pi (90°: 0.5*pi)
+
+            return: one dimension less then input
+            '''
+            # print(np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1))
+            return abs(np.einsum('...i,...i', a, b) / (np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1) + 1e-7))
+
+
+        score_per_bundle = {}
+        bundles = ExpUtils.get_bundle_names()[1:]
+        for idx, bundle in enumerate(bundles):
+            y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
+            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
+
+            angles = angle_last_dim(y_pred_bund, y_true_bund)
+            angles_binary = angles > max_angle_error
+
+            gt_binary = y_true_bund.sum(axis=-1) > 0
+
+            f1 = f1_score(gt_binary.flatten(), angles_binary.flatten(), average="binary")
+            score_per_bundle[bundle] = f1
+
+        return score_per_bundle
 
 
 

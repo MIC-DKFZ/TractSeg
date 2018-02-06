@@ -87,17 +87,17 @@ class HP:
     EXP_NAME = "HCP_TEST"           # HCP_TEST
     MODEL = "UNet_Pytorch_Regression"          # UNet_Lasagne / UNet_Pytorch
 
-    NUM_EPOCHS = 400
-    DATA_AUGMENTATION = True
-    NUM_PROCESSES = 6
+    NUM_EPOCHS = 1000
+    DATA_AUGMENTATION = False   #todo important: change
+    NUM_PROCESSES = 2  #todo important: change
     # DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
-    DAUG_INFO = " DownsampScipy(0.5,1)"
-    DATASET = "HCP"  # HCP / HCP_32g
-    RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
-    FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_peaks/CST"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
-    INPUT_DIM = (144, 144)
-    # INPUT_DIM = (80, 80)
+    DAUG_INFO = "Scale(0.9, 1.5) - CenterDist60 - Gaussian(0,0.05)"
+    DATASET = "HCP_32g"  # HCP / HCP_32g
+    RESOLUTION = "2.5mm"  # 1.25mm (/ 2.5mm)
+    FEATURES_FILENAME = "32g_25mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
+    LABELS_FILENAME = "bundle_peaks_11_808080"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
+    # INPUT_DIM = (144, 144)
+    INPUT_DIM = (80, 80)
     LOSS_WEIGHT = 10
     SLICE_DIRECTION = "y"    # x, y, z  (combined needs z)
     INFO = "Dropout, Deconv, 11bundles, LeakyRelu"
@@ -290,6 +290,10 @@ if HP.GET_PROBS:
         img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
         # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
         # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
+
+        # peak_f1 = MetricUtils.calc_peak_dice(img_probs, img_y)
+        # pprint(peak_f1)
+        # print("mean: {}".format(np.array([s for s in peak_f1.values()]).mean()))
 
         ImgUtils.save_multilabel_img_as_multiple_files_peaks(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
                                                              join(HP.EXP_PATH, "probmaps_" + subject))

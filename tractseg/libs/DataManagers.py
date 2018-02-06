@@ -178,18 +178,18 @@ class DataManagerTrainingNiftiImgs:
                 # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
 
                 center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-                # tfs.append(SpatialTransform(self.HP.INPUT_DIM,
-                #                                     patch_center_dist_from_border=center_dist_from_border,
-                #                                     do_elastic_deform=False, alpha=(90., 120.), sigma=(9., 11.),
-                #                                     do_rotation=False, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
-                #                                     angle_z=(-0.8, 0.8),
-                #                                     do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
-                #                                     border_cval_data=0,
-                #                                     order_data=3,
-                #                                     border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
-                tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
+                tfs.append(SpatialTransform(self.HP.INPUT_DIM,
+                                                    patch_center_dist_from_border=center_dist_from_border,
+                                                    do_elastic_deform=False, alpha=(90., 120.), sigma=(9., 11.),
+                                                    do_rotation=False, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
+                                                    angle_z=(-0.8, 0.8),
+                                                    do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
+                                                    border_cval_data=0,
+                                                    order_data=3,
+                                                    border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
+                # tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
                 # tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
-                # tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
+                tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
                 # tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
 
                 # tfs.append(Mirror())

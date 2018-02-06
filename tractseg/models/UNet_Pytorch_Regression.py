@@ -180,7 +180,8 @@ class UNet_Pytorch_Regression(BaseModel):
             if self.HP.USE_VISLOGGER:
                 probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             else:
-                probs = None    #faster
+                probs = outputs.data.cpu().numpy().transpose(0,2,3,1)  # (bs, x, y, classes)
+                # probs = None    #faster
 
             return loss.data[0], probs, f1
 
@@ -202,8 +203,8 @@ class UNet_Pytorch_Regression(BaseModel):
 
             # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
             f1 = np.ones(outputs.shape[3])
-            # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
-            probs = None  # faster
+            probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            # probs = None  # faster
             return loss.data[0], probs, f1
 
         def predict(X):
