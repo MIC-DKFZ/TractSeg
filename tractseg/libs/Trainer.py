@@ -86,10 +86,10 @@ class Trainer:
             # weight_factor = 10   #0
             #todo important: change
             # if epoch_nr < HP.NUM_EPOCHS:
-            if epoch_nr < 100:
+            if epoch_nr < 400:
                 # weight_factor = -(9./100.) * epoch_nr + 10.   #ep0: 10 -> linear decrease -> ep100: 1
                 # weight_factor = -((HP.LOSS_WEIGHT-1)/float(HP.NUM_EPOCHS)) * epoch_nr + float(HP.LOSS_WEIGHT)
-                weight_factor = -((HP.LOSS_WEIGHT-1)/float(100)) * epoch_nr + float(HP.LOSS_WEIGHT)
+                weight_factor = -((HP.LOSS_WEIGHT-1)/float(400)) * epoch_nr + float(HP.LOSS_WEIGHT)
             else:
                 weight_factor = 1.
 
@@ -134,12 +134,16 @@ class Trainer:
                     # metrics = MetricUtils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD,
                     #                                         f1_per_bundle={"CA": f1[5], "FX_left": f1[23], "FX_right": f1[24]})
 
-                    y_right_order = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-                    peak_f1 = MetricUtils.calc_peak_dice(probs, y_right_order)
-                    peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
-                    metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD,
-                                                            f1_per_bundle={"CA": peak_f1["CA"], "CST_right": peak_f1["CST_right"], "UF_left": peak_f1["UF_left"]})
-                    # metrics = MetricUtils.calculate_metrics_onlyLoss(metrics, loss, type=type)
+                    # y_right_order = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
+                    # peak_f1 = MetricUtils.calc_peak_dice(probs, y_right_order)
+                    # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
+
+                    # peak_f1_mean = np.array([s for s in f1.values()]).mean()
+
+                    # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD,
+                    #                                         f1_per_bundle={"CA": peak_f1["CA"], "CST_right": peak_f1["CST_right"], "UF_left": peak_f1["UF_left"]})
+                    # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+                    metrics = MetricUtils.calculate_metrics_onlyLoss(metrics, loss, type=type)
 
                     metrics_time += time.time() - start_time_metrics
 

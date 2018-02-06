@@ -142,7 +142,10 @@ if args.flip:
     HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_Mir_v1.npz")
 else:
     # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_v1.npz")
-    HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_y_12g90g270g_LossW10-1-100_DAugSimple", "best_weights_ep372.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_y_12g90g270g_LossW10-1-100_DAugSimple", "best_weights_ep372.npz")
+    HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCA_y_12g90g270g_LWNew10_DAugSimp", "best_weights_ep399.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_y_12g90g270g_LW10-1-100_DAug0", "best_weights_ep372.npz")
+    print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
     # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_12g_ep420.npz")
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
 

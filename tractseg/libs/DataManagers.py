@@ -151,7 +151,11 @@ class DataManagerTrainingNiftiImgs:
         seg = []
 
         #6 -> >30GB RAM
-        num_processes = self.HP.NUM_PROCESSES  # 6 is a bit faster than 16
+        if self.HP.DATA_AUGMENTATION:
+            num_processes = 6  # 6 is a bit faster than 16
+        else:
+            num_processes = 2
+
         nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
         if num_batches is None:
             num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch

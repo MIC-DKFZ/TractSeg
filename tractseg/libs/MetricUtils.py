@@ -298,6 +298,52 @@ class MetricUtils:
         return score_per_bundle
 
 
+    @staticmethod
+    def calc_peak_dice_pytorch(y_pred, y_true, max_angle_error=0.9):
+        '''
+
+        :param y_pred:
+        :param y_true:
+        :param max_angle_error:  0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
+        :return:
+        '''
+        import torch
+        from tractseg.libs.PytorchEinsum import einsum
+        from tractseg.libs.PytorchUtils import PytorchUtils
+
+        y_true = y_true.permute(0, 2, 3, 1)
+        y_pred = y_pred.permute(0, 2, 3, 1)
+
+        def angle_last_dim(a, b):
+            '''
+            Calculate the angle between two nd-arrays (array of vectors) along the last dimension
+
+            without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
+            np.arccos -> returns degree in pi (90°: 0.5*pi)
+
+            return: one dimension less then input
+            '''
+            return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
+
+
+        score_per_bundle = {}
+        bundles = ExpUtils.get_bundle_names()[1:]
+        for idx, bundle in enumerate(bundles):
+            y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
+            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]
+
+            angles = angle_last_dim(y_pred_bund, y_true_bund)
+            angles_binary = angles > max_angle_error
+
+            gt_binary = y_true_bund.sum(dim=-1) > 0
+
+            gt_binary = gt_binary.view(-1)  # [bs*x*y]
+            angles_binary = angles_binary.view(-1)
+
+            f1 = PytorchUtils.f1_score_binary(gt_binary, angles_binary)
+            score_per_bundle[bundle] = f1
+
+        return score_per_bundle
 
 
 

@@ -72,6 +72,28 @@ class PytorchUtils:
             return np.mean(np.array(f1s))
 
     @staticmethod
+    def f1_score_binary(y_true, y_pred):
+        '''
+        Binary f1
+
+        y_true: [bs*x*y], binary
+        y_pred: [bs*x*y], binary
+
+        Tested: same results as sklearn f1 binary
+        '''
+        # y_true = y_true.byte()
+        # y_pred = y_pred > 0.5
+
+        # y_true = y_true.contiguous().view(-1)  # [bs*x*y]
+        # y_pred = y_pred.contiguous().view(-1)
+
+        intersect = torch.sum(y_true * y_pred)  # works because all multiplied by 0 gets 0
+        denominator = torch.sum(y_true) + torch.sum(y_pred)  # works because all multiplied by 0 gets 0
+        f1 = (2 * intersect) / (denominator + 1e-6)
+        return f1
+
+
+    @staticmethod
     def sum_tensor(input, axes, keepdim=False):
         axes = np.unique(axes)
         if keepdim:
