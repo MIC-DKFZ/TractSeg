@@ -117,9 +117,23 @@ HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold
 if HP.WEIGHTS_PATH == "":
     HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
 
+
 #Autoset some parameters based on settings
 HP.INPUT_DIM = (144, 144) if HP.RESOLUTION == "1.25mm" else (80, 80)
 HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+if HP.CLASSES == "All":
+    if HP.RESOLUTION == "1.25mm":
+        HP.LABELS_FILENAME = "bundle_peaks"
+    else:
+        HP.LABELS_FILENAME = "bundle_peaks_808080"
+elif HP.CLASSES == "11":
+    if HP.RESOLUTION == "1.25mm":
+        HP.LABELS_FILENAME = "bundle_peaks_11"
+    else:
+        HP.LABELS_FILENAME = "bundle_peaks_11_808080"
+else:
+    HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
+
 
 if HP.VERBOSE:
     print("Hyperparameters:")
