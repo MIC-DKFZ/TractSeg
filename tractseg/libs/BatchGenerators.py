@@ -129,7 +129,7 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
 
         for i in range(20):
             try:
-                data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
+                # data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
 
                 # if np.random.random() < 0.5:
                 #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
@@ -137,13 +137,13 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
                 #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
 
                 #todo important: change
-                # rnd_choice = np.random.random()
-                # if rnd_choice < 0.33:
-                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
-                # elif rnd_choice < 0.66:
-                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
-                # else:
-                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "12g_125mm_peaks.nii.gz")).get_data()
+                rnd_choice = np.random.random()
+                if rnd_choice < 0.33:
+                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                elif rnd_choice < 0.66:
+                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                else:
+                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "12g_125mm_peaks.nii.gz")).get_data()
 
                 seg = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
                 break

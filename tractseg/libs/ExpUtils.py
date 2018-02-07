@@ -159,12 +159,12 @@ class ExpUtils:
         #            "ST_PAR_left", "ST_PAR_right", "ST_OCC_left", "ST_OCC_right"]
 
         # 11 Major tracts
-        bundles = ["CST_left", "CST_right", "IFO_left", "IFO_right", "CA", "CG_left", "CG_right",
-                   "FX_left", "FX_right", "UF_left", "UF_right"]
+        # bundles = ["CST_left", "CST_right", "IFO_left", "IFO_right", "CA", "CG_left", "CG_right",
+        #            "FX_left", "FX_right", "UF_left", "UF_right"]
 
         #1 tract
         # bundles = ["CST_right"]
-        # bundles = ["CA"]
+        bundles = ["CA"]
         # bundles = ["UF_left"]
 
         return ["BG"] + bundles    #Add Background label (is always beginning of list)
