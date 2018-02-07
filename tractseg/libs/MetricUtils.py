@@ -167,11 +167,13 @@ class MetricUtils:
         else:
             metrics["f1_macro_"+type][-1] += f1
             if f1_per_bundle is not None:
-                metrics["f1_CA_" + type][-1] += f1_per_bundle["CA"]
-                # metrics["f1_FX_left_" + type][-1] += f1_per_bundle["FX_left"]
-                # metrics["f1_FX_right_" + type][-1] += f1_per_bundle["FX_right"]
-                metrics["f1_CST_right_" + type][-1] += f1_per_bundle["CST_right"]
-                metrics["f1_UF_left_" + type][-1] += f1_per_bundle["UF_left"]
+                for key in f1_per_bundle.keys():
+                    if "f1_"+key+"_"+type not in metrics:
+                        metrics["f1_" + key + "_" + type] = [0]
+                    metrics["f1_" + key + "_" + type][-1] += f1_per_bundle[key]
+                # metrics["f1_CA_" + type][-1] += f1_per_bundle["CA"]
+                # metrics["f1_CST_right_" + type][-1] += f1_per_bundle["CST_right"]
+                # metrics["f1_UF_left_" + type][-1] += f1_per_bundle["UF_left"]
 
         return metrics
 
@@ -250,7 +252,7 @@ class MetricUtils:
         return score_per_bundle
 
     @staticmethod
-    def calc_peak_dice(HP, y_pred, y_true, max_angle_error=0.9):
+    def calc_peak_dice(HP, y_pred, y_true, max_angle_error=[0.9]):
         '''
 
         :param y_pred:
@@ -288,7 +290,7 @@ class MetricUtils:
             y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
 
             angles = angle_last_dim(y_pred_bund, y_true_bund)
-            angles_binary = angles > max_angle_error
+            angles_binary = angles > max_angle_error[0]
 
             gt_binary = y_true_bund.sum(axis=-1) > 0
 
@@ -299,12 +301,14 @@ class MetricUtils:
 
 
     @staticmethod
-    def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=0.9):
+    def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
         '''
+        Only calculate for CST_right (otherwise slow)
 
         :param y_pred:
         :param y_true:
         :param max_angle_error:  0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
+                                 Can be list with several values -> calculate for several thresholds
         :return:
         '''
         import torch
@@ -325,26 +329,50 @@ class MetricUtils:
             '''
             return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
+        #Single threshold
+        if len(max_angle_error) == 1:
+            score_per_bundle = {}
+            bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+            for idx, bundle in enumerate(bundles):
+                if bundle == "CST_right":
+                    y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
+                    y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]
 
-        score_per_bundle = {}
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
-        for idx, bundle in enumerate(bundles):
-            y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
-            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]
+                    angles = angle_last_dim(y_pred_bund, y_true_bund)
+                    gt_binary = y_true_bund.sum(dim=-1) > 0
+                    gt_binary = gt_binary.view(-1)  # [bs*x*y]
 
-            angles = angle_last_dim(y_pred_bund, y_true_bund)
-            angles_binary = angles > max_angle_error
+                    angles_binary = angles > max_angle_error[0]
+                    angles_binary = angles_binary.view(-1)
 
-            gt_binary = y_true_bund.sum(dim=-1) > 0
+                    f1 = PytorchUtils.f1_score_binary(gt_binary, angles_binary)
+                    score_per_bundle[bundle] = f1
+            return score_per_bundle
 
-            gt_binary = gt_binary.view(-1)  # [bs*x*y]
-            angles_binary = angles_binary.view(-1)
+        #multiple thresholds
+        else:
+            score_per_bundle = {}
+            bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+            for idx, bundle in enumerate(bundles):
+                #todo important: change
+                # if bundle == "CST_right":
+                if bundle == "CA":
+                    y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
+                    y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
 
-            f1 = PytorchUtils.f1_score_binary(gt_binary, angles_binary)
-            score_per_bundle[bundle] = f1
+                    angles = angle_last_dim(y_pred_bund, y_true_bund)
+                    gt_binary = y_true_bund.sum(dim=-1) > 0
+                    gt_binary = gt_binary.view(-1)  # [bs*x*y]
 
-        return score_per_bundle
+                    score_per_bundle[bundle] = []
+                    for threshold in max_angle_error:
+                        angles_binary = angles > threshold
+                        angles_binary = angles_binary.view(-1)
 
+                        f1 = PytorchUtils.f1_score_binary(gt_binary, angles_binary)
+                        score_per_bundle[bundle].append(f1)
+
+            return score_per_bundle
 
 
 

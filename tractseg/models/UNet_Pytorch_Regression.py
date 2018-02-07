@@ -175,9 +175,12 @@ class UNet_Pytorch_Regression(BaseModel):
 
             loss.backward()  # backward
             optimizer.step()  # optimise
-            # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-            # f1 = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data)
-            f1 = np.ones(outputs.shape[3])
+
+            if self.HP.CALC_F1:
+                # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+                f1 = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+            else:
+                f1 = np.ones(outputs.shape[3])
 
             if self.HP.USE_VISLOGGER:
                 probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
@@ -203,8 +206,12 @@ class UNet_Pytorch_Regression(BaseModel):
             weights[bundle_mask.data] *= weight_factor  #10
             loss = my_MSE(outputs, y, Variable(weights))
 
-            # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-            f1 = np.ones(outputs.shape[3])
+            if self.HP.CALC_F1:
+                # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+                f1 = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+            else:
+                f1 = np.ones(outputs.shape[3])
+
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1

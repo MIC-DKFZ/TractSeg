@@ -98,6 +98,7 @@ args = parser.parse_args()
 HP = getattr(importlib.import_module("tractseg.config.BaseHP"), "HP")()
 if args.config:
     HP = getattr(importlib.import_module("tractseg.config.custom." + args.config), "HP")()    #HP.__dict__ does not work if ()
+    HP.EXP_NAME = args.config
 
 if args.en:
     HP.EXP_NAME = args.en
@@ -191,7 +192,6 @@ def test_whole_subject(HP, model, subjects, type):
 
     return metrics
 
-#todo important: change
 dataManager = DataManagerTrainingNiftiImgs(HP)
 # dataManager = DataManagerPrecomputedBatches(HP)
 # dataManager = DataManagerPrecomputedBatches_noDLBG(HP)

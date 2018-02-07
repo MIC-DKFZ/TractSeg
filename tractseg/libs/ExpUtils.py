@@ -324,10 +324,21 @@ class ExpUtils:
             plt3, = ax.plot(metrics["loss_test"], "r--", label='loss test')
 
             plt7, = ax2.plot(metrics["f1_macro_train"], "g:", label='f1_macro_train')
-            plt8, = ax2.plot(metrics["f1_macro_validate"], "g", label='f1_macro_validate')
+            plt8, = ax2.plot(metrics["f1_macro_validate"], "g", label='f1_macro_val')
             plt9, = ax2.plot(metrics["f1_macro_test"], "g--", label='f1_macro_test')
 
-            plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9],
+            #tmp
+            plt10, = ax2.plot(metrics["f1_Thr1_train"], "b:", label='f1_Thr1_train')
+            plt11, = ax2.plot(metrics["f1_Thr1_validate"], "b", label='f1_Thr1_val')
+            plt12, = ax2.plot(metrics["f1_Thr1_test"], "b--", label='f1_Thr1_test')
+
+            #tmp
+            plt13, = ax2.plot(metrics["f1_Thr2_train"], "m:", label='f1_Thr2_train')
+            plt14, = ax2.plot(metrics["f1_Thr2_validate"], "m", label='f1_Thr2_val')
+            plt15, = ax2.plot(metrics["f1_Thr2_test"], "m--", label='f1_Thr2_test')
+
+            # plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9],
+            plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9, plt10, plt11, plt12, plt13, plt14, plt15],
                        loc=2,
                        borderaxespad=0.,
                        bbox_to_anchor=(1.03, 1))
