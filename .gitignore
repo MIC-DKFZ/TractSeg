@@ -4,3 +4,8 @@
 .DS_Store
 *.egg-info
 unet_weights_72b_ep389.npz
+
+tractseg/config/Exp_*
+tractseg/config/HCP*
+tractseg/config/Peaks*
+tractseg/config/run_multiple.sh

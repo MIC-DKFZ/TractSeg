@@ -90,7 +90,8 @@ class ExpUtils:
 
     @staticmethod
     def print_HPs(HP):
-        dict = copy.deepcopy(HP.__dict__)
+        # dict = copy.deepcopy(HP.__dict__)
+        dict = {attr: getattr(HP, attr) for attr in dir(HP) if not callable(getattr(HP, attr)) and not attr.startswith("__")}
         dict.pop("TRAIN_SUBJECTS", None)
         dict.pop("TEST_SUBJECTS", None)
         dict.pop("VALIDATE_SUBJECTS", None)
