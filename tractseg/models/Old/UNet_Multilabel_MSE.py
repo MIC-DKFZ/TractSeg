@@ -16,7 +16,6 @@ import lasagne as L
 
 from libs.Config import Config as C
 from models.BaseModel import BaseModel
-from libs.Layers import soft_dice_paul
 from libs.Layers import theano_f1_score
 from libs.Layers import theano_f1_score_soft
 

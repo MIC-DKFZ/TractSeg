@@ -94,7 +94,7 @@ class Slicer:
         for s in subjects:
             print("processing seg subject {}".format(s))
 
-            mask_data = ImgUtils.create_multilabel_mask(s, labels_type=HP.LABELS_TYPE)
+            mask_data = ImgUtils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.RESOLUTION == "2.5mm":
                 mask_data = ImgUtils.resize_first_three_dims(mask_data, order=0, zoom=0.5)
             mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, HP.DATASET, HP.RESOLUTION)
@@ -161,7 +161,7 @@ class Slicer:
 
             # print("combined shape after", combined.shape)
 
-            mask_data = ImgUtils.create_multilabel_mask(s, labels_type=HP.LABELS_TYPE)
+            mask_data = ImgUtils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.DATASET == "HCP_2mm":
                 #use "HCP" because for mask we need downscaling
                 mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, "HCP", HP.RESOLUTION)
@@ -223,7 +223,7 @@ class Slicer:
         print("\n\nProcessing Segs...")
         for s in get_all_subjects():
             print("processing seg subject {}".format(s))
-            seg = ImgUtils.create_multilabel_mask(s, labels_type=HP.LABELS_TYPE)
+            seg = ImgUtils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.RESOLUTION == "2.5mm":
                 seg = ImgUtils.resize_first_three_dims(seg, order=0, zoom=0.5)
             seg = DatasetUtils.scale_input_to_unet_shape(seg, HP.DATASET, HP.RESOLUTION)
@@ -271,7 +271,7 @@ class Slicer:
 
             print("processing seg subject {}".format(s))
             start_time = time.time()
-            # seg = ImgUtils.create_multilabel_mask(s, labels_type=HP.LABELS_TYPE)
+            # seg = ImgUtils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             seg = nib.load(join(C.NETWORK_DRIVE, "HCP_for_training_COPY", s, HP.LABELS_FILENAME + ".nii.gz")).get_data()
             if HP.RESOLUTION == "2.5mm":
                 seg = ImgUtils.resize_first_three_dims(seg, order=0, zoom=0.5)

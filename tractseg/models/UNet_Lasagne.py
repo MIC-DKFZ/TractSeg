@@ -27,7 +27,6 @@ import lasagne as L
 
 from tractseg.libs.Config import Config as C
 from tractseg.models.BaseModel import BaseModel
-from tractseg.libs.Layers import soft_dice_paul
 from tractseg.libs.Layers import theano_f1_score
 # from libs.Layers import theano_f1_score_soft
 from tractseg.libs.Layers import theano_binary_dice_per_instance_and_class

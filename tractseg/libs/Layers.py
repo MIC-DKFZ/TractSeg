@@ -132,8 +132,8 @@ def soft_dice_fabian(y_pred, y_true):
     dice_scores = T.constant(2) * intersect / (denominator + T.constant(1e-6))
     return dice_scores
 
-def soft_dice_paul(idxs, marker, preds, ys):
-    n_classes = len(ExpUtils.get_bundle_names())
+def soft_dice_paul(HP, idxs, marker, preds, ys):
+    n_classes = len(ExpUtils.get_bundle_names(HP.CLASSES))
     dice = T.constant(0)
     for cl in range(n_classes):
         pred = preds[marker, cl, :, :]
@@ -143,11 +143,11 @@ def soft_dice_paul(idxs, marker, preds, ys):
         dice += T.constant(2) * intersect / (denominator + T.constant(1e-6))
     return 1 - (dice / n_classes)
 
-def theano_f1_score_OLD(idxs, marker, preds, ys):
+def theano_f1_score_OLD(HP, idxs, marker, preds, ys):
     '''
     Von Paul
     '''
-    n_classes = len(ExpUtils.get_bundle_names())
+    n_classes = len(ExpUtils.get_bundle_names(HP.CLASSES))
     dice = T.constant(0)
     for cl in range(n_classes):
         pred = preds[marker, cl, :, :]

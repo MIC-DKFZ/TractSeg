@@ -210,13 +210,13 @@ class ImgUtils:
         return img_sm.transpose(1, 2, 3, 0)  # grads channel was in front -> put to back
 
     @staticmethod
-    def create_multilabel_mask(subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
+    def create_multilabel_mask(HP, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
         '''
         One-hot encoding of all bundles in one big image
         :param subject:
         :return: image of shape (x, y, z, nr_of_bundles + 1)
         '''
-        bundles = ExpUtils.get_bundle_names()
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)
 
         #Masks sind immer HCP_highRes (später erst downsample)
         mask_ml = np.zeros((145, 174, 145, len(bundles)))
@@ -232,16 +232,16 @@ class ImgUtils:
         return mask_ml.astype(labels_type)
 
     @staticmethod
-    def save_multilabel_img_as_multiple_files(img, affine, path):
-        bundles = ExpUtils.get_bundle_names()[1:]
+    def save_multilabel_img_as_multiple_files(HP, img, affine, path):
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
             ExpUtils.make_dir(join(path, "segmentations"))
             nib.save(img_seg, join(path, "segmentations", bundle + ".nii.gz"))
 
     @staticmethod
-    def save_multilabel_img_as_multiple_files_peaks(img, affine, path):
-        bundles = ExpUtils.get_bundle_names()[1:]
+    def save_multilabel_img_as_multiple_files_peaks(HP, img, affine, path):
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             data = img[:, :, :, (idx*3):(idx*3)+3]
 

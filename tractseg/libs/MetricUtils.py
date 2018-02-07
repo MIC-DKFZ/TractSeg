@@ -224,7 +224,7 @@ class MetricUtils:
         return metrics_avg
 
     @staticmethod
-    def calc_peak_dice_onlySeg(y_pred, y_true):
+    def calc_peak_dice_onlySeg(HP, y_pred, y_true):
         '''
         Create binary mask of peaks by simple thresholding. Then calculate Dice.
 
@@ -234,7 +234,7 @@ class MetricUtils:
         '''
 
         score_per_bundle = {}
-        bundles = ExpUtils.get_bundle_names()[1:]
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
             y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -250,7 +250,7 @@ class MetricUtils:
         return score_per_bundle
 
     @staticmethod
-    def calc_peak_dice(y_pred, y_true, max_angle_error=0.9):
+    def calc_peak_dice(HP, y_pred, y_true, max_angle_error=0.9):
         '''
 
         :param y_pred:
@@ -282,7 +282,7 @@ class MetricUtils:
 
 
         score_per_bundle = {}
-        bundles = ExpUtils.get_bundle_names()[1:]
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
             y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -299,7 +299,7 @@ class MetricUtils:
 
 
     @staticmethod
-    def calc_peak_dice_pytorch(y_pred, y_true, max_angle_error=0.9):
+    def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=0.9):
         '''
 
         :param y_pred:
@@ -327,7 +327,7 @@ class MetricUtils:
 
 
         score_per_bundle = {}
-        bundles = ExpUtils.get_bundle_names()[1:]
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
             y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]

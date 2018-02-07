@@ -176,7 +176,7 @@ class UNet_Pytorch_Regression(BaseModel):
             loss.backward()  # backward
             optimizer.step()  # optimise
             # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-            # f1 = MetricUtils.calc_peak_dice_pytorch(outputs.data, y.data)
+            # f1 = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data)
             f1 = np.ones(outputs.shape[3])
 
             if self.HP.USE_VISLOGGER:

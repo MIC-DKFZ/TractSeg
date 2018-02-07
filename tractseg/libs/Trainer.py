@@ -135,7 +135,7 @@ class Trainer:
                     #                                         f1_per_bundle={"CA": f1[5], "FX_left": f1[23], "FX_right": f1[24]})
 
                     # y_right_order = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-                    # peak_f1 = MetricUtils.calc_peak_dice(probs, y_right_order)
+                    # peak_f1 = MetricUtils.calc_peak_dice(HP, probs, y_right_order)
                     # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
 
                     # peak_f1_mean = np.array([s for s in f1.values()]).mean()

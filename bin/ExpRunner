@@ -95,10 +95,9 @@ parser.add_argument("--verbose", action="store_true", help="Show more intermedia
 parser.add_argument('--version', action='version', version='TractSeg 0.5')
 args = parser.parse_args()
 
-config = "BaseHP"
+HP = getattr(importlib.import_module("tractseg.config.BaseHP"), "HP")()
 if args.config:
-    config = args.config
-HP = getattr(importlib.import_module("tractseg.config." + config), "HP")()    #HP.__dict__ does not work if ()
+    HP = getattr(importlib.import_module("tractseg.config.custom." + args.config), "HP")()    #HP.__dict__ does not work if ()
 
 if args.en:
     HP.EXP_NAME = args.en
@@ -118,6 +117,10 @@ HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold
 if HP.WEIGHTS_PATH == "":
     HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
 
+#Autoset some parameters based on settings
+HP.INPUT_DIM = (144, 144) if HP.RESOLUTION == "1.25mm" else (80, 80)
+HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+
 if HP.VERBOSE:
     print("Hyperparameters:")
     ExpUtils.print_HPs(HP)
@@ -134,7 +137,7 @@ def test_whole_subject(HP, model, subjects, type):
 
     # Metrics per bundle
     metrics_bundles = {}
-    for bundle in ExpUtils.get_bundle_names():
+    for bundle in ExpUtils.get_bundle_names(HP.CLASSES):
         metrics_bundles[bundle] = [0]
 
     for subject in subjects:
@@ -153,7 +156,7 @@ def test_whole_subject(HP, model, subjects, type):
         img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
 
         metrics = MetricUtils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=HP.THRESHOLD)
-        metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, ExpUtils.get_bundle_names(), threshold=HP.THRESHOLD)
+        metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, ExpUtils.get_bundle_names(HP.CLASSES), threshold=HP.THRESHOLD)
 
     metrics = MetricUtils.normalize_last_element(metrics, len(subjects), type=type)
     metrics_bundles = MetricUtils.normalize_last_element_general(metrics_bundles, len(subjects))
@@ -236,14 +239,14 @@ if HP.GET_PROBS:
         # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
         # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
 
-        # peak_f1 = MetricUtils.calc_peak_dice(img_probs, img_y)
+        # peak_f1 = MetricUtils.calc_peak_dice(HP, img_probs, img_y)
         # pprint(peak_f1)
         # print("mean: {}".format(np.array([s for s in peak_f1.values()]).mean()))
 
-        ImgUtils.save_multilabel_img_as_multiple_files_peaks(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+        ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
                                                              join(HP.EXP_PATH, "probmaps_" + subject))
 
-        # ImgUtils.save_multilabel_img_as_multiple_files(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+        # ImgUtils.save_multilabel_img_as_multiple_files(HP, img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
         #                                                      join(HP.EXP_PATH, "probmaps_" + subject))
         # img = nib.Nifti1Image(img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
         # nib.save(img, join(HP.EXP_PATH, "probmaps", subject + "_probmap.nii.gz"))

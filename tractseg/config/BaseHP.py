@@ -10,15 +10,19 @@ class HP:
     MODEL = "UNet_Pytorch_Regression"          # UNet_Lasagne / UNet_Pytorch
 
     NUM_EPOCHS = 1000
-    DATA_AUGMENTATION = False   #todo important: change
-    # DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
-    DAUG_INFO = "Scale(0.9, 1.5) - CenterDist60 - Gaussian(0,0.05)"
+    DATA_AUGMENTATION = False
+    DAUG_SCALE = True
+    DAUG_ELASTIC_DEFORM = False
+    DAUG_ROTATE = False
+    DAUG_RESAMPLE = False
+    DAUG_NOISE = True
+    DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
     DATASET = "HCP"  # HCP / HCP_32g
     RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
     FEATURES_FILENAME = "270g_125mm_peaks"  # 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
     LABELS_FILENAME = "bundle_peaks/CA"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
-    INPUT_DIM = (144, 144)
-    # INPUT_DIM = (80, 80)
+
+    INPUT_DIM = (144, 144)      # (80, 80) / (144, 144)
     LOSS_WEIGHT = 10
     SLICE_DIRECTION = "y"    # x, y, z  (combined needs z)
     INFO = "Dropout, Deconv, 11bundles, LeakyRelu, PeakDiceThres=0.9"
@@ -52,7 +56,8 @@ class HP:
     TEST_TIME_DAUG = False
     USE_VISLOGGER = False
     SAVE_WEIGHTS = True
-    NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names()[1:])
+    CLASSES = "All"
+    NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(CLASSES)[1:])
     # NR_OF_CLASSES = len(ExpUtils.get_bundle_names()[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()

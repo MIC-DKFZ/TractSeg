@@ -66,7 +66,8 @@ class HP:
     USE_VISLOGGER = False
     INFO = "74 BNew, DMNifti, newSplit, 90gAnd270g, NormBeforeDAug, Fusion: 32gAnd270g"
     SAVE_WEIGHTS = True
-    NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names()[1:])
+    CLASSES = "All"
+    NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(CLASSES)[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
     PRINT_FREQ = 20
@@ -190,8 +191,8 @@ if args.preview:
     PlotUtils.plot_tracts(seg, HP.PREDICT_IMG_OUTPUT)
 
 if HP.OUTPUT_MULTIPLE_FILES:
-    # ImgUtils.save_multilabel_img_as_multiple_files(seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
-    ImgUtils.save_multilabel_img_as_multiple_files_peaks(seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
+    # ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
+    ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
 else:
     img = nib.Nifti1Image(seg, data_img.get_affine())
     nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
