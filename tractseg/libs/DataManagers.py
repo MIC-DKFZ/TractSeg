@@ -127,7 +127,7 @@ class DataManagerSingleSubjectByFile:
     def get_batches(self, batch_size=1):
         data = np.nan_to_num(self.data)
         # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
-        seg = np.zeros((144, 144, 144, self.HP.NR_OF_CLASSES)).astype(self.HP.LABELS_TYPE)
+        seg = np.zeros((self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.NR_OF_CLASSES)).astype(self.HP.LABELS_TYPE)
 
         num_processes = 1  # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
         batch_gen = SlicesBatchGenerator((data, seg), BATCH_SIZE=batch_size)

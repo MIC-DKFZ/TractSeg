@@ -111,3 +111,106 @@ class PytorchUtils:
         denom = PytorchUtils.sum_tensor(net_output + gt, axes, keepdim=False)
         return - (2 * intersect / (denom + eps)).mean()
 
+    @staticmethod
+    def MSE_weighted(y_pred, y_true, weights):
+        loss = weights * ((y_pred - y_true) ** 2)
+        return torch.mean(loss)
+
+    @staticmethod
+    def angle_last_dim(a, b):
+        '''
+        Calculate the angle between two nd-arrays (array of vectors) along the last dimension
+
+        without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
+        np.arccos -> returns degree in pi (90°: 0.5*pi)
+
+        return: one dimension less then input
+        '''
+        from tractseg.libs.PytorchEinsum import einsum
+
+        return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
+
+    @staticmethod
+    def angle_second_dim(a, b):
+        '''
+        Not working !
+        RuntimeError: invalid argument 2: input is not contiguous (and
+
+        Calculate the angle between two nd-arrays (array of vectors) along the second dimension
+
+        without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
+        np.arccos -> returns degree in pi (90°: 0.5*pi)
+
+        return: one dimension less then input
+        '''
+        from tractseg.libs.PytorchEinsum import einsum
+
+        return torch.abs(einsum('abcd,abcd->acd', a, b) / (torch.norm(a, 2., 1) * torch.norm(b, 2, 1) + 1e-7))
+
+    @staticmethod
+    def angle_loss(y_pred, y_true, weights):
+        '''
+
+        :param y_pred:
+        :param y_true:
+        :param weights:  [bs, classes, x, y, z]
+        :return:
+
+        '''
+        # loss = weights * ((y_pred - y_true) ** 2)
+
+        #todo:
+        # - ok that we use abs()? -> should be good
+        # - ok to just add minus to make max to min problem?
+        # - better/faster if not per class? All in one makes no sense?? (dot product over all dims -> senseless?)
+        # - faster if no permute?
+
+        y_true = y_true.permute(0, 2, 3, 1)
+        y_pred = y_pred.permute(0, 2, 3, 1)
+        weights = weights.permute(0, 2, 3, 1)
+
+        # Single threshold
+
+        # score_per_bundle = {}
+        # bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+
+        scores = []
+        nr_of_classes = int(y_true.shape[-1] / 3.)
+
+        for idx in range(nr_of_classes):
+            y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
+            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
+            weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
+
+            angles = PytorchUtils.angle_last_dim(y_pred_bund, y_true_bund)
+
+            angles_weighted = angles / weights_bund
+            scores.append(torch.mean(angles_weighted))
+
+        return -np.mean(scores)
+
+    @staticmethod
+    def angle_loss_faster(y_pred, y_true, weights):
+        '''
+        Not working !
+        RuntimeError: invalid argument 2: input is not contiguous (and 'abcd,abcd->acd' also in numpy wrong)
+
+        :param y_pred:
+        :param y_true:
+        :param weights:
+        :return:
+        '''
+        scores = []
+        nr_of_classes = int(y_true.shape[-1] / 3.)
+
+        for idx in range(nr_of_classes):
+            y_pred_bund = y_pred[:, (idx * 3):(idx * 3) + 3, :, :].contiguous()
+            y_true_bund = y_true[:, (idx * 3):(idx * 3) + 3, :, :].contiguous()  # [x,y,z,3]
+            weights_bund = weights[:, (idx * 3), :, :].contiguous()  # [x,y,z]
+
+            angles = PytorchUtils.angle_second_dim(y_pred_bund, y_true_bund)
+
+            angles_weighted = angles / weights_bund
+            scores.append(torch.mean(angles_weighted))
+
+        return -np.mean(scores)

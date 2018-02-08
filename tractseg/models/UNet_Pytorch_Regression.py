@@ -147,11 +147,6 @@ class UNet(torch.nn.Module):
         return conv_5
 
 
-def my_MSE(y_pred, y_true, weights):
-    loss = weights * ((y_pred - y_true) ** 2)
-    return torch.mean(loss)
-
-
 class UNet_Pytorch_Regression(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
@@ -171,7 +166,14 @@ class UNet_Pytorch_Regression(BaseModel):
             weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  #10
-            loss = my_MSE(outputs, y, Variable(weights))
+
+            loss = PytorchUtils.MSE_weighted(outputs, y, Variable(weights))
+            # loss = PytorchUtils.angle_loss(outputs, y, Variable(weights))
+
+            # loss_fast = PytorchUtils.angle_loss_faster(outputs, y, Variable(weights))
+            # print("-----")
+            # print(loss)
+            # print(loss_fast)
 
             loss.backward()  # backward
             optimizer.step()  # optimise
@@ -204,7 +206,7 @@ class UNet_Pytorch_Regression(BaseModel):
             weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  #10
-            loss = my_MSE(outputs, y, Variable(weights))
+            loss = PytorchUtils.MSE_weighted(outputs, y, Variable(weights))
 
             if self.HP.CALC_F1:
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)

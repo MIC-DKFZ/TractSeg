@@ -66,7 +66,8 @@ class HP:
     USE_VISLOGGER = False
     INFO = "74 BNew, DMNifti, newSplit, 90gAnd270g, NormBeforeDAug, Fusion: 32gAnd270g"
     SAVE_WEIGHTS = True
-    CLASSES = "All"
+    #todo important: change
+    CLASSES = "All"     # All / 11 / CST_right
     NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(CLASSES)[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
@@ -74,6 +75,7 @@ class HP:
     NORMALIZE_DATA = True
     BEST_EPOCH = 0
     INPUT_DIM = (144, 144)
+    # INPUT_DIM = (80, 80)
     VERBOSE = True
     EXP_MULTI_NAME = ""              #CV Parent Dir name # leave empty for Single Bundle Experiment
     EXP_NAME = "HCP_TEST"       # HCP_normAfter
@@ -145,6 +147,7 @@ else:
     # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_v1.npz")
     # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_y_12g90g270g_LossW10-1-100_DAugSimple", "best_weights_ep372.npz")
     HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCA_y_12g90g270g_LWNew10_DAugSimp", "best_weights_ep399.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCA_y_32g_LW10-400_DAug0_ep1000", "best_weights_ep999.npz")
     # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_y_12g90g270g_LW10-1-100_DAug0", "best_weights_ep372.npz")
     print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
     # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_12g_ep420.npz")
@@ -169,7 +172,7 @@ if args.skip_peak_extraction:
     data_img = nib.load(args.input)
 else:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
-data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get_data(), target_size=144)
+data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get_data(), target_size=HP.INPUT_DIM[0])
 
 model = ModelClass(HP)
 

@@ -46,9 +46,6 @@ class Trainer:
 
         ExpUtils.print_and_save(HP, socket.gethostname())
 
-        with open(join(HP.EXP_PATH, "Hyperparameters.txt"), "w") as f:
-            pprint(HP.__dict__, f)
-
         epoch_times = []
         nr_of_updates = 0
 
@@ -57,11 +54,6 @@ class Trainer:
             metrics_new = {
                 "loss_" + type: [0],
                 "f1_macro_" + type: [0],
-                # "f1_CA_" + type: [0],
-                # "f1_FX_left_" + type: [0],
-                # "f1_FX_right_" + type: [0],
-                # "f1_CST_right_" + type: [0],
-                # "f1_UF_left_" + type: [0],
             }
             metrics = dict(metrics.items() + metrics_new.items())
 
@@ -139,14 +131,12 @@ class Trainer:
                         # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
 
                         #Pytorch
-                        # peak_f1_mean = np.array([s for s in f1.values()]).mean()  #if f1 for multiple bundles
-                        # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+                        peak_f1_mean = np.array([s for s in f1.values()]).mean()  #if f1 for multiple bundles
+                        metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
 
-                        #todo important: change
+                        #Single Bundle
                         # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"][0], type=type, threshold=HP.THRESHOLD,
                         #                                         f1_per_bundle={"Thr1": f1["CST_right"][1], "Thr2": f1["CST_right"][2]})
-                        metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CA"][0], type=type, threshold=HP.THRESHOLD,
-                                                                f1_per_bundle={"Thr1": f1["CA"][1], "Thr2": f1["CA"][2]})
                         # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"], type=type, threshold=HP.THRESHOLD)
                     else:
                         metrics = MetricUtils.calculate_metrics_onlyLoss(metrics, loss, type=type)

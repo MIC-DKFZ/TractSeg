@@ -171,9 +171,6 @@ class MetricUtils:
                     if "f1_"+key+"_"+type not in metrics:
                         metrics["f1_" + key + "_" + type] = [0]
                     metrics["f1_" + key + "_" + type][-1] += f1_per_bundle[key]
-                # metrics["f1_CA_" + type][-1] += f1_per_bundle["CA"]
-                # metrics["f1_CST_right_" + type][-1] += f1_per_bundle["CST_right"]
-                # metrics["f1_UF_left_" + type][-1] += f1_per_bundle["UF_left"]
 
         return metrics
 

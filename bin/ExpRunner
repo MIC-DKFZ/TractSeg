@@ -87,7 +87,7 @@ parser.add_argument("--config", metavar="name", help="Name of configuration to u
 parser.add_argument("--train", metavar="True/False", help="Train network", type=distutils.util.strtobool, default=True)
 parser.add_argument("--test", metavar="True/False", help="Test network", type=distutils.util.strtobool, default=False)
 parser.add_argument("--seg", action="store_true", help="Create binary segmentation", default=False)
-parser.add_argument("--probs", action="store_true", help="Create probmap segmentation", default=False)
+# parser.add_argument("--probs", action="store_true", help="Create probmap segmentation", default=False)
 parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net", default=False)
 parser.add_argument("--en", metavar="name", help="Experiment name")
 parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int, default=0)
@@ -98,7 +98,7 @@ args = parser.parse_args()
 HP = getattr(importlib.import_module("tractseg.config.BaseHP"), "HP")()
 if args.config:
     HP = getattr(importlib.import_module("tractseg.config.custom." + args.config), "HP")()    #HP.__dict__ does not work if ()
-    HP.EXP_NAME = args.config
+    # HP.EXP_NAME = args.config
 
 if args.en:
     HP.EXP_NAME = args.en
@@ -106,7 +106,7 @@ if args.en:
 HP.TRAIN = bool(args.train)
 HP.TEST = bool(args.test)
 HP.SEGMENT = args.seg
-HP.GET_PROBS = args.probs
+# HP.GET_PROBS = args.probs
 HP.LOAD_WEIGHTS = args.lw
 HP.CV_FOLD= args.fold
 HP.VERBOSE = args.verbose
@@ -136,12 +136,16 @@ else:
     HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
 
 
+if HP.TRAIN:
+    HP.EXP_PATH = ExpUtils.create_experiment_folder(HP.EXP_NAME, HP.MULTI_PARENT_PATH, HP.TRAIN)
+
 if HP.VERBOSE:
     print("Hyperparameters:")
     ExpUtils.print_HPs(HP)
 
-if HP.TRAIN:
-    HP.EXP_PATH = ExpUtils.create_experiment_folder(HP.EXP_NAME, HP.MULTI_PARENT_PATH, HP.TRAIN)
+with open(join(HP.EXP_PATH, "Hyperparameters.txt"), "w") as f:
+    HP_dict = {attr: getattr(HP, attr) for attr in dir(HP) if not callable(getattr(HP, attr)) and not attr.startswith("__")}
+    pprint(HP_dict, f)
 
 def test_whole_subject(HP, model, subjects, type):
 
