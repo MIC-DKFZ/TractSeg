@@ -162,18 +162,10 @@ class UNet_Pytorch_Regression(BaseModel):
             net.train()
             outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
 
-            # loss = criterion(outputs, y)
             weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  #10
-
-            loss = PytorchUtils.MSE_weighted(outputs, y, Variable(weights))
-            # loss = PytorchUtils.angle_loss(outputs, y, Variable(weights))
-
-            # loss_fast = PytorchUtils.angle_loss_faster(outputs, y, Variable(weights))
-            # print("-----")
-            # print(loss)
-            # print(loss_fast)
+            loss = criterion(outputs, y, Variable(weights))
 
             loss.backward()  # backward
             optimizer.step()  # optimise
@@ -202,11 +194,10 @@ class UNet_Pytorch_Regression(BaseModel):
             net.train(False)
             outputs = net(X)  # forward
 
-            # loss = criterion(outputs, y)
             weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  #10
-            loss = PytorchUtils.MSE_weighted(outputs, y, Variable(weights))
+            loss = criterion(outputs, y, Variable(weights))
 
             if self.HP.CALC_F1:
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
@@ -270,8 +261,8 @@ class UNet_Pytorch_Regression(BaseModel):
         if self.HP.TRAIN:
             ExpUtils.print_and_save(self.HP, str(net), only_log=True)
 
-        # criterion = nn.BCEWithLogitsLoss()
-        criterion = nn.MSELoss()
+        criterion = PytorchUtils.MSE_weighted
+        # criterion = PytorchUtils.angle_loss
 
         optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
 
