@@ -157,14 +157,33 @@ class PytorchUtils:
         :return:
 
         '''
-        # loss = weights * ((y_pred - y_true) ** 2)
-
         #todo:
         # - ok that we use abs()? -> should be good
         # - ok to just add minus to make max to min problem?
         # - better/faster if not per class? All in one makes no sense?? (dot product over all dims -> senseless?)
         # - faster if no permute?
 
+        y_true = y_true.permute(0, 2, 3, 1)
+        y_pred = y_pred.permute(0, 2, 3, 1)
+        weights = weights.permute(0, 2, 3, 1)
+
+        scores = []
+        nr_of_classes = int(y_true.shape[-1] / 3.)
+
+        for idx in range(nr_of_classes):
+            y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
+            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
+            weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
+
+            angles = PytorchUtils.angle_last_dim(y_pred_bund, y_true_bund)
+
+            angles_weighted = angles / weights_bund
+            scores.append(torch.mean(angles_weighted))
+
+        return -np.mean(scores)
+
+    @staticmethod
+    def angle_length_loss(y_pred, y_true, weights):
         y_true = y_true.permute(0, 2, 3, 1)
         y_pred = y_pred.permute(0, 2, 3, 1)
         weights = weights.permute(0, 2, 3, 1)
@@ -183,11 +202,19 @@ class PytorchUtils:
             weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
 
             angles = PytorchUtils.angle_last_dim(y_pred_bund, y_true_bund)
-
             angles_weighted = angles / weights_bund
-            scores.append(torch.mean(angles_weighted))
+            #todo: norm lens to 0-1 to be more equal to angles?? -> peaks are already around 1 -> ok
+            lengths = (torch.norm(y_pred_bund, 2., -1) - torch.norm(y_true_bund, 2, -1)) ** 2
+            lenghts_weighted = lengths * weights_bund
 
-        return -np.mean(scores)
+            # Divide by weights.max otherwise lens would be way bigger
+            # Flip angles to make it a minimization problem
+            combined = -angles_weighted + lenghts_weighted / weights_bund.max()
+
+            scores.append(torch.mean(combined))
+
+        return np.mean(scores)
+
 
     @staticmethod
     def angle_loss_faster(y_pred, y_true, weights):
@@ -214,3 +241,4 @@ class PytorchUtils:
             scores.append(torch.mean(angles_weighted))
 
         return -np.mean(scores)
+

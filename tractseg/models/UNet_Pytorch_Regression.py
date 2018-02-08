@@ -165,14 +165,19 @@ class UNet_Pytorch_Regression(BaseModel):
             weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  #10
+
             loss = criterion(outputs, y, Variable(weights))
+            # loss = criterion1(outputs, y, Variable(weights)) + criterion2(outputs, y, Variable(weights))
 
             loss.backward()  # backward
             optimizer.step()  # optimise
 
             if self.HP.CALC_F1:
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-                f1 = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                f1_b = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
+                                                               max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
+                f1 = (f1_a, f1_b)
             else:
                 f1 = np.ones(outputs.shape[3])
 
@@ -197,11 +202,16 @@ class UNet_Pytorch_Regression(BaseModel):
             weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  #10
+
             loss = criterion(outputs, y, Variable(weights))
+            # loss = criterion1(outputs, y, Variable(weights)) + criterion2(outputs, y, Variable(weights))
 
             if self.HP.CALC_F1:
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-                f1 = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                f1_b = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
+                                                               max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
+                f1 = (f1_a, f1_b)
             else:
                 f1 = np.ones(outputs.shape[3])
 
@@ -261,8 +271,13 @@ class UNet_Pytorch_Regression(BaseModel):
         if self.HP.TRAIN:
             ExpUtils.print_and_save(self.HP, str(net), only_log=True)
 
-        criterion = PytorchUtils.MSE_weighted
+        # criterion1 = PytorchUtils.MSE_weighted
+        # criterion2 = PytorchUtils.angle_loss
+
+        # criterion = PytorchUtils.angle_length_loss
         # criterion = PytorchUtils.angle_loss
+        criterion = PytorchUtils.MSE_weighted
+
 
         optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
 

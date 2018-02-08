@@ -131,8 +131,14 @@ class Trainer:
                         # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
 
                         #Pytorch
-                        peak_f1_mean = np.array([s for s in f1.values()]).mean()  #if f1 for multiple bundles
-                        metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+                        # peak_f1_mean = np.array([s for s in f1.values()]).mean()  #if f1 for multiple bundles
+                        # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+
+                        #Pytorch 2 F1
+                        peak_f1_mean_a = np.array([s for s in f1[0].values()]).mean()
+                        peak_f1_mean_b = np.array([s for s in f1[1].values()]).mean()
+                        metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean_a, type=type, threshold=HP.THRESHOLD,
+                                                                f1_per_bundle={"LenF1": peak_f1_mean_b})
 
                         #Single Bundle
                         # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"][0], type=type, threshold=HP.THRESHOLD,
