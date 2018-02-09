@@ -300,7 +300,16 @@ class MetricUtils:
     @staticmethod
     def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
         '''
-        Only calculate for CST_right (otherwise slow)
+        Calculate angle between groundtruth and prediction and keep the voxels where
+        angle is smaller than MAX_ANGLE_ERROR.
+
+        From groundtruth generate a binary mask by selecting all voxels with len > 0.
+
+        Calculate Dice from these 2 masks.
+
+        -> Penalty on peaks outside of tract or if predicted peak=0
+        -> no penalty on very very small with right direction -> bad
+        => Peak_dice can be high even if peaks inside of tract almost missing (almost 0)
 
         :param y_pred:
         :param y_true:
@@ -374,7 +383,7 @@ class MetricUtils:
     @staticmethod
     def calc_peak_length_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):
         '''
-        Only calculate for CST_right (otherwise slow)
+        Ca
 
         :param y_pred:
         :param y_true:

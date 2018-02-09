@@ -22,7 +22,7 @@ class HP:
     FEATURES_FILENAME = "270g_125mm_peaks"  # 12g90g270g / 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
     LABELS_FILENAME = "bundle_peaks/CA"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
     PEAK_DICE_THR = [0.95]
-    PEAK_DICE_LEN_THR = 0.1
+    PEAK_DICE_LEN_THR = 0.05
 
     INPUT_DIM = (144, 144)      # (80, 80) / (144, 144)
     LOSS_WEIGHT = 10

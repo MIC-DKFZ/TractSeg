@@ -203,7 +203,7 @@ class PytorchUtils:
 
             angles = PytorchUtils.angle_last_dim(y_pred_bund, y_true_bund)
             angles_weighted = angles / weights_bund
-            #todo: norm lens to 0-1 to be more equal to angles?? -> peaks are already around 1 -> ok
+            #norm lengths to 0-1 to be more equal to angles?? -> peaks are already around 1 -> ok
             lengths = (torch.norm(y_pred_bund, 2., -1) - torch.norm(y_true_bund, 2, -1)) ** 2
             lenghts_weighted = lengths * weights_bund
 

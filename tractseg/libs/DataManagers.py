@@ -152,9 +152,9 @@ class DataManagerTrainingNiftiImgs:
 
         #6 -> >30GB RAM
         if self.HP.DATA_AUGMENTATION:
-            num_processes = 6  # 6 is a bit faster than 16
+            num_processes = 8  # 6 is a bit faster than 16
         else:
-            num_processes = 2
+            num_processes = 6
 
         nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
         if num_batches is None:
@@ -193,10 +193,10 @@ class DataManagerTrainingNiftiImgs:
                                                         order_data=3,
                                                         border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
 
-                if self.HP.RESAMPLE:
+                if self.HP.DAUG_RESAMPLE:
                     tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
 
-                if self.HP.NOISE:
+                if self.HP.DAUG_NOISE:
                     tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
 
                 # tfs.append(Mirror())

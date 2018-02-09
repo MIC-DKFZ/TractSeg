@@ -174,10 +174,10 @@ class UNet_Pytorch_Regression(BaseModel):
 
             if self.HP.CALC_F1:
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-                f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
-                f1_b = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
+                # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
                                                                max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
-                f1 = (f1_a, f1_b)
+                # f1 = (f1_a, f1_b)
             else:
                 f1 = np.ones(outputs.shape[3])
 
@@ -208,10 +208,10 @@ class UNet_Pytorch_Regression(BaseModel):
 
             if self.HP.CALC_F1:
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-                f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
-                f1_b = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
+                # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
                                                                max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
-                f1 = (f1_a, f1_b)
+                # f1 = (f1_a, f1_b)
             else:
                 f1 = np.ones(outputs.shape[3])
 
@@ -231,19 +231,30 @@ class UNet_Pytorch_Regression(BaseModel):
             return probs
 
         def save_model(metrics, epoch_nr):
-            # max_f1_idx = np.argmax(metrics["f1_macro_validate"])
-            # max_f1 = np.max(metrics["f1_macro_validate"])
-            # if epoch_nr == max_f1_idx and max_f1 > 0.01:  # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
+            max_f1_idx = np.argmax(metrics["f1_macro_validate"])
+            max_f1 = np.max(metrics["f1_macro_validate"])
+            if epoch_nr == max_f1_idx and max_f1 > 0.01:  # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
+                print("  Saving weights...")
+                for fl in glob.glob(join(self.HP.EXP_PATH, "best_weights_ep*")):  # remove weights from previous epochs
+                    os.remove(fl)
+                try:
+                    #Actually is a pkl not a npz
+                    PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
+                except IOError:
+                    print("\nERROR: Could not save weights because of IO Error\n")
+                self.HP.BEST_EPOCH = epoch_nr
 
-            print("  Saving weights...")
-            for fl in glob.glob(join(self.HP.EXP_PATH, "best_weights_ep*")):  # remove weights from previous epochs
+            #Saving Last Epoch:
+            print("  Saving weights last epoch...")
+            for fl in glob.glob(join(self.HP.EXP_PATH, "weights_ep*")):  # remove weights from previous epochs
                 os.remove(fl)
             try:
-                #Actually is a pkl not a npz
-                PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
+                # Actually is a pkl not a npz
+                PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "weights_ep" + str(epoch_nr) + ".npz"), unet=net)
             except IOError:
                 print("\nERROR: Could not save weights because of IO Error\n")
             self.HP.BEST_EPOCH = epoch_nr
+
 
         def load_model(path):
             PytorchUtils.load_checkpoint(path, unet=net)
@@ -267,16 +278,16 @@ class UNet_Pytorch_Regression(BaseModel):
         else:
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
 
+        # if self.HP.TRAIN:
+        #     ExpUtils.print_and_save(self.HP, str(net), only_log=True)
 
-        if self.HP.TRAIN:
-            ExpUtils.print_and_save(self.HP, str(net), only_log=True)
 
         # criterion1 = PytorchUtils.MSE_weighted
         # criterion2 = PytorchUtils.angle_loss
 
-        # criterion = PytorchUtils.angle_length_loss
+        # criterion = PytorchUtils.MSE_weighted
         # criterion = PytorchUtils.angle_loss
-        criterion = PytorchUtils.MSE_weighted
+        criterion = PytorchUtils.angle_length_loss
 
 
         optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
