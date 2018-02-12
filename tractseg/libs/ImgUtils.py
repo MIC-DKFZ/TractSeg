@@ -155,7 +155,7 @@ class ImgUtils:
         elif (dataset == "HCP_32g" or dataset == "HCP_2mm") and resolution == "2mm":
             return (90,108,90)
 
-        elif (dataset == "HCP" or dataset == "HCP_2.5mm") and resolution == "2.5mm":
+        elif (dataset == "HCP_32g" or dataset == "HCP" or dataset == "HCP_2.5mm") and resolution == "2.5mm":
             return (73,87,73)
 
         elif dataset == "Phantom" and resolution == "1.25mm":

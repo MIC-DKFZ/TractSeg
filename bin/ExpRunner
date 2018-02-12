@@ -156,7 +156,7 @@ def test_whole_subject(HP, model, subjects, type):
 
     # Metrics per bundle
     metrics_bundles = {}
-    for bundle in ExpUtils.get_bundle_names(HP.CLASSES):
+    for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
         metrics_bundles[bundle] = [0]
 
     for subject in subjects:
@@ -167,15 +167,19 @@ def test_whole_subject(HP, model, subjects, type):
         trainerSingle = Trainer(model, dataManagerSingle)
         img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
         # img_probs_xyz, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
-        # igm_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs_xyz, probs=True)
+        # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs_xyz, probs=True)
 
         print("Took {}s".format(round(time.time() - start_time, 2)))
 
-        img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
-        img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
+        # img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
+        # img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
+        # metrics = MetricUtils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=HP.THRESHOLD)
+        # metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, ExpUtils.get_bundle_names(HP.CLASSES), threshold=HP.THRESHOLD)
 
-        metrics = MetricUtils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=HP.THRESHOLD)
-        metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, ExpUtils.get_bundle_names(HP.CLASSES), threshold=HP.THRESHOLD)
+        f1 = MetricUtils.calc_peak_length_dice(HP, img_probs, img_y, max_angle_error=HP.PEAK_DICE_THR, max_length_error=HP.PEAK_DICE_LEN_THR)
+        peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
+        metrics = MetricUtils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+        metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, None, None, ExpUtils.get_bundle_names(HP.CLASSES)[1:], f1, threshold=HP.THRESHOLD)
 
     metrics = MetricUtils.normalize_last_element(metrics, len(subjects), type=type)
     metrics_bundles = MetricUtils.normalize_last_element_general(metrics_bundles, len(subjects))
@@ -256,10 +260,6 @@ if HP.GET_PROBS:
         img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
         # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
         # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
-
-        # peak_f1 = MetricUtils.calc_peak_dice(HP, img_probs, img_y)
-        # pprint(peak_f1)
-        # print("mean: {}".format(np.array([s for s in peak_f1.values()]).mean()))
 
         ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
                                                              join(HP.EXP_PATH, "probmaps_" + subject))

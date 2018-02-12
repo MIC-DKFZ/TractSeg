@@ -180,23 +180,28 @@ class MetricUtils:
         return metrics
 
     @staticmethod
-    def calculate_metrics_each_bundle(metrics, y, class_probs, bundles, threshold=0.5):
+    def calculate_metrics_each_bundle(metrics, y, class_probs, bundles, f1=None, threshold=0.5):
         '''
         bundles -> have to be in same order as classes in predictions
         y -> Ground Truth
         class_probs -> Predictions
         '''
 
-        class_probs[class_probs >= threshold] = 1
-        class_probs[class_probs < threshold] = 0
-        pred_class = class_probs.astype(np.int16)
+        if f1 is None:
+            class_probs[class_probs >= threshold] = 1
+            class_probs[class_probs < threshold] = 0
+            pred_class = class_probs.astype(np.int16)
 
-        y[y >= threshold] = 1
-        y[y < threshold] = 0
-        y = y.astype(np.int16)
+            y[y >= threshold] = 1
+            y[y < threshold] = 0
+            y = y.astype(np.int16)
 
-        for idx, bundle in enumerate(bundles):
-            metrics[bundle][-1] += f1_score(y[:,idx], pred_class[:,idx], average="binary")
+            for idx, bundle in enumerate(bundles):
+                metrics[bundle][-1] += f1_score(y[:,idx], pred_class[:,idx], average="binary")
+        else:
+            for idx, bundle in enumerate(bundles):
+                metrics[bundle][-1] += f1[bundle]
+
         return metrics
 
     @staticmethod
@@ -379,6 +384,53 @@ class MetricUtils:
 
             return score_per_bundle
 
+    @staticmethod
+    def calc_peak_length_dice(HP, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):
+        '''
+
+        :param y_pred:
+        :param y_true:
+        :param max_angle_error:  0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
+        :return:
+        '''
+
+        def angle_last_dim(a, b):
+            '''
+            Calculate the angle between two nd-arrays (array of vectors) along the last dimension
+
+            without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
+            np.arccos -> returns degree in pi (90°: 0.5*pi)
+
+            return: one dimension less then input
+            '''
+            # print(np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1))
+            return abs(np.einsum('...i,...i', a, b) / (np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1) + 1e-7))
+
+
+        score_per_bundle = {}
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        for idx, bundle in enumerate(bundles):
+            y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
+            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
+
+            angles = angle_last_dim(y_pred_bund, y_true_bund)
+
+            lenghts_pred = np.linalg.norm(y_pred_bund, axis=-1)
+            lengths_true = np.linalg.norm(y_true_bund, axis=-1)
+            lengths_binary = abs(lenghts_pred - lengths_true) < (max_length_error * lengths_true)
+            lengths_binary = lengths_binary.flatten()
+
+            gt_binary = y_true_bund.sum(axis=-1) > 0
+            gt_binary = gt_binary.flatten()  # [bs*x*y]
+
+            angles_binary = angles > max_angle_error[0]
+            angles_binary = angles_binary.flatten()
+
+            combined = lengths_binary * angles_binary
+
+            f1 = MetricUtils.my_f1_score(gt_binary, combined)
+            score_per_bundle[bundle] = f1
+        return score_per_bundle
 
     @staticmethod
     def calc_peak_length_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):

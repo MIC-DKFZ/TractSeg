@@ -67,7 +67,7 @@ class HP:
     INFO = "74 BNew, DMNifti, newSplit, 90gAnd270g, NormBeforeDAug, Fusion: 32gAnd270g"
     SAVE_WEIGHTS = True
     #todo important: change
-    CLASSES = "All"     # All / 11 / CST_right
+    CLASSES = "11"     # All / 11 / CST_right
     NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(CLASSES)[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
@@ -146,9 +146,19 @@ if args.flip:
 else:
     # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_v1.npz")
     # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_y_12g90g270g_LossW10-1-100_DAugSimple", "best_weights_ep372.npz")
-    HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCA_y_12g90g270g_LWNew10_DAugSimp", "best_weights_ep399.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCA_y_12g90g270g_LWNew10_DAugSimp", "best_weights_ep399.npz")
     # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCA_y_32g_LW10-400_DAug0_ep1000", "best_weights_ep999.npz")
     # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_y_12g90g270g_LW10-1-100_DAug0", "best_weights_ep372.npz")
+
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_12g90g270_ALL_LThr05_DAugSimp_ep39", "best_weights_ep39.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_12g90g270g_ALL", "best_weights_ep322.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_12g90g270g_ALL_DAugSimp", "best_weights_ep128.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_12g90g270g_ALL_DAug1", "best_weights_ep134.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_12g90g270g_ALL_DAugAll", "best_weights_ep130.npz")
+
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_12g90g270_ALL_LThr05_DAugSimp", "best_weights_ep196.npz")
+    HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_12g90g270_ALL_xyz_DAugAll", "best_weights_ep184.npz")
+
     print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
     # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_12g_ep420.npz")
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
@@ -178,13 +188,13 @@ model = ModelClass(HP)
 
 #todo important: change
 #Single dir
-dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
-trainerSingle = Trainer(model, dataManagerSingle)
-seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False)
+# dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
+# trainerSingle = Trainer(model, dataManagerSingle)
+# seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False)
 
 #3 dir
-# seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-# seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
+seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
+seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
 
 seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
 ExpUtils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
