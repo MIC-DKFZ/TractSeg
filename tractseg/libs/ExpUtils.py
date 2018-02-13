@@ -165,6 +165,12 @@ class ExpUtils:
             bundles = ["CST_left", "CST_right", "IFO_left", "IFO_right", "CA", "CG_left", "CG_right",
                        "FX_left", "FX_right", "UF_left", "UF_right"]
 
+        elif CLASSES == "20":
+            # 20 Major tracts
+            bundles = ["AF_left", "AF_right", "CA", "CST_left", "CST_right", "CG_left", "CG_right",
+                       "ICP_left", "ICP_right", "MCP", "SCP_left", "SCP_right", "ILF_left", "ILF_right",
+                       "IFO_left", "IFO_right", "OR_left", "OR_right", "UF_left", "UF_right"]
+
         else:
             #1 tract
             # bundles = ["CST_right"]

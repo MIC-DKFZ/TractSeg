@@ -132,6 +132,11 @@ elif HP.CLASSES == "11":
         HP.LABELS_FILENAME = "bundle_peaks_11"
     else:
         HP.LABELS_FILENAME = "bundle_peaks_11_808080"
+elif HP.CLASSES == "20":
+    if HP.RESOLUTION == "1.25mm":
+        HP.LABELS_FILENAME = "bundle_peaks_20"
+    else:
+        HP.LABELS_FILENAME = "bundle_peaks_20_808080"
 else:
     HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
 
@@ -250,7 +255,7 @@ if HP.GET_PROBS:
     ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps"))
     # ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps_32g_25mm"))
     # all_subjects = HP.TEST_SUBJECTS
-    all_subjects = ["599469", "992774"]
+    all_subjects = ["599469", "992774", "994273"]
     # all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS
     for subject in all_subjects:
         print("Get_probs subject {}".format(subject))

@@ -59,7 +59,7 @@ class HP:
     TEST_TIME_DAUG = False
     USE_VISLOGGER = False
     SAVE_WEIGHTS = True
-    CLASSES = "All"
+    CLASSES = "All"     # All / 11 / 20 / CST_right
     NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(CLASSES)[1:])
     # NR_OF_CLASSES = len(ExpUtils.get_bundle_names()[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
