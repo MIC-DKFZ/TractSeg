@@ -6,7 +6,7 @@ setup(name='TractSeg',
         url='https://github.com/MIC-DKFZ/TractSeg/',
         author='Jakob Wasserthal',
         author_email='j.wasserthal@dkfz-heidelberg.de',
-        python_requires='>=2.6, <3',
+        python_requires='>=2.6',
         license='Apache 2.0',
         packages=find_packages(),
         #Torch/Lasagne has to be installed manually
