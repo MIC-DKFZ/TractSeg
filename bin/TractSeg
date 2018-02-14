@@ -67,7 +67,7 @@ class HP:
     INFO = "74 BNew, DMNifti, newSplit, 90gAnd270g, NormBeforeDAug, Fusion: 32gAnd270g"
     SAVE_WEIGHTS = True
     #todo important: change
-    CLASSES = "11"     # All / 11 / CST_right
+    CLASSES = "20"     # All / 11 / CST_right
     NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(CLASSES)[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()

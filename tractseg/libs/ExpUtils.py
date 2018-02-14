@@ -309,13 +309,13 @@ class ExpUtils:
         ax2.set_position([box2.x0, box2.y0, box2.width * 0.95, box2.height])
 
         if without_first_epochs:
-            plt1, = ax.plot(range(5, len(metrics["loss_train"])), metrics["loss_train"][5:], "r:", label='loss train')
-            plt2, = ax.plot(range(5, len(metrics["loss_validate"])), metrics["loss_validate"][5:], "r", label='loss val')
-            plt3, = ax.plot(range(5, len(metrics["loss_test"])), metrics["loss_test"][5:], "r--", label='loss test')
+            plt1, = ax.plot(list(range(5, len(metrics["loss_train"]))), metrics["loss_train"][5:], "r:", label='loss train')
+            plt2, = ax.plot(list(range(5, len(metrics["loss_validate"]))), metrics["loss_validate"][5:], "r", label='loss val')
+            plt3, = ax.plot(list(range(5, len(metrics["loss_test"]))), metrics["loss_test"][5:], "r--", label='loss test')
 
-            plt4, = ax2.plot(range(5, len(metrics["f1_macro_train"])), metrics["f1_macro_train"][5:], "g:", label='f1_macro_train')
-            plt5, = ax2.plot(range(5, len(metrics["f1_macro_validate"])), metrics["f1_macro_validate"][5:], "g", label='f1_macro_val')
-            plt6, = ax2.plot(range(5, len(metrics["f1_macro_test"])), metrics["f1_macro_test"][5:], "g--", label='f1_macro_test')
+            plt4, = ax2.plot(list(range(5, len(metrics["f1_macro_train"]))), metrics["f1_macro_train"][5:], "g:", label='f1_macro_train')
+            plt5, = ax2.plot(list(range(5, len(metrics["f1_macro_validate"]))), metrics["f1_macro_validate"][5:], "g", label='f1_macro_val')
+            plt6, = ax2.plot(list(range(5, len(metrics["f1_macro_test"]))), metrics["f1_macro_test"][5:], "g--", label='f1_macro_test')
 
             plt.legend(handles=[plt1, plt2, plt3, plt4, plt5, plt6],
                        loc=2,

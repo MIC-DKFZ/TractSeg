@@ -22,7 +22,7 @@ class PytorchUtils:
 
     @staticmethod
     def save_checkpoint(path, **kwargs):
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             if isinstance(value, torch.nn.Module) or isinstance(value, torch.optim.Optimizer):
                 kwargs[key] = value.state_dict()
 
@@ -32,7 +32,7 @@ class PytorchUtils:
     def load_checkpoint(path, **kwargs):
         checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
 
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             if key in checkpoint:
                 if isinstance(value, torch.nn.Module) or isinstance(value, torch.optim.Optimizer):
                     value.load_state_dict(checkpoint[key])

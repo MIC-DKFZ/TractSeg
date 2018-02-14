@@ -16,7 +16,7 @@
 # limitations under the License.
 
 
-from __future__ import division
+
 import numpy as np
 from sklearn.metrics import f1_score
 from tractseg.libs.ExpUtils import ExpUtils
@@ -124,20 +124,20 @@ class MetricUtils:
         :param type:  "train" or "test"
         :return:
         '''
-        for key, value in metrics.iteritems():
+        for key, value in metrics.items():
             if key.endswith("_" + type):
                 metrics[key][-1] /= float(length)
         return metrics
 
     @staticmethod
     def normalize_last_element_general(metrics, length):
-        for key, value in metrics.iteritems():
+        for key, value in metrics.items():
             metrics[key][-1] /= float(length)
         return metrics
 
     @staticmethod
     def add_empty_element(metrics):
-        for key, value in metrics.iteritems():
+        for key, value in metrics.items():
             metrics[key].append(0)
         return metrics
 
@@ -167,7 +167,7 @@ class MetricUtils:
         else:
             metrics["f1_macro_"+type][-1] += f1
             if f1_per_bundle is not None:
-                for key in f1_per_bundle.keys():
+                for key in list(f1_per_bundle.keys()):
                     if "f1_"+key+"_"+type not in metrics:
                         metrics["f1_" + key + "_" + type] = [0]
                     metrics["f1_" + key + "_" + type][-1] += f1_per_bundle[key]
@@ -215,7 +215,7 @@ class MetricUtils:
         '''
 
         metrics_avg = {}
-        metric_keys = metrics_all[0].keys()
+        metric_keys = list(metrics_all[0].keys())
 
         for metric_key in metric_keys:
 

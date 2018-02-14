@@ -17,10 +17,14 @@
 
 import os, sys
 import numpy as np
-import cPickle
+import pickle
 import bz2
-import urllib2
 from tractseg.libs.Config import Config as C
+
+try:
+    from urllib.request import urlopen     # For Python 3.0 and later
+except ImportError:
+    from urllib2 import urlopen     # Fall back to Python 2's urllib2
 
 class Utils:
 
@@ -123,12 +127,12 @@ class Utils:
         """
         try:
             f = bz2.BZ2File(filename, 'wb')
-        except IOError, details:
+        except IOError as details:
             sys.stderr.write('File ' + filename + ' cannot be written\n')
             sys.stderr.write(details)
             return
 
-        cPickle.dump(myobj, f, protocol=2)
+        pickle.dump(myobj, f, protocol=2)
         f.close()
 
     @staticmethod
@@ -141,12 +145,12 @@ class Utils:
         """
         try:
             f = bz2.BZ2File(filename, 'rb')
-        except IOError, details:
+        except IOError as details:
             sys.stderr.write('File ' + filename + ' cannot be read\n')
             sys.stderr.write(details)
             return
 
-        myobj = cPickle.load(f)
+        myobj = pickle.load(f)
         f.close()
         return myobj
 
@@ -203,7 +207,7 @@ class Utils:
             #This results in an SSL Error on CentOS
             # urllib.urlretrieve(WEIGHTS_URL, weights_path)
 
-            data = urllib2.urlopen(WEIGHTS_URL).read()
+            data = urlopen(WEIGHTS_URL).read()
             with open(weights_path, "wb") as weight_file:
                 weight_file.write(data)
 

@@ -13,9 +13,12 @@
 # limitations under the License.
 
 import abc
+import six
 
-class BaseModel:
-    __metaclass__ = abc.ABCMeta
+#Python 2 and 3 compatible
+@six.add_metaclass(abc.ABCMeta)
+class BaseModel():
+# class BaseModel(metaclass=abc.ABCMeta):
 
     def __init__(self, HP):
         self.HP = HP

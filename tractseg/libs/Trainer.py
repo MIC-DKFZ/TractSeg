@@ -55,7 +55,7 @@ class Trainer:
                 "loss_" + type: [0],
                 "f1_macro_" + type: [0],
             }
-            metrics = dict(metrics.items() + metrics_new.items())
+            metrics = dict(list(metrics.items()) + list(metrics_new.items()))
 
         for epoch_nr in range(HP.NUM_EPOCHS):
             start_time = time.time()
@@ -134,7 +134,7 @@ class Trainer:
                         # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
 
                         #Pytorch
-                        peak_f1_mean = np.array([s for s in f1.values()]).mean()  #if f1 for multiple bundles
+                        peak_f1_mean = np.array([s for s in list(f1.values())]).mean()  #if f1 for multiple bundles
                         metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
 
                         #Pytorch 2 F1
@@ -269,7 +269,7 @@ class Trainer:
             layers_y = []
             batch_generator = self.dataManager.get_batches(batch_size=1)
             batch_generator = list(batch_generator)
-            for j in tqdm(range(len(batch_generator))):
+            for j in tqdm(list(range(len(batch_generator)))):
                 batch = batch_generator[j]
                 x = batch["data"]   # (bs, nr_of_channels, x, y)
                 y = batch["seg"]    # (bs, x, y, nr_of_classes)

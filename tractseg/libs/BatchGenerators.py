@@ -62,7 +62,7 @@ class SlicesBatchGenerator(DataLoaderBase):
         if new_global_idx >= end:
             new_global_idx = end  # not end-1, because this goes into range, and there automatically -1
 
-        idxs = range(self.global_idx, new_global_idx)
+        idxs = list(range(self.global_idx, new_global_idx))
 
         if self.HP.SLICE_DIRECTION == "x":
             x = np.array(self._data[0][idxs,:,:,:]).astype(np.float32)
