@@ -124,31 +124,35 @@ class Trainer:
                     start_time_metrics = time.time()
 
                     if HP.CALC_F1:
-                        #Following two lines increase metrics_time by 30s (without < 1s); time per batch increases by 1.5s by these lines
-                        # y_flat = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-                        # y_flat = np.reshape(y_flat, (-1, y_flat.shape[-1]))  # (bs*x*y, nr_of_classes)
-                        # metrics = MetricUtils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD,
-                        #                                         f1_per_bundle={"CA": f1[5], "FX_left": f1[23], "FX_right": f1[24]})
+                        if HP.LABELS_TYPE == np.int16:
+                            metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD)
 
-                        #Numpy
-                        # y_right_order = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-                        # peak_f1 = MetricUtils.calc_peak_dice(HP, probs, y_right_order)
-                        # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
+                        else:  #Regression
+                            #Following two lines increase metrics_time by 30s (without < 1s); time per batch increases by 1.5s by these lines
+                            # y_flat = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
+                            # y_flat = np.reshape(y_flat, (-1, y_flat.shape[-1]))  # (bs*x*y, nr_of_classes)
+                            # metrics = MetricUtils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD,
+                            #                                         f1_per_bundle={"CA": f1[5], "FX_left": f1[23], "FX_right": f1[24]})
 
-                        #Pytorch
-                        peak_f1_mean = np.array([s for s in list(f1.values())]).mean()  #if f1 for multiple bundles
-                        metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+                            #Numpy
+                            # y_right_order = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
+                            # peak_f1 = MetricUtils.calc_peak_dice(HP, probs, y_right_order)
+                            # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
 
-                        #Pytorch 2 F1
-                        # peak_f1_mean_a = np.array([s for s in f1[0].values()]).mean()
-                        # peak_f1_mean_b = np.array([s for s in f1[1].values()]).mean()
-                        # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean_a, type=type, threshold=HP.THRESHOLD,
-                        #                                         f1_per_bundle={"LenF1": peak_f1_mean_b})
+                            #Pytorch
+                            peak_f1_mean = np.array([s for s in list(f1.values())]).mean()  #if f1 for multiple bundles
+                            metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
 
-                        #Single Bundle
-                        # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"][0], type=type, threshold=HP.THRESHOLD,
-                        #                                         f1_per_bundle={"Thr1": f1["CST_right"][1], "Thr2": f1["CST_right"][2]})
-                        # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"], type=type, threshold=HP.THRESHOLD)
+                            #Pytorch 2 F1
+                            # peak_f1_mean_a = np.array([s for s in f1[0].values()]).mean()
+                            # peak_f1_mean_b = np.array([s for s in f1[1].values()]).mean()
+                            # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean_a, type=type, threshold=HP.THRESHOLD,
+                            #                                         f1_per_bundle={"LenF1": peak_f1_mean_b})
+
+                            #Single Bundle
+                            # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"][0], type=type, threshold=HP.THRESHOLD,
+                            #                                         f1_per_bundle={"Thr1": f1["CST_right"][1], "Thr2": f1["CST_right"][2]})
+                            # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"], type=type, threshold=HP.THRESHOLD)
                     else:
                         metrics = MetricUtils.calculate_metrics_onlyLoss(metrics, loss, type=type)
 

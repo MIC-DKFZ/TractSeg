@@ -146,7 +146,7 @@ class UNet(torch.nn.Module):
         return conv_5
 
 
-class UNet_Pytorch(BaseModel):
+class UNet_Pytorch_weighted(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
@@ -160,7 +160,14 @@ class UNet_Pytorch(BaseModel):
             optimizer.zero_grad()
             net.train()
             outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
+
+            weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+            bundle_mask = y > 0
+            weights[bundle_mask.data] *= weight_factor  # 10
+
+            criterion = nn.BCEWithLogitsLoss(weight=weights)
             loss = criterion(outputs, y)
+
             # loss = PytorchUtils.soft_dice(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
@@ -182,7 +189,16 @@ class UNet_Pytorch(BaseModel):
                 X, y = Variable(X, volatile=True), Variable(y, volatile=True)
             net.train(False)
             outputs = net(X)  # forward
+
+            weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+            bundle_mask = y > 0
+            weights[bundle_mask.data] *= weight_factor  # 10
+
+            criterion = nn.BCEWithLogitsLoss(weight=weights)
             loss = criterion(outputs, y)
+
+            # loss = criterion(outputs, y)
+
             # loss = PytorchUtils.soft_dice(outputs, y)
             f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
@@ -247,7 +263,7 @@ class UNet_Pytorch(BaseModel):
         # weights[:, 21, :, :] *= 10    #FX_left
         # weights[:, 22, :, :] *= 10    #FX_right
         # criterion = nn.BCEWithLogitsLoss(weight=weights)
-        criterion = nn.BCEWithLogitsLoss()
+        # criterion = nn.BCEWithLogitsLoss()
 
         optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
         # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
