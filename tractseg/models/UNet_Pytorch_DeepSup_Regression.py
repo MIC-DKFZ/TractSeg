@@ -26,6 +26,7 @@ from torch.autograd import Variable
 from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.models.BaseModel import BaseModel
+from tractseg.libs.MetricUtils import MetricUtils
 
 # nonlinearity = nn.ReLU()
 nonlinearity = nn.LeakyReLU()
@@ -162,16 +163,11 @@ class UNet(torch.nn.Module):
         return final
 
 
-def my_MSE(y_pred, y_true, weights):
-    loss = weights * ((y_pred - y_true) ** 2)
-    return torch.mean(loss)
-
-
 class UNet_Pytorch_DeepSup_Regression(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
-        def train(X, y):
+        def train(X, y, weight_factor=10):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
             if torch.cuda.is_available():
@@ -182,25 +178,34 @@ class UNet_Pytorch_DeepSup_Regression(BaseModel):
             net.train()
             outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
 
-            # loss = criterion(outputs, y)
             weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
-            weights[bundle_mask.data] *= 10
-            loss = my_MSE(outputs, y, Variable(weights))
+            weights[bundle_mask.data] *= weight_factor  #10
+
+            loss = criterion(outputs, y, Variable(weights))
+            # loss = criterion1(outputs, y, Variable(weights)) + criterion2(outputs, y, Variable(weights))
 
             loss.backward()  # backward
             optimizer.step()  # optimise
-            # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-            f1 = np.ones(outputs.shape[3])
+
+            if self.HP.CALC_F1:
+                # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+                # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
+                                                               max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
+                # f1 = (f1_a, f1_b)
+            else:
+                f1 = np.ones(outputs.shape[3])
 
             if self.HP.USE_VISLOGGER:
                 probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             else:
+                # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)  # (bs, x, y, classes)
                 probs = None    #faster
 
             return loss.data[0], probs, f1
 
-        def test(X, y):
+        def test(X, y, weight_factor=10):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
             if torch.cuda.is_available():
@@ -210,16 +215,22 @@ class UNet_Pytorch_DeepSup_Regression(BaseModel):
             net.train(False)
             outputs = net(X)  # forward
 
-            # loss = criterion(outputs, y)
-            weights = torch.ones(
-                (self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+            weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             bundle_mask = y > 0
-            weights[bundle_mask.data] *= 10
-            loss = my_MSE(outputs, y, Variable(weights))
+            weights[bundle_mask.data] *= weight_factor  #10
 
+            loss = criterion(outputs, y, Variable(weights))
+            # loss = criterion1(outputs, y, Variable(weights)) + criterion2(outputs, y, Variable(weights))
 
-            # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-            f1 = np.ones(outputs.shape[3])
+            if self.HP.CALC_F1:
+                # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+                # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
+                                                               max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
+                # f1 = (f1_a, f1_b)
+            else:
+                f1 = np.ones(outputs.shape[3])
+
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1
@@ -236,19 +247,31 @@ class UNet_Pytorch_DeepSup_Regression(BaseModel):
             return probs
 
         def save_model(metrics, epoch_nr):
-            # max_f1_idx = np.argmax(metrics["f1_macro_validate"])
-            # max_f1 = np.max(metrics["f1_macro_validate"])
-            # if epoch_nr == max_f1_idx and max_f1 > 0.01:  # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
+            max_f1_idx = np.argmax(metrics["f1_macro_validate"])
+            max_f1 = np.max(metrics["f1_macro_validate"])
+            if epoch_nr == max_f1_idx and max_f1 > 0.01:  # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
+                print("  Saving weights...")
+                for fl in glob.glob(join(self.HP.EXP_PATH, "best_weights_ep*")):  # remove weights from previous epochs
+                    os.remove(fl)
+                try:
+                    #Actually is a pkl not a npz
+                    PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
+                except IOError:
+                    print("\nERROR: Could not save weights because of IO Error\n")
+                self.HP.BEST_EPOCH = epoch_nr
 
-            print("  Saving weights...")
-            for fl in glob.glob(join(self.HP.EXP_PATH, "best_weights_ep*")):  # remove weights from previous epochs
-                os.remove(fl)
-            try:
-                #Actually is a pkl not a npz
-                PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
-            except IOError:
-                print("\nERROR: Could not save weights because of IO Error\n")
+            #Saving Last Epoch:
+            # print("  Saving weights last epoch...")
+            # for fl in glob.glob(join(self.HP.EXP_PATH, "weights_ep*")):  # remove weights from previous epochs
+            #     os.remove(fl)
+            # try:
+            #     # Actually is a pkl not a npz
+            #     PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "weights_ep" + str(epoch_nr) + ".npz"), unet=net)
+            # except IOError:
+            #     print("\nERROR: Could not save weights because of IO Error\n")
+
             self.HP.BEST_EPOCH = epoch_nr
+
 
         def load_model(path):
             PytorchUtils.load_checkpoint(path, unet=net)
@@ -272,19 +295,17 @@ class UNet_Pytorch_DeepSup_Regression(BaseModel):
         else:
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
 
+        # if self.HP.TRAIN:
+        #     ExpUtils.print_and_save(self.HP, str(net), only_log=True)
 
-        if self.HP.TRAIN:
-            ExpUtils.print_and_save(self.HP, str(net), only_log=True)
 
-        # weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
-        # weights[:, 5, :, :] *= 10     #CA
-        # weights[:, 5, :, :] *= 10     #CA
-        # weights[:, 21, :, :] *= 10    #FX_left
-        # weights[:, 22, :, :] *= 10    #FX_right
-        # criterion = nn.BCEWithLogitsLoss(weight=weights)
+        # criterion1 = PytorchUtils.MSE_weighted
+        # criterion2 = PytorchUtils.angle_loss
 
-        # criterion = nn.BCEWithLogitsLoss()
-        criterion = nn.MSELoss()
+        # criterion = PytorchUtils.MSE_weighted
+        # criterion = PytorchUtils.angle_loss
+        criterion = PytorchUtils.angle_length_loss
+
 
         optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
 

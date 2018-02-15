@@ -251,4 +251,14 @@ class ImgUtils:
             ExpUtils.make_dir(join(path))
             nib.save(img_seg, join(path, bundle + "_f.nii.gz"))
 
+    @staticmethod
+    def peak_image_to_binary_mask(img, len_thr=0.1):
+        '''
 
+        :param img: [x,y,z,nr_bundles*3]
+        :param len_thr:
+        :return:
+        '''
+        peaks = np.reshape(img, (img.shape[0], img.shape[1], img.shape[2], int(img.shape[3] / 3.), 3))
+        peaks_len = np.linalg.norm(peaks, axis=-1)
+        return peaks_len > len_thr

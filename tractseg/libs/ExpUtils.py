@@ -171,6 +171,17 @@ class ExpUtils:
                        "ICP_left", "ICP_right", "MCP", "SCP_left", "SCP_right", "ILF_left", "ILF_right",
                        "IFO_left", "IFO_right", "OR_left", "OR_right", "UF_left", "UF_right"]
 
+        elif CLASSES == "20_endpoints":
+            #endpoints for "20"
+            bundles = ['AF_left_b' 'AF_left_e' 'AF_right_b' 'AF_right_e' 'CA_b' 'CA_e'
+                         'CST_left_b' 'CST_left_e' 'CST_right_b' 'CST_right_e' 'CG_left_b'
+                         'CG_left_e' 'CG_right_b' 'CG_right_e' 'ICP_left_b' 'ICP_left_e'
+                         'ICP_right_b' 'ICP_right_e' 'MCP_b' 'MCP_e' 'SCP_left_b' 'SCP_left_e'
+                         'SCP_right_b' 'SCP_right_e' 'ILF_left_b' 'ILF_left_e' 'ILF_right_b'
+                         'ILF_right_e' 'IFO_left_b' 'IFO_left_e' 'IFO_right_b' 'IFO_right_e'
+                         'OR_left_b' 'OR_left_e' 'OR_right_b' 'OR_right_e' 'UF_left_b' 'UF_left_e'
+                         'UF_right_b' 'UF_right_e'] #40
+
         else:
             #1 tract
             # bundles = ["CST_right"]

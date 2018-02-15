@@ -17,6 +17,7 @@ setup(name='TractSeg',
             'sklearn',
             'scipy',
             'tqdm',
+            'six'
             # 'batchgenerators==0.17'   #results in error (version...)
         ],
         # dependency_links=[

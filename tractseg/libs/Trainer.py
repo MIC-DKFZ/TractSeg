@@ -75,15 +75,17 @@ class Trainer:
                 "validate": 0
             }
 
+            #todo important: change
+            weight_factor = float(HP.LOSS_WEIGHT)
             # weight_factor = HP.LOSS_WEIGHT
 
-            if epoch_nr < HP.LOSS_WEIGHT_LEN:
-                # weight_factor = -(9./100.) * epoch_nr + 10.   #ep0: 10 -> linear decrease -> ep100: 1
-                weight_factor = -((HP.LOSS_WEIGHT-1)/float(HP.LOSS_WEIGHT_LEN)) * epoch_nr + float(HP.LOSS_WEIGHT)
-                # weight_factor = -((HP.LOSS_WEIGHT-5)/float(HP.LOSS_WEIGHT_LEN)) * epoch_nr + float(HP.LOSS_WEIGHT)
-            else:
-                weight_factor = 1.
-                # weight_factor = 5.
+            # if epoch_nr < HP.LOSS_WEIGHT_LEN:
+            #     # weight_factor = -(9./100.) * epoch_nr + 10.   #ep0: 10 -> linear decrease -> ep100: 1
+            #     weight_factor = -((HP.LOSS_WEIGHT-1)/float(HP.LOSS_WEIGHT_LEN)) * epoch_nr + float(HP.LOSS_WEIGHT)
+            #     # weight_factor = -((HP.LOSS_WEIGHT-5)/float(HP.LOSS_WEIGHT_LEN)) * epoch_nr + float(HP.LOSS_WEIGHT)
+            # else:
+            #     weight_factor = 1.
+            #     # weight_factor = 5.
 
             for type in ["train", "test", "validate"]:
                 print_loss = []
