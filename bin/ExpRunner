@@ -90,7 +90,7 @@ parser.add_argument("--seg", action="store_true", help="Create binary segmentati
 # parser.add_argument("--probs", action="store_true", help="Create probmap segmentation", default=False)
 parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net", default=False)
 parser.add_argument("--en", metavar="name", help="Experiment name")
-parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int, default=0)
+# parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int, default=0)
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)
 parser.add_argument('--version', action='version', version='TractSeg 0.5')
 args = parser.parse_args()
@@ -108,7 +108,7 @@ HP.TEST = bool(args.test)
 HP.SEGMENT = args.seg
 # HP.GET_PROBS = args.probs
 HP.LOAD_WEIGHTS = args.lw
-HP.CV_FOLD= args.fold
+# HP.CV_FOLD= args.fold
 HP.VERBOSE = args.verbose
 
 HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
@@ -118,40 +118,60 @@ HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold
 if HP.WEIGHTS_PATH == "":
     HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
 
-
 #Autoset some parameters based on settings
 HP.INPUT_DIM = (144, 144) if HP.RESOLUTION == "1.25mm" else (80, 80)
 
-#Peak Regression
-if HP.LABELS_TYPE == np.float32:
-    HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
-# Classification
-else:
-    HP.NR_OF_CLASSES = len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
-
-if HP.CLASSES == "All":
+if HP.CLASSES == "All" and HP.LABELS_TYPE == np.float32:
     if HP.RESOLUTION == "1.25mm":
         HP.LABELS_FILENAME = "bundle_peaks"
     else:
         HP.LABELS_FILENAME = "bundle_peaks_808080"
+
 elif HP.CLASSES == "11":
     if HP.RESOLUTION == "1.25mm":
         HP.LABELS_FILENAME = "bundle_peaks_11"
     else:
         HP.LABELS_FILENAME = "bundle_peaks_11_808080"
+
 elif HP.CLASSES == "20":
     if HP.RESOLUTION == "1.25mm":
         HP.LABELS_FILENAME = "bundle_peaks_20"
     else:
         HP.LABELS_FILENAME = "bundle_peaks_20_808080"
+
 elif HP.CLASSES == "20_endpoints":
     if HP.RESOLUTION == "1.25mm":
         HP.LABELS_FILENAME = "endpoints_20"
     else:
         HP.LABELS_FILENAME = "endpoints_20"
+
+elif HP.CLASSES == "20_endpoints_combined":
+    if HP.RESOLUTION == "1.25mm":
+        HP.LABELS_FILENAME = "endpoints_20_combined"
+    else:
+        HP.LABELS_FILENAME = "endpoints_20_combined"
+
+elif HP.CLASSES == "20_bundles_endpoints":
+    if HP.RESOLUTION == "1.25mm":
+        HP.LABELS_FILENAME = "bundle_endpoints_20"
+    else:
+        HP.LABELS_FILENAME = "bundle_endpoints_20"
+
+elif HP.CLASSES == "All" and HP.LABELS_TYPE == np.int16:
+    if HP.RESOLUTION == "1.25mm":
+        HP.LABELS_FILENAME = "bundle_peaks_72"
+    else:
+        HP.LABELS_FILENAME = "bundle_peaks_72"
+
 else:
     HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
 
+#Peak Regression
+if "peaks" in HP.LABELS_FILENAME:
+    HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+# Classification/DM Regression
+else:
+    HP.NR_OF_CLASSES = len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
 
 if HP.TRAIN:
     HP.EXP_PATH = ExpUtils.create_experiment_folder(HP.EXP_NAME, HP.MULTI_PARENT_PATH, HP.TRAIN)

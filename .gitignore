@@ -7,4 +7,6 @@ unet_weights_72b_ep389.npz
 
 tractseg/config/custom/*
 tractseg/config/old/*
+tractseg/config/old_1/*
+tractseg/config/old_2/*
 tractseg/config/run_multiple.sh

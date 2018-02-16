@@ -28,6 +28,7 @@ class HP:
     LOSS_WEIGHT = 10
     LOSS_WEIGHT_LEN = 400       #nr of epochs
     SLICE_DIRECTION = "y"    # x, y, z  (combined needs z)
+    TRAINING_SLICE_DIRECTION = "y"    # y / xyz
     INFO = "Dropout, Deconv, 11bundles, LeakyRelu, PeakDiceThres=0.9"
 
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
