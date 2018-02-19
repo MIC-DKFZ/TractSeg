@@ -8,7 +8,7 @@ class HP(BaseHP):
     DAUG_SCALE = True
     DAUG_ELASTIC_DEFORM = False
     DAUG_ROTATE = False
-    DAUG_RESAMPLE = False
+    DAUG_RESAMPLE = True
     DAUG_NOISE = True
 
     DATASET = "HCP"  # HCP / HCP_32g

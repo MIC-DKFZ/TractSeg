@@ -45,7 +45,8 @@ TractSeg -i peaks.nii.gz --output_multiple_files --skip_peak_extraction
 
 #Settings and Hyperparameters
 class HP:
-    MODEL = "UNet_Pytorch"     # UNet_Lasagne / UNet_Pytorch
+    # todo adapt
+    MODEL = "UNet_Pytorch_Regression"     # UNet_Lasagne / UNet_Pytorch / UNet_Pytorch_weighted / UNet_Pytorch_Regression
     UNET_NR_FILT = 64
     LOAD_WEIGHTS = False
     WEIGHTS_PATH = ""
@@ -59,21 +60,25 @@ class HP:
     CSD_RESOLUTION = "LOW"  # HIGH / LOW
 
     #Rarly changed:
-    LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
+    #todo adapt
+    # LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
+    LABELS_TYPE = np.float32
     THRESHOLD = 0.5         # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
     SLICE_DIRECTION = "y"   #no effect at the moment     # x, y, z  (combined needs z)
     USE_VISLOGGER = False
     INFO = "74 BNew, DMNifti, newSplit, 90gAnd270g, NormBeforeDAug, Fusion: 32gAnd270g"
     SAVE_WEIGHTS = True
-    #todo important: change
-    CLASSES = "20"     # All / 11 / CST_right
+    #todo adapt
+    CLASSES = "20"     # All / 11 / CST_right / 20 / 20_endpoints
     NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(CLASSES)[1:])
+    # NR_OF_CLASSES = len(ExpUtils.get_bundle_names(CLASSES)[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
     PRINT_FREQ = 20
     NORMALIZE_DATA = True
     BEST_EPOCH = 0
+    #todo adapt
     INPUT_DIM = (144, 144)
     # INPUT_DIM = (80, 80)
     VERBOSE = True
@@ -157,7 +162,12 @@ else:
     # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "PeaksCST_12g90g270g_ALL_DAugAll", "best_weights_ep130.npz")
 
     # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_12g90g270_ALL_LThr05_DAugSimp", "best_weights_ep196.npz")
-    HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_12g90g270_ALL_xyz_DAugAll", "best_weights_ep184.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks11_12g90g270_ALL_xyz_DAugAll", "best_weights_ep184.npz")
+
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Endpoints20ord_32g_LW5_xyz", "best_weights_ep132.npz")
+    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Endpoints20ord_32g_LW5_xyz_DAugAll", "best_weights_ep245.npz")
+
+    HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks20_12g90g270g_DAugAll_fold0", "best_weights_ep170.npz")
 
     print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
     # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_12g_ep420.npz")
@@ -186,7 +196,7 @@ data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get
 
 model = ModelClass(HP)
 
-#todo important: change
+#todo adapt
 #Single dir
 dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
 trainerSingle = Trainer(model, dataManagerSingle)
@@ -204,8 +214,11 @@ if args.preview:
     PlotUtils.plot_tracts(seg, HP.PREDICT_IMG_OUTPUT)
 
 if HP.OUTPUT_MULTIPLE_FILES:
+    print(HP.PREDICT_IMG_OUTPUT)
+    # todo adapt
     # ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
-    ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)  # Save as several files
+    ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)
+    # ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT, multilabel=False)
 else:
     img = nib.Nifti1Image(seg, data_img.get_affine())
     nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))

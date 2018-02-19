@@ -239,6 +239,57 @@ class ExpUtils:
         return ACT, noACT
 
     @staticmethod
+    def get_labels_filename(HP):
+
+        if HP.CLASSES == "All" and HP.LABELS_TYPE == np.float32:
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "bundle_peaks"
+            else:
+                HP.LABELS_FILENAME = "bundle_peaks_808080"
+
+        elif HP.CLASSES == "11":
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "bundle_peaks_11"
+            else:
+                HP.LABELS_FILENAME = "bundle_peaks_11_808080"
+
+        elif HP.CLASSES == "20":
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "bundle_peaks_20"
+            else:
+                HP.LABELS_FILENAME = "bundle_peaks_20_808080"
+
+        elif HP.CLASSES == "20_endpoints":
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "endpoints_20_ordered"
+            else:
+                HP.LABELS_FILENAME = "endpoints_20_ordered"
+
+        elif HP.CLASSES == "20_endpoints_combined":
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "endpoints_20_combined"
+            else:
+                HP.LABELS_FILENAME = "endpoints_20_combined"
+
+        elif HP.CLASSES == "20_bundles_endpoints":
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "bundle_endpoints_20"
+            else:
+                HP.LABELS_FILENAME = "bundle_endpoints_20"
+
+        elif HP.CLASSES == "All" and HP.LABELS_TYPE == np.int16:
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "bundle_peaks_72"
+            else:
+                HP.LABELS_FILENAME = "bundle_peaks_72"
+
+        else:
+            HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
+
+        return HP
+
+
+    @staticmethod
     def add_background_class(data):
         '''
         List of 3D Array with bundle masks; shape: (nr_bundles, x,y,z)

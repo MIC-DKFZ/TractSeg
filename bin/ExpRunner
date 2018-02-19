@@ -120,51 +120,7 @@ if HP.WEIGHTS_PATH == "":
 
 #Autoset some parameters based on settings
 HP.INPUT_DIM = (144, 144) if HP.RESOLUTION == "1.25mm" else (80, 80)
-
-if HP.CLASSES == "All" and HP.LABELS_TYPE == np.float32:
-    if HP.RESOLUTION == "1.25mm":
-        HP.LABELS_FILENAME = "bundle_peaks"
-    else:
-        HP.LABELS_FILENAME = "bundle_peaks_808080"
-
-elif HP.CLASSES == "11":
-    if HP.RESOLUTION == "1.25mm":
-        HP.LABELS_FILENAME = "bundle_peaks_11"
-    else:
-        HP.LABELS_FILENAME = "bundle_peaks_11_808080"
-
-elif HP.CLASSES == "20":
-    if HP.RESOLUTION == "1.25mm":
-        HP.LABELS_FILENAME = "bundle_peaks_20"
-    else:
-        HP.LABELS_FILENAME = "bundle_peaks_20_808080"
-
-elif HP.CLASSES == "20_endpoints":
-    if HP.RESOLUTION == "1.25mm":
-        HP.LABELS_FILENAME = "endpoints_20"
-    else:
-        HP.LABELS_FILENAME = "endpoints_20"
-
-elif HP.CLASSES == "20_endpoints_combined":
-    if HP.RESOLUTION == "1.25mm":
-        HP.LABELS_FILENAME = "endpoints_20_combined"
-    else:
-        HP.LABELS_FILENAME = "endpoints_20_combined"
-
-elif HP.CLASSES == "20_bundles_endpoints":
-    if HP.RESOLUTION == "1.25mm":
-        HP.LABELS_FILENAME = "bundle_endpoints_20"
-    else:
-        HP.LABELS_FILENAME = "bundle_endpoints_20"
-
-elif HP.CLASSES == "All" and HP.LABELS_TYPE == np.int16:
-    if HP.RESOLUTION == "1.25mm":
-        HP.LABELS_FILENAME = "bundle_peaks_72"
-    else:
-        HP.LABELS_FILENAME = "bundle_peaks_72"
-
-else:
-    HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
+HP = ExpUtils.get_labels_filename(HP)
 
 #Peak Regression
 if "peaks" in HP.LABELS_FILENAME:
@@ -260,48 +216,53 @@ else:
     # Weight_path already set to best model (wenn reading program parameters) -> will be loaded automatically
     model_test = trainer.model
 
-#todo important: change
+#todo adapt
 #Old
+# if HP.SEGMENT:
+#     ExpUtils.make_dir(join(HP.EXP_PATH, "segmentations"))
+#     # all_subjects = HP.VALIDATE_SUBJECTS #+ HP.TEST_SUBJECTS
+#     all_subjects = ["599469"]
+#     # all_subjects = HP.TEST_SUBJECTS
+#     for subject in all_subjects:
+#         print("Get_segmentation subject {}".format(subject))
+#         start_time = time.time()
+#
+#         # dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject, use_gt_mask=False)
+#         # trainerSingle = Trainer(model_test, dataManagerSingle)
+#         # img_seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False)  # only x or y or z
+#         img_seg, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject)  #returns probs not binary seg
+#         img_seg = DirectionMerger.mean_fusion(HP.THRESHOLD, img_seg, probs=False)
+#
+#         # ImgUtils.save_multilabel_img_as_multiple_files(HP, img_seg, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+#         #                                                      join(HP.EXP_PATH, "segmentations_" + subject))
+#
+#         ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, img_seg, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
+#                                                                join(HP.EXP_PATH, "segmentations_" + subject), multilabel=False)
+#
+#         # img = nib.Nifti1Image(img_seg, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
+#         # nib.save(img, join(HP.EXP_PATH, "segmentations", subject + "_segmentation.nii.gz"))
+#         # print("took {}s".format(time.time() - start_time))
+
+#Peaks to binary segmentation
 if HP.SEGMENT:
     ExpUtils.make_dir(join(HP.EXP_PATH, "segmentations"))
-    # all_subjects = HP.VALIDATE_SUBJECTS #+ HP.TEST_SUBJECTS
-    all_subjects = ["599469"]
-    # all_subjects = HP.TEST_SUBJECTS
+    all_subjects = HP.TEST_SUBJECTS
+    # all_subjects = ["599469", "992774", "994273"]
+    # all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS
     for subject in all_subjects:
-        print("Get_segmentation subject {}".format(subject))
-        start_time = time.time()
+        print("Get_probs subject {}".format(subject))
 
         dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject, use_gt_mask=False)
         trainerSingle = Trainer(model_test, dataManagerSingle)
-        img_seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False)  # only x or y or z
-        # img_seg, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject)  #returns probs not binary seg
-        # img_seg = DirectionMerger.mean_fusion(HP.THRESHOLD, img_seg, probs=False)
+        img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
+        # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
+        # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
 
-        # ImgUtils.save_multilabel_img_as_multiple_files(HP, img_seg, subject)   # Save as several files
-        img = nib.Nifti1Image(img_seg, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
-        nib.save(img, join(HP.EXP_PATH, "segmentations", subject + "_segmentation.nii.gz"))
-        print("took {}s".format(time.time() - start_time))
+        #thr: 0.4 slightly better than 0.2
+        img_seg = ImgUtils.peak_image_to_binary_mask(img_probs, len_thr=0.4)
 
-#Peaks to binary segmentation
-# if HP.SEGMENT:
-#     ExpUtils.make_dir(join(HP.EXP_PATH, "segmentations"))
-#     # all_subjects = HP.TEST_SUBJECTS
-#     # all_subjects = ["599469", "992774", "994273"]
-#     all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS
-#     for subject in all_subjects:
-#         print("Get_probs subject {}".format(subject))
-#
-#         dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject, use_gt_mask=False)
-#         trainerSingle = Trainer(model_test, dataManagerSingle)
-#         img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
-#         # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
-#         # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
-#
-#         #thr: 0.4 slightly better than 0.2
-#         img_seg = ImgUtils.peak_image_to_binary_mask(img_probs, len_thr=0.4)
-#
-#         img = nib.Nifti1Image(img_seg.astype(np.uint8), ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
-#         nib.save(img, join(HP.EXP_PATH, "segmentations", subject + "_seg.nii.gz"))
+        img = nib.Nifti1Image(img_seg.astype(np.uint8), ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
+        nib.save(img, join(HP.EXP_PATH, "segmentations", subject + "_seg.nii.gz"))
 
 if HP.TEST:
     test_whole_subject(HP, model_test, HP.VALIDATE_SUBJECTS, "validate")
@@ -310,7 +271,8 @@ if HP.TEST:
 if HP.GET_PROBS:
     ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps"))
     # all_subjects = HP.TEST_SUBJECTS
-    all_subjects = ["599469", "992774", "994273"]
+    # all_subjects = ["599469", "992774", "994273"]
+    all_subjects = []
     # all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS
     for subject in all_subjects:
         print("Get_probs subject {}".format(subject))

@@ -252,6 +252,31 @@ class ImgUtils:
             nib.save(img_seg, join(path, bundle + "_f.nii.gz"))
 
     @staticmethod
+    def save_multilabel_img_as_multiple_files_endings(HP, img, affine, path, multilabel=True):
+        '''
+        multilabel True:    save as 1 and 2 without fourth dimension
+        multilabel False:   save with beginnings and endings combined
+        '''
+        bundles = ExpUtils.get_bundle_names("20")[1:]
+        for idx, bundle in enumerate(bundles):
+            data = img[:, :, :, (idx * 2):(idx * 2) + 2] > 0
+
+            multilabel_img = np.zeros(data.shape[:3])
+
+            if multilabel:
+                multilabel_img[data[:, :, :, 0]] = 1
+                multilabel_img[data[:, :, :, 1]] = 2
+            else:
+                multilabel_img[data[:, :, :, 0]] = 1
+                multilabel_img[data[:, :, :, 1]] = 1
+
+            img_seg = nib.Nifti1Image(multilabel_img, affine)
+            # ExpUtils.make_dir(join(path, "segmentations"))
+            # nib.save(img_seg, join(path, "segmentations", bundle + ".nii.gz"))
+            ExpUtils.make_dir(join(path))
+            nib.save(img_seg, join(path, bundle + ".nii.gz"))
+
+    @staticmethod
     def peak_image_to_binary_mask(img, len_thr=0.1):
         '''
 

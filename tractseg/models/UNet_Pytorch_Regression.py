@@ -245,15 +245,15 @@ class UNet_Pytorch_Regression(BaseModel):
                 self.HP.BEST_EPOCH = epoch_nr
 
             #Saving Last Epoch:
-            print("  Saving weights last epoch...")
-            for fl in glob.glob(join(self.HP.EXP_PATH, "weights_ep*")):  # remove weights from previous epochs
-                os.remove(fl)
-            try:
-                # Actually is a pkl not a npz
-                PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "weights_ep" + str(epoch_nr) + ".npz"), unet=net)
-            except IOError:
-                print("\nERROR: Could not save weights because of IO Error\n")
-            self.HP.BEST_EPOCH = epoch_nr
+            # print("  Saving weights last epoch...")
+            # for fl in glob.glob(join(self.HP.EXP_PATH, "weights_ep*")):  # remove weights from previous epochs
+            #     os.remove(fl)
+            # try:
+            #     # Actually is a pkl not a npz
+            #     PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "weights_ep" + str(epoch_nr) + ".npz"), unet=net)
+            # except IOError:
+            #     print("\nERROR: Could not save weights because of IO Error\n")
+            # self.HP.BEST_EPOCH = epoch_nr
 
 
         def load_model(path):
