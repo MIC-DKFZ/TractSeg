@@ -287,3 +287,14 @@ class ImgUtils:
         peaks = np.reshape(img, (img.shape[0], img.shape[1], img.shape[2], int(img.shape[3] / 3.), 3))
         peaks_len = np.linalg.norm(peaks, axis=-1)
         return peaks_len > len_thr
+
+    @staticmethod
+    def remove_small_peaks(img, len_thr=0.1):
+        peaks = np.reshape(img, (img.shape[0], img.shape[1], img.shape[2], int(img.shape[3] / 3.), 3))
+
+        peaks_len = np.linalg.norm(peaks, axis=-1)
+        mask = peaks_len > len_thr
+
+        peaks[~mask] = 0
+        return np.reshape(peaks, (img.shape[0], img.shape[1], img.shape[2], img.shape[3]))
+
