@@ -277,11 +277,11 @@ class ExpUtils:
             else:
                 HP.LABELS_FILENAME = "bundle_endpoints_20"
 
-        elif HP.CLASSES == "All" and HP.LABELS_TYPE == np.int16:
+        elif HP.CLASSES == "All" and HP.LABELS_TYPE == np.int16:  #TractSeg
             if HP.RESOLUTION == "1.25mm":
-                HP.LABELS_FILENAME = "bundle_peaks_72"
+                HP.LABELS_FILENAME = "bundle_masks_72_noBG"
             else:
-                HP.LABELS_FILENAME = "bundle_peaks_72"
+                HP.LABELS_FILENAME = "bundle_masks_72_noBG"
 
         else:
             HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
