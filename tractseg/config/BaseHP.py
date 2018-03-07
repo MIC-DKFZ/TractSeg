@@ -65,6 +65,7 @@ class HP:
     # NR_OF_CLASSES = len(ExpUtils.get_bundle_names()[1:])
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
+    NR_OF_GRADIENTS = 9
     PRINT_FREQ = 20  #20
     NORMALIZE_DATA = True
     BEST_EPOCH = 0

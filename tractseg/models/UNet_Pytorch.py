@@ -223,14 +223,15 @@ class UNet_Pytorch(BaseModel):
 
 
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":
-            NR_OF_GRADIENTS = 9
+            NR_OF_GRADIENTS = self.HP.NR_OF_GRADIENTS
+            # NR_OF_GRADIENTS = 9
             # NR_OF_GRADIENTS = 9 * 5
             # NR_OF_GRADIENTS = 9 * 9
             # NR_OF_GRADIENTS = 33
         elif self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "combined":
-            NR_OF_GRADIENTS = 3*self.HP.NR_OF_CLASSES
+            self.HP.NR_OF_GRADIENTS = 3*self.HP.NR_OF_CLASSES
         else:
-            NR_OF_GRADIENTS = 33
+            self.HP.NR_OF_GRADIENTS = 33
 
         if torch.cuda.is_available():
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()

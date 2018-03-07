@@ -14,3 +14,4 @@ class HP(HighResClassificationHP):
     LOSS_WEIGHT = 1
     LOSS_WEIGHT_LEN = -1
     TRAINING_SLICE_DIRECTION = "xyz"
+    BATCH_SIZE = 50
