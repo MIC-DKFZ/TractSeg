@@ -105,8 +105,15 @@ class PytorchUtils:
         return input
 
     @staticmethod
-    def soft_dice(net_output, gt, eps=1e-6):
+    def soft_sample_dice(net_output, gt, eps=1e-6):
         axes = tuple(range(2, len(net_output.size())))
+        intersect = PytorchUtils.sum_tensor(net_output * gt, axes, keepdim=False)
+        denom = PytorchUtils.sum_tensor(net_output + gt, axes, keepdim=False)
+        return - (2 * intersect / (denom + eps)).mean()
+
+    @staticmethod
+    def soft_batch_dice(net_output, gt, eps=1e-6):
+        axes = tuple([0] + list(range(2, len(net_output.size()))))
         intersect = PytorchUtils.sum_tensor(net_output * gt, axes, keepdim=False)
         denom = PytorchUtils.sum_tensor(net_output + gt, axes, keepdim=False)
         return - (2 * intersect / (denom + eps)).mean()
