@@ -1,5 +1,7 @@
 # TractSeg
  
+![Alt text](examples/Pipeline_img_for_readme.png)
+
 Tool for fast and accurate white matter bundle segmentation from Diffusion MRI.
 
 The tool works very good for HCP style data. For other MRI datasets it also works but results 
