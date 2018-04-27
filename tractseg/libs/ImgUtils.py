@@ -233,7 +233,7 @@ class ImgUtils:
 
     @staticmethod
     def save_multilabel_img_as_multiple_files(HP, img, affine, path):
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
             ExpUtils.make_dir(join(path, "segmentations"))
@@ -257,7 +257,8 @@ class ImgUtils:
         multilabel True:    save as 1 and 2 without fourth dimension
         multilabel False:   save with beginnings and endings combined
         '''
-        bundles = ExpUtils.get_bundle_names("20")[1:]
+        # bundles = ExpUtils.get_bundle_names("20")[1:]
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             data = img[:, :, :, (idx * 2):(idx * 2) + 2] > 0
 

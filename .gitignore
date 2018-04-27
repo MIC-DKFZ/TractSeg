@@ -9,4 +9,5 @@ tractseg/config/custom/*
 tractseg/config/old/*
 tractseg/config/old_1/*
 tractseg/config/old_2/*
+tractseg/config/miccai2018/*
 tractseg/config/run_multiple.sh
