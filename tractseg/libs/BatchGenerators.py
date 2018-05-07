@@ -143,6 +143,10 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
                         data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
                     else:
                         data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "12g_125mm_peaks.nii.gz")).get_data()
+                elif self.HP.FEATURES_FILENAME == "T1_Peaks270g":
+                    peaks = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                    t1 = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "T1.nii.gz")).get_data()
+                    data = np.concatenate((peaks, t1), axis=3)
                 else:
                     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
 

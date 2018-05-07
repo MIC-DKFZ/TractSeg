@@ -20,7 +20,7 @@ class HP:
     DATASET = "HCP"  # HCP / HCP_32g
     RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
     FEATURES_FILENAME = "270g_125mm_peaks"  # 12g90g270g / 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
-    LABELS_FILENAME = "bundle_peaks/CA"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
+    LABELS_FILENAME = ""        #autofilled      #"bundle_peaks/CA"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
     PEAK_DICE_THR = [0.95]
     PEAK_DICE_LEN_THR = 0.05
 

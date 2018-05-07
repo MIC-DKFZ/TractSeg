@@ -79,7 +79,13 @@ Adapt for 11 Classes:
 '''
 
 '''
-Predicting with new config setup:
+#Run ubuntu:
+ExpRunner --config=XXX
+
+#Run cluster:
+sbatch --job-name=XXX ~/runner.sh
+
+#Predicting with new config setup:
 ExpRunner --train=False --seg --lw --config=XXX
 '''
 
@@ -262,8 +268,8 @@ if HP.TEST:
 
 if HP.GET_PROBS:
     ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps"))
-    all_subjects = HP.TEST_SUBJECTS
-    # all_subjects = ["599469", "992774", "994273"]
+    # all_subjects = HP.TEST_SUBJECTS
+    all_subjects = ["599469", "992774", "994273"]
     # all_subjects = []
     # all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS
     for subject in all_subjects:

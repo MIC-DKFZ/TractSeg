@@ -264,7 +264,7 @@ class UNet_Pytorch_Regression(BaseModel):
                 ExpUtils.print_and_save(self.HP, "current learning rate: {}".format(param_group['lr']))
 
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":
-            NR_OF_GRADIENTS = 9
+            NR_OF_GRADIENTS = self.HP.NR_OF_GRADIENTS
             # NR_OF_GRADIENTS = 9 * 5
             # NR_OF_GRADIENTS = 9 * 9
             # NR_OF_GRADIENTS = 33
