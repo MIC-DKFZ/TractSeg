@@ -163,7 +163,8 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
 
         data = DatasetUtils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)    # (x, y, z, channels)
 
-        if self.HP.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080"]:
+        if self.HP.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
+                                           "bundle_masks_20_808080", "bundle_masks_72_808080"]:
             if self.HP.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
                 # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
                 seg = DatasetUtils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)

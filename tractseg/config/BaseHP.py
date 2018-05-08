@@ -23,6 +23,8 @@ class HP:
     LABELS_FILENAME = ""        #autofilled      #"bundle_peaks/CA"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
     PEAK_DICE_THR = [0.95]
     PEAK_DICE_LEN_THR = 0.05
+    LOSS_FUNCTION = "default"       # default / soft_sample_dice
+    BATCH_NORM = False
 
     INPUT_DIM = (144, 144)      # (80, 80) / (144, 144)
     LOSS_WEIGHT = 10

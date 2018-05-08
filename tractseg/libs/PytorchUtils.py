@@ -109,14 +109,14 @@ class PytorchUtils:
         axes = tuple(range(2, len(net_output.size())))
         intersect = PytorchUtils.sum_tensor(net_output * gt, axes, keepdim=False)
         denom = PytorchUtils.sum_tensor(net_output + gt, axes, keepdim=False)
-        return - (2 * intersect / (denom + eps)).mean()
+        return 1 - (2 * intersect / (denom + eps)).mean()
 
     @staticmethod
     def soft_batch_dice(net_output, gt, eps=1e-6):
         axes = tuple([0] + list(range(2, len(net_output.size()))))
         intersect = PytorchUtils.sum_tensor(net_output * gt, axes, keepdim=False)
         denom = PytorchUtils.sum_tensor(net_output + gt, axes, keepdim=False)
-        return - (2 * intersect / (denom + eps)).mean()
+        return 1 - (2 * intersect / (denom + eps)).mean()
 
     @staticmethod
     def MSE_weighted(y_pred, y_true, weights):

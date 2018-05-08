@@ -247,13 +247,13 @@ class ExpUtils:
             else:
                 HP.LABELS_FILENAME = "bundle_peaks_808080"
 
-        elif HP.CLASSES == "11":
+        elif HP.CLASSES == "11" and HP.LABELS_TYPE == np.float32:
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_peaks_11"
             else:
                 HP.LABELS_FILENAME = "bundle_peaks_11_808080"
 
-        elif HP.CLASSES == "20":
+        elif HP.CLASSES == "20" and HP.LABELS_TYPE == np.float32:
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_peaks_20"
             else:
@@ -279,9 +279,15 @@ class ExpUtils:
 
         elif HP.CLASSES == "All" and HP.LABELS_TYPE == np.int16:  #TractSeg
             if HP.RESOLUTION == "1.25mm":
-                HP.LABELS_FILENAME = "bundle_masks_72_noBG"
+                HP.LABELS_FILENAME = "bundle_masks_72"
             else:
-                HP.LABELS_FILENAME = "bundle_masks_72_noBG"
+                HP.LABELS_FILENAME = "bundle_masks_72_808080"
+
+        elif HP.CLASSES == "20" and HP.LABELS_TYPE == np.int16:  #TractSeg
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "bundle_masks_20"
+            else:
+                HP.LABELS_FILENAME = "bundle_masks_20_808080"
 
         else:
             HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
