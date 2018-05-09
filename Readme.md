@@ -1,9 +1,10 @@
 # TractSeg
  
-Tool for fast and accurate white matter bundle segmentation from Diffusion MRI.
+Tool for fast and accurate white matter bundle segmentation from Diffusion MRI. It can create 
+bundle segmentations, segmentations of the endregions of bundles and Tract Orientation Maps (TOMs).
 
 The tool works very good for HCP style data. For other MRI datasets it also works but results 
-will have lower quality.
+will have lower quality due to the domain gap.
 
 TractSeg is the code for the paper [Direct White Matter Bundle Segmentation using Stacked U-Nets](https://arxiv.org/abs/1703.02036) 
 with further improvements (e.g. extract all bundles in one run). Please cite the paper if you use it. 
@@ -48,6 +49,16 @@ TractSeg -i my/path/my_diffusion_image.nii.gz
 #### Use existing peaks
 ```
 TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
+```
+
+#### Create Tract Orientation Maps (TOMs)
+```
+TractSeg -i Diffusion.nii.gz --output_type TOM
+```
+
+#### Segment bundle start and end regions
+```
+TractSeg -i Diffusion.nii.gz --output_type endings_segmentation
 ```
 
 #### Bundle names
@@ -133,7 +144,7 @@ each extracted bundle in the output file.
 Run `TractSeg --help` for more advanced options. For example you can specify your own `brain_mask`,
 `bvals` and `bvecs`.
 
-If you have multi-shell data and you do not need super fast runtime use `--csd_type csd_msmt_5tt` for slightly better results.
+If you have multi-shell data and you do not need fast runtime use `--csd_type csd_msmt_5tt` for slightly better results.
 
 
 ## FAQ
@@ -142,12 +153,7 @@ If you have multi-shell data and you do not need super fast runtime use `--csd_t
 The input image must have the same "orientation" as the Human Connectome Project data (LEFT must be 
 on the same side as LEFT of the HCP data). If the image 
 orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
-you are fine. If your image has different orientation you can use the flag `--flip`. This will use a 
-model that was trained with mirroring data augmentation. So it works with any orientation. 
-But it has slightly worse results (about 1 dice point less).
-If it is still not working your gradients probably have the wrong orientation. You have to manually 
-flip the sign of your gradients. 
-
+you are fine.
 
 **Did I install the prerequisites correctly?**
 
@@ -173,17 +179,19 @@ you need help training your own model.
 1. The folder structure of your training data should be the following:
 ```
 custom_path/HCP/subject_01/
-      '-> 270g_125mm_peaks.nii.gz   (mrtrix CSD peaks;  shape: [x,y,z,9])
+      '-> mrtrix_peaks.nii.gz       (mrtrix CSD peaks;  shape: [x,y,z,9])
       '-> bundle_masks.nii.gz       (Reference bundle masks; shape: [x,y,z,nr_bundles])
 custom_path/HCP/subject_02/
       ...
 ```
-2. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory, e.g.
+2. Adapt the file tractseg/config/custom/My_custom_experiment.py.
+3. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory, e.g.
 `working_dir=custom_path`.
-3. Adapt `tractseg.libs.DatasetUtils.scale_input_to_unet_shape()` to scale your input data to the 
+4. Adapt `tractseg.libs.DatasetUtils.scale_input_to_unet_shape()` to scale your input data to the 
 UNet input size of `144x144`. This is not very convenient. Contact the author if you need help.
-4. Adapt `tractseg.libs.ExpUtils.get_bundle_names()` with the bundles you use in your reference data.
-4. Adapt `tractseg.libs.Subjects` with the list of your subject IDs.
-5. Run `ExpRunner --en my_experiment_name` 
-6. `custom_path/hcp_exp/my_experiment_name` contains the results
+5. Adapt `tractseg.libs.ExpUtils.get_bundle_names()` with the bundles you use in your reference data.
+6. Adapt `tractseg.libs.ExpUtils.get_labels_filename()` with the names of your label files.
+7. Adapt `tractseg.libs.Subjects` with the list of your subject IDs.
+8. Run `ExpRunner --config My_custom_experiment` 
+9. `custom_path/hcp_exp/My_custom_experiment` contains the results
 
