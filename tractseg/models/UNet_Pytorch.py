@@ -23,6 +23,7 @@ from torch.optim import Adamax
 from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.autograd import Variable
+import torch.nn.functional as F
 
 from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs.ExpUtils import ExpUtils
@@ -53,10 +54,11 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
 
 
 class UNet(torch.nn.Module):
-    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False):
+    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, final_activation=None):
         super(UNet, self).__init__()
         self.in_channel = n_input_channels
         self.n_classes = n_classes
+        self.final_activation = final_activation
 
         self.contr_1_1 = conv2d(n_input_channels, n_filt, batchnorm=batchnorm)
         self.contr_1_2 = conv2d(n_filt, n_filt, batchnorm=batchnorm)
@@ -144,7 +146,11 @@ class UNet(torch.nn.Module):
         expand_4_2 = self.expand_4_2(expand_4_1)
 
         conv_5 = self.conv_5(expand_4_2)
-        return conv_5
+
+        if self.final_activation == "sigmoid":
+            return F.sigmoid(conv_5)
+        else:
+            return conv_5
 
 
 class UNet_Pytorch(BaseModel):
@@ -232,20 +238,12 @@ class UNet_Pytorch(BaseModel):
         else:
             self.HP.NR_OF_GRADIENTS = 33
 
-        if torch.cuda.is_available():
-            net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT, batchnorm=self.HP.BATCH_NORM).cuda()
-        else:
-            net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT, batchnorm=self.HP.BATCH_NORM)
-
-        # net = nn.DataParallel(net, device_ids=[0,1])
-
-        # if self.HP.TRAIN:
-        #     ExpUtils.print_and_save(self.HP, str(net), only_log=True)
-
         if self.HP.LOSS_FUNCTION == "soft_sample_dice":
             criterion = PytorchUtils.soft_sample_dice
+            final_activation = "sigmoid"
         elif self.HP.LOSS_FUNCTION == "soft_batch_dice":
             criterion = PytorchUtils.soft_batch_dice
+            final_activation = "sigmoid"
         else:
             # weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             # weights[:, 5, :, :] *= 10     #CA
@@ -253,9 +251,28 @@ class UNet_Pytorch(BaseModel):
             # weights[:, 22, :, :] *= 10    #FX_right
             # criterion = nn.BCEWithLogitsLoss(weight=weights)
             criterion = nn.BCEWithLogitsLoss()
+            final_activation = None
 
-        optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
-        # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
+        net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
+                   batchnorm=self.HP.BATCH_NORM, final_activation=final_activation)
+
+        if torch.cuda.is_available():
+            net = net.cuda()
+        # else:
+        #     net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
+        #                batchnorm=self.HP.BATCH_NORM)
+
+        # net = nn.DataParallel(net, device_ids=[0,1])
+
+        # if self.HP.TRAIN:
+        #     ExpUtils.print_and_save(self.HP, str(net), only_log=True)
+
+        if self.HP.OPTIMIZER == "Adamax":
+            optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
+        elif self.HP.OPTIMIZER == "Adam":
+            optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
+        else:
+            raise ValueError("Optimizer not defined")
         # scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
         # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
 

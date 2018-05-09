@@ -23,6 +23,7 @@ class HP:
     FEATURES_FILENAME = "12g90g270g"  # 12g90g270g / 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
     LABELS_FILENAME = ""        # autofilled      #"bundle_peaks/CA"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
     LOSS_FUNCTION = "default"       # default / soft_sample_dice
+    OPTIMIZER = "Adamax"
     CLASSES = "All"             # All / 11 / 20 / CST_right
     NR_OF_GRADIENTS = 9
     NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(CLASSES)[1:])
