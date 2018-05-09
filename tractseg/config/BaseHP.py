@@ -26,8 +26,8 @@ class HP:
     OPTIMIZER = "Adamax"
     CLASSES = "All"             # All / 11 / 20 / CST_right
     NR_OF_GRADIENTS = 9
-    NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(CLASSES)[1:])
-    # NR_OF_CLASSES = len(ExpUtils.get_bundle_names()[1:])
+    NR_OF_CLASSES = len(ExpUtils.get_bundle_names(CLASSES)[1:])
+    # NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(CLASSES)[1:])
 
     INPUT_DIM = (144, 144)      # (80, 80) / (144, 144)
     LOSS_WEIGHT = 1             # 1: no weighting
@@ -63,6 +63,13 @@ class HP:
     # Peak_regression specific
     PEAK_DICE_THR = [0.95]
     PEAK_DICE_LEN_THR = 0.05
+
+    # For TractSeg.py application
+    PREDICT_IMG = False
+    PREDICT_IMG_OUTPUT = None
+    TRACTSEG_DIR = "tractseg_output"
+    KEEP_INTERMEDIATE_FILES = False
+    CSD_RESOLUTION = "LOW"  # HIGH / LOW
 
     #Unimportant / rarly changed:
     LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32

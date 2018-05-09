@@ -178,23 +178,26 @@ class Utils:
         return gb
 
     @staticmethod
-    def download_pretrained_weights(flip=False):
+    def download_pretrained_weights(experiment_type):
         '''
 
         :param flip: Use weights trained on a network with Mirror data augmentation.
         :return:
         '''
-        if flip:
-            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_Mir.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_Mir_v1.npz')    # pretrained_weights_Mir / pretrained_weights_lasagne_Mir
-            WEIGHTS_URL = "https://www.dropbox.com/s/3hkpi7pifq61why/unet_weights_Mir_ep267.npz?dl=1"
-            # WEIGHTS_URL = "https://www.dropbox.com/s/ys9eupjnhm196vd/unet_lasagne_weights_Mir_ep372.npz?dl=1"
-        else:
-            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_v1.npz')  # pretrained_weights / pretrained_weights_lasagne
-            # WEIGHTS_URL = "https://www.dropbox.com/s/to41ws00ah2cmli/unet_weights_ep229.npz?dl=1"
+        if experiment_type == "tract_segmentation":
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_v1.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_tract_segmentation_v1.npz')
             WEIGHTS_URL = "https://www.dropbox.com/s/tp4gmt8nlbrbkt8/unet_weights_72b_ep389.npz?dl=1"
-            # WEIGHTS_URL = "https://www.dropbox.com/s/56d2vaxexcwolrq/unet_lasagne_weights_ep486.npz?dl=1"
+
+        elif experiment_type == "endings_segmentation":
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_endings_segmentation_v1.npz')
+            WEIGHTS_URL = "XXX"
+
+        elif experiment_type == "peak_regression":
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
+            WEIGHTS_URL = "XXX"
 
         if os.path.exists(weights_path_old):
             os.remove(weights_path_old)

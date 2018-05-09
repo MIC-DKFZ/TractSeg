@@ -15,10 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
+warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
+
 import importlib
 import argparse
 import pickle
-import warnings
 import time
 from pprint import pprint
 import distutils.util
@@ -38,47 +41,6 @@ from tractseg.libs.DataManagers import DataManagerPrecomputedBatches
 from tractseg.libs.DataManagers import DataManagerPrecomputedBatches_noDLBG
 
 '''
-Adapt for Peak Prediction (after Training):
-- set: DATASET_FOLDER = "HCP"
-- command: ExpRunner --train=False --test=False --probs --lw --en HCP_Peaks_Y
-'''
-
-'''
-Adapt for DM Regression:
-- SlicesBatchGeneratorRandomNiftiImg: only y direction instead of random
-- HP.NR_OF_CLASSES: remove 3*
-- ExpRunner: Use DataManagerTrainingNiftiImgs
-- LABELS_FILENAME = "bundle_masks_dm"
-- INFO
-- ExpRunner: Comment ImgUtils.save_multilabel_img_as_multiple_files_peaks
-'''
-
-'''
-Adapt for SingleClass Peaks:
-- SlicesBatchGeneratorRandomNiftiImg: only y direction instead of random
-- adapt ExpUtils.get_bundle_names
-- adapt LABELS_FILENAME
-- DATASET_FOLDER = "HCP"
-- HP.NR_OF_CLASSES: 3*
-- ExpRunner: Use ImgUtils.save_multilabel_img_as_multiple_files_peaks
-- PRINT_FREQ = 20
-
-- If 32g_25mm
-    - FEATURES_FILENAME = "32g_25mm_peaks"
-    - DATASET = "HCP_32g"
-    - RESOLUTION = "2.5mm"
-    - INPUT_DIM = (80, 80)
-'''
-
-'''
-Adapt for 11 Classes:
-- adapt ExpUtils.get_bundle_names
-- adapt LABELS_FILENAME
-- if doing 32g_25mm:
-    - comment scale_input_to_unet_shape() in BatchGenerators for seg
-'''
-
-'''
 #Run ubuntu:
 ExpRunner --config=XXX
 
@@ -88,8 +50,6 @@ sbatch --job-name=XXX ~/runner.sh
 #Predicting with new config setup:
 ExpRunner --train=False --seg --lw --config=XXX
 '''
-
-warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 
 parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
@@ -136,13 +96,6 @@ if HP.WEIGHTS_PATH == "":
 #Autoset some parameters based on settings
 HP.INPUT_DIM = (144, 144) if HP.RESOLUTION == "1.25mm" else (80, 80)
 HP = ExpUtils.get_labels_filename(HP)
-
-# #Peak Regression
-# if "peaks" in HP.LABELS_FILENAME:
-#     HP.EXPERIMENT_TYPE = "peak_regression"
-# # Classification/DM Regression
-# else:
-#     HP.EXPERIMENT_TYPE = "segmentation"
 
 if HP.EXPERIMENT_TYPE == "peak_regression":
     HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
@@ -259,7 +212,7 @@ if HP.SEGMENT:
 
         #Tract Beginnings and Endings
         # ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, img_seg, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
-        #                                                        join(HP.EXP_PATH, "segmentations_" + subject), multilabel=False)
+        #                                                        join(HP.EXP_PATH, "segmentations_" + subject))
 
         img = nib.Nifti1Image(img_seg.astype(np.uint8), ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
         nib.save(img, join(HP.EXP_PATH, "segmentations", subject + "_segmentation.nii.gz"))

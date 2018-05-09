@@ -248,11 +248,19 @@ class ImgUtils:
             data[:, :, :, 2] *= -1  # flip z Axis for correct view in MITK
 
             img_seg = nib.Nifti1Image(data, affine)
-            ExpUtils.make_dir(join(path))
-            nib.save(img_seg, join(path, bundle + "_f.nii.gz"))
+            ExpUtils.make_dir(join(path, "TOM"))
+            nib.save(img_seg, join(path, "TOM", bundle + "_f.nii.gz"))
 
     @staticmethod
-    def save_multilabel_img_as_multiple_files_endings(HP, img, affine, path, multilabel=True):
+    def save_multilabel_img_as_multiple_files_endings(HP, img, affine, path):
+        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        for idx, bundle in enumerate(bundles):
+            img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
+            ExpUtils.make_dir(join(path, "endings"))
+            nib.save(img_seg, join(path, "endings", bundle + ".nii.gz"))
+
+    @staticmethod
+    def save_multilabel_img_as_multiple_files_endings_OLD(HP, img, affine, path, multilabel=True):
         '''
         multilabel True:    save as 1 and 2 without fourth dimension
         multilabel False:   save with beginnings and endings combined
@@ -272,10 +280,8 @@ class ImgUtils:
                 multilabel_img[data[:, :, :, 1]] = 1
 
             img_seg = nib.Nifti1Image(multilabel_img, affine)
-            # ExpUtils.make_dir(join(path, "segmentations"))
-            # nib.save(img_seg, join(path, "segmentations", bundle + ".nii.gz"))
-            ExpUtils.make_dir(join(path))
-            nib.save(img_seg, join(path, bundle + ".nii.gz"))
+            ExpUtils.make_dir(join(path, "endings"))
+            nib.save(img_seg, join(path, "endings", bundle + ".nii.gz"))
 
     @staticmethod
     def peak_image_to_binary_mask(img, len_thr=0.1):
