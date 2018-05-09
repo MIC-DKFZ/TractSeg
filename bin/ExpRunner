@@ -97,12 +97,12 @@ parser = argparse.ArgumentParser(description="Train a network on your own data t
 parser.add_argument("--config", metavar="name", help="Name of configuration to use")
 parser.add_argument("--train", metavar="True/False", help="Train network", type=distutils.util.strtobool, default=True)
 parser.add_argument("--test", metavar="True/False", help="Test network", type=distutils.util.strtobool, default=False)
-parser.add_argument("--seg", action="store_true", help="Create binary segmentation", default=False)
-# parser.add_argument("--probs", action="store_true", help="Create probmap segmentation", default=False)
-parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net", default=False)
+parser.add_argument("--seg", action="store_true", help="Create binary segmentation")
+parser.add_argument("--probs", action="store_true", help="Create probmap segmentation")
+parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net")
 parser.add_argument("--en", metavar="name", help="Experiment name")
-# parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int, default=0)
-parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)
+parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int)
+parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)   #set default to False in future
 parser.add_argument('--version', action='version', version='TractSeg 0.5')
 args = parser.parse_args()
 
@@ -116,10 +116,14 @@ if args.en:
 
 HP.TRAIN = bool(args.train)
 HP.TEST = bool(args.test)
-HP.SEGMENT = args.seg
-# HP.GET_PROBS = args.probs
-HP.LOAD_WEIGHTS = args.lw
-# HP.CV_FOLD= args.fold
+if args.seg:
+    HP.SEGMENT = True
+if args.probs:
+    HP.GET_PROBS = True
+if args.lw:
+    HP.LOAD_WEIGHTS = args.lw
+if args.fold:
+    HP.CV_FOLD= args.fold
 HP.VERBOSE = args.verbose
 
 HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
@@ -281,7 +285,7 @@ if HP.GET_PROBS:
         # img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
         # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
 
-        img_probs = ImgUtils.remove_small_peaks(img_probs, len_thr=0.4)
+        # img_probs = ImgUtils.remove_small_peaks(img_probs, len_thr=0.4)
 
         # ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
         #                                                      join(HP.EXP_PATH, "probmaps_" + subject))

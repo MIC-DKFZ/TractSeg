@@ -70,6 +70,7 @@ class HP:
     NR_OF_GRADIENTS = 9
     PRINT_FREQ = 20  #20
     NORMALIZE_DATA = True
+    NORMALIZE_PER_CHANNEL = False
     BEST_EPOCH = 0
     VERBOSE = True
     CALC_F1 = True

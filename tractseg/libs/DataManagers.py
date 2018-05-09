@@ -179,7 +179,7 @@ class DataManagerTrainingNiftiImgs:
         tfs = []  #transforms
 
         if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=False))
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.HP.NORMALIZE_PER_CHANNEL))
 
         if self.HP.DATA_AUGMENTATION:
             if type == "train":
