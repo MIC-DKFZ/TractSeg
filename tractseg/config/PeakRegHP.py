@@ -13,6 +13,7 @@ class HP(BaseHP):
     LABELS_TYPE = np.float32
     TRAINING_SLICE_DIRECTION = "y"
     GET_PROBS = True
+    INFO_2 = "using AngleLengthLoss, PeakLengthDice"
 
     DAUG_ELASTIC_DEFORM = False
 

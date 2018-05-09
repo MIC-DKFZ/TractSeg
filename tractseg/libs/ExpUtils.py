@@ -199,13 +199,11 @@ class ExpUtils:
                        'ILF_right', 'ILF_right_b', 'ILF_right_e', 'IFO_left', 'IFO_left_b', 'IFO_left_e',
                        'IFO_right', 'IFO_right_b', 'IFO_right_e',
                        'OR_left', 'OR_left_b', 'OR_left_e', 'OR_right', 'OR_right_b', 'OR_right_e',
-                       'UF_left', 'UF_left_b', 'UF_left_e', 'UF_right', 'UF_right_b', 'UF_right_e'] #40
+                       'UF_left', 'UF_left_b', 'UF_left_e', 'UF_right', 'UF_right_b', 'UF_right_e'] #60
 
         else:
             #1 tract
             # bundles = ["CST_right"]
-            # bundles = ["CA"]
-            # bundles = ["UF_left"]
             bundles = [CLASSES]
 
         return ["BG"] + bundles    #Add Background label (is always beginning of list)
@@ -241,53 +239,59 @@ class ExpUtils:
     @staticmethod
     def get_labels_filename(HP):
 
-        if HP.CLASSES == "All" and HP.LABELS_TYPE == np.float32:
+        if HP.CLASSES == "All" and HP.EXPERIMENT_TYPE == "peak_regression":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_peaks"
             else:
                 HP.LABELS_FILENAME = "bundle_peaks_808080"
 
-        elif HP.CLASSES == "11" and HP.LABELS_TYPE == np.float32:
+        elif HP.CLASSES == "11" and HP.EXPERIMENT_TYPE == "peak_regression":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_peaks_11"
             else:
                 HP.LABELS_FILENAME = "bundle_peaks_11_808080"
 
-        elif HP.CLASSES == "20" and HP.LABELS_TYPE == np.float32:
+        elif HP.CLASSES == "20" and HP.EXPERIMENT_TYPE == "peak_regression":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_peaks_20"
             else:
                 HP.LABELS_FILENAME = "bundle_peaks_20_808080"
 
-        elif HP.CLASSES == "20_endpoints":
+        elif HP.CLASSES == "20_endpoints" and HP.EXPERIMENT_TYPE == "endings_segmentation":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "endpoints_20_ordered"
             else:
                 HP.LABELS_FILENAME = "endpoints_20_ordered"
 
-        elif HP.CLASSES == "20_endpoints_combined":
+        elif HP.CLASSES == "20_endpoints_combined" and HP.EXPERIMENT_TYPE == "endings_segmentation":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "endpoints_20_combined"
             else:
                 HP.LABELS_FILENAME = "endpoints_20_combined"
 
-        elif HP.CLASSES == "20_bundles_endpoints":
+        elif HP.CLASSES == "20_bundles_endpoints" and HP.EXPERIMENT_TYPE == "endings_segmentation":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_endpoints_20"
             else:
                 HP.LABELS_FILENAME = "bundle_endpoints_20"
 
-        elif HP.CLASSES == "All" and HP.LABELS_TYPE == np.int16:  #TractSeg
+        elif HP.CLASSES == "All" and HP.EXPERIMENT_TYPE == "tract_segmentation":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_masks_72"
             else:
                 HP.LABELS_FILENAME = "bundle_masks_72_808080"
 
-        elif HP.CLASSES == "20" and HP.LABELS_TYPE == np.int16:  #TractSeg
+        elif HP.CLASSES == "20" and HP.EXPERIMENT_TYPE == "tract_segmentation":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_masks_20"
             else:
                 HP.LABELS_FILENAME = "bundle_masks_20_808080"
+
+        elif HP.CLASSES == "All" and HP.EXPERIMENT_TYPE == "dm_regression":
+            if HP.RESOLUTION == "1.25mm":
+                HP.LABELS_FILENAME = "bundle_masks_dm"
+            else:
+                HP.LABELS_FILENAME = "NOT_AVAILABLE"
 
         else:
             HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES

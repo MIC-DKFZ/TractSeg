@@ -12,4 +12,5 @@ tractseg/config/old_2/*
 tractseg/config/old_3/*
 tractseg/config/miccai2018/*
 tractseg/config/DiceLoss/*
+tractseg/config/T1Features/*
 tractseg/config/run_multiple.sh
