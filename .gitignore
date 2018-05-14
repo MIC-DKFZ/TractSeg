@@ -13,4 +13,7 @@ tractseg/config/old_3/*
 tractseg/config/Miccai2018/*
 tractseg/config/DiceLoss/*
 tractseg/config/T1Features/*
+tractseg/config/EndingsSeg/*
+tractseg/config/TractSeg/*
+tractseg/config/Peaks/*
 tractseg/config/run_multiple.sh

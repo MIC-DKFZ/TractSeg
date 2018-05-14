@@ -49,6 +49,7 @@ sbatch --job-name=XXX ~/runner.sh
 
 #Predicting with new config setup:
 ExpRunner --train=False --seg --lw --config=XXX
+ExpRunner --train=False --test=True --lw --config=XXX
 '''
 
 parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
@@ -137,15 +138,16 @@ def test_whole_subject(HP, model, subjects, type):
 
         print("Took {}s".format(round(time.time() - start_time, 2)))
 
-        # img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
-        # img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
-        # metrics = MetricUtils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=HP.THRESHOLD)
-        # metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, ExpUtils.get_bundle_names(HP.CLASSES), threshold=HP.THRESHOLD)
-
-        f1 = MetricUtils.calc_peak_length_dice(HP, img_probs, img_y, max_angle_error=HP.PEAK_DICE_THR, max_length_error=HP.PEAK_DICE_LEN_THR)
-        peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
-        metrics = MetricUtils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
-        metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, None, None, ExpUtils.get_bundle_names(HP.CLASSES)[1:], f1, threshold=HP.THRESHOLD)
+        if HP.EXPERIMENT_TYPE == "peak_regression":
+            f1 = MetricUtils.calc_peak_length_dice(HP, img_probs, img_y, max_angle_error=HP.PEAK_DICE_THR, max_length_error=HP.PEAK_DICE_LEN_THR)
+            peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
+            metrics = MetricUtils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+            metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, None, None, ExpUtils.get_bundle_names(HP.CLASSES)[1:], f1, threshold=HP.THRESHOLD)
+        else:
+            img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
+            img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
+            metrics = MetricUtils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=HP.THRESHOLD)
+            metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, ExpUtils.get_bundle_names(HP.CLASSES)[1:], threshold=HP.THRESHOLD)
 
     metrics = MetricUtils.normalize_last_element(metrics, len(subjects), type=type)
     metrics_bundles = MetricUtils.normalize_last_element_general(metrics_bundles, len(subjects))
@@ -165,6 +167,7 @@ def test_whole_subject(HP, model, subjects, type):
     pickle.dump(metrics, open(join(HP.EXP_PATH, "score_" + type + ".pkl"), "wb"))
 
     return metrics
+
 
 dataManager = DataManagerTrainingNiftiImgs(HP)
 # dataManager = DataManagerPrecomputedBatches(HP)
@@ -220,7 +223,7 @@ if HP.SEGMENT:
 
 if HP.TEST:
     test_whole_subject(HP, model_test, HP.VALIDATE_SUBJECTS, "validate")
-    test_whole_subject(HP, model_test, HP.TEST_SUBJECTS, "test")
+    # test_whole_subject(HP, model_test, HP.TEST_SUBJECTS, "test")
 
 if HP.GET_PROBS:
     ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps"))
