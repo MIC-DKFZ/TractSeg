@@ -236,8 +236,8 @@ class ImgUtils:
         bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
-            ExpUtils.make_dir(join(path, "segmentations"))
-            nib.save(img_seg, join(path, "segmentations", bundle + ".nii.gz"))
+            ExpUtils.make_dir(join(path, "tract_segmentations"))
+            nib.save(img_seg, join(path, "tract_segmentations", bundle + ".nii.gz"))
 
     @staticmethod
     def save_multilabel_img_as_multiple_files_peaks(HP, img, affine, path):
@@ -256,8 +256,8 @@ class ImgUtils:
         bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
-            ExpUtils.make_dir(join(path, "endings"))
-            nib.save(img_seg, join(path, "endings", bundle + ".nii.gz"))
+            ExpUtils.make_dir(join(path, "endings_segmentations"))
+            nib.save(img_seg, join(path, "endings_segmentations", bundle + ".nii.gz"))
 
     @staticmethod
     def save_multilabel_img_as_multiple_files_endings_OLD(HP, img, affine, path, multilabel=True):

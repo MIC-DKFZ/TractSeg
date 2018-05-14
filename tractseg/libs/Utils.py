@@ -179,25 +179,20 @@ class Utils:
 
     @staticmethod
     def download_pretrained_weights(experiment_type):
-        '''
-
-        :param flip: Use weights trained on a network with Mirror data augmentation.
-        :return:
-        '''
         if experiment_type == "tract_segmentation":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_v1.npz')
             weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_tract_segmentation_v1.npz')
-            WEIGHTS_URL = "https://www.dropbox.com/s/tp4gmt8nlbrbkt8/unet_weights_72b_ep389.npz?dl=1"
+            WEIGHTS_URL = "https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1"
 
         elif experiment_type == "endings_segmentation":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
             weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_endings_segmentation_v1.npz')
-            WEIGHTS_URL = "XXX"
+            WEIGHTS_URL = "https://www.dropbox.com/s/dpwdhjkyew8eq4p/EndingsSeg_best_weights_ep423.npz?dl=1"
 
         elif experiment_type == "peak_regression":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
             weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
-            WEIGHTS_URL = "XXX"
+            WEIGHTS_URL = "https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1"
 
         if os.path.exists(weights_path_old):
             os.remove(weights_path_old)
@@ -214,5 +209,4 @@ class Utils:
             with open(weights_path, "wb") as weight_file:
                 weight_file.write(data)
 
-            print("Done")
 

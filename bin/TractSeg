@@ -78,7 +78,7 @@ if args.output_type == "tract_segmentation":
 elif args.output_type == "endings_segmentation":
     config = "EndingsSeg_12g90g270g_125mm_DAugAll"
 elif args.output_type == "TOM":
-    config = "Peaks20_270g_125mm"
+    config = "Peaks20_12g90g270g_125mm"
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
 
 HP.PREDICT_IMG = args.input is not None
@@ -100,14 +100,14 @@ if args.flip:
     HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_Mir_v1.npz")
 else:
     if HP.EXPERIMENT_TYPE == "tract_segmentation":
-        # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
-        HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_270g_125mm_run2", "best_weights_ep136.npz")
+        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
+        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_270g_125mm_run2", "best_weights_ep136.npz")
     elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-        # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
-        HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DAugAll", "best_weights_ep16.npz")
+        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
+        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DAugAll", "best_weights_ep16.npz")
     elif HP.EXPERIMENT_TYPE == "peak_regression":
-        # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
-        HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks20_270g_125mm_LW5", "best_weights_ep144.npz")
+        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
+        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks20_270g_125mm_LW5", "best_weights_ep144.npz")
 
     print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
@@ -121,7 +121,7 @@ if HP.VERBOSE:
     print("Hyperparameters:")
     ExpUtils.print_HPs(HP)
 
-# Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE)
+Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE)
 bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
 brain_mask = ExpUtils.get_brain_mask_path(HP, args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
@@ -159,7 +159,6 @@ if args.preview:
     PlotUtils.plot_tracts(seg, HP.PREDICT_IMG_OUTPUT)
 
 if HP.OUTPUT_MULTIPLE_FILES:
-    print(HP.PREDICT_IMG_OUTPUT)
     if HP.EXPERIMENT_TYPE == "tract_segmentation":
         ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)
     elif HP.EXPERIMENT_TYPE == "endings_segmentation":
