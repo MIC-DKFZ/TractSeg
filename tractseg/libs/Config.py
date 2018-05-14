@@ -32,15 +32,20 @@ def get_config_file():
 class Config:
     paths = get_config_file()
 
-    if "working_dir" in paths:
+    if "working_dir" in paths:                                # check if config file
         HOME = paths["working_dir"]
-    else:
+    else:                                                       # fallback
         HOME = join(expanduser("~/TractSeg"))
 
     if "network_dir" in paths:
         NETWORK_DRIVE = paths["network_dir"]
     else:
         NETWORK_DRIVE = None
+
+    if os.environ.get("TRACTSEG_DATA_DIR") is not None:      # check if environment variable
+        DATA_PATH = os.environ.get("TRACTSEG_DATA_DIR")
+    else:
+        DATA_PATH = HOME
 
     if NETWORK_DRIVE is not None:
         EXP_PATH = join(NETWORK_DRIVE, "hcp_exp_nodes")

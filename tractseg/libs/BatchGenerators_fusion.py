@@ -38,8 +38,8 @@ class SlicesBatchGeneratorNpyImg_fusion(DataLoaderBase):
     def generate_train_batch(self):
 
         subject = self._data[0]
-        data = np.load(join(C.HOME, self.HP.DATASET_FOLDER, subject, self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
-        seg = np.load(join(C.HOME, self.HP.DATASET_FOLDER, subject, self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
+        data = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subject, self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+        seg = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subject, self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
         if self.HP.SLICE_DIRECTION == "x":
             end = data.shape[0]
@@ -120,13 +120,13 @@ class SlicesBatchGeneratorRandomNpyImg_fusion(DataLoaderBase):
         subjects = self._data[0]
         subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
 
-        # data = np.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+        # data = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
         if np.random.random() < 0.5:
-            data = np.load(join(C.HOME, "HCP_fusion_npy_270g_125mm", subjects[subject_idx], "270g_125mm_xyz.npy"), mmap_mode="r")
+            data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_270g_125mm", subjects[subject_idx], "270g_125mm_xyz.npy"), mmap_mode="r")
         else:
-            data = np.load(join(C.HOME, "HCP_fusion_npy_32g_25mm", subjects[subject_idx], "32g_25mm_xyz.npy"), mmap_mode="r")
+            data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_32g_25mm", subjects[subject_idx], "32g_25mm_xyz.npy"), mmap_mode="r")
 
-        seg = np.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
+        seg = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
         # print("data 1: {}".format(data.shape))
         # print("seg 1: {}".format(seg.shape))
@@ -193,8 +193,8 @@ class SlicesBatchGeneratorRandomNpyImg_fusionMean(DataLoaderBase):
         subjects = self._data[0]
         subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
 
-        data = np.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
-        seg = np.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
+        data = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+        seg = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
         # print("data 1: {}".format(data.shape))
         # print("seg 1: {}".format(seg.shape))

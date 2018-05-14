@@ -132,25 +132,25 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
 
                 if self.HP.FEATURES_FILENAME == "12g90g270g":
                     # if np.random.random() < 0.5:
-                    #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                    #     data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
                     # else:
-                    #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                    #     data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
 
                     rnd_choice = np.random.random()
                     if rnd_choice < 0.33:
-                        data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                        data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
                     elif rnd_choice < 0.66:
-                        data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                        data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
                     else:
-                        data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "12g_125mm_peaks.nii.gz")).get_data()
+                        data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "12g_125mm_peaks.nii.gz")).get_data()
                 elif self.HP.FEATURES_FILENAME == "T1_Peaks270g":
-                    peaks = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
-                    t1 = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "T1.nii.gz")).get_data()
+                    peaks = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                    t1 = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "T1.nii.gz")).get_data()
                     data = np.concatenate((peaks, t1), axis=3)
                 else:
-                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
+                    data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".nii.gz")).get_data()
 
-                seg = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
+                seg = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
                 break
             except IOError:
                 ExpUtils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
@@ -220,19 +220,19 @@ class SlicesBatchGeneratorRandomNiftiImg_5slices(DataLoaderBase):
         for i in range(20):
             try:
                 if np.random.random() < 0.5:
-                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                    data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
                 else:
-                    data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                    data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
 
                 # rnd_choice = np.random.random()
                 # if rnd_choice < 0.33:
-                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
+                #     data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()
                 # elif rnd_choice < 0.66:
-                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
+                #     data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "90g_125mm_peaks.nii.gz")).get_data()
                 # else:
-                #     data = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], "12g_125mm_peaks.nii.gz")).get_data()
+                #     data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "12g_125mm_peaks.nii.gz")).get_data()
 
-                seg = nib.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
+                seg = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
                 break
             except IOError:
                 ExpUtils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
@@ -311,8 +311,8 @@ class SlicesBatchGeneratorRandomNpyImg(DataLoaderBase):
         subjects = self._data[0]
         subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
 
-        data = np.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
-        seg = np.load(join(C.HOME, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
+        data = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+        seg = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
         slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
 
@@ -353,7 +353,7 @@ class SlicesBatchGeneratorPrecomputedBatches(DataLoaderBase):
     def generate_train_batch(self):
 
         type = self._data[0]
-        path = join(C.HOME, self.HP.DATASET_FOLDER, type)
+        path = join(C.DATA_PATH, self.HP.DATASET_FOLDER, type)
         # do not use last batch, because might be corrupted if aborted batch precompution early
         nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 1
         idx = int(random.uniform(0, int(nr_of_files / 2.)))

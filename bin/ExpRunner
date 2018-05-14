@@ -19,6 +19,7 @@ import warnings
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
 
+import os
 import importlib
 import argparse
 import pickle
@@ -33,6 +34,7 @@ from tractseg.libs.DirectionMerger import DirectionMerger
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.MetricUtils import MetricUtils
+from tractseg.libs.ClusterUtils import ClusterUtils
 from tractseg.libs.Config import Config as C
 from tractseg.libs.Trainer import Trainer
 from tractseg.libs.DataManagers import DataManagerSingleSubjectById
@@ -86,6 +88,9 @@ if args.lw:
 if args.fold:
     HP.CV_FOLD= args.fold
 HP.VERBOSE = args.verbose
+
+# if os.environ.get("TRACTSEG_USE_CLUSTER") is not None:
+#     tmp_ssd_folder = ClusterUtils.copy_training_files_to_ssd(HP, join(C.HOME, HP.DATASET_FOLDER))
 
 HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
 HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
