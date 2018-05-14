@@ -1,5 +1,7 @@
 # TractSeg
  
+![Alt text](examples/Pipeline_img_for_readme.png)
+
 Tool for fast and accurate white matter bundle segmentation from Diffusion MRI. It can create 
 bundle segmentations, segmentations of the endregions of bundles and Tract Orientation Maps (TOMs).
 
