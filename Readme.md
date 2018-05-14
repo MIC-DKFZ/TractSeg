@@ -55,12 +55,12 @@ TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
 
 #### Create Tract Orientation Maps (TOMs)
 ```
-TractSeg -i Diffusion.nii.gz --output_type TOM
+TractSeg -i Diffusion.nii.gz --output_type TOM --output_multiple_files
 ```
 
 #### Segment bundle start and end regions
 ```
-TractSeg -i Diffusion.nii.gz --output_type endings_segmentation
+TractSeg -i Diffusion.nii.gz --output_type endings_segmentation --output_multiple_files
 ```
 
 #### Bundle names

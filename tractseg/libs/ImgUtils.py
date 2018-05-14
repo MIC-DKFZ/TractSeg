@@ -245,11 +245,15 @@ class ImgUtils:
         for idx, bundle in enumerate(bundles):
             data = img[:, :, :, (idx*3):(idx*3)+3]
 
-            data[:, :, :, 2] *= -1  # flip z Axis for correct view in MITK
+            if HP.FLIP_OUTPUT_PEAKS:
+                data[:, :, :, 2] *= -1  # flip z Axis for correct view in MITK
+                filename = bundle + "_f.nii.gz"
+            else:
+                filename = bundle + ".nii.gz"
 
             img_seg = nib.Nifti1Image(data, affine)
             ExpUtils.make_dir(join(path, "TOM"))
-            nib.save(img_seg, join(path, "TOM", bundle + "_f.nii.gz"))
+            nib.save(img_seg, join(path, "TOM", filename))
 
     @staticmethod
     def save_multilabel_img_as_multiple_files_endings(HP, img, affine, path):

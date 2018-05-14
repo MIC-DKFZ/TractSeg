@@ -63,6 +63,7 @@ class HP:
     # Peak_regression specific
     PEAK_DICE_THR = [0.95]
     PEAK_DICE_LEN_THR = 0.05
+    FLIP_OUTPUT_PEAKS = True    # flip peaks along z axis to make them compatible with MITK
 
     # For TractSeg.py application
     PREDICT_IMG = False
