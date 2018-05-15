@@ -1,5 +1,5 @@
 dist: trusty
-sudo: required
+sudo: required  # gives more RAM
 language: python
 matrix:
   include:

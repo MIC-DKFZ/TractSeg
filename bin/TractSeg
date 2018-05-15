@@ -139,8 +139,12 @@ data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get
 model = ModelClass(HP)
 
 if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation":
-    seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-    seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
+    # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
+    # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
+    dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
+    trainerSingle = Trainer(model, dataManagerSingle)
+    seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
+
 elif HP.EXPERIMENT_TYPE == "peak_regression":
     dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
     trainerSingle = Trainer(model, dataManagerSingle)
