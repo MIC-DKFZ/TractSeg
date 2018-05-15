@@ -12,4 +12,5 @@ install:
   - pip install .
 script:
   - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction
+  - find .
   - pytest
