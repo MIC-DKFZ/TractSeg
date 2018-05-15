@@ -1,10 +1,12 @@
 language: python
-python:
-  - "2.7"
-  - "3.5"
-# command to install dependencies
+matrix:
+  include
+  - python: "2.7"
+    env: PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl
+  - python: "3.5"
+    env: PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-linux_x86_64.whl
 before_install:
-  - pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl
+  - pip install $PYTORCH_URL
   - pip install https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip
 install:
   - pip install .
