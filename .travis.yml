@@ -3,6 +3,7 @@ python:
   - "2.7"
 # command to install dependencies
 before_install:
+  - pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl
   - pip install https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip
 install:
   - pip install .
