@@ -9,7 +9,7 @@ class test_end_to_end(unittest.TestCase):
 
     def test_tractseg_output(self):
         img_ref = nib.load("examples/example_output_TractSeg.nii.gz").get_data()
-        img_new = nib.load("tractseg_output/bundle_segmentations.nii.gz").get_data()
+        img_new = nib.load("examples/tractseg_output/bundle_segmentations.nii.gz").get_data()
 
         images_equal = np.array_equal(img_ref, img_new)
 
@@ -17,7 +17,7 @@ class test_end_to_end(unittest.TestCase):
 
     # def test_peakreg_output(self):
     #     img_ref = nib.load("examples/example_output_TOM.nii.gz").get_data()
-    #     img_new = nib.load("tractseg_output/bundle_TOMs.nii.gz").get_data()
+    #     img_new = nib.load("examples/tractseg_output/bundle_TOMs.nii.gz").get_data()
     #
     #     images_equal = np.array_equal(img_ref, img_new)
     #
