@@ -13,7 +13,7 @@ before_install:
 install:
   - pip install .
 script:
-  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction
-  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type TOM
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --single_orientation
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type TOM --single_orientation
   - find .
   - pytest

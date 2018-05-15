@@ -69,6 +69,7 @@ parser.add_argument("--skip_peak_extraction", action="store_true", help="Do not 
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
 parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Faster to view than nifti output image. Requires VTK.", default=False)
 parser.add_argument("--flip", action="store_true", help="Flip output peaks of TOM along z axis to make compatible with MITK.", default=False)
+parser.add_argument("--single_orientation", action="store_true", help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 1.2')
 args = parser.parse_args()
 
@@ -139,11 +140,13 @@ data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get
 model = ModelClass(HP)
 
 if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation":
-    # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-    # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
-    dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
-    trainerSingle = Trainer(model, dataManagerSingle)
-    seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
+    if args.single_orientation:     # mainly needed for testing because of less RAM requirements
+        dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
+        trainerSingle = Trainer(model, dataManagerSingle)
+        seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
+    else:
+        seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
+        seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
 
 elif HP.EXPERIMENT_TYPE == "peak_regression":
     dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
