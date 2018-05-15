@@ -3,6 +3,8 @@
 *.npz
 .DS_Store
 *.egg-info
+.pytest_cache/*
+
 unet_weights_72b_ep389.npz
 
 tractseg/config/custom/*
