@@ -172,18 +172,6 @@ CG.side = only(cingular.side
     )
 )
 
-#Extreme capsule
-EmC.side = (
-    (endpoints_in(
-        inferiorfrontalgyrus.side or
-        middlefrontalgyrus.side
-        )
-    and endpoints_in(inferior_parietal_lobule.side)
-    and temporal.side
-    and insula.side
-    )
-not in hemisphere.opposite)
-
 #Middle longitudinal fascicle
 MLF.side = (
     (

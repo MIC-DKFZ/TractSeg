@@ -11,4 +11,5 @@ before_install:
 install:
   - pip install .
 script:
-  - pytest # or py.test for Python versions 3.5 and below
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction
+  - pytest

@@ -55,6 +55,7 @@ TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
 ```
 
 #### Create Tract Orientation Maps (TOMs)
+TOM only works for HCP data so far.
 ```
 TractSeg -i Diffusion.nii.gz --output_type TOM --output_multiple_files
 ```
