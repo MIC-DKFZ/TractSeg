@@ -11,6 +11,7 @@ will have lower quality due to the domain gap.
 TractSeg is the code for the paper [Direct White Matter Bundle Segmentation using Stacked U-Nets](https://arxiv.org/abs/1703.02036) 
 with further improvements (e.g. extract all bundles in one run). Please cite the paper if you use it. 
 
+[![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
 
 ## Install
 TractSeg only runs on Linux and OSX. It uses Python 2.
