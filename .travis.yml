@@ -13,7 +13,7 @@ before_install:
 install:
   - pip install .
 script:
-  - free -m
   - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type TOM
   - find .
   - pytest
