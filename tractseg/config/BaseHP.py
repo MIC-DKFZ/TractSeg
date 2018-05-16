@@ -36,6 +36,7 @@ class HP:
     TRAINING_SLICE_DIRECTION = "xyz"    # y / xyz
     INFO = "-"                  # Dropout, Deconv, 11bundles, LeakyRelu, PeakDiceThres=0.9
     BATCH_NORM = False
+    WEIGHT_DECAY = 0
 
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_XYZ"

@@ -270,7 +270,9 @@ class UNet_Pytorch(BaseModel):
         if self.HP.OPTIMIZER == "Adamax":
             optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
         elif self.HP.OPTIMIZER == "Adam":
-            optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
+            #todo important: change
+            # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)
+            optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE, weight_decay=self.HP.WEIGHT_DECAY)
         else:
             raise ValueError("Optimizer not defined")
         # scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
