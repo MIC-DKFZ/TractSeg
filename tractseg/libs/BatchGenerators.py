@@ -129,7 +129,6 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
 
         for i in range(20):
             try:
-
                 if self.HP.FEATURES_FILENAME == "12g90g270g":
                     # if np.random.random() < 0.5:
                     #     data = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz")).get_data()

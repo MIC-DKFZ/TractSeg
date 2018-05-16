@@ -149,7 +149,7 @@ class DataManagerSingleSubjectByFile:
 class DataManagerTrainingNiftiImgs:
     def __init__(self, HP):
         self.HP = HP
-        print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
+        print("Loading data from: " + join(C.DATA_PATH, self.HP.DATASET_FOLDER))
 
     def get_batches(self, batch_size=128, type=None, subjects=None, num_batches=None):
         data = subjects
@@ -214,7 +214,7 @@ class DataManagerTrainingNiftiImgs:
 class DataManagerPrecomputedBatches:
     def __init__(self, HP):
         self.HP = HP
-        print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
+        print("Loading data from: " + join(C.DATA_PATH, self.HP.DATASET_FOLDER))
 
     def get_batches(self, batch_size=128, type=None, subjects=None, num_batches=None):
         data = type
@@ -242,7 +242,7 @@ class DataManagerPrecomputedBatches_noDLBG:
     '''
     def __init__(self, HP):
         self.HP = HP
-        print("Loading data from: " + join(C.HOME, self.HP.DATASET_FOLDER))
+        print("Loading data from: " + join(C.DATA_PATH, self.HP.DATASET_FOLDER))
 
     def get_batches(self, batch_size=None, type=None, subjects=None, num_batches=None):
         num_processes = 1
@@ -254,7 +254,7 @@ class DataManagerPrecomputedBatches_noDLBG:
             num_batches_multithr = int(num_batches / num_processes)
 
         for i in range(num_batches_multithr):
-            path = join(C.HOME, self.HP.DATASET_FOLDER, type)
+            path = join(C.DATA_PATH, self.HP.DATASET_FOLDER, type)
             nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 2
             idx = int(random.uniform(0, int(nr_of_files / 2.)))
 
