@@ -1,5 +1,5 @@
-dist: trusty
-sudo: required  # gives more RAM
+#dist: trusty
+#sudo: required  # gives more RAM
 language: python
 matrix:
   include:
@@ -13,6 +13,6 @@ before_install:
 install:
   - pip install .
 script:
-#  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --single_orientation
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --single_orientation
   - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type TOM --single_orientation
   - pytest
