@@ -1,5 +1,5 @@
-#dist: trusty
-#sudo: required  # gives more RAM
+dist: trusty
+sudo: required  # gives more RAM (otherwise memory error for TOM)
 language: python
 matrix:
   include:
