@@ -8,8 +8,8 @@ bundle segmentations, segmentations of the endregions of bundles and Tract Orien
 The tool works very good for HCP style data. For other MRI datasets it also works but results 
 will have lower quality due to the domain gap.
 
-TractSeg is the code for the paper [Direct White Matter Bundle Segmentation using Stacked U-Nets](https://arxiv.org/abs/1703.02036) 
-with further improvements (e.g. extract all bundles in one run). Please cite the paper if you use it. 
+TractSeg is the code for the paper [TractSeg - Fast and accurate white matter tract segmentation](https://arxiv.org/abs/1805.07103). 
+Please cite the paper if you use it. 
 
 [![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
 
