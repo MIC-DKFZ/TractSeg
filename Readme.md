@@ -14,7 +14,7 @@ Please cite the paper if you use it.
 [![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
 
 ## Install
-TractSeg only runs on Linux and OSX. It uses Python 2.
+TractSeg only runs on Linux and OSX. It works with Python 2 and Python 3.
 
 #### Install Prerequisites
 * [Pytorch](http://pytorch.org/) (if you do not have a GPU, install Pytorch via conda as this is fastest on CPU)
