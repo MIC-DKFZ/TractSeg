@@ -55,12 +55,13 @@ TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
 ```
 
 #### Create Tract Orientation Maps (TOMs)
-TOM only works for HCP data so far.
+TOM only works properly for HCP data so far and only supports 20 bundles.
 ```
 TractSeg -i Diffusion.nii.gz --output_type TOM --output_multiple_files
 ```
 
 #### Segment bundle start and end regions
+Start and end regions are only segmented for 20 bundles.
 ```
 TractSeg -i Diffusion.nii.gz --output_type endings_segmentation --output_multiple_files
 ```
@@ -143,6 +144,12 @@ each extracted bundle in the output file.
 71: ST_OCC_right
 ```
 
+#### Bundles supported by TOM and endings_segmentation
+```
+"AF_left", "AF_right", "CA", "CST_left", "CST_right", "CG_left", "CG_right",
+"ICP_left", "ICP_right", "MCP", "SCP_left", "SCP_right", "ILF_left", "ILF_right",
+"IFO_left", "IFO_right", "OR_left", "OR_right", "UF_left", "UF_right"
+```
 
 #### Advanced Options
 Run `TractSeg --help` for more advanced options. For example you can specify your own `brain_mask`,
