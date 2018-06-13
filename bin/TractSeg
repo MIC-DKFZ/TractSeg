@@ -73,13 +73,24 @@ parser.add_argument("--single_orientation", action="store_true", help="Do not ru
 parser.add_argument('--version', action='version', version='TractSeg 1.2')
 args = parser.parse_args()
 
+input_type = "peaks"    # peaks / T1
 
-if args.output_type == "tract_segmentation":
-    config = "TractSeg_12g90g270g_125mm_DAugAll"
-elif args.output_type == "endings_segmentation":
-    config = "EndingsSeg_12g90g270g_125mm_DAugAll"
-elif args.output_type == "TOM":
-    config = "Peaks20_12g90g270g_125mm"
+if input_type == "peaks":
+    if args.output_type == "tract_segmentation":
+        config = "TractSeg_12g90g270g_125mm_DAugAll"
+    elif args.output_type == "endings_segmentation":
+        config = "EndingsSeg_12g90g270g_125mm_DAugAll"
+    elif args.output_type == "TOM":
+        config = "Peaks20_12g90g270g_125mm"
+elif input_type == "T1":
+    if args.output_type == "tract_segmentation":
+        config = "TractSeg_T1_125mm_DAugAll"
+    elif args.output_type == "endings_segmentation":
+        config = "EndingsSeg_12g90g270g_125mm_DAugAll"
+    elif args.output_type == "TOM":
+        config = "Peaks20_12g90g270g_125mm"
+else:
+    raise ValueError("input_type not recognized")
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
 
 HP.PREDICT_IMG = args.input is not None
@@ -98,15 +109,24 @@ HP.SEGMENT = False
 HP.GET_PROBS = False
 HP.LOAD_WEIGHTS = True
 
-if HP.EXPERIMENT_TYPE == "tract_segmentation":
-    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
-    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_270g_125mm_run2", "best_weights_ep136.npz")
-elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
-    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DAugAll", "best_weights_ep16.npz")
-elif HP.EXPERIMENT_TYPE == "peak_regression":
-    HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
-    # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks20_270g_125mm_LW5", "best_weights_ep144.npz")
+if input_type == "peaks":
+    if HP.EXPERIMENT_TYPE == "tract_segmentation":
+        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
+        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_270g_125mm_run2", "best_weights_ep136.npz")
+    elif HP.EXPERIMENT_TYPE == "endings_segmentation":
+        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
+        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DAugAll", "best_weights_ep16.npz")
+    elif HP.EXPERIMENT_TYPE == "peak_regression":
+        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
+        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks20_270g_125mm_LW5", "best_weights_ep144.npz")
+elif input_type == "T1":
+    if HP.EXPERIMENT_TYPE == "tract_segmentation":
+        # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
+        HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_T1_125mm_DAugAll", "best_weights_ep142.npz")
+    elif HP.EXPERIMENT_TYPE == "endings_segmentation":
+        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
+    elif HP.EXPERIMENT_TYPE == "peak_regression":
+        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
 print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
 
 ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
@@ -135,7 +155,11 @@ if args.skip_peak_extraction:
     data_img = nib.load(args.input)
 else:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
-data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data_img.get_data(), target_size=HP.INPUT_DIM[0])
+
+data = data_img.get_data()
+if input_type == "T1":
+    data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], 1))
+data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data, target_size=HP.INPUT_DIM[0])
 
 model = ModelClass(HP)
 

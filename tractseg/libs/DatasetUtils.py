@@ -129,32 +129,38 @@ class DatasetUtils():
     @staticmethod
     def pad_and_scale_img_to_square_img(data, target_size=144):
         '''
-        Expects 4D image as input.
+        Expects 3D or 4D image as input.
 
         Does
         1. Pad image with 0 to make it square
             (if uneven padding -> adds one more px "behind" img; but resulting img shape will be correct)
         2. Scale image to UNet size (144, 144, 144)
         '''
-        assert (len(data.shape) == 4)
+        nr_dims = len(data.shape)
+        assert (nr_dims >= 3 and nr_dims <= 4)
 
         shape = data.shape
         biggest_dim = max(shape)
 
         # Pad to make square
-        new_img = np.zeros((biggest_dim, biggest_dim, biggest_dim, shape[3])).astype(data.dtype)
+        if nr_dims == 4:
+            new_img = np.zeros((biggest_dim, biggest_dim, biggest_dim, shape[3])).astype(data.dtype)
+        else:
+            new_img = np.zeros((biggest_dim, biggest_dim, biggest_dim)).astype(data.dtype)
         pad1 = (biggest_dim - shape[0]) / 2.
         pad2 = (biggest_dim - shape[1]) / 2.
         pad3 = (biggest_dim - shape[2]) / 2.
         new_img[int(pad1):int(pad1) + shape[0],
                 int(pad2):int(pad2) + shape[1],
-                int(pad3):int(pad3) + shape[2],
-                :] = data
+                int(pad3):int(pad3) + shape[2]] = data
 
         # Scale to right size
         zoom = float(target_size) / biggest_dim
-        #use order=0, otherwise image values of a DWI will be quite different after downsampling and upsampling
-        new_img = ImgUtils.resize_first_three_dims(new_img, order=0, zoom=zoom)
+        if nr_dims == 4:
+            #use order=0, otherwise image values of a DWI will be quite different after downsampling and upsampling
+            new_img = ImgUtils.resize_first_three_dims(new_img, order=0, zoom=zoom)
+        else:
+            new_img = ndimage.zoom(new_img, zoom, order=0)
 
         transformation = {
             "original_shape": shape,
@@ -174,12 +180,14 @@ class DatasetUtils():
         data: 3D or 4D image
         t: transformation dict
         '''
+        nr_dims = len(data.shape)
+        assert (nr_dims >= 3 and nr_dims <= 4)
 
         # Back to old size
         # use order=0, otherwise image values of a DWI will be quite different after downsampling and upsampling
-        if len(data.shape) == 3:
+        if nr_dims == 3:
             new_data = ndimage.zoom(data, (1. / t["zoom"]), order=0)
-        elif len(data.shape) == 4:
+        elif nr_dims == 4:
             new_data = ImgUtils.resize_first_three_dims(data, order=0, zoom=(1. / t["zoom"]))
 
         x_residual = 0
@@ -197,7 +205,7 @@ class DatasetUtils():
         # Cut padding
         shape = new_data.shape
         new_data = new_data[int(t["pad_x"]): shape[0] - int(t["pad_x"]) - x_residual,
-                   int(t["pad_y"]): shape[1] - int(t["pad_y"]) - y_residual,
-                   int(t["pad_z"]): shape[2] - int(t["pad_z"]) - z_residual]
+                            int(t["pad_y"]): shape[1] - int(t["pad_y"]) - y_residual,
+                            int(t["pad_z"]): shape[2] - int(t["pad_z"]) - z_residual]
 
         return new_data
