@@ -6,7 +6,7 @@ Tool for fast and accurate white matter bundle segmentation from Diffusion MRI. 
 bundle segmentations, segmentations of the endregions of bundles and Tract Orientation Maps (TOMs).
 
 The tool works very well for data similar to the Human Connectome Project. For other MRI datasets especially with low quality segmentations 
-will be less complete.
+will be less complete (especially for thin tracts like the FX or CA).
 
 TractSeg is the code for the paper [TractSeg - Fast and accurate white matter tract segmentation](https://arxiv.org/abs/1805.07103). 
 Please cite the paper if you use it. 
