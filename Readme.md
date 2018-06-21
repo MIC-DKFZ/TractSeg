@@ -163,7 +163,7 @@ If you have multi-shell data and you do not need fast runtime use `--csd_type cs
 
 The input image must have the same "orientation" as the Human Connectome Project data (MNI space) (LEFT must be on the same side as 
 LEFT of the HCP data). If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
-you are fine. Otherwise you should rigidly register your image to MNI space (the brains
+you are fine. Otherwise you should rigidly register your image to MNI space (or use FSL `fslreorient2std) (the brains
 do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation). 
 
 **Did I install the prerequisites correctly?**
