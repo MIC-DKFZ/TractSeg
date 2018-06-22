@@ -17,7 +17,7 @@ Please cite the paper if you use it.
 TractSeg only runs on Linux and OSX. It works with Python 2 and Python 3.
 
 #### Install Prerequisites
-* [Pytorch](http://pytorch.org/) (if you do not have a GPU, install Pytorch via conda as this is fastest on CPU)
+* [Pytorch](http://pytorch.org/) (if you do not have a GPU, installing Pytorch via conda might be faster)
 * [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask this is not needed)
 * BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip`
@@ -206,3 +206,16 @@ UNet input size of `144x144`. This is not very convenient. Contact the author if
 8. Run `ExpRunner --config My_custom_experiment` 
 9. `custom_path/hcp_exp/My_custom_experiment` contains the results
 
+
+## Docker (WIP)
+To build a docker container with all dependencies run the following command in project root:
+```
+sudo docker build -t tractseg_container .
+```
+To run TractSeg from docker container for one image (slow because container only with CPU support):
+```
+sudo docker run -v /absolute/path/to/my/data/directory:/data \
+-t tractseg_container TractSeg -i /data/my_diffusion_file.nii.gz -o /data
+```
+TODO: MRtrix cmds not automatically added to path & Add a prebuild container to Docker Hub.
+ 
