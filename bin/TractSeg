@@ -159,6 +159,7 @@ else:
 data = data_img.get_data()
 if input_type == "T1":
     data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], 1))
+data, seg_None, bbox, original_shape = DatasetUtils.crop_to_nonzero(data, nib.load(brain_mask).get_data())
 data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data, target_size=HP.INPUT_DIM[0])
 
 model = ModelClass(HP)
@@ -182,6 +183,7 @@ elif HP.EXPERIMENT_TYPE == "peak_regression":
     # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
 
 seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
+seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES)
 ExpUtils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
 
 if args.preview:

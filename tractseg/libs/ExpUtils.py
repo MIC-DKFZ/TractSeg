@@ -120,10 +120,18 @@ class ExpUtils:
     @staticmethod
     def get_brain_mask_path(HP, args):
         if args.brain_mask:
-            brain_mask = args.brain_mask
-        else:
-            brain_mask = join(HP.PREDICT_IMG_OUTPUT, "nodif_brain_mask.nii.gz")
-        return brain_mask
+            return args.brain_mask
+
+        brain_mask_path = join(HP.PREDICT_IMG_OUTPUT, "nodif_brain_mask.nii.gz")
+        if os.path.isfile(brain_mask_path):
+            return brain_mask_path
+
+        brain_mask_path = join(os.path.dirname(args.input), "nodif_brain_mask.nii.gz")
+        if os.path.isfile(brain_mask_path):
+            print("Loading brain mask from: {}".format(brain_mask_path))
+            return brain_mask_path
+
+        raise ValueError("no brainmask available")
 
     @staticmethod
     def get_bundle_names(CLASSES):
