@@ -158,6 +158,15 @@ Run `TractSeg --help` for more advanced options. For example you can specify you
 
 If you have multi-shell data and you do not need fast runtime use `--csd_type csd_msmt_5tt` for slightly better results.
 
+#### Use python interface
+```
+import nibabel as nib
+import numpy as np
+from tractseg.TractSeg import run_tractseg
+peaks = nib.load("examples/Diffusion_mrtrix_peaks.nii.gz").get_data()
+peaks = np.nan_to_num(peaks)
+segmentation = run_tractseg(peaks)
+```
 
 ## FAQ
 **My output segmentation does not look like any bundle at all!**
