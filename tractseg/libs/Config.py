@@ -16,6 +16,25 @@ import os
 from os.path import join
 from os.path import expanduser
 
+def get_config_name(input_type, output_type):
+    if input_type == "peaks":
+        if output_type == "tract_segmentation":
+            config = "TractSeg_12g90g270g_125mm_DAugAll"
+        elif output_type == "endings_segmentation":
+            config = "EndingsSeg_12g90g270g_125mm_DAugAll"
+        elif output_type == "TOM":
+            config = "Peaks20_12g90g270g_125mm"
+    elif input_type == "T1":
+        if output_type == "tract_segmentation":
+            config = "TractSeg_T1_125mm_DAugAll"
+        elif output_type == "endings_segmentation":
+            config = "EndingsSeg_12g90g270g_125mm_DAugAll"
+        elif output_type == "TOM":
+            config = "Peaks20_12g90g270g_125mm"
+    else:
+        raise ValueError("input_type not recognized")
+    return config
+
 def get_config_file():
     '''
     Read variables in ~/.tractseg

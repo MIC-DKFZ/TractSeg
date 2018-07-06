@@ -207,5 +207,46 @@ class DatasetUtils():
         new_data = new_data[int(t["pad_x"]): shape[0] - int(t["pad_x"]) - x_residual,
                             int(t["pad_y"]): shape[1] - int(t["pad_y"]) - y_residual,
                             int(t["pad_z"]): shape[2] - int(t["pad_z"]) - z_residual]
-
         return new_data
+
+    @staticmethod
+    def get_bbox_from_mask(mask, outside_value=0):
+        mask_voxel_coords = np.where(mask != outside_value)
+        minzidx = int(np.min(mask_voxel_coords[0]))
+        maxzidx = int(np.max(mask_voxel_coords[0])) + 1
+        minxidx = int(np.min(mask_voxel_coords[1]))
+        maxxidx = int(np.max(mask_voxel_coords[1])) + 1
+        minyidx = int(np.min(mask_voxel_coords[2]))
+        maxyidx = int(np.max(mask_voxel_coords[2])) + 1
+        return [[minzidx, maxzidx], [minxidx, maxxidx], [minyidx, maxyidx]]
+
+    @staticmethod
+    def crop_to_bbox(image, bbox):
+        assert len(image.shape) == 3, "only supports 3d images"
+        return image[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]]
+
+    @staticmethod
+    def crop_to_nonzero(data, seg=None, nonzero_label=-1):
+        original_shape = data.shape
+        bbox = DatasetUtils.get_bbox_from_mask(data, 0)
+
+        cropped_data = []
+        for c in range(data.shape[3]):
+            cropped = DatasetUtils.crop_to_bbox(data[:,:,:,c], bbox)
+            cropped_data.append(cropped)
+        data = np.array(cropped_data).transpose(1,2,3,0)
+
+        return data, seg, bbox, original_shape
+
+    @staticmethod
+    def add_original_zero_padding_again(data, bbox, original_shape, nr_of_classes):
+        data_new = np.zeros((original_shape[0], original_shape[1], original_shape[2], nr_of_classes)).astype(data.dtype)
+        data_new[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]] = data
+        return data_new
+        # new_img = nib.Nifti1Image(data, data_img.get_affine())
+        # nib.save(new_img, "/mnt/jakob/E130-Personal/Wasserthal/tmp/TEST.nii.gz")
+
+
+
+
+
