@@ -28,6 +28,7 @@ import nibabel as nib
 from os.path import join
 
 from tractseg.libs.Config import Config as C
+from tractseg.libs.Config import get_config_name
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.Utils import Utils
 from tractseg.libs.DatasetUtils import DatasetUtils
@@ -37,6 +38,7 @@ from tractseg.libs.Mrtrix import Mrtrix
 from tractseg.libs.PlotUtils import PlotUtils
 from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
+from tractseg.TractSeg import run_tractseg
 
 '''
 Usage:
@@ -73,74 +75,21 @@ parser.add_argument("--single_orientation", action="store_true", help="Do not ru
 parser.add_argument('--version', action='version', version='TractSeg 1.2')
 args = parser.parse_args()
 
-input_type = "peaks"    # peaks / T1
+input_type = "peaks"  # peaks / T1
 
-if input_type == "peaks":
-    if args.output_type == "tract_segmentation":
-        config = "TractSeg_12g90g270g_125mm_DAugAll"
-    elif args.output_type == "endings_segmentation":
-        config = "EndingsSeg_12g90g270g_125mm_DAugAll"
-    elif args.output_type == "TOM":
-        config = "Peaks20_12g90g270g_125mm"
-elif input_type == "T1":
-    if args.output_type == "tract_segmentation":
-        config = "TractSeg_T1_125mm_DAugAll"
-    elif args.output_type == "endings_segmentation":
-        config = "EndingsSeg_12g90g270g_125mm_DAugAll"
-    elif args.output_type == "TOM":
-        config = "Peaks20_12g90g270g_125mm"
-else:
-    raise ValueError("input_type not recognized")
+config = get_config_name(input_type, args.output_type)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
-
+HP.CSD_TYPE = args.csd_type
+HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
+HP.VERBOSE = args.verbose
+HP.OUTPUT_MULTIPLE_FILES = args.output_multiple_files
+HP.FLIP_OUTPUT_PEAKS = args.flip
 HP.PREDICT_IMG = args.input is not None
 if args.output:
     HP.PREDICT_IMG_OUTPUT = join(args.output, HP.TRACTSEG_DIR)
 elif HP.PREDICT_IMG:
     HP.PREDICT_IMG_OUTPUT = join(os.path.dirname(args.input), HP.TRACTSEG_DIR)
-HP.OUTPUT_MULTIPLE_FILES = args.output_multiple_files
-HP.FLIP_OUTPUT_PEAKS = args.flip
-HP.VERBOSE = args.verbose
-HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
-HP.CSD_TYPE = args.csd_type
-HP.TRAIN = False
-HP.TEST = False
-HP.SEGMENT = False
-HP.GET_PROBS = False
-HP.LOAD_WEIGHTS = True
 
-if input_type == "peaks":
-    if HP.EXPERIMENT_TYPE == "tract_segmentation":
-        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
-        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_270g_125mm_run2", "best_weights_ep136.npz")
-    elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
-        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DAugAll", "best_weights_ep16.npz")
-    elif HP.EXPERIMENT_TYPE == "peak_regression":
-        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
-        # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks20_270g_125mm_LW5", "best_weights_ep144.npz")
-elif input_type == "T1":
-    if HP.EXPERIMENT_TYPE == "tract_segmentation":
-        # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
-        HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_T1_125mm_DAugAll", "best_weights_ep142.npz")
-    elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
-    elif HP.EXPERIMENT_TYPE == "peak_regression":
-        HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
-print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
-
-ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
-
-if HP.EXPERIMENT_TYPE == "peak_regression":
-    HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
-else:
-    HP.NR_OF_CLASSES = len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
-
-if HP.VERBOSE:
-    print("Hyperparameters:")
-    ExpUtils.print_HPs(HP)
-
-Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE)
 bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
 brain_mask = ExpUtils.get_brain_mask_path(HP, args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
@@ -150,41 +99,14 @@ if not args.skip_peak_extraction:
         Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
     Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE)
 
-start_time = time.time()
 if args.skip_peak_extraction:
     data_img = nib.load(args.input)
 else:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
-
 data = data_img.get_data()
-if input_type == "T1":
-    data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], 1))
-data, seg_None, bbox, original_shape = DatasetUtils.crop_to_nonzero(data, nib.load(brain_mask).get_data())
-data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data, target_size=HP.INPUT_DIM[0])
+brain_mask_data = nib.load(brain_mask).get_data()
 
-model = ModelClass(HP)
-
-if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation":
-    if args.single_orientation:     # mainly needed for testing because of less RAM requirements
-        dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
-        trainerSingle = Trainer(model, dataManagerSingle)
-        seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
-    else:
-        seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-        seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
-
-elif HP.EXPERIMENT_TYPE == "peak_regression":
-    dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
-    trainerSingle = Trainer(model, dataManagerSingle)
-    seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False)
-    seg = ImgUtils.remove_small_peaks(seg, len_thr=0.3)
-    #3 dir for Peaks -> not working (?)
-    # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-    # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
-
-seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
-seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES)
-ExpUtils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
+seg = run_tractseg(data, brain_mask_data, args.output_type, input_type=input_type, single_orientation=args.single_orientation, verbose=args.verbose)
 
 if args.preview:
     print("Saving preview...")
@@ -207,3 +129,4 @@ else:
         nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
 
 Mrtrix.clean_up(HP)
+
