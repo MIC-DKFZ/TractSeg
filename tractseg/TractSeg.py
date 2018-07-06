@@ -35,8 +35,7 @@ from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
 
-
-def run_tractseg(data, brain_mask, output_type="tract_segmentation", input_type="peaks",
+def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                  single_orientation=False, verbose=False):
     '''
     Run TractSeg
@@ -95,10 +94,14 @@ def run_tractseg(data, brain_mask, output_type="tract_segmentation", input_type=
 
     Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE)
 
+    data = np.nan_to_num(data)
+    # brain_mask = ImgUtils.simple_brain_mask(data)
+    # if HP.VERBOSE:
+    #     nib.save(nib.Nifti1Image(brain_mask, np.eye(4)), "otsu_brain_mask_DEBUG.nii.gz")
 
     if input_type == "T1":
         data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], 1))
-    data, seg_None, bbox, original_shape = DatasetUtils.crop_to_nonzero(data, brain_mask)
+    data, seg_None, bbox, original_shape = DatasetUtils.crop_to_nonzero(data)
     data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data, target_size=HP.INPUT_DIM[0])
 
     model = ModelClass(HP)

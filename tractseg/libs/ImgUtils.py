@@ -22,6 +22,7 @@ from os.path import join
 from tractseg.libs.Config import Config as C
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.Utils import Utils
+from scipy.ndimage.morphology import binary_dilation
 
 class ImgUtils:
     
@@ -309,3 +310,15 @@ class ImgUtils:
         peaks[~mask] = 0
         return np.reshape(peaks, (img.shape[0], img.shape[1], img.shape[2], img.shape[3]))
 
+    @staticmethod
+    def simple_brain_mask(data):
+        '''
+        Simple brain mask (for peak image). Does not matter if has holes
+        because for cropping anyways only take min and max.
+
+        :param data: peak image [x,y,z,9]
+        '''
+        data_max = data.max(axis=3)
+        mask = data_max > 0.01
+        mask = binary_dilation(mask, iterations=1)
+        return mask.astype(np.uint8)

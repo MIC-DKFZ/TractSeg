@@ -226,9 +226,9 @@ class DatasetUtils():
         return image[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]]
 
     @staticmethod
-    def crop_to_nonzero(data, brain_mask, seg=None, nonzero_label=-1):
+    def crop_to_nonzero(data, seg=None, nonzero_label=-1):
         original_shape = data.shape
-        bbox = DatasetUtils.get_bbox_from_mask(brain_mask, 0)
+        bbox = DatasetUtils.get_bbox_from_mask(data, 0)
 
         cropped_data = []
         for c in range(data.shape[3]):

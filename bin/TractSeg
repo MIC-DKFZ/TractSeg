@@ -104,9 +104,9 @@ if args.skip_peak_extraction:
 else:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
 data = data_img.get_data()
-brain_mask_data = nib.load(brain_mask).get_data()
 
-seg = run_tractseg(data, brain_mask_data, args.output_type, input_type=input_type, single_orientation=args.single_orientation, verbose=args.verbose)
+seg = run_tractseg(data, args.output_type, input_type=input_type,
+                   single_orientation=args.single_orientation, verbose=args.verbose)
 
 if args.preview:
     print("Saving preview...")

@@ -131,7 +131,8 @@ class ExpUtils:
             print("Loading brain mask from: {}".format(brain_mask_path))
             return brain_mask_path
 
-        raise ValueError("no brainmask available")
+        # raise ValueError("no brainmask available")
+        return None
 
     @staticmethod
     def get_bundle_names(CLASSES):
