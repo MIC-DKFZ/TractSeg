@@ -37,7 +37,7 @@ from tractseg.libs.Trainer import Trainer
 
 
 def run_tractseg(data, brain_mask, output_type="tract_segmentation", input_type="peaks",
-                 single_orientation=False, verbose=True):
+                 single_orientation=False, verbose=False):
     '''
     Run TractSeg
 
@@ -45,7 +45,7 @@ def run_tractseg(data, brain_mask, output_type="tract_segmentation", input_type=
     :param brain_mask: 3D numpy array with shape [x,y,z]
     :param output_type: "tract_segmentation" | "endings_segmentation" | "TOM"
     :param input_type: "peaks"
-    :param verbose:
+    :param verbose: show debugging infos
     :return: 4D numpy array with the output of tractseg
         for tract_segmentation:     [x,y,z,nr_of_bundles]
         for endings_segmentation:   [x,y,z,2*nr_of_bundles]
