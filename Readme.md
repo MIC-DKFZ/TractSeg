@@ -39,7 +39,10 @@ TractSeg -i Diffusion.nii.gz    # expects Diffusion.bvals and Diffusion.bvecs to
 ```
 This will create a folder `tractseg_ouput` inside of the same directory as your input file. 
 This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
-The fourth dimension contains the binary bundle segmentations. 
+The fourth dimension contains the binary bundle segmentations.
+ 
+NOTE: Your input image should have the same orientation as MNI space (using rigid 
+registration to MNI space is a simply way to ensure this). 
 
 #### Custom input and output path:
 ```
@@ -173,8 +176,10 @@ segmentation = run_tractseg(peaks)
 
 The input image must have the same "orientation" as the Human Connectome Project data (MNI space) (LEFT must be on the same side as 
 LEFT of the HCP data). If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
-you are fine. Otherwise you should rigidly register your image to MNI space (or use FSL `fslreorient2std) (the brains
-do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation). 
+you are fine. Otherwise you should rigidly register your image to MNI space (the brains
+do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation).
+Even if the input image is in MNI space the Mrtrix peaks might still be flipped. You should view
+the peaks in `mrview` and make sure they have the proper orientation.
 
 **Did I install the prerequisites correctly?**
 
