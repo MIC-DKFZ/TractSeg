@@ -123,10 +123,7 @@ class Trainer:
                     start_time_metrics = time.time()
 
                     if HP.CALC_F1:
-                        if HP.LABELS_TYPE == np.int16:
-                            metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD)
-
-                        else:  #Regression
+                        if HP.EXPERIMENT_TYPE == "peak_regression":
                             #Following two lines increase metrics_time by 30s (without < 1s); time per batch increases by 1.5s by these lines
                             # y_flat = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
                             # y_flat = np.reshape(y_flat, (-1, y_flat.shape[-1]))  # (bs*x*y, nr_of_classes)
@@ -152,6 +149,9 @@ class Trainer:
                             # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"][0], type=type, threshold=HP.THRESHOLD,
                             #                                         f1_per_bundle={"Thr1": f1["CST_right"][1], "Thr2": f1["CST_right"][2]})
                             # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"], type=type, threshold=HP.THRESHOLD)
+                        else:
+                            metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD)
+
                     else:
                         metrics = MetricUtils.calculate_metrics_onlyLoss(metrics, loss, type=type)
 

@@ -173,11 +173,14 @@ class UNet_Pytorch_Regression(BaseModel):
             optimizer.step()  # optimise
 
             if self.HP.CALC_F1:
-                # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-                # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
-                f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
-                                                               max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
-                # f1 = (f1_a, f1_b)
+                if self.HP.EXPERIMENT_TYPE == "peak_regression":
+                    # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+                    # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                    f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
+                                                                   max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
+                    # f1 = (f1_a, f1_b)
+                else:   #density map regression
+                    f1 = PytorchUtils.f1_score_macro(y.data>0.5, outputs.data, per_class=True)
             else:
                 f1 = np.ones(outputs.shape[3])
 
@@ -207,11 +210,14 @@ class UNet_Pytorch_Regression(BaseModel):
             # loss = criterion1(outputs, y, Variable(weights)) + criterion2(outputs, y, Variable(weights))
 
             if self.HP.CALC_F1:
-                # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-                # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
-                f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
-                                                               max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
-                # f1 = (f1_a, f1_b)
+                if self.HP.EXPERIMENT_TYPE == "peak_regression":
+                    # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+                    # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
+                    f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.data, y.data,
+                                                                   max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
+                    # f1 = (f1_a, f1_b)
+                else:
+                    f1 = PytorchUtils.f1_score_macro(y.data > 0.5, outputs.data, per_class=True)
             else:
                 f1 = np.ones(outputs.shape[3])
 
