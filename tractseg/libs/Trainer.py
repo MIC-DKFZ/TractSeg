@@ -97,7 +97,7 @@ class Trainer:
 
                 print("Start looping batches...")
                 start_time_batch_part = time.time()
-                for batch in batch_generator:                   #getting next batch takes around 0.14s -> second largest Time part after UNet!
+                for batch in batch_generator:                   #getting next batch takes around 0.14s -> second largest Time part after mode!
 
                     start_time_data_preparation = time.time()
                     batch_nr[type] += 1

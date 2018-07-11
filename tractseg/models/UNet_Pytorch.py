@@ -54,8 +54,11 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
 
 
 class UNet(torch.nn.Module):
-    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, final_activation=None):
+    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, final_activation=None, dropout=False):
         super(UNet, self).__init__()
+
+        self.dropout = dropout
+
         self.in_channel = n_input_channels
         self.n_classes = n_classes
         self.final_activation = final_activation
@@ -120,7 +123,8 @@ class UNet(torch.nn.Module):
         contr_4_2 = self.contr_4_2(contr_4_1)
         pool_4 = self.pool_4(contr_4_2)
 
-        # pool_4 = self.dropout(pool_4)
+        if self.dropout:
+            pool_4 = self.dropout(pool_4)
 
         encode_1 = self.encode_1(pool_4)
         encode_2 = self.encode_2(encode_1)
@@ -254,7 +258,7 @@ class UNet_Pytorch(BaseModel):
             final_activation = None
 
         net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
-                   batchnorm=self.HP.BATCH_NORM, final_activation=final_activation)
+                   batchnorm=self.HP.BATCH_NORM, final_activation=final_activation, dropout=self.HP.USE_DROPOUT)
 
         if torch.cuda.is_available():
             net = net.cuda()
