@@ -190,7 +190,10 @@ class UNet_Pytorch(BaseModel):
                 X, y = Variable(X.cuda(), volatile=True), Variable(y.cuda(), volatile=True)
             else:
                 X, y = Variable(X, volatile=True), Variable(y, volatile=True)
-            net.train(False)
+            if self.HP.DROPOUT_SAMPLING:
+                net.train()
+            else:
+                net.train(False)
             outputs = net(X)  # forward
             loss = criterion(outputs, y)
             f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
@@ -204,7 +207,10 @@ class UNet_Pytorch(BaseModel):
                 X = Variable(X.cuda(), volatile=True)
             else:
                 X = Variable(X, volatile=True)
-            net.train(False)
+            if self.HP.DROPOUT_SAMPLING:
+                net.train()
+            else:
+                net.train(False)
             outputs = net(X)  # forward
             probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             return probs
@@ -255,7 +261,9 @@ class UNet_Pytorch(BaseModel):
             # weights[:, 22, :, :] *= 10    #FX_right
             # criterion = nn.BCEWithLogitsLoss(weight=weights)
             criterion = nn.BCEWithLogitsLoss()
+            #todo important: change
             final_activation = None
+            # final_activation = "sigmoid"
 
         net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
                    batchnorm=self.HP.BATCH_NORM, final_activation=final_activation, dropout=self.HP.USE_DROPOUT)
@@ -274,9 +282,8 @@ class UNet_Pytorch(BaseModel):
         if self.HP.OPTIMIZER == "Adamax":
             optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
         elif self.HP.OPTIMIZER == "Adam":
-            #todo important: change
-            # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)
-            optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE, weight_decay=self.HP.WEIGHT_DECAY)
+            optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)
+            # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE, weight_decay=self.HP.WEIGHT_DECAY)
         else:
             raise ValueError("Optimizer not defined")
         # scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)

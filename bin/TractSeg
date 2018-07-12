@@ -76,6 +76,7 @@ parser.add_argument('--version', action='version', version='TractSeg 1.2')
 args = parser.parse_args()
 
 input_type = "peaks"  # peaks / T1
+dropout_sampling = True
 
 config = get_config_name(input_type, args.output_type)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
@@ -106,7 +107,7 @@ else:
 data = data_img.get_data()
 
 seg = run_tractseg(data, args.output_type, input_type=input_type,
-                   single_orientation=args.single_orientation, verbose=args.verbose)
+                   single_orientation=args.single_orientation, verbose=args.verbose, dropout_sampling=dropout_sampling)
 
 if args.preview:
     print("Saving preview...")

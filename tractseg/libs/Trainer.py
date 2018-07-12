@@ -281,21 +281,22 @@ class Trainer:
                 y = y.astype(HP.LABELS_TYPE)
                 y = np.squeeze(y)   # remove bs dimension which is only 1 -> (x, y, nrClasses)
 
-                #For normal prediction
-                layer_probs = self.model.get_probs(x)  # (bs, x, y, nrClasses)
-                layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
+                if HP.DROPOUT_SAMPLING:
+                    #For Dropout Sampling (must set Deterministic=False in model)
+                    NR_SAMPLING = 30
+                    samples = []
+                    for i in range(NR_SAMPLING):
+                        layer_probs = self.model.get_probs(x)  # (bs, x, y, nrClasses)
+                        samples.append(layer_probs)
 
-                #For Dropout Sampling (must set Deterministic=False in model)
-                # NR_SAMPLING = 30
-                # samples = []
-                # for i in range(NR_SAMPLING):
-                #     layer_probs = self.model.get_probs(x)  # (bs, x, y, nrClasses)
-                #     samples.append(layer_probs)
-                #
-                # samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
-                # samples = np.squeeze(samples) # (NR_SAMPLING, x, y, nrClasses)
-                # layer_probs = np.mean(samples, axis=0)
-                # #layer_probs = np.std(samples, axis=0)    #use std
+                    samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
+                    samples = np.squeeze(samples) # (NR_SAMPLING, x, y, nrClasses)
+                    # layer_probs = np.mean(samples, axis=0)
+                    layer_probs = np.std(samples, axis=0)    # (x,y,nrClasses)
+                else:
+                    # For normal prediction
+                    layer_probs = self.model.get_probs(x)  # (bs, x, y, nrClasses)
+                    layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
 
                 if probs:
                     seg = layer_probs   # (x, y, nrClasses)

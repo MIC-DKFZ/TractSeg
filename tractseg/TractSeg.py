@@ -36,7 +36,7 @@ from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
 
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
-                 single_orientation=False, verbose=False):
+                 single_orientation=False, verbose=False, dropout_sampling=False):
     '''
     Run TractSeg
 
@@ -60,11 +60,13 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     HP.SEGMENT = False
     HP.GET_PROBS = False
     HP.LOAD_WEIGHTS = True
+    HP.DROPOUT_SAMPLING = dropout_sampling
 
     if input_type == "peaks":
         if HP.EXPERIMENT_TYPE == "tract_segmentation":
-            HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
+            # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_270g_125mm_run2", "best_weights_ep136.npz")
+            HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_12g90g270g_125mm_DAugAll_Dropout", "best_weights_ep106.npz")
         elif HP.EXPERIMENT_TYPE == "endings_segmentation":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DAugAll", "best_weights_ep16.npz")
@@ -110,10 +112,16 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         if single_orientation:     # mainly needed for testing because of less RAM requirements
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
             trainerSingle = Trainer(model, dataManagerSingle)
-            seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
+            if HP.DROPOUT_SAMPLING:
+                seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False)
+            else:
+                seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
         else:
             seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-            seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
+            if HP.DROPOUT_SAMPLING:
+                seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
+            else:
+                seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
 
     elif HP.EXPERIMENT_TYPE == "peak_regression":
         dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
