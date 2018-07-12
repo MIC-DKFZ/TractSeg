@@ -148,8 +148,7 @@ class UNet(torch.nn.Module):
         expand_4_2 = self.expand_4_2(expand_4_1)
 
         conv_5 = self.conv_5(expand_4_2)
-        # return conv_5
-        return F.sigmoid(conv_5)
+        return conv_5
 
 
 class UNet_Pytorch_Regression_MSE(BaseModel):
