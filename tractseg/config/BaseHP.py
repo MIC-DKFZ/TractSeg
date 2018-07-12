@@ -78,7 +78,6 @@ class HP:
     #Unimportant / rarly changed:
     LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
     THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
-    FUSION_THRESHOLD = 0.5  # 0.5
     TEST_TIME_DAUG = False
     USE_VISLOGGER = False
     SAVE_WEIGHTS = True

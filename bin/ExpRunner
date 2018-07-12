@@ -139,7 +139,7 @@ def test_whole_subject(HP, model, subjects, type):
         trainerSingle = Trainer(model, dataManagerSingle)
         img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
         # img_probs_xyz, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
-        # img_probs = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, img_probs_xyz, probs=True)
+        # img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs_xyz, probs=True)
 
         print("Took {}s".format(round(time.time() - start_time, 2)))
 
@@ -212,7 +212,7 @@ if HP.SEGMENT:
             img_seg = ImgUtils.peak_image_to_binary_mask(img_probs, len_thr=0.4)  # thr: 0.4 slightly better than 0.2
         else:
             img_seg, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject)  #returns probs not binary seg
-            img_seg = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, img_seg, probs=False)
+            img_seg = DirectionMerger.mean_fusion(HP.THRESHOLD, img_seg, probs=False)
 
         #TractSeg
         # ImgUtils.save_multilabel_img_as_multiple_files(HP, img_seg, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
@@ -246,7 +246,7 @@ if HP.GET_PROBS:
             img_probs = ImgUtils.remove_small_peaks(img_probs, len_thr=0.4)
         else:
             img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
-            img_probs = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, img_probs, probs=True)
+            img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
 
         # ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
         #                                                      join(HP.EXP_PATH, "probmaps_" + subject))

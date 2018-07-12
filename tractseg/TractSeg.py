@@ -66,10 +66,11 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     HP.THRESHOLD = threshold
 
     if input_type == "peaks":
-        if HP.EXPERIMENT_TYPE == "tract_segmentation":
+        if HP.EXPERIMENT_TYPE == "tract_segmentation" and HP.DROPOUT_SAMPLING:
+            HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_12g90g270g_125mm_DAugAll_Dropout", "best_weights_ep114.npz")
+        elif HP.EXPERIMENT_TYPE == "tract_segmentation":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_270g_125mm_run2", "best_weights_ep136.npz")
-            # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_12g90g270g_125mm_DAugAll_Dropout", "best_weights_ep114.npz")
         elif HP.EXPERIMENT_TYPE == "endings_segmentation":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DAugAll", "best_weights_ep16.npz")
@@ -122,9 +123,9 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         else:
             seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
             if HP.DROPOUT_SAMPLING:
-                seg = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, seg_xyz, probs=True)
+                seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
             else:
-                seg = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, seg_xyz, probs=False)
+                seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
 
     elif HP.EXPERIMENT_TYPE == "peak_regression":
         dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
@@ -133,7 +134,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         seg = ImgUtils.remove_small_peaks(seg, len_thr=0.3)
         #3 dir for Peaks -> not working (?)
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-        # seg = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, seg_xyz, probs=True)
+        # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
 
     seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
     seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES)
