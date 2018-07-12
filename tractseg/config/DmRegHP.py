@@ -5,7 +5,7 @@ class HP(BaseHP):
 
     EXPERIMENT_TYPE = "dm_regression"
 
-    MODEL = "UNet_Pytorch_Regression"
+    MODEL = "UNet_Pytorch_Regression_MSE"
     LABELS_TYPE = np.float32
 
     # DATASET = "HCP"  # HCP / HCP_32g
