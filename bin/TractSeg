@@ -77,7 +77,7 @@ args = parser.parse_args()
 
 #Private parameters
 input_type = "peaks"  # peaks / T1
-dropout_sampling = True
+dropout_sampling = False
 threshold = 0.5
 
 config = get_config_name(input_type, args.output_type)
