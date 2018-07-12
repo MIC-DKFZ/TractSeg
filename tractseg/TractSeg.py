@@ -36,7 +36,7 @@ from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
 
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
-                 single_orientation=False, verbose=False, dropout_sampling=False):
+                 single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5):
     '''
     Run TractSeg
 
@@ -45,6 +45,8 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     :param output_type: "tract_segmentation" | "endings_segmentation" | "TOM"
     :param input_type: "peaks"
     :param verbose: show debugging infos
+    :param dropout_sampling: create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)
+    :param threshold: Threshold for converting probability map to binary map
     :return: 4D numpy array with the output of tractseg
         for tract_segmentation:     [x,y,z,nr_of_bundles]
         for endings_segmentation:   [x,y,z,2*nr_of_bundles]
@@ -61,6 +63,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     HP.GET_PROBS = False
     HP.LOAD_WEIGHTS = True
     HP.DROPOUT_SAMPLING = dropout_sampling
+    HP.THRESHOLD = threshold
 
     if input_type == "peaks":
         if HP.EXPERIMENT_TYPE == "tract_segmentation":
@@ -119,9 +122,9 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         else:
             seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
             if HP.DROPOUT_SAMPLING:
-                seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
+                seg = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, seg_xyz, probs=True)
             else:
-                seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
+                seg = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, seg_xyz, probs=False)
 
     elif HP.EXPERIMENT_TYPE == "peak_regression":
         dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
@@ -130,7 +133,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         seg = ImgUtils.remove_small_peaks(seg, len_thr=0.3)
         #3 dir for Peaks -> not working (?)
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-        # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
+        # seg = DirectionMerger.mean_fusion(HP.FUSION_THRESHOLD, seg_xyz, probs=True)
 
     seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
     seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES)

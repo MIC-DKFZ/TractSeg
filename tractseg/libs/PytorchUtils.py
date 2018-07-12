@@ -42,7 +42,7 @@ class PytorchUtils:
         return kwargs
 
     @staticmethod
-    def f1_score_macro(y_true, y_pred, per_class=False):
+    def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
         '''
         Macro f1
 
@@ -52,7 +52,7 @@ class PytorchUtils:
         Tested: same results as sklearn f1 macro
         '''
         y_true = y_true.byte()
-        y_pred = y_pred > 0.5
+        y_pred = y_pred > threshold
 
         y_true = y_true.permute(0, 2, 3, 1)
         y_pred = y_pred.permute(0, 2, 3, 1)

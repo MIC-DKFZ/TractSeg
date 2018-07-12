@@ -54,14 +54,13 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
 
 
 class UNet(torch.nn.Module):
-    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, final_activation=None, dropout=False):
+    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False):
         super(UNet, self).__init__()
 
         self.dropout = dropout
 
         self.in_channel = n_input_channels
         self.n_classes = n_classes
-        self.final_activation = final_activation
 
         self.contr_1_1 = conv2d(n_input_channels, n_filt, batchnorm=batchnorm)
         self.contr_1_2 = conv2d(n_filt, n_filt, batchnorm=batchnorm)
@@ -151,10 +150,7 @@ class UNet(torch.nn.Module):
 
         conv_5 = self.conv_5(expand_4_2)
 
-        if self.final_activation == "sigmoid":
-            return F.sigmoid(conv_5)
-        else:
-            return conv_5
+        return conv_5, F.sigmoid(conv_5)
 
 
 class UNet_Pytorch(BaseModel):
@@ -170,14 +166,17 @@ class UNet_Pytorch(BaseModel):
                 X, y = Variable(X), Variable(y)
             optimizer.zero_grad()
             net.train()
-            outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
-            loss = criterion(outputs, y)
+            outputs, outputs_sigmoid = net(X)  # forward     # outputs: (bs, classes, x, y)
+            if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
+                loss = criterion(outputs_sigmoid, y)
+            else:
+                loss = criterion(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+            f1 = PytorchUtils.f1_score_macro(y.data, outputs_sigmoid.data, per_class=True, threshold=self.HP.THRESHOLD)
 
             if self.HP.USE_VISLOGGER:
-                probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+                probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             else:
                 probs = None    #faster
 
@@ -194,10 +193,13 @@ class UNet_Pytorch(BaseModel):
                 net.train()
             else:
                 net.train(False)
-            outputs = net(X)  # forward
-            loss = criterion(outputs, y)
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-            # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            outputs, outputs_sigmoid = net(X)  # forward
+            if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
+                loss = criterion(outputs_sigmoid, y)
+            else:
+                loss = criterion(outputs, y)
+            f1 = PytorchUtils.f1_score_macro(y.data, outputs_sigmoid.data, per_class=True, threshold=self.HP.THRESHOLD)
+            # probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1
 
@@ -211,8 +213,8 @@ class UNet_Pytorch(BaseModel):
                 net.train()
             else:
                 net.train(False)
-            outputs = net(X)  # forward
-            probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            outputs, outputs_sigmoid = net(X)  # forward
+            probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             return probs
 
         def save_model(metrics, epoch_nr):
@@ -250,10 +252,8 @@ class UNet_Pytorch(BaseModel):
 
         if self.HP.LOSS_FUNCTION == "soft_sample_dice":
             criterion = PytorchUtils.soft_sample_dice
-            final_activation = "sigmoid"
         elif self.HP.LOSS_FUNCTION == "soft_batch_dice":
             criterion = PytorchUtils.soft_batch_dice
-            final_activation = "sigmoid"
         else:
             # weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             # weights[:, 5, :, :] *= 10     #CA
@@ -261,12 +261,9 @@ class UNet_Pytorch(BaseModel):
             # weights[:, 22, :, :] *= 10    #FX_right
             # criterion = nn.BCEWithLogitsLoss(weight=weights)
             criterion = nn.BCEWithLogitsLoss()
-            #todo important: change
-            final_activation = None
-            # final_activation = "sigmoid"
 
         net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
-                   batchnorm=self.HP.BATCH_NORM, final_activation=final_activation, dropout=self.HP.USE_DROPOUT)
+                   batchnorm=self.HP.BATCH_NORM, dropout=self.HP.USE_DROPOUT)
 
         if torch.cuda.is_available():
             net = net.cuda()

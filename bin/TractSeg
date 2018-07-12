@@ -75,8 +75,10 @@ parser.add_argument("--single_orientation", action="store_true", help="Do not ru
 parser.add_argument('--version', action='version', version='TractSeg 1.2')
 args = parser.parse_args()
 
+#Private parameters
 input_type = "peaks"  # peaks / T1
 dropout_sampling = True
+threshold = 0.5
 
 config = get_config_name(input_type, args.output_type)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
@@ -107,7 +109,8 @@ else:
 data = data_img.get_data()
 
 seg = run_tractseg(data, args.output_type, input_type=input_type,
-                   single_orientation=args.single_orientation, verbose=args.verbose, dropout_sampling=dropout_sampling)
+                   single_orientation=args.single_orientation, verbose=args.verbose,
+                   dropout_sampling=dropout_sampling, threshold=threshold)
 
 if args.preview:
     print("Saving preview...")
