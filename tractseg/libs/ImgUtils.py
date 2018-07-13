@@ -233,12 +233,12 @@ class ImgUtils:
         return mask_ml.astype(labels_type)
 
     @staticmethod
-    def save_multilabel_img_as_multiple_files(HP, img, affine, path):
+    def save_multilabel_img_as_multiple_files(HP, img, affine, path, name="tract_segmentations"):
         bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
-            ExpUtils.make_dir(join(path, "tract_segmentations"))
-            nib.save(img_seg, join(path, "tract_segmentations", bundle + ".nii.gz"))
+            ExpUtils.make_dir(join(path, name))
+            nib.save(img_seg, join(path, name, bundle + ".nii.gz"))
 
     @staticmethod
     def save_multilabel_img_as_multiple_files_peaks(HP, img, affine, path):

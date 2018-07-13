@@ -194,10 +194,15 @@ class Utils:
             weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
             WEIGHTS_URL = "https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1"
 
+        elif experiment_type == "dm_regression":
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'TODO')
+            WEIGHTS_URL = None
+
         if os.path.exists(weights_path_old):
             os.remove(weights_path_old)
 
-        if not os.path.exists(weights_path):
+        if WEIGHTS_URL is not None and not os.path.exists(weights_path):
             print("Downloading pretrained weights (~140MB) ...")
             if not os.path.exists(C.TRACT_SEG_HOME):
                 os.makedirs(C.TRACT_SEG_HOME)

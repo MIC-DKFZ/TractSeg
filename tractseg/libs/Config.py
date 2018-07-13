@@ -24,6 +24,8 @@ def get_config_name(input_type, output_type):
             config = "EndingsSeg_12g90g270g_125mm_DAugAll"
         elif output_type == "TOM":
             config = "Peaks20_12g90g270g_125mm"
+        elif output_type == "dm_regression":
+            config = "DmReg_12g90g270g_125mm_DAugAll"
     elif input_type == "T1":
         if output_type == "tract_segmentation":
             config = "TractSeg_T1_125mm_DAugAll"
@@ -31,6 +33,8 @@ def get_config_name(input_type, output_type):
             config = "EndingsSeg_12g90g270g_125mm_DAugAll"
         elif output_type == "TOM":
             config = "Peaks20_12g90g270g_125mm"
+        elif output_type == "dm_regression":
+            raise ValueError("For dm_regression no pretrained model available for T1")
     else:
         raise ValueError("input_type not recognized")
     return config

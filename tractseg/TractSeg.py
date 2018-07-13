@@ -77,6 +77,9 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         elif HP.EXPERIMENT_TYPE == "peak_regression":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks20_270g_125mm_LW5", "best_weights_ep144.npz")
+        elif HP.EXPERIMENT_TYPE == "dm_regression":
+            # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "TODO")
+            HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "DmReg_12g90g270g_125mm_DAugAll_Ubuntu", "best_weights_ep80.npz")
     elif input_type == "T1":
         if HP.EXPERIMENT_TYPE == "tract_segmentation":
             # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
@@ -112,17 +115,17 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
 
     model = ModelClass(HP)
 
-    if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation":
+    if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation" or HP.EXPERIMENT_TYPE == "dm_regression":
         if single_orientation:     # mainly needed for testing because of less RAM requirements
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
             trainerSingle = Trainer(model, dataManagerSingle)
-            if HP.DROPOUT_SAMPLING:
+            if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression":
                 seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False)
             else:
                 seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
         else:
             seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-            if HP.DROPOUT_SAMPLING:
+            if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression":
                 seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
             else:
                 seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)

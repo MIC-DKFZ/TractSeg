@@ -57,7 +57,7 @@ parser.add_argument("--csd_type", metavar="csd|csd_msmt|csd_msmt_5tt", choices=[
                          "'csd_msmt': Multi-shell multi-tissue CSD DHollander algorithm. Medium fast. Needs more than one b-value shell.\n" +
                          "'csd_msmt_5tt': Multi-shell multi-tissue CSD 5TT. Slow on large images. Needs more than one b-value shell." +
                          "Needs a T1 image (a file 'T1w_acpc_dc_restore_brain.nii.gz' must be in the input directory).", default="csd")
-parser.add_argument("--output_type", metavar="tract_segmentation|endings_segmentation|TOM", choices=["tract_segmentation", "endings_segmentation", "TOM"],
+parser.add_argument("--output_type", metavar="tract_segmentation|endings_segmentation|TOM|dm_regression", choices=["tract_segmentation", "endings_segmentation", "TOM", "dm_regression"],
                     help="TractSeg can segment not only bundles, but also the end regions of bundles. Moreover it can create Tract Orientation Maps (TOM).\n" +
                          "'tract_segmentation' [DEFAULT]: Segmentation of bundles (72 bundles).\n" +
                          "'endings_segmentation': Segmentation of bundle end regions (20 bundles).\n" +
@@ -123,6 +123,8 @@ if HP.OUTPUT_MULTIPLE_FILES:
         ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)
     elif HP.EXPERIMENT_TYPE == "peak_regression":
         ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)
+    elif HP.EXPERIMENT_TYPE == "dm_regression":
+        ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT, name="dm_regression")
 else:
     img = nib.Nifti1Image(seg, data_img.get_affine())
     if HP.EXPERIMENT_TYPE == "tract_segmentation":
@@ -131,6 +133,8 @@ else:
         nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_endings.nii.gz"))
     elif HP.EXPERIMENT_TYPE == "peak_regression":
         nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
+    elif HP.EXPERIMENT_TYPE == "dm_regression":
+        nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
 
 Mrtrix.clean_up(HP)
 
