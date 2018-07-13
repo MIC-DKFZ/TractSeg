@@ -26,7 +26,7 @@ TractSeg only runs on Linux and OSX. It works with Python 2 and Python 3.
 #### Install TractSeg
 Latest stable version:
 ```
-pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.2.zip
+pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.3.zip
 ```
 
 ## Usage
