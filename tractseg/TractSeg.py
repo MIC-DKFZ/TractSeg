@@ -36,7 +36,7 @@ from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
 
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
-                 single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5):
+                 single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5, get_probs=False):
     '''
     Run TractSeg
 
@@ -47,6 +47,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     :param verbose: show debugging infos
     :param dropout_sampling: create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)
     :param threshold: Threshold for converting probability map to binary map
+    :param get_probs: Output raw probability map instead of binary map
     :return: 4D numpy array with the output of tractseg
         for tract_segmentation:     [x,y,z,nr_of_bundles]
         for endings_segmentation:   [x,y,z,2*nr_of_bundles]
@@ -60,7 +61,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     HP.TRAIN = False
     HP.TEST = False
     HP.SEGMENT = False
-    HP.GET_PROBS = False
+    HP.GET_PROBS = get_probs
     HP.LOAD_WEIGHTS = True
     HP.DROPOUT_SAMPLING = dropout_sampling
     HP.THRESHOLD = threshold
@@ -119,13 +120,13 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         if single_orientation:     # mainly needed for testing because of less RAM requirements
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
             trainerSingle = Trainer(model, dataManagerSingle)
-            if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression":
+            if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression" or HP.GET_PROBS:
                 seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False)
             else:
                 seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
         else:
             seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
-            if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression":
+            if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression" or HP.GET_PROBS:
                 seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
             else:
                 seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)

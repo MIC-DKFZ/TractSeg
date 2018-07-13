@@ -78,7 +78,8 @@ args = parser.parse_args()
 #Private parameters
 input_type = "peaks"  # peaks / T1
 dropout_sampling = False
-threshold = 0.5
+threshold = 0.5         #specificity
+get_probs = False
 
 config = get_config_name(input_type, args.output_type)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
@@ -110,7 +111,7 @@ data = data_img.get_data()
 
 seg = run_tractseg(data, args.output_type, input_type=input_type,
                    single_orientation=args.single_orientation, verbose=args.verbose,
-                   dropout_sampling=dropout_sampling, threshold=threshold)
+                   dropout_sampling=dropout_sampling, threshold=threshold, get_probs=get_probs)
 
 if args.preview:
     print("Saving preview...")
