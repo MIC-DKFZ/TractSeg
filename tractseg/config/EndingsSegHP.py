@@ -5,9 +5,11 @@ class HP(BaseHP):
     EXPERIMENT_TYPE = "endings_segmentation"
 
     MODEL = "UNet_Pytorch_weighted"
-    CLASSES = "20_endpoints"
+    # CLASSES = "20_endpoints"
+    CLASSES = "All_endpoints"
     LOSS_WEIGHT = 5
     LOSS_WEIGHT_LEN = -1
+    BATCH_SIZE = 30         #for all 72 (=144) classes we need smaller batch size because of memory limit
 
     # DATASET = "HCP"
     # RESOLUTION = "1.25mm"
