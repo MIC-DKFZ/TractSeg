@@ -68,7 +68,8 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
 
     if input_type == "peaks":
         if HP.EXPERIMENT_TYPE == "tract_segmentation" and HP.DROPOUT_SAMPLING:
-            HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_12g90g270g_125mm_DAugAll_Dropout", "best_weights_ep114.npz")
+            HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_dropout_v1.npz")
+            # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_12g90g270g_125mm_DAugAll_Dropout", "best_weights_ep114.npz")
         elif HP.EXPERIMENT_TYPE == "tract_segmentation":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_270g_125mm_run2", "best_weights_ep136.npz")
@@ -79,8 +80,8 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "Peaks20_270g_125mm_LW5", "best_weights_ep144.npz")
         elif HP.EXPERIMENT_TYPE == "dm_regression":
-            # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "TODO")
-            HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "DmReg_12g90g270g_125mm_DAugAll_Ubuntu", "best_weights_ep80.npz")
+            HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_dm_regression_v1.npz")
+            # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "DmReg_12g90g270g_125mm_DAugAll_Ubuntu", "best_weights_ep80.npz")
     elif input_type == "T1":
         if HP.EXPERIMENT_TYPE == "tract_segmentation":
             # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
@@ -102,7 +103,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         print("Hyperparameters:")
         ExpUtils.print_HPs(HP)
 
-    Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE)
+    Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING)
 
     data = np.nan_to_num(data)
     # brain_mask = ImgUtils.simple_brain_mask(data)
