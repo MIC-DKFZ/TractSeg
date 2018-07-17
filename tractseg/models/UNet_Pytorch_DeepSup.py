@@ -20,6 +20,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adamax
+from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.autograd import Variable
 
@@ -52,8 +53,11 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
 
 
 class UNet(torch.nn.Module):
-    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64):
+    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False):
         super(UNet, self).__init__()
+
+        self.dropout = dropout
+
         self.in_channel = n_input_channels
         self.n_classes = n_classes
 
@@ -158,15 +162,16 @@ class UNet(torch.nn.Module):
 
         final = output_3_up + conv_5
 
-        # return conv_5
-        return final
+        # return conv_51
+        # return final
+        return final, F.sigmoid(final)
 
 
 class UNet_Pytorch_DeepSup(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
-        def train(X, y):
+        def train(X, y, weight_factor=10):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
             if torch.cuda.is_available():
@@ -175,33 +180,40 @@ class UNet_Pytorch_DeepSup(BaseModel):
                 X, y = Variable(X), Variable(y)
             optimizer.zero_grad()
             net.train()
-            outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
-            loss = criterion(outputs, y)
-            # loss = PytorchUtils.soft_dice(outputs, y)
+            outputs, outputs_sigmoid = net(X)  # forward     # outputs: (bs, classes, x, y)
+            if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
+                loss = criterion(outputs_sigmoid, y)
+            else:
+                loss = criterion(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+            f1 = PytorchUtils.f1_score_macro(y.data, outputs_sigmoid.data, per_class=True, threshold=self.HP.THRESHOLD)
 
             if self.HP.USE_VISLOGGER:
-                probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+                probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             else:
                 probs = None    #faster
 
             return loss.data[0], probs, f1
 
-        def test(X, y):
+        def test(X, y, weight_factor=10):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
             if torch.cuda.is_available():
                 X, y = Variable(X.cuda(), volatile=True), Variable(y.cuda(), volatile=True)
             else:
                 X, y = Variable(X, volatile=True), Variable(y, volatile=True)
-            net.train(False)
-            outputs = net(X)  # forward
-            loss = criterion(outputs, y)
-            # loss = PytorchUtils.soft_dice(outputs, y)
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
-            # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            if self.HP.DROPOUT_SAMPLING:
+                net.train()
+            else:
+                net.train(False)
+            outputs, outputs_sigmoid = net(X)  # forward
+            if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
+                loss = criterion(outputs_sigmoid, y)
+            else:
+                loss = criterion(outputs, y)
+            f1 = PytorchUtils.f1_score_macro(y.data, outputs_sigmoid.data, per_class=True, threshold=self.HP.THRESHOLD)
+            # probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1
 
@@ -211,9 +223,12 @@ class UNet_Pytorch_DeepSup(BaseModel):
                 X = Variable(X.cuda(), volatile=True)
             else:
                 X = Variable(X, volatile=True)
-            net.train(False)
-            outputs = net(X)  # forward
-            probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            if self.HP.DROPOUT_SAMPLING:
+                net.train()
+            else:
+                net.train(False)
+            outputs, outputs_sigmoid = net(X)  # forward
+            probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             return probs
 
         def save_model(metrics, epoch_nr):
@@ -239,34 +254,49 @@ class UNet_Pytorch_DeepSup(BaseModel):
 
 
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":
-            NR_OF_GRADIENTS = 9
+            NR_OF_GRADIENTS = self.HP.NR_OF_GRADIENTS
+            # NR_OF_GRADIENTS = 9
             # NR_OF_GRADIENTS = 9 * 5
             # NR_OF_GRADIENTS = 9 * 9
             # NR_OF_GRADIENTS = 33
         elif self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "combined":
-            NR_OF_GRADIENTS = 3*self.HP.NR_OF_CLASSES
+            self.HP.NR_OF_GRADIENTS = 3*self.HP.NR_OF_CLASSES
         else:
-            NR_OF_GRADIENTS = 33
+            self.HP.NR_OF_GRADIENTS = 33
+
+        if self.HP.LOSS_FUNCTION == "soft_sample_dice":
+            criterion = PytorchUtils.soft_sample_dice
+        elif self.HP.LOSS_FUNCTION == "soft_batch_dice":
+            criterion = PytorchUtils.soft_batch_dice
+        else:
+            # weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+            # weights[:, 5, :, :] *= 10     #CA
+            # weights[:, 21, :, :] *= 10    #FX_left
+            # weights[:, 22, :, :] *= 10    #FX_right
+            # criterion = nn.BCEWithLogitsLoss(weight=weights)
+            criterion = nn.BCEWithLogitsLoss()
+
+        net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
+                   batchnorm=self.HP.BATCH_NORM, dropout=self.HP.USE_DROPOUT)
 
         if torch.cuda.is_available():
-            net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT).cuda()
-        else:
-            net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
+            net = net.cuda()
+        # else:
+        #     net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
+        #                batchnorm=self.HP.BATCH_NORM)
 
         # net = nn.DataParallel(net, device_ids=[0,1])
 
-        if self.HP.TRAIN:
-            ExpUtils.print_and_save(self.HP, str(net), only_log=True)
+        # if self.HP.TRAIN:
+        #     ExpUtils.print_and_save(self.HP, str(net), only_log=True)
 
-        # weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
-        # weights[:, 5, :, :] *= 10     #CA
-        # weights[:, 21, :, :] *= 10    #FX_left
-        # weights[:, 22, :, :] *= 10    #FX_right
-        # criterion = nn.BCEWithLogitsLoss(weight=weights)
-        criterion = nn.BCEWithLogitsLoss()
-
-        optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
-        # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
+        if self.HP.OPTIMIZER == "Adamax":
+            optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
+        elif self.HP.OPTIMIZER == "Adam":
+            optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)
+            # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE, weight_decay=self.HP.WEIGHT_DECAY)
+        else:
+            raise ValueError("Optimizer not defined")
         # scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
         # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
 

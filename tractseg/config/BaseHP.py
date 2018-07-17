@@ -46,7 +46,7 @@ class HP:
     LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
-    BATCH_SIZE = 50 #30/44  #max: #Peak Prediction: 44 #Pytorch: 50  #Lasagne: 56  #Lasagne combined: 42  #Pytorch UpSample: 56   #Pytorch_SE_r16: 45    #Pytorch_SE_r64: 45
+    BATCH_SIZE = 49 #30/44  #max: #Peak Prediction: 44 #Pytorch: 50  #Lasagne: 56  #Lasagne combined: 42  #Pytorch UpSample: 56   #Pytorch_SE_r16: 45    #Pytorch_SE_r64: 45
     LEARNING_RATE = 0.001  # 0.002 #LR find: 0.000143 ?  # 0.001
     UNET_NR_FILT = 64
     LOAD_WEIGHTS = False
