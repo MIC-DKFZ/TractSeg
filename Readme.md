@@ -178,8 +178,20 @@ The input image must have the same "orientation" as the Human Connectome Project
 LEFT of the HCP data). If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
 you are fine. Otherwise you should rigidly register your image to MNI space (the brains
 do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation).
+You can use the following FSL commands to rigidly register you image to MNI space (uses 
+the FA to calculate the transformation as this is more stable):
+```
+flirt -ref tractseg/examples/resources/MNI_FA_template.nii.gz -in FA.nii.gz \
+-out FA_MNI.nii.gz -omat FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo
+
+flirt -ref tractseg/examples/resources/MNI_FA_template.nii.gz -in Diffusion.nii.gz \
+-out Diffusion_MNI.nii.gz -applyxfm -init FA_2_MNI.mat -dof 6
+cp Diffusion.bvals Diffusion_MNI.bvals
+cp Diffusion.bvecs Diffusion_MNI.bvecs
+```
 Even if the input image is in MNI space the Mrtrix peaks might still be flipped. You should view
-the peaks in `mrview` and make sure they have the proper orientation.
+the peaks in `mrview` and make sure they have the proper orientation. Otherwise you might have to 
+flip the sign along the x, y or z axis. 
 
 **Did I install the prerequisites correctly?**
 
