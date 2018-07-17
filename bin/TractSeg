@@ -99,8 +99,8 @@ brain_mask = ExpUtils.get_brain_mask_path(HP, args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
 if not args.skip_peak_extraction:
-    if not args.brain_mask:
-        Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
+    if args.brain_mask is None:
+        brain_mask = Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
     Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE)
 
 if args.skip_peak_extraction:

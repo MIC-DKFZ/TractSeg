@@ -25,6 +25,7 @@ class Mrtrix():
         os.system("bet " + join(input_dir, input_file_without_ending) + " " + output_dir + "/nodif_brain_mask.nii.gz  -f 0.3 -g 0 -m")
         os.system("rm " + output_dir + "/nodif_brain_mask.nii.gz")           #masked brain
         os.system("mv " + output_dir + "/nodif_brain_mask_mask.nii.gz " + output_dir + "/nodif_brain_mask.nii.gz")
+        return join(output_dir, "nodif_brain_mask.nii.gz")
 
     @staticmethod
     def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type):
