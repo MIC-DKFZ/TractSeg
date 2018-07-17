@@ -203,10 +203,6 @@ You can check if you installed FSL correctly if you can run the following comman
 
 TractSeg uses these commands so they have to be available.
 
-**My image does not contain any b=1000mm/s^2 values.**
-
-Use `--csd_type csd_msmt` or `--csd_type csd_msmt_5tt`. Those work for any b-value.
-
 
 ## Train your own model
 TractSeg uses a pretrained model. However, you can also train your own model on your own data.

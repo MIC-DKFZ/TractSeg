@@ -53,7 +53,7 @@ parser.add_argument("-o", metavar="directory", dest="output", help="Output direc
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
 parser.add_argument("--csd_type", metavar="csd|csd_msmt|csd_msmt_5tt", choices=["csd", "csd_msmt", "csd_msmt_5tt"],
                     help="Which MRtrix constrained spherical deconvolution (CSD) is used for peak generation.\n" +
-                         "'csd' [DEFAULT]: Standard CSD. Very fast. Only uses b=1000mm/s^2. (if input image contains more shells all but b=1000mm/s^2 are discarded)\n" +
+                         "'csd' [DEFAULT]: Standard CSD. Very fast.\n" +
                          "'csd_msmt': Multi-shell multi-tissue CSD DHollander algorithm. Medium fast. Needs more than one b-value shell.\n" +
                          "'csd_msmt_5tt': Multi-shell multi-tissue CSD 5TT. Slow on large images. Needs more than one b-value shell." +
                          "Needs a T1 image (a file 'T1w_acpc_dc_restore_brain.nii.gz' must be in the input directory).", default="csd")

@@ -61,7 +61,7 @@ class Mrtrix():
                       " -fslgrad " + bvecs + " " + bvals + " -quiet")
             print("Creating peaks (2 of 3)...")
             os.system("dwi2fod csd " + input_file + " " + output_dir + "/response.txt " + output_dir +
-                      "/WM_FODs.mif -shell 1000 -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet")
+                      "/WM_FODs.mif -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet")
             print("Creating peaks (3 of 3)...")
             os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet")
         else:
