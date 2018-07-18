@@ -24,7 +24,7 @@ import os
 from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
 from batchgenerators.transforms.resample_transforms import ResampleTransform
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
-from batchgenerators.transforms.spatial_transforms import Mirror, SpatialTransform
+from batchgenerators.transforms.spatial_transforms import MirrorTransform, SpatialTransform
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
@@ -204,7 +204,7 @@ class DataManagerTrainingNiftiImgs:
                 if self.HP.DAUG_NOISE:
                     tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
 
-                # tfs.append(Mirror())
+                # tfs.append(MirrorTransform())
 
         #num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
