@@ -9,7 +9,7 @@ matrix:
     env: PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-linux_x86_64.whl
 before_install:
   - pip install $PYTORCH_URL
-  - pip install https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip
+  - pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip
 install:
   - pip install .
 script:

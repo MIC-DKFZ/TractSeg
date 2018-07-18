@@ -21,7 +21,7 @@ TractSeg only runs on Linux and OSX. It works with Python 2 and Python 3.
 * [Pytorch](http://pytorch.org/) (if you do not have a GPU, installing Pytorch via conda might be faster)
 * [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask this is not needed)
-* BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip`
+* BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip`
 
 #### Install TractSeg
 Latest stable version:
