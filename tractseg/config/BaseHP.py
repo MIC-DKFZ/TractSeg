@@ -17,6 +17,7 @@ class HP:
     DAUG_ELASTIC_DEFORM = True
     DAUG_RESAMPLE = True
     DAUG_ROTATE = False
+    DAUG_MIRROR = False
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
     DATASET = "HCP"             # HCP / HCP_32g
     RESOLUTION = "1.25mm"       # 1.25mm (/ 2.5mm)

@@ -171,6 +171,13 @@ class UNet_Pytorch(BaseModel):
                 loss = criterion(outputs_sigmoid, y)
             else:
                 loss = criterion(outputs, y)
+
+            if weight_factor > 1:
+                weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+                bundle_mask = y > 0
+                weights[bundle_mask.data] *= weight_factor  # 10
+                loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
+
             loss.backward()  # backward
             optimizer.step()  # optimise
             f1 = PytorchUtils.f1_score_macro(y.data, outputs_sigmoid.data, per_class=True, threshold=self.HP.THRESHOLD)
@@ -198,6 +205,13 @@ class UNet_Pytorch(BaseModel):
                 loss = criterion(outputs_sigmoid, y)
             else:
                 loss = criterion(outputs, y)
+
+            if weight_factor > 1:
+                weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+                bundle_mask = y > 0
+                weights[bundle_mask.data] *= weight_factor  # 10
+                loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
+
             f1 = PytorchUtils.f1_score_macro(y.data, outputs_sigmoid.data, per_class=True, threshold=self.HP.THRESHOLD)
             # probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster

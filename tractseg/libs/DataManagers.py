@@ -204,7 +204,8 @@ class DataManagerTrainingNiftiImgs:
                 if self.HP.DAUG_NOISE:
                     tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
 
-                # tfs.append(MirrorTransform())
+                if self.HP.DAUG_MIRROR:
+                    tfs.append(MirrorTransform())
 
         #num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=1, seeds=None)

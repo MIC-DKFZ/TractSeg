@@ -4,7 +4,7 @@ class HP(BaseHP):
 
     EXPERIMENT_TYPE = "endings_segmentation"
 
-    MODEL = "UNet_Pytorch_weighted"
+    MODEL = "UNet_Pytorch"
     # CLASSES = "20_endpoints"
     CLASSES = "All_endpoints"
     LOSS_WEIGHT = 5
