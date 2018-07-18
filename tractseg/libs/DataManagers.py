@@ -140,7 +140,7 @@ class DataManagerSingleSubjectByFile:
         tfs = []  # transforms
 
         if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=False))
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.HP.NORMALIZE_PER_CHANNEL))
         tfs.append(ReorderSegTransform())
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=2, seeds=None)  # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
         return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)

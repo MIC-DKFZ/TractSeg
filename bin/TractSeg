@@ -109,6 +109,9 @@ else:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
 data = data_img.get_data()
 
+# t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
+# data = np.concatenate((data, t1_data), axis=3)
+
 seg = run_tractseg(data, args.output_type, input_type=input_type,
                    single_orientation=args.single_orientation, verbose=args.verbose,
                    dropout_sampling=dropout_sampling, threshold=threshold, get_probs=get_probs)
