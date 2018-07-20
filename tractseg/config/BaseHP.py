@@ -10,7 +10,7 @@ class HP:
     MODEL = "UNet_Pytorch"          # UNet_Lasagne / UNet_Pytorch
     EXPERIMENT_TYPE = "tract_segmentation"    # tract_segmentation / endings_segmentation / dm_regression / peak_regression
 
-    NUM_EPOCHS = 500
+    NUM_EPOCHS = 250
     DATA_AUGMENTATION = False
     DAUG_SCALE = True
     DAUG_NOISE = True
