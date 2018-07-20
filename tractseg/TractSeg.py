@@ -41,8 +41,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     Run TractSeg
 
     :param data: input peaks (4D numpy array with shape [x,y,z,9])
-    :param brain_mask: 3D numpy array with shape [x,y,z]
-    :param output_type: "tract_segmentation" | "endings_segmentation" | "TOM"
+    :param output_type: "tract_segmentation" | "endings_segmentation" | "TOM" | "dm_regression"
     :param input_type: "peaks"
     :param verbose: show debugging infos
     :param dropout_sampling: create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)
