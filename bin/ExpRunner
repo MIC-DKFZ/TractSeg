@@ -41,6 +41,7 @@ from tractseg.libs.DataManagers import DataManagerSingleSubjectById
 from tractseg.libs.DataManagers import DataManagerTrainingNiftiImgs
 from tractseg.libs.DataManagers import DataManagerPrecomputedBatches
 from tractseg.libs.DataManagers import DataManagerPrecomputedBatches_noDLBG
+from tractseg.models.BaseModel import BaseModel
 
 '''
 #Run ubuntu:
@@ -177,8 +178,10 @@ def test_whole_subject(HP, model, subjects, type):
 dataManager = DataManagerTrainingNiftiImgs(HP)
 # dataManager = DataManagerPrecomputedBatches(HP)
 # dataManager = DataManagerPrecomputedBatches_noDLBG(HP)
-ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)
-model = ModelClass(HP)
+
+# ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)
+# model = ModelClass(HP)
+model = BaseModel(HP)
 trainer = Trainer(model, dataManager)
 
 if HP.TRAIN:
