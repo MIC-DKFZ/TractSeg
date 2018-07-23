@@ -7,7 +7,7 @@ class HP(BaseHP):
 
     MODEL = "UNet_Pytorch_Regression"
     CLASSES = "20"  # All / 11 / 20 / CST_right
-    BATCH_SIZE = 44
+    BATCH_SIZE = 44     #torch 0.3: 44
     LOSS_WEIGHT = 5
     LOSS_WEIGHT_LEN = -1  # nr of epochs
     LABELS_TYPE = np.float32

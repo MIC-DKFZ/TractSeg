@@ -189,6 +189,7 @@ class PytorchUtils:
             angles_weighted = angles / weights_bund
             scores.append(torch.mean(angles_weighted))
 
+        #BUG: in pytorch 0.4 this does not work anymore: have to use torch for taking mean which is derivable
         return -np.mean(scores)
 
     @staticmethod
@@ -202,8 +203,8 @@ class PytorchUtils:
         # score_per_bundle = {}
         # bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
 
-        scores = []
         nr_of_classes = int(y_true.shape[-1] / 3.)
+        scores = torch.zeros(nr_of_classes)
 
         for idx in range(nr_of_classes):
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
@@ -220,9 +221,9 @@ class PytorchUtils:
             # Flip angles to make it a minimization problem
             combined = -angles_weighted + lenghts_weighted / weights_bund.max()
 
-            scores.append(torch.mean(combined))
+            scores[idx] = torch.mean(combined)
 
-        return np.mean(scores)
+        return torch.mean(scores)
 
 
     @staticmethod
@@ -249,5 +250,6 @@ class PytorchUtils:
             angles_weighted = angles / weights_bund
             scores.append(torch.mean(angles_weighted))
 
+        #BUG: in pytorch 0.4 this does not work anymore: have to use torch for taking mean which is derivable
         return -np.mean(scores)
 
