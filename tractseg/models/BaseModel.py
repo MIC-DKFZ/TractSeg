@@ -83,10 +83,6 @@ class BaseModel:
             optimizer.zero_grad()
             net.train()
             outputs, outputs_sigmoid = net(X)  # forward     # outputs: (bs, classes, x, y)
-            if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
-                loss = criterion(outputs_sigmoid, y)
-            else:
-                loss = criterion(outputs, y)
 
             if weight_factor > 1:
                 weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
@@ -96,6 +92,11 @@ class BaseModel:
                     loss = criterion(outputs, y, weights)
                 else:
                     loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
+            else:
+                if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
+                    loss = criterion(outputs_sigmoid, y)
+                else:
+                    loss = criterion(outputs, y)
 
             loss.backward()  # backward
             optimizer.step()  # optimise
@@ -129,16 +130,20 @@ class BaseModel:
             else:
                 net.train(False)
             outputs, outputs_sigmoid = net(X)  # forward
-            if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
-                loss = criterion(outputs_sigmoid, y)
-            else:
-                loss = criterion(outputs, y)
 
             if weight_factor > 1:
                 weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
                 bundle_mask = y > 0
                 weights[bundle_mask.data] *= weight_factor  # 10
-                loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
+                if self.HP.EXPERIMENT_TYPE == "peak_regression":
+                    loss = criterion(outputs, y, weights)
+                else:
+                    loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
+            else:
+                if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
+                    loss = criterion(outputs_sigmoid, y)
+                else:
+                    loss = criterion(outputs, y)
 
             if self.HP.EXPERIMENT_TYPE == "peak_regression":
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
