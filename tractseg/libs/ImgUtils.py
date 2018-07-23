@@ -322,3 +322,31 @@ class ImgUtils:
         mask = data_max > 0.01
         mask = binary_dilation(mask, iterations=1)
         return mask.astype(np.uint8)
+
+    @staticmethod
+    def probs_to_binary_bundle_specific(seg, bundles):
+        '''
+
+        :param seg: [x,y,z,bundles]
+        :param bundles:
+        :return:
+        '''
+        assert len(bundles) == seg.shape[3], "dimensions seg and bundles do not match"
+
+        bundles_thresholds = {
+            "CA": 0.3,
+            "CST_left": 0.4,
+            "CST_right": 0.4,
+            "FX_left": 0.4,
+            "FX_right": 0.4,
+        }
+
+        segs_binary = []
+        for idx, bundle in enumerate(bundles):
+            if bundle in bundles_thresholds.keys():
+                thr = bundles_thresholds[bundle]
+            else:
+                thr = 0.5
+            segs_binary.append(seg[:,:,:,idx] > thr)
+
+        return np.array(segs_binary).transpose(1, 2, 3, 0).astype(np.uint8)

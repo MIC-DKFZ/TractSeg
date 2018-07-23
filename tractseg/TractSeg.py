@@ -34,9 +34,11 @@ from tractseg.libs.DirectionMerger import DirectionMerger
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
+from tractseg.models.BaseModel import BaseModel
 
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
-                 single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5, get_probs=False):
+                 single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5,
+                 bundle_specific_threshold=False, get_probs=False):
     '''
     Run TractSeg
 
@@ -46,6 +48,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     :param verbose: show debugging infos
     :param dropout_sampling: create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)
     :param threshold: Threshold for converting probability map to binary map
+    :param bundle_specific_threshold: Threshold is lower for some bundles which need more sensitivity (CA, CST, FX)
     :param get_probs: Output raw probability map instead of binary map
     :return: 4D numpy array with the output of tractseg
         for tract_segmentation:     [x,y,z,nr_of_bundles]
@@ -64,6 +67,9 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     HP.LOAD_WEIGHTS = True
     HP.DROPOUT_SAMPLING = dropout_sampling
     HP.THRESHOLD = threshold
+
+    if bundle_specific_threshold:
+        HP.GET_PROBS = True
 
     if input_type == "peaks":
         if HP.EXPERIMENT_TYPE == "tract_segmentation" and HP.DROPOUT_SAMPLING:
@@ -91,8 +97,6 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
     print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
 
-    ModelClass = getattr(importlib.import_module("tractseg.models." + HP.MODEL), HP.MODEL)   # run early before code changes in background
-
     if HP.EXPERIMENT_TYPE == "peak_regression":
         HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
     else:
@@ -114,7 +118,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     data, seg_None, bbox, original_shape = DatasetUtils.crop_to_nonzero(data)
     data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data, target_size=HP.INPUT_DIM[0])
 
-    model = ModelClass(HP)
+    model = BaseModel(HP)
 
     if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation" or HP.EXPERIMENT_TYPE == "dm_regression":
         if single_orientation:     # mainly needed for testing because of less RAM requirements
@@ -139,6 +143,9 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         #3 dir for Peaks -> not working (?)
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
         # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
+
+    if bundle_specific_threshold:
+        seg = ImgUtils.probs_to_binary_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:])
 
     seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
     seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES)
