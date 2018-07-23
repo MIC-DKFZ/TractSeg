@@ -24,7 +24,7 @@ import os
 from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
 from batchgenerators.transforms.resample_transforms import ResampleTransform
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
-from batchgenerators.transforms.spatial_transforms import SpatialTransform
+from batchgenerators.transforms.spatial_transforms import SpatialTransform, FlipVectorAxisTransform
 from batchgenerators.transforms.spatial_transforms import MirrorTransform
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.abstract_transforms import Compose
@@ -207,6 +207,9 @@ class DataManagerTrainingNiftiImgs:
 
                 if self.HP.DAUG_MIRROR:
                     tfs.append(MirrorTransform())
+
+                if self.HP.DAUG_FLIP_PEAKS:
+                    tfs.append(FlipVectorAxisTransform())
 
         #num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
