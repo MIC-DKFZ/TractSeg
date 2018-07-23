@@ -7,5 +7,3 @@ class HP(EndingsSegHP):
 
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
-
-    CLASSES = "20_endpoints"

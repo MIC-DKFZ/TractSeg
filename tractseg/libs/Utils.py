@@ -191,9 +191,10 @@ class Utils:
             WEIGHTS_URL = "https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1"
 
         elif experiment_type == "endings_segmentation":
-            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_endings_segmentation_v1.npz')
-            WEIGHTS_URL = "https://www.dropbox.com/s/dpwdhjkyew8eq4p/EndingsSeg_best_weights_ep423.npz?dl=1"
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_endings_segmentation_v1.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_endings_segmentation_v2.npz')
+            # WEIGHTS_URL = "https://www.dropbox.com/s/dpwdhjkyew8eq4p/EndingsSeg_best_weights_ep423.npz?dl=1"   #old: 20 classes
+            WEIGHTS_URL = "https://www.dropbox.com/s/l5fa6hhtbv5npvm/EndingsSeg_best_weights_ep176.npz?dl=1"     #All classes
 
         elif experiment_type == "peak_regression":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
