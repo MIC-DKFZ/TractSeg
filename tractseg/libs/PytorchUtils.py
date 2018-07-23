@@ -91,7 +91,7 @@ class PytorchUtils:
 
         intersect = torch.sum(y_true * y_pred)  # works because all multiplied by 0 gets 0
         denominator = torch.sum(y_true) + torch.sum(y_pred)  # works because all multiplied by 0 gets 0
-        f1 = (2 * intersect) / (denominator + 1e-6)
+        f1 = (2 * intersect.float()) / (denominator.float() + 1e-6)
         return f1
 
 
@@ -111,14 +111,14 @@ class PytorchUtils:
         axes = tuple(range(2, len(net_output.size())))
         intersect = PytorchUtils.sum_tensor(net_output * gt, axes, keepdim=False)
         denom = PytorchUtils.sum_tensor(net_output + gt, axes, keepdim=False)
-        return 1 - (2 * intersect / (denom + eps)).mean()
+        return 1 - (2 * intersect.float() / (denom.float() + eps)).mean()
 
     @staticmethod
     def soft_batch_dice(net_output, gt, eps=1e-6):
         axes = tuple([0] + list(range(2, len(net_output.size()))))
         intersect = PytorchUtils.sum_tensor(net_output * gt, axes, keepdim=False)
         denom = PytorchUtils.sum_tensor(net_output + gt, axes, keepdim=False)
-        return 1 - (2 * intersect / (denom + eps)).mean()
+        return 1 - (2 * intersect.float() / (denom.float() + eps)).mean()
 
     @staticmethod
     def MSE_weighted(y_pred, y_true, weights):

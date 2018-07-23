@@ -172,12 +172,10 @@ class UNet_Pytorch_DeepSup(BaseModel):
         # torch.backends.cudnn.benchmark = True     #not faster
 
         def train(X, y, weight_factor=10):
-            X = torch.from_numpy(X.astype(np.float32))
-            y = torch.from_numpy(y.astype(np.float32))
-            if torch.cuda.is_available():
-                X, y = Variable(X.cuda()), Variable(y.cuda())  # X: (bs, features, x, y)   y: (bs, classes, x, y)
-            else:
-                X, y = Variable(X), Variable(y)
+
+            X = torch.tensor(X, dtype=torch.float32).to(device)  # X: (bs, features, x, y)   y: (bs, classes, x, y)
+            y = torch.tensor(y, dtype=torch.float32).to(device)
+
             optimizer.zero_grad()
             net.train()
             outputs, outputs_sigmoid = net(X)  # forward     # outputs: (bs, classes, x, y)
@@ -187,22 +185,20 @@ class UNet_Pytorch_DeepSup(BaseModel):
                 loss = criterion(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs_sigmoid.data, per_class=True, threshold=self.HP.THRESHOLD)
+            f1 = PytorchUtils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
 
             if self.HP.USE_VISLOGGER:
-                probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+                probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             else:
                 probs = None    #faster
 
-            return loss.data[0], probs, f1
+            return loss.item(), probs, f1
 
         def test(X, y, weight_factor=10):
-            X = torch.from_numpy(X.astype(np.float32))
-            y = torch.from_numpy(y.astype(np.float32))
-            if torch.cuda.is_available():
-                X, y = Variable(X.cuda(), volatile=True), Variable(y.cuda(), volatile=True)
-            else:
-                X, y = Variable(X, volatile=True), Variable(y, volatile=True)
+            with torch.no_grad():
+                X = torch.tensor(X, dtype=torch.float32).to(device)  # X: (bs, features, x, y)   y: (bs, classes, x, y)
+                y = torch.tensor(y, dtype=torch.float32).to(device)
+
             if self.HP.DROPOUT_SAMPLING:
                 net.train()
             else:
@@ -212,23 +208,21 @@ class UNet_Pytorch_DeepSup(BaseModel):
                 loss = criterion(outputs_sigmoid, y)
             else:
                 loss = criterion(outputs, y)
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs_sigmoid.data, per_class=True, threshold=self.HP.THRESHOLD)
-            # probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            f1 = PytorchUtils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
+            # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
-            return loss.data[0], probs, f1
+            return loss.item(), probs, f1
 
         def predict(X):
-            X = torch.from_numpy(X.astype(np.float32))
-            if torch.cuda.is_available():
-                X = Variable(X.cuda(), volatile=True)
-            else:
-                X = Variable(X, volatile=True)
+            with torch.no_grad():
+                X = torch.tensor(X, dtype=torch.float32).to(device)
+
             if self.HP.DROPOUT_SAMPLING:
                 net.train()
             else:
                 net.train(False)
             outputs, outputs_sigmoid = net(X)  # forward
-            probs = outputs_sigmoid.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             return probs
 
         def save_model(metrics, epoch_nr):
@@ -279,11 +273,8 @@ class UNet_Pytorch_DeepSup(BaseModel):
         net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
                    batchnorm=self.HP.BATCH_NORM, dropout=self.HP.USE_DROPOUT)
 
-        if torch.cuda.is_available():
-            net = net.cuda()
-        # else:
-        #     net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT,
-        #                batchnorm=self.HP.BATCH_NORM)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        net = net.to(device)
 
         # net = nn.DataParallel(net, device_ids=[0,1])
 

@@ -158,12 +158,14 @@ class UNet_Pytorch(BaseModel):
         # torch.backends.cudnn.benchmark = True     #not faster
 
         def train(X, y, weight_factor=10):
-            X = torch.from_numpy(X.astype(np.float32))
-            y = torch.from_numpy(y.astype(np.float32))
-            # X = torch.tensor(X, dtype=torch.float32)
+            # X = torch.from_numpy(X.astype(np.float32))
+            # y = torch.from_numpy(y.astype(np.float32))
 
-            X = X.to(device)    # X: (bs, features, x, y)   y: (bs, classes, x, y)
-            y = y.to(device)
+            X = torch.tensor(X, dtype=torch.float32).to(device)   # X: (bs, features, x, y)   y: (bs, classes, x, y)
+            y = torch.tensor(y, dtype=torch.float32).to(device)
+
+            # X = X.to(device)    # X: (bs, features, x, y)   y: (bs, classes, x, y)
+            # y = y.to(device)
 
             # if torch.cuda.is_available():
             #     X, y = Variable(X.cuda()), Variable(y.cuda())  # X: (bs, features, x, y)   y: (bs, classes, x, y)
@@ -188,8 +190,6 @@ class UNet_Pytorch(BaseModel):
             optimizer.step()  # optimise
             f1 = PytorchUtils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
 
-            print("f1 train: {}".format(f1))
-
             if self.HP.USE_VISLOGGER:
                 probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             else:
@@ -198,17 +198,15 @@ class UNet_Pytorch(BaseModel):
             return loss.item(), probs, f1
 
         def test(X, y, weight_factor=10):
-            X = torch.from_numpy(X.astype(np.float32))
-            y = torch.from_numpy(y.astype(np.float32))
+            # X = torch.from_numpy(X.astype(np.float32))
+            # y = torch.from_numpy(y.astype(np.float32))
 
             with torch.no_grad():
-                X = X.to(device)
-                y = y.to(device)
+                X = torch.tensor(X, dtype=torch.float32).to(device)
+                y = torch.tensor(y, dtype=torch.float32).to(device)
 
-            # if torch.cuda.is_available():
-            #     X, y = Variable(X.cuda(), volatile=True), Variable(y.cuda(), volatile=True)
-            # else:
-            #     X, y = Variable(X, volatile=True), Variable(y, volatile=True)
+                # X = X.to(device)
+                # y = y.to(device)
 
             if self.HP.DROPOUT_SAMPLING:
                 net.train()
@@ -228,17 +226,16 @@ class UNet_Pytorch(BaseModel):
 
             f1 = PytorchUtils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
 
-            print("f1 test: {}".format(f1))
-
             # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.item(), probs, f1
 
         def predict(X):
-            X = torch.from_numpy(X.astype(np.float32))
+            # X = torch.from_numpy(X.astype(np.float32))
 
             with torch.no_grad():
-                X = X.to(device)
+                # X = X.to(device)
+                X = torch.tensor(X, dtype=torch.float32).to(device)
 
             # if torch.cuda.is_available():
             #     X = Variable(X.cuda(), volatile=True)
