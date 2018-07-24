@@ -94,7 +94,9 @@ class BaseModel:
                     loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
             else:
                 if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
+                    #todo important: change
                     loss = criterion(outputs_sigmoid, y)
+                    # loss = criterion(outputs_sigmoid, y) + nn.BCEWithLogitsLoss()(outputs, y)
                 else:
                     loss = criterion(outputs, y)
 
@@ -141,7 +143,9 @@ class BaseModel:
                     loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
             else:
                 if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
+                    #todo important: change
                     loss = criterion(outputs_sigmoid, y)
+                    # loss = criterion(outputs_sigmoid, y) + nn.BCEWithLogitsLoss()(outputs, y)
                 else:
                     loss = criterion(outputs, y)
 
