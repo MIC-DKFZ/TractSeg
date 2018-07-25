@@ -85,7 +85,8 @@ class BaseModel:
             outputs, outputs_sigmoid = net(X)  # forward     # outputs: (bs, classes, x, y)
 
             if weight_factor > 1:
-                weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+                # weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+                weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, y.shape[2], y.shape[3])).cuda()
                 bundle_mask = y > 0
                 weights[bundle_mask.data] *= weight_factor  # 10
                 if self.HP.EXPERIMENT_TYPE == "peak_regression":
@@ -134,7 +135,8 @@ class BaseModel:
             outputs, outputs_sigmoid = net(X)  # forward
 
             if weight_factor > 1:
-                weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+                # weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
+                weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, y.shape[2], y.shape[3])).cuda()
                 bundle_mask = y > 0
                 weights[bundle_mask.data] *= weight_factor  # 10
                 if self.HP.EXPERIMENT_TYPE == "peak_regression":

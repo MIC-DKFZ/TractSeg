@@ -20,7 +20,7 @@ class HP:
     DAUG_MIRROR = False
     DAUG_FLIP_PEAKS = False
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
-    DATASET = "HCP"             # HCP / HCP_32g
+    DATASET = "HCP"             # HCP / HCP_32g / Schizo
     RESOLUTION = "1.25mm"       # 1.25mm (/ 2.5mm)
     FEATURES_FILENAME = "12g90g270g"  # 12g90g270g / 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
     LABELS_FILENAME = ""        # autofilled      #"bundle_peaks/CA"  #IMPORTANT: Adapt BatchGen if 808080              # bundle_masks / bundle_masks_72 / bundle_masks_dm / bundle_peaks      #Only used when using DataManagerNifti
@@ -44,7 +44,7 @@ class HP:
 
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"  # HCP / HCP_batches/XXX / TRACED / HCP_fusion_npy_270g_125mm / HCP_fusion_npy_32g_25mm
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_XYZ"
-    DATASET_FOLDER = "HCP"
+    DATASET_FOLDER = "HCP"      # HCP / Schizo
     LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path

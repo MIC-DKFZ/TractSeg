@@ -361,7 +361,7 @@ class ExpUtils:
         return mask_ml
 
     @staticmethod
-    def get_cv_fold(fold):
+    def get_cv_fold(fold, dataset="HCP"):
         '''
         Brauche train-test-validate wegen Best-model selection und wegen training von combined net
         :return:
@@ -380,12 +380,21 @@ class ExpUtils:
         elif fold == 4:
             train, validate, test = [4, 0, 1], [2], [3]
 
-        # subjects = list(Utils.chunks(get_all_subjects()[:100], 10))   #10 folds
-        subjects = list(Utils.chunks(get_all_subjects(), 21))   #5 folds a 21 subjects
-        # => 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
+        subjects = get_all_subjects(dataset)
+
+        if dataset.startswith("HCP"):
+            # subjects = list(Utils.chunks(subjects[:100], 10))   #10 folds
+            subjects = list(Utils.chunks(subjects, 21))   #5 folds a 21 subjects
+            # => 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
+        elif dataset.startswith("Schizo"):
+            # 410 subjects
+            subjects = list(Utils.chunks(subjects, 82))  # 5 folds a 82 subjects
+        else:
+            raise ValueError("Invalid dataset name")
 
         subjects = np.array(subjects)
         return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
+
 
     @staticmethod
     def print_and_save(HP, text, only_log=False):

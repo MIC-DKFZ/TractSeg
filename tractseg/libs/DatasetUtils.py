@@ -43,6 +43,9 @@ class DatasetUtils():
                 return img4d[1:, 15:159, 1:]  # (144,144,144)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '1.25mm' not supported for dataset 'TRACED'")
+            elif dataset == "Schizo":  # (91,109,91)
+                img4d = ImgUtils.resize_first_three_dims(img4d, zoom=1.60)  # (146,174,146)
+                return img4d[1:145, 15:159, 1:145]                                # (144,144,144)
 
         elif resolution == "2mm":
             if dataset == "HCP":  # (145,174,145)
@@ -82,6 +85,7 @@ class DatasetUtils():
                 bg[1:79, :, 3:78, :] = img4d[:, 7:87, :, :]
                 return bg  # (80,80,80)
 
+
     @staticmethod
     def scale_input_to_world_shape(img4d, dataset, resolution="1.25mm"):
         '''
@@ -101,6 +105,9 @@ class DatasetUtils():
                 return ImgUtils.pad_4d_image_left(img4d, np.array([1,15,1,0]), [146,174,146,img4d.shape[3]], pad_value=0)  # (146, 174, 146, none)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '1.25mm' not supported for dataset 'TRACED'")
+            elif dataset == "Schizo":  # (144,144,144)
+                img4d = ImgUtils.pad_4d_image_left(img4d, np.array([1,15,1,0]), [145,174,145,img4d.shape[3]], pad_value=0)  # (145, 174, 145, none)
+                return ImgUtils.resize_first_three_dims(img4d, zoom=0.62)  # (91,109,91)
 
         elif resolution == "2mm":
             if dataset == "HCP":  # (80,80,80)
@@ -226,7 +233,7 @@ class DatasetUtils():
         return image[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]]
 
     @staticmethod
-    def crop_to_nonzero(data, seg=None, nonzero_label=-1):
+    def crop_to_nonzero(data, seg=None):
         original_shape = data.shape
         bbox = DatasetUtils.get_bbox_from_mask(data, 0)
 

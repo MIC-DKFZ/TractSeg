@@ -162,9 +162,6 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
                 seg = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
                 break
             except IOError:
-                #todo important: change
-                # ExpUtils.print_and_save(self.HP, join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], "270g_125mm_peaks.nii.gz"))
-                # ExpUtils.print_and_save(self.HP, join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz"))
                 ExpUtils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
             ExpUtils.print_and_save(self.HP, "Sleeping 20s")
             sleep(20)
@@ -182,7 +179,6 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
                 seg = DatasetUtils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
             else:
                 seg = DatasetUtils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
-
 
         slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
 
