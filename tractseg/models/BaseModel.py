@@ -74,6 +74,7 @@ class BaseModel:
 
         self.create_network()
 
+
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
@@ -96,12 +97,12 @@ class BaseModel:
                     loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
             else:
                 if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
-                    #todo important: change
                     loss = criterion(outputs_sigmoid, y)
                     # loss = criterion(outputs_sigmoid, y) + nn.BCEWithLogitsLoss()(outputs, y)
                 else:
                     loss = criterion(outputs, y)
 
+            scheduler.step()
             loss.backward()  # backward
             optimizer.step()  # optimise
 
@@ -116,13 +117,14 @@ class BaseModel:
             else:
                 f1 = PytorchUtils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
 
-
             if self.HP.USE_VISLOGGER:
-                probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+                # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+                probs = outputs_sigmoid
             else:
                 probs = None    #faster
 
             return loss.item(), probs, f1
+
 
         def test(X, y, weight_factor=10):
             with torch.no_grad():
@@ -146,7 +148,6 @@ class BaseModel:
                     loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
             else:
                 if self.HP.LOSS_FUNCTION == "soft_sample_dice" or self.HP.LOSS_FUNCTION == "soft_batch_dice":
-                    #todo important: change
                     loss = criterion(outputs_sigmoid, y)
                     # loss = criterion(outputs_sigmoid, y) + nn.BCEWithLogitsLoss()(outputs, y)
                 else:
@@ -163,9 +164,14 @@ class BaseModel:
             else:
                 f1 = PytorchUtils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
 
-            # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
-            probs = None  # faster
+            if self.HP.USE_VISLOGGER:
+                # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+                probs = outputs_sigmoid
+            else:
+                probs = None  # faster
+
             return loss.item(), probs, f1
+
 
         def predict(X):
             with torch.no_grad():
@@ -178,6 +184,7 @@ class BaseModel:
             outputs, outputs_sigmoid = net(X)  # forward
             probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             return probs
+
 
         def save_model(metrics, epoch_nr):
             max_f1_idx = np.argmax(metrics["f1_macro_validate"])
@@ -243,7 +250,8 @@ class BaseModel:
             # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE, weight_decay=self.HP.WEIGHT_DECAY)
         else:
             raise ValueError("Optimizer not defined")
-        # scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
+        #todo important: change
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
         # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
 
         if self.HP.LOAD_WEIGHTS:

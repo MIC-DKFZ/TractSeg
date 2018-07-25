@@ -19,7 +19,7 @@ from os.path import join
 import time
 import pickle
 from pprint import pprint
-
+import torch
 import numpy as np
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.MetricUtils import MetricUtils
@@ -29,7 +29,9 @@ from tqdm import tqdm
 import datetime
 
 try:
-    from vislogger import NumpyVisdomLogger as Nvl
+    # from vislogger import NumpyVisdomLogger as Nvl
+    from trixi.logger.visdom import PytorchVisdomLogger
+    # from trixi.logger.visdom import NumpyVisdomLogger
 except ImportError:
     pass
 
@@ -42,7 +44,7 @@ class Trainer:
     def train(self, HP):
 
         if HP.USE_VISLOGGER:
-            nvl = Nvl(name="Training")
+            trixi = PytorchVisdomLogger(port=8080, auto_start=True)
 
         ExpUtils.print_and_save(HP, socket.gethostname())
 
@@ -168,40 +170,8 @@ class Trainer:
                         print_loss = []
 
                     if HP.USE_VISLOGGER:
-                        x_norm = (x - x.min()) / (x.max() - x.min())
-                        nvl.show_images(x_norm[0:1, :, :, :].transpose((1,0,2,3)), name="input batch", title="Input batch")   #all channels of one batch
-                        probs_shaped = probs[:, :, :, 15:16].transpose((0,3,1,2))  # (bs, 1, x, y)
-                        probs_shaped_bin = (probs_shaped > 0.5).astype(np.int16)
-                        nvl.show_images(probs_shaped, name="predictions", title="Predictions Probmap")
-                        # nvl.show_images(probs_shaped_bin, name="predictions_binary", title="Predictions Binary")
+                        ExpUtils.plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr)
 
-                        # Show GT and Prediction in one image  (bundle: CST)
-                        # GREEN: GT; RED: prediction (FP); YELLOW: prediction (TP)
-                        combined = np.zeros((y.shape[0], 3, y.shape[2], y.shape[3]))
-                        combined[:, 0:1, :, :] = probs_shaped_bin   #Red
-                        combined[:, 1:2,:,:] = y[:, 15:16, :, :]    #Green
-                        nvl.show_images(combined, name="predictions_combined", title="Combined")
-
-                        #Show feature activations
-                        contr_1_2 = intermediate[2].data.cpu().numpy()   # (bs, nr_feature_channels=64, x, y)
-                        contr_1_2 = contr_1_2[0:1,:,:,:].transpose((1,0,2,3)) # (nr_feature_channels=64, 1, x, y)
-                        contr_1_2 = (contr_1_2 - contr_1_2.min()) / (contr_1_2.max() - contr_1_2.min())
-                        nvl.show_images(contr_1_2, name="contr_1_2", title="contr_1_2")
-
-                        # Show feature activations
-                        contr_3_2 = intermediate[1].data.cpu().numpy()  # (bs, nr_feature_channels=64, x, y)
-                        contr_3_2 = contr_3_2[0:1, :, :, :].transpose((1, 0, 2, 3))  # (nr_feature_channels=64, 1, x, y)
-                        contr_3_2 = (contr_3_2 - contr_3_2.min()) / (contr_3_2.max() - contr_3_2.min())
-                        nvl.show_images(contr_3_2, name="contr_3_2", title="contr_3_2")
-
-                        # Show feature activations
-                        deconv_2 = intermediate[0].data.cpu().numpy()  # (bs, nr_feature_channels=64, x, y)
-                        deconv_2 = deconv_2[0:1, :, :, :].transpose((1, 0, 2, 3))  # (nr_feature_channels=64, 1, x, y)
-                        deconv_2 = (deconv_2 - deconv_2.min()) / (deconv_2.max() - deconv_2.min())
-                        nvl.show_images(deconv_2, name="deconv_2", title="deconv_2")
-
-                        nvl.show_value(float(loss), name="loss")
-                        nvl.show_value(float(np.mean(f1)), name="f1")
 
             ###################################
             # Post Training tasks (each epoch)

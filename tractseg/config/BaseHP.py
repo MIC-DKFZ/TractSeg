@@ -82,7 +82,7 @@ class HP:
     LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
     THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
-    USE_VISLOGGER = False
+    USE_VISLOGGER = False   #only works with Python 3
     SAVE_WEIGHTS = True
     SEG_INPUT = "Peaks"     # Gradients/ Peaks
     NR_SLICES = 1           # adapt manually: NR_OF_GRADIENTS in UNet.py and get_batch... in train() and in get_seg_prediction()
