@@ -27,29 +27,8 @@ from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.models.BaseModel import BaseModel
 from tractseg.libs.MetricUtils import MetricUtils
-
-# nonlinearity = nn.ReLU()
-nonlinearity = nn.LeakyReLU()
-
-def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
-    if batchnorm:
-        layer = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=bias),
-            nn.BatchNorm2d(out_channels),
-            nonlinearity)
-    else:
-        layer = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=bias),
-            nonlinearity)
-    return layer
-
-
-def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, output_padding=0, bias=True):
-    layer = nn.Sequential(
-        nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride,
-                           padding=padding, output_padding=output_padding, bias=bias),
-        nonlinearity)
-    return layer
+from tractseg.libs.PytorchUtils import conv2d
+from tractseg.libs.PytorchUtils import deconv2d
 
 
 class UNet_Pytorch_Regression(torch.nn.Module):

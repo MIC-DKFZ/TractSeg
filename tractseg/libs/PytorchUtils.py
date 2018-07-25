@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import torch
+import torch.nn as nn
 import numpy as np
 
 class PytorchUtils:
@@ -252,4 +253,31 @@ class PytorchUtils:
 
         #BUG: in pytorch 0.4 this does not work anymore: have to use torch for taking mean which is derivable
         return -np.mean(scores)
+
+
+
+def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
+    # nonlinearity = nn.ReLU()
+    nonlinearity = nn.LeakyReLU()
+
+    if batchnorm:
+        layer = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=bias),
+            nn.BatchNorm2d(out_channels),
+            nonlinearity)
+    else:
+        layer = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=bias),
+            nonlinearity)
+    return layer
+
+def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, output_padding=0, bias=True):
+    # nonlinearity = nn.ReLU()
+    nonlinearity = nn.LeakyReLU()
+
+    layer = nn.Sequential(
+        nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride,
+                           padding=padding, output_padding=output_padding, bias=bias),
+        nonlinearity)
+    return layer
 

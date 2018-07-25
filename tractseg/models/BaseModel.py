@@ -58,6 +58,7 @@ import importlib
 from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.MetricUtils import MetricUtils
+from tractseg.libs.PytorchUtils import conv2d
 
 class BaseModel:
     def __init__(self, HP):
@@ -248,6 +249,9 @@ class BaseModel:
         if self.HP.LOAD_WEIGHTS:
             ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
+
+        #Reset last layer
+        # net.conv_5 = conv2d(self.HP.UNET_NR_FILT, self.HP.NR_OF_CLASSES, kernel_size=1, stride=1, padding=0, bias=True)
 
         self.train = train
         self.predict = test

@@ -183,13 +183,13 @@ class DataManagerTrainingNiftiImgs:
         if self.HP.NORMALIZE_DATA:
             tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.HP.NORMALIZE_PER_CHANNEL))
 
+        if self.HP.DATASET == "Schizo" and self.HP.RESOLUTION == "2mm":
+            tfs.append(PadToMultipleTransform(16))
+
         if self.HP.DATA_AUGMENTATION:
             if type == "train":
                 # scale: inverted: 0.5 -> bigger; 2 -> smaller
                 # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
-
-                if self.HP.DATASET == "Schizo" and self.HP.RESOLUTION == "2mm":
-                    tfs.append(PadToMultipleTransform(16))
 
                 if self.HP.DAUG_SCALE:
                     center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
