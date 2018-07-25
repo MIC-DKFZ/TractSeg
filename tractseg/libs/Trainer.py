@@ -28,13 +28,6 @@ import socket
 from tqdm import tqdm
 import datetime
 
-try:
-    # from vislogger import NumpyVisdomLogger as Nvl
-    from trixi.logger.visdom import PytorchVisdomLogger
-    # from trixi.logger.visdom import NumpyVisdomLogger
-except ImportError:
-    pass
-
 class Trainer:
 
     def __init__(self, model, dataManager):
@@ -44,6 +37,10 @@ class Trainer:
     def train(self, HP):
 
         if HP.USE_VISLOGGER:
+            try:
+                from trixi.logger.visdom import PytorchVisdomLogger
+            except ImportError:
+                pass
             trixi = PytorchVisdomLogger(port=8080, auto_start=True)
 
         ExpUtils.print_and_save(HP, socket.gethostname())
@@ -178,9 +175,10 @@ class Trainer:
             ###################################
 
             #Adapt LR
-            # self.model.scheduler.step()
-            # self.model.scheduler.step(np.mean(f1))
-            # self.model.print_current_lr()
+            if HP.LR_SCHEDULE:
+                self.model.scheduler.step()
+                # self.model.scheduler.step(np.mean(f1))
+                self.model.print_current_lr()
 
             # Average loss per batch over entire epoch
             metrics = MetricUtils.normalize_last_element(metrics, batch_nr["train"], type="train")

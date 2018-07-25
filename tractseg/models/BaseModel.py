@@ -102,7 +102,6 @@ class BaseModel:
                 else:
                     loss = criterion(outputs, y)
 
-            scheduler.step()
             loss.backward()  # backward
             optimizer.step()  # optimise
 
@@ -250,9 +249,11 @@ class BaseModel:
             # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE, weight_decay=self.HP.WEIGHT_DECAY)
         else:
             raise ValueError("Optimizer not defined")
-        #todo important: change
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
-        # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
+
+        if self.HP.LR_SCHEDULE:
+            scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+            # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
+            self.scheduler = scheduler
 
         if self.HP.LOAD_WEIGHTS:
             ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
@@ -267,4 +268,3 @@ class BaseModel:
         self.save_model = save_model
         self.load_model = load_model
         self.print_current_lr = print_current_lr
-        # self.scheduler = scheduler
