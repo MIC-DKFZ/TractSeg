@@ -101,7 +101,12 @@ if HP.WEIGHTS_PATH == "":
     HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
 
 #Autoset some parameters based on settings
-HP.INPUT_DIM = (144, 144) if HP.RESOLUTION == "1.25mm" else (80, 80)
+if HP.RESOLUTION == "1.25mm":
+    HP.INPUT_DIM = (144, 144)
+elif HP.RESOLUTION == "2mm":
+    HP.INPUT_DIM = (96, 96)
+elif HP.RESOLUTION == "2.5mm":
+    HP.INPUT_DIM = (80, 80)
 HP = ExpUtils.get_labels_filename(HP)
 
 if HP.EXPERIMENT_TYPE == "peak_regression":

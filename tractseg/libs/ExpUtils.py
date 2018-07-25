@@ -318,6 +318,8 @@ class ExpUtils:
         elif HP.CLASSES == "All" and HP.EXPERIMENT_TYPE == "tract_segmentation":
             if HP.RESOLUTION == "1.25mm":
                 HP.LABELS_FILENAME = "bundle_masks_72"
+            elif HP.RESOLUTION == "2mm" and HP.DATASET == "Schizo":
+                HP.LABELS_FILENAME = "bundle_masks_72"
             else:
                 HP.LABELS_FILENAME = "bundle_masks_72_808080"
 

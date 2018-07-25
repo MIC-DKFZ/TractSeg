@@ -26,6 +26,7 @@ from batchgenerators.transforms.resample_transforms import ResampleTransform
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
 from batchgenerators.transforms.spatial_transforms import SpatialTransform, FlipVectorAxisTransform
 from batchgenerators.transforms.spatial_transforms import MirrorTransform
+from batchgenerators.transforms.crop_and_pad_transforms import PadToMultipleTransform
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
@@ -186,6 +187,9 @@ class DataManagerTrainingNiftiImgs:
             if type == "train":
                 # scale: inverted: 0.5 -> bigger; 2 -> smaller
                 # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
+
+                if self.HP.DATASET == "Schizo" and self.HP.RESOLUTION == "2mm":
+                    tfs.append(PadToMultipleTransform(16))
 
                 if self.HP.DAUG_SCALE:
                     center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62

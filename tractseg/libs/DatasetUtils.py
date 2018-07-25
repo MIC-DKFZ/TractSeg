@@ -59,6 +59,8 @@ class DatasetUtils():
                 return img4d[5:85, 14:94, 5:85, :]  # (80,80,80)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '2mm' not supported for dataset 'TRACED'")
+            elif dataset == "Schizo":  # (91,109,91)
+                return img4d[:, 9:100, :]                                # (91,91,91)
 
         elif resolution == "2.5mm":
             if dataset == "HCP":  # (145,174,145)
