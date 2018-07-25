@@ -64,6 +64,7 @@ class HP:
     SEGMENT = False
     GET_PROBS = False
     OUTPUT_MULTIPLE_FILES = False
+    RESET_LAST_LAYER = False
 
     # Peak_regression specific
     PEAK_DICE_THR = [0.95]
