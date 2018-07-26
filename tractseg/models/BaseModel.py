@@ -260,7 +260,8 @@ class BaseModel:
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
 
         if self.HP.RESET_LAST_LAYER:
-            net.conv_5 = conv2d(self.HP.UNET_NR_FILT, self.HP.NR_OF_CLASSES, kernel_size=1, stride=1, padding=0, bias=True).to(device)
+            # net.conv_5 = conv2d(self.HP.UNET_NR_FILT, self.HP.NR_OF_CLASSES, kernel_size=1, stride=1, padding=0, bias=True).to(device)
+            net.conv_5 = nn.Conv2d(self.HP.UNET_NR_FILT, self.HP.NR_OF_CLASSES, kernel_size=1, stride=1, padding=0, bias=True).to(device)
 
         self.train = train
         self.predict = test
