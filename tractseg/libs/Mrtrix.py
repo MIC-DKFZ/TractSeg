@@ -29,6 +29,8 @@ class Mrtrix():
 
     @staticmethod
     def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type):
+        os.system("export PATH=/code/mrtrix3/bin:$PATH")
+
         if csd_type == "csd_msmt_5tt":
             # MSMT 5TT
             print("Creating peaks (1 of 4)...")
