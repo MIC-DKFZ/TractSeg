@@ -89,23 +89,20 @@ RUN mkdir -p ~/.tractseg \
     && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v1.npz https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1
 
 # This command does not get cached -> very slow each time when building container -> use prebuild mrtrix_RC3.tar.gz instead
-#RUN mkdir /code && cd /code \
-#    && git clone https://github.com/MRtrix3/mrtrix3.git \
-#    && cd mrtrix3/ \
-#    && git checkout 3.0_RC3 \
-#    && ./configure \
-#    && ./build \
-#    && ./set_path \
+RUN mkdir /code && cd /code \
+    && git clone https://github.com/MRtrix3/mrtrix3.git \
+    && cd mrtrix3/ \
+    && git checkout 3.0_RC3 \
+    && ./configure \
+    && ./build \
+    && ./set_path \
 
-RUN mkdir /code
-COPY mrtrix3_RC3.tar.gz /code
-RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
-    && /code/mrtrix3/set_path
+#RUN mkdir /code
+#COPY mrtrix3_RC3.tar.gz /code
+#RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
+#    && /code/mrtrix3/set_path
 
-# All of these options do not work -> added mrtrix to path in python
-#RUN /bin/bash -c "source ~/.bashrc"
-#RUN /bin/bash -c "export PATH=/code/mrtrix3/bin:$PATH
-#RUN export PATH=/code/mrtrix3/bin:$PATH
+# Does not work -> added mrtrix to path in python
 ENV PATH /code/mrtrix3/bin:$PATH
 
 # Using this we can avoid having to call TractSeg each time -> but has problems finding bet then
