@@ -68,19 +68,10 @@ RUN echo '{ \
     \n}' > /neurodocker/neurodocker_specs.json
 
 RUN apt-get update \
-    && apt-get -y install git g++ python python-numpy libeigen3-dev zlib1g-dev libqt4-opengl-dev libgl1-mesa-dev libfftw3-dev libtiff5-dev \
+    && apt-get -y install git g++ python python-numpy libeigen3-dev zlib1g-dev libqt4-opengl-dev libgl1-mesa-dev libfftw3-dev libtiff5-dev curl \
     && apt-get -y install git-core \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN mkdir /code && cd /code \
-    && git clone https://github.com/MRtrix3/mrtrix3.git \
-    && cd mrtrix3/ \
-    && ./configure \
-    && ./build \
-    && ./set_path \
-    
-RUN /bin/bash -c "source ~/.bashrc"
 
 RUN apt-get update \
     && apt-get -y install python-setuptools python-dev build-essential \
@@ -89,9 +80,34 @@ RUN apt-get update \
     && easy_install pip \
     && pip install wheel numpy scipy nilearn matplotlib scikit-image nibabel \
     && pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl \
-    && pip install https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip \
-    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.2.zip
+    && pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip \
+    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/update_torch4.zip \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN mkdir -p ~/.tractseg \
+    && cd ~/.tractseg \
+    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v1.npz https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1
 
+# This command does not get cached -> very slow each time when building container -> use prebuild mrtrix_RC3.tar.gz instead
+#RUN mkdir /code && cd /code \
+#    && git clone https://github.com/MRtrix3/mrtrix3.git \
+#    && cd mrtrix3/ \
+#    && git checkout 3.0_RC3 \
+#    && ./configure \
+#    && ./build \
+#    && ./set_path \
 
+RUN mkdir /code
+COPY mrtrix3_RC3.tar.gz /code
+RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
+    && /code/mrtrix3/set_path
+
+# All of these options do not work -> added mrtrix to path in python
+#RUN /bin/bash -c "source ~/.bashrc"
+#RUN /bin/bash -c "export PATH=/code/mrtrix3/bin:$PATH
+#RUN export PATH=/code/mrtrix3/bin:$PATH
+ENV PATH /code/mrtrix3/bin:$PATH
+
+# Using this we can avoid having to call TractSeg each time -> but has problems finding bet then
+#ENTRYPOINT ["TractSeg"]
 
