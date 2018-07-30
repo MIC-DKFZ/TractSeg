@@ -97,6 +97,7 @@ RUN mkdir /code && cd /code \
     && ./build \
     && ./set_path \
 
+# This is a lot faster
 #RUN mkdir /code
 #COPY mrtrix3_RC3.tar.gz /code
 #RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
