@@ -69,20 +69,13 @@ RUN echo '{ \
 
 RUN apt-get update \
     && apt-get -y install git g++ python python-numpy libeigen3-dev zlib1g-dev libqt4-opengl-dev libgl1-mesa-dev libfftw3-dev libtiff5-dev curl \
-    && apt-get -y install git-core \
+    && apt-get -y install git-core python-setuptools python-dev build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN apt-get update \
-    && apt-get -y install python-setuptools python-dev build-essential \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && easy_install pip \
+RUN easy_install pip \
     && pip install wheel numpy scipy nilearn matplotlib scikit-image nibabel \
-    && pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl \
-    && pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip \
-    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/update_torch4.zip \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl
 
 RUN mkdir -p ~/.tractseg \
     && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v1.npz https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1 \
@@ -104,6 +97,9 @@ RUN mkdir /code && cd /code \
 #COPY mrtrix3_RC3.tar.gz /code
 #RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
 #    && /code/mrtrix3/set_path
+
+RUN pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip \
+    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/update_torch4.zip
 
 # Does not work -> added mrtrix to path in python
 ENV PATH /code/mrtrix3/bin:$PATH
