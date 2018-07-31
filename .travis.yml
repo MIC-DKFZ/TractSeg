@@ -15,4 +15,5 @@ install:
 script:
   - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --single_orientation
   - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type TOM --single_orientation
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type TOM --endings_segmentation
   - pytest

@@ -18,6 +18,8 @@
 import warnings
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
 
 import argparse
 import importlib
@@ -40,6 +42,7 @@ from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
 from tractseg.TractSeg import run_tractseg
 
+
 '''
 Usage:
 TractSeg -i peaks.nii.gz --output_multiple_files --skip_peak_extraction
@@ -60,7 +63,7 @@ parser.add_argument("--csd_type", metavar="csd|csd_msmt|csd_msmt_5tt", choices=[
 parser.add_argument("--output_type", metavar="tract_segmentation|endings_segmentation|TOM|dm_regression", choices=["tract_segmentation", "endings_segmentation", "TOM", "dm_regression"],
                     help="TractSeg can segment not only bundles, but also the end regions of bundles. Moreover it can create Tract Orientation Maps (TOM).\n" +
                          "'tract_segmentation' [DEFAULT]: Segmentation of bundles (72 bundles).\n" +
-                         "'endings_segmentation': Segmentation of bundle end regions (20 bundles).\n" +
+                         "'endings_segmentation': Segmentation of bundle end regions (72 bundles).\n" +
                          "'TOM': Tract Orientation Maps (20 bundles).",
                     default="tract_segmentation")
 parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is '<name_of_input_file>.bvals' in same directory as input")  #todo: change default
@@ -74,7 +77,7 @@ parser.add_argument("--flip", action="store_true", help="Flip output peaks of TO
 parser.add_argument("--single_orientation", action="store_true", help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.", default=False)
 parser.add_argument("--bundle_specific_threshold", action="store_true", help="For converting probability maps to binary maps use lower threshold for difficult bundles like CA, FX and CST", default=False)
 parser.add_argument("--get_probabilities", action="store_true", help="Output probability map instead of binary segmentation", default=False)
-parser.add_argument('--version', action='version', version='TractSeg 1.3')
+parser.add_argument('--version', action='version', version='TractSeg 1.4')
 args = parser.parse_args()
 
 #Private parameters

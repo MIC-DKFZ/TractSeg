@@ -18,6 +18,8 @@
 import warnings
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
 
 import os
 import importlib
@@ -67,7 +69,7 @@ parser.add_argument("--lw", action="store_true", help="Load weights of pretraine
 parser.add_argument("--en", metavar="name", help="Experiment name")
 parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int)
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)   #set default to False in future
-parser.add_argument('--version', action='version', version='TractSeg 1.3')
+parser.add_argument('--version', action='version', version='TractSeg 1.4')
 args = parser.parse_args()
 
 HP = getattr(importlib.import_module("tractseg.config.BaseHP"), "HP")()

@@ -181,7 +181,10 @@ class BaseModel:
             else:
                 net.train(False)
             outputs, outputs_sigmoid = net(X)  # forward
-            probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            if self.HP.EXPERIMENT_TYPE == "peak_regression" or self.HP.EXPERIMENT_TYPE == "dm_regression":
+                probs = outputs.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            else:
+                probs = outputs_sigmoid.detach().cpu().numpy().transpose(0, 2, 3, 1)  # (bs, x, y, classes)
             return probs
 
 
