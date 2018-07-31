@@ -225,13 +225,32 @@ class Trainer:
         return metrics
 
 
-    def get_seg_single_img(self, HP, probs=False, scale_to_world_shape=True):
+    def get_seg_single_img(self, HP, probs=False, scale_to_world_shape=True, only_prediction=False):
         '''
         Returns layers for one image (batch manager is only allowed to return batches for one image)
 
         :param HP:
         :return: ([146, 174, 146, nrClasses], [146, 174, 146, nrClasses])    (Prediction, Groundtruth)
         '''
+
+        def finalize_data(layers):
+            layers = np.array(layers)
+
+            # Get in right order (x,y,z) and
+            if HP.SLICE_DIRECTION == "x":
+                layers = layers.transpose(0, 1, 2, 3)
+
+            elif HP.SLICE_DIRECTION == "y":
+                layers = layers.transpose(1, 0, 2, 3)
+
+            elif HP.SLICE_DIRECTION == "z":
+                layers = layers.transpose(1, 2, 0, 3)
+
+            if scale_to_world_shape:
+                layers = DatasetUtils.scale_input_to_world_shape(layers, HP.DATASET, HP.RESOLUTION)
+
+            return layers.astype(np.float32)
+
 
         #Test Time DAug
         for i in range(1):
@@ -275,28 +294,11 @@ class Trainer:
                     seg = seg.astype(np.int16)
 
                 layers_seg.append(seg)
-                layers_y.append(y)
-            layers_seg = np.array(layers_seg)
-            layers_y = np.array(layers_y)
+                if not only_prediction:
+                    layers_y.append(y)
 
-        #Get in right order (x,y,z) and
-        if HP.SLICE_DIRECTION == "x":
-            layers_seg = layers_seg.transpose(0, 1, 2, 3)
-            layers_y = layers_y.transpose(0, 1, 2, 3)
-
-        elif HP.SLICE_DIRECTION == "y":
-            layers_seg = layers_seg.transpose(1, 0, 2, 3)
-            layers_y = layers_y.transpose(1, 0, 2, 3)
-
-        elif HP.SLICE_DIRECTION == "z":
-            layers_seg = layers_seg.transpose(1, 2, 0, 3)
-            layers_y = layers_y.transpose(1, 2, 0, 3)
-
-        if scale_to_world_shape:
-            layers_seg = DatasetUtils.scale_input_to_world_shape(layers_seg, HP.DATASET, HP.RESOLUTION)
-            layers_y = DatasetUtils.scale_input_to_world_shape(layers_y, HP.DATASET, HP.RESOLUTION)
-
-        layers_seg = layers_seg.astype(np.float32)
-        layers_y = layers_y.astype(np.float32)
+        layers_seg = finalize_data(layers_seg)
+        if not only_prediction:
+            layers_y = finalize_data(layers_y)
 
         return layers_seg, layers_y   # (Prediction, Groundtruth)

@@ -85,9 +85,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mkdir -p ~/.tractseg \
-    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v1.npz https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1
-    && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v2.npz https://www.dropbox.com/s/l5fa6hhtbv5npvm/EndingsSeg_best_weights_ep176.npz?dl=1
-    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v1.npz https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1
+    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v1.npz https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v2.npz https://www.dropbox.com/s/l5fa6hhtbv5npvm/EndingsSeg_best_weights_ep176.npz?dl=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v1.npz https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1 \
     && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://www.dropbox.com/s/d82iv95flz8n5a2/DmReg_best_weights_ep427.npz?dl=1
 
 # This command does not get cached -> very slow each time when building container -> use prebuild mrtrix_RC3.tar.gz instead

@@ -127,11 +127,11 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
             trainerSingle = Trainer(model, dataManagerSingle)
             if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression" or HP.GET_PROBS:
-                seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False)
+                seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False, only_prediction=True)
             else:
-                seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False)
+                seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False, only_prediction=True)
         else:
-            seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
+            seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
             if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression" or HP.GET_PROBS:
                 seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
             else:
@@ -140,10 +140,10 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     elif HP.EXPERIMENT_TYPE == "peak_regression":
         dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
         trainerSingle = Trainer(model, dataManagerSingle)
-        seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False)
+        seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False, only_prediction=True)
         seg = ImgUtils.remove_small_peaks(seg, len_thr=0.3)
         #3 dir for Peaks -> not working (?)
-        # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False)
+        # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
         # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
 
     if bundle_specific_threshold:

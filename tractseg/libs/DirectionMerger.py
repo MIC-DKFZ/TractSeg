@@ -23,7 +23,7 @@ from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
 class DirectionMerger:
 
     @staticmethod
-    def get_seg_single_img_3_directions(HP, model, subject=None, data=None, scale_to_world_shape=True):
+    def get_seg_single_img_3_directions(HP, model, subject=None, data=None, scale_to_world_shape=True, only_prediction=False):
         '''
         Returns probs
 
@@ -49,7 +49,7 @@ class DirectionMerger:
                 dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
 
             trainerSingle = Trainer(model, dataManagerSingle)
-            img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=scale_to_world_shape)    # (x, y, z, nrClasses)
+            img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=scale_to_world_shape, only_prediction=only_prediction)    # (x, y, z, nrClasses)
             prob_slices.append(img_probs)
 
         probs_x, probs_y, probs_z = prob_slices
