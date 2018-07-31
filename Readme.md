@@ -36,7 +36,8 @@ only supports CPU, not GPU.
 sudo docker run -v /absolute/path/to/my/data/directory:/data \
 -t wasserth/tractseg_container:v1.4 TractSeg -i /data/my_diffusion_file.nii.gz -o /data
 ```
-
+On OSX you might have to increase the Docker memory limit from the default of 2GB to something
+like 7GB.
 ## Usage
 
 #### Simple example:
