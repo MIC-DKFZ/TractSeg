@@ -99,7 +99,7 @@ RUN mkdir /code && cd /code \
 #    && /code/mrtrix3/set_path
 
 RUN pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip \
-    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/update_torch4.zip
+    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.4.zip
 
 # Does not work -> added mrtrix to path in python
 ENV PATH /code/mrtrix3/bin:$PATH

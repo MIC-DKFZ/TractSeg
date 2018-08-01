@@ -252,8 +252,6 @@ class DatasetUtils():
         data_new = np.zeros((original_shape[0], original_shape[1], original_shape[2], nr_of_classes)).astype(data.dtype)
         data_new[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]] = data
         return data_new
-        # new_img = nib.Nifti1Image(data, data_img.get_affine())
-        # nib.save(new_img, "/mnt/jakob/E130-Personal/Wasserthal/tmp/TEST.nii.gz")
 
 
 

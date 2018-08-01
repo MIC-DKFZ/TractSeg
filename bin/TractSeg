@@ -23,23 +23,15 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cyth
 
 import argparse
 import importlib
-import numpy as np
 import os
-import time
 import nibabel as nib
 from os.path import join
 
-from tractseg.libs.Config import Config as C
 from tractseg.libs.Config import get_config_name
 from tractseg.libs.ExpUtils import ExpUtils
-from tractseg.libs.Utils import Utils
-from tractseg.libs.DatasetUtils import DatasetUtils
-from tractseg.libs.DirectionMerger import DirectionMerger
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.Mrtrix import Mrtrix
 from tractseg.libs.PlotUtils import PlotUtils
-from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
-from tractseg.libs.Trainer import Trainer
 from tractseg.TractSeg import run_tractseg
 
 

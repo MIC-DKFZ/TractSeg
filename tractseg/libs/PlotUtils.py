@@ -43,8 +43,3 @@ class PlotUtils:
         window.record(ren, out_path=join(out_dir, "preview_top.png"), size=(600, 600))
 
         # ren.camera_info()  #to print manually selected camera angle
-
-
-# import nibabel as nib
-# data = nib.load("/Volumes/E130-Personal/Wasserthal/data/HCP_example/599469/270g_125mm/tractseg_output_Lasagne/bundle_segmentations.nii.gz").get_data()
-# PlotUtils.plot_tracts(data, "/Users/jakob/Downloads")
