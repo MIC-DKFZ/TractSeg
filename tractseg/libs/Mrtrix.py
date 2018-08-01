@@ -20,6 +20,10 @@ class Mrtrix():
     @staticmethod
     def create_brain_mask(input_file, output_dir):
         print("Creating brain mask...")
+
+        os.system("export FSLDIR=/usr/local/fsl")
+        os.system("export PATH=$FSLDIR/bin:$PATH")
+
         input_dir = os.path.dirname(input_file)
         input_file_without_ending = os.path.basename(input_file).split(".")[0]
         os.system("bet " + join(input_dir, input_file_without_ending) + " " + output_dir + "/nodif_brain_mask.nii.gz  -f 0.3 -g 0 -m")
