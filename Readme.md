@@ -74,7 +74,6 @@ TractSeg -i Diffusion.nii.gz --output_type TOM --output_multiple_files
 ```
 
 #### Segment bundle start and end regions
-Start and end regions are only segmented for 20 bundles.
 ```
 TractSeg -i Diffusion.nii.gz --output_type endings_segmentation --output_multiple_files
 ```
@@ -157,7 +156,7 @@ each extracted bundle in the output file.
 71: ST_OCC_right
 ```
 
-#### Bundles supported by TOM and endings_segmentation
+#### Bundles supported by TOM
 ```
 "AF_left", "AF_right", "CA", "CST_left", "CST_right", "CG_left", "CG_right",
 "ICP_left", "ICP_right", "MCP", "SCP_left", "SCP_right", "ILF_left", "ILF_right",
