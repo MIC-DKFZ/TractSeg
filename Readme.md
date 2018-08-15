@@ -9,8 +9,9 @@ The tool works very well for data similar to the Human Connectome Project. For o
 it fails for the Commissure Anterior (CA) and the Fornix (FX) but works quite well for all
 other bundles.
 
-TractSeg is the code for the paper [TractSeg - Fast and accurate white matter tract segmentation](https://arxiv.org/abs/1805.07103). 
-Please cite the paper if you use it. 
+TractSeg is the code for the papers [TractSeg - Fast and accurate white matter tract segmentation](https://arxiv.org/abs/1805.07103)
+and [Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580). 
+Please cite the papers if you use it. 
 
 [![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
 
@@ -68,7 +69,7 @@ TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
 ```
 
 #### Create Tract Orientation Maps (TOMs)
-TOM only works properly for HCP data so far and only supports 20 bundles.
+TOM ([Wasserthal et al., Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)) only supports 20 bundles.
 ```
 TractSeg -i Diffusion.nii.gz --output_type TOM --output_multiple_files
 ```
