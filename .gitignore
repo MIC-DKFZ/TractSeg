@@ -14,10 +14,13 @@ tractseg/config/old_2/*
 tractseg/config/old_3/*
 tractseg/config/old_4/*
 tractseg/config/old_5/*
+tractseg/config/old_6/*
+tractseg/config/old_7/*
 tractseg/config/Miccai2018/*
 tractseg/config/DiceLoss/*
 tractseg/config/T1Features/*
 tractseg/config/EndingsSeg/*
 tractseg/config/TractSeg/*
 tractseg/config/Peaks/*
+tractseg/config/Schizo/*
 tractseg/config/run_multiple.sh

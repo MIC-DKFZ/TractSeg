@@ -254,7 +254,7 @@ class BaseModel:
             raise ValueError("Optimizer not defined")
 
         if self.HP.LR_SCHEDULE:
-            scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+            scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
             # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
             self.scheduler = scheduler
 
