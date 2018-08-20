@@ -42,7 +42,7 @@ TractSeg -i peaks.nii.gz --output_multiple_files --skip_peak_extraction
 
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
-                                           "TractSeg - Fast and accurate white matter tract segmentation. https://arxiv.org/abs/1805.07103'")
+                                           "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070'")
 parser.add_argument("-i", metavar="filepath", dest="input", help="Diffusion Input image path (Nifti image)", required=True)
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)

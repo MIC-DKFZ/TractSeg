@@ -9,7 +9,7 @@ The tool works very well for data similar to the Human Connectome Project. For o
 it fails for the Commissure Anterior (CA) and the Fornix (FX) but works quite well for all
 other bundles.
 
-TractSeg is the code for the papers [TractSeg - Fast and accurate white matter tract segmentation](https://arxiv.org/abs/1805.07103)
+TractSeg is the code for the papers [TractSeg - Fast and accurate white matter tract segmentation](https://doi.org/10.1016/j.neuroimage.2018.07.070)
 and [Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580). 
 Please cite the papers if you use it. 
 
