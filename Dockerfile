@@ -77,12 +77,6 @@ RUN easy_install pip \
     && pip install wheel numpy scipy nilearn matplotlib scikit-image nibabel \
     && pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl
 
-RUN mkdir -p ~/.tractseg \
-    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v1.npz https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v2.npz https://www.dropbox.com/s/l5fa6hhtbv5npvm/EndingsSeg_best_weights_ep176.npz?dl=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v1.npz https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://www.dropbox.com/s/d82iv95flz8n5a2/DmReg_best_weights_ep427.npz?dl=1
-
 # This command does not get cached -> very slow each time when building container -> use prebuild mrtrix_RC3.tar.gz instead
 RUN mkdir /code && cd /code \
     && git clone https://github.com/MRtrix3/mrtrix3.git \
@@ -97,6 +91,12 @@ RUN mkdir /code && cd /code \
 #COPY mrtrix3_RC3.tar.gz /code
 #RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
 #    && /code/mrtrix3/set_path
+
+RUN mkdir -p ~/.tractseg \
+    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v1.npz https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v2.npz https://www.dropbox.com/s/l5fa6hhtbv5npvm/EndingsSeg_best_weights_ep176.npz?dl=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v1.npz https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://www.dropbox.com/s/d82iv95flz8n5a2/DmReg_best_weights_ep427.npz?dl=1
 
 RUN pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip \
     && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.4.zip
