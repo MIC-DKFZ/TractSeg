@@ -141,12 +141,15 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
         trainerSingle = Trainer(model, dataManagerSingle)
         seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False, only_prediction=True)
-        seg = ImgUtils.remove_small_peaks(seg, len_thr=0.3) #set lower for more sensitivity
+        if bundle_specific_threshold:
+            seg = ImgUtils.remove_small_peaks_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:], len_thr=0.3)
+        else:
+            seg = ImgUtils.remove_small_peaks(seg, len_thr=0.3)  # set lower for more sensitivity
         #3 dir for Peaks -> not working (?)
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
         # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
 
-    if bundle_specific_threshold:
+    if bundle_specific_threshold and HP.EXPERIMENT_TYPE == "tract_segmentation":
         seg = ImgUtils.probs_to_binary_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:])
 
     #remove following two lines to keep super resolution

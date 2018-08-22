@@ -311,6 +311,26 @@ class ImgUtils:
         return np.reshape(peaks, (img.shape[0], img.shape[1], img.shape[2], img.shape[3]))
 
     @staticmethod
+    def remove_small_peaks_bundle_specific(img, bundles, len_thr=0.1):
+
+        bundles_thresholds = {
+            "CA": 0.1,
+        }
+
+        peaks = np.reshape(img, (img.shape[0], img.shape[1], img.shape[2], int(img.shape[3] / 3.), 3))
+        peaks_len = np.linalg.norm(peaks, axis=-1)
+
+        for idx, bundle in enumerate(bundles):
+            if bundle in bundles_thresholds.keys():
+                thr = bundles_thresholds[bundle]
+            else:
+                thr = len_thr
+            mask = peaks_len[:,:,:,idx] > thr
+            peaks[:,:,:,idx][~mask] = 0
+
+        return np.reshape(peaks, (img.shape[0], img.shape[1], img.shape[2], img.shape[3]))
+
+    @staticmethod
     def simple_brain_mask(data):
         '''
         Simple brain mask (for peak image). Does not matter if has holes
