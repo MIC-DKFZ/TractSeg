@@ -14,6 +14,8 @@
 
 import os
 from os.path import join
+from tractseg.libs.FiberUtils import FiberUtils
+import nibabel as nib
 
 class Mrtrix():
 
@@ -74,6 +76,39 @@ class Mrtrix():
             os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet")
         else:
             raise ValueError("'csd_type' contains invalid String")
+
+    @staticmethod
+    def track(bundle, output_dir, brain_mask, filter_by_endpoints=False):
+        '''
+
+        :param bundle:   Bundle name
+        :param output_dir:
+        :param brain_mask:
+        :param filter_by_endpoints:     use results of endings_segmentation to filter out all fibers not endings in those regions
+        :return:
+        '''
+        os.system("export PATH=/code/mrtrix3/bin:$PATH")
+        os.system("mkdir -p " + output_dir + "/TOM_trackings")
+
+        if filter_by_endpoints:
+            os.system("tckgen -algorithm FACT " +
+                      output_dir + "/TOM/" + bundle + ".nii.gz " +
+                      output_dir + "/TOM_trackings/" + bundle + ".tck" +
+                      " -seed_image " + brain_mask +
+                      " -include " + output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz" +
+                      " -include " + output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz" +
+                      " -minlength 40 -select 2000 -force -quiet")
+        else:
+            os.system("tckgen -algorithm FACT " +
+                      output_dir + "/TOM/" + bundle + ".nii.gz " +
+                      output_dir + "/TOM_trackings/" + bundle + ".tck" +
+                      " -seed_image " + brain_mask +
+                      " -minlength 40 -select 2000 -force -quiet")
+
+        reference_affine  = nib.load(brain_mask).get_affine()
+        FiberUtils.convert_tck_to_trk(output_dir + "/TOM_trackings/" + bundle + ".tck",
+                                      output_dir + "/TOM_trackings/" + bundle + ".trk", reference_affine)
+        os.system("rm -f " + output_dir + "/TOM_trackings/" + bundle + ".tck")
 
     @staticmethod
     def clean_up(HP):
