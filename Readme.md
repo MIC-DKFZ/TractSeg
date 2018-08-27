@@ -190,6 +190,9 @@ do not have to be perfectly aligned but must have the same LEFT/RIGHT orientatio
 You can use the following FSL commands to rigidly register you image to MNI space (uses 
 the FA to calculate the transformation as this is more stable):
 ```
+calc_FA -i Diffusion.nii.gz -o FA.nii.gz --bvals Diffusion.bvals --bvecs Diffusion.bvecs \
+--brain_mask nodif_brain_mask.nii.gz
+
 flirt -ref tractseg/examples/resources/MNI_FA_template.nii.gz -in FA.nii.gz \
 -out FA_MNI.nii.gz -omat FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo
 
@@ -200,7 +203,10 @@ cp Diffusion.bvecs Diffusion_MNI.bvecs
 ```
 Even if the input image is in MNI space the Mrtrix peaks might still be flipped. You should view
 the peaks in `mrview` and make sure they have the proper orientation. Otherwise you might have to 
-flip the sign along the x, y or z axis. 
+flip the sign along the x, y or z axis. You can use the following command to do that 
+```
+flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
+``` 
 
 **Did I install the prerequisites correctly?**
 

@@ -35,6 +35,6 @@ setup(name='TractSeg',
             'Operating System :: MacOS'
         ],
         scripts=[
-            'bin/TractSeg', 'bin/ExpRunner'
+            'bin/TractSeg', 'bin/ExpRunner', 'bin/flip_peaks', 'bin/calc_FA'
         ],
       )
