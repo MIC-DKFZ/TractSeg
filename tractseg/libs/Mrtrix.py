@@ -91,6 +91,16 @@ class Mrtrix():
         os.system("mkdir -p " + output_dir + "/TOM_trackings")
 
         if filter_by_endpoints:
+            beginnings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data().max() > 0
+            endings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data().max() > 0
+
+            if not beginnings_mask_ok:
+                print("WARNING: tract beginnings mask of {} empty".format(bundle))
+
+            if not endings_mask_ok:
+                print("WARNING: tract endings mask of {} empty".format(bundle))
+
+        if filter_by_endpoints and beginnings_mask_ok and endings_mask_ok:
             os.system("tckgen -algorithm FACT " +
                       output_dir + "/TOM/" + bundle + ".nii.gz " +
                       output_dir + "/TOM_trackings/" + bundle + ".tck" +
