@@ -93,7 +93,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     elif input_type == "T1":
         if HP.EXPERIMENT_TYPE == "tract_segmentation":
             # HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_tract_segmentation_v1.npz")
-            HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_T1_125mm_DAugAll", "best_weights_ep142.npz")
+            HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes/x_Pretrained_TractSeg_Models", "TractSeg_T1_125mm_DAugAll", "best_weights_ep142.npz")
         elif HP.EXPERIMENT_TYPE == "endings_segmentation":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
         elif HP.EXPERIMENT_TYPE == "peak_regression":
