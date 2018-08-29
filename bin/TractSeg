@@ -26,6 +26,7 @@ import importlib
 import os
 import nibabel as nib
 from os.path import join
+import numpy as np
 
 from tractseg.libs.Config import get_config_name
 from tractseg.libs.ExpUtils import ExpUtils
@@ -108,7 +109,9 @@ else:
 data = data_img.get_data()
 
 if not args.only_track:
-    # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
+    # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
+    # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[:,:,:,None]
+    # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]  #needed if upsampling of peaks resulted in one pixel less (sometimes)
     # data = np.concatenate((data, t1_data), axis=3)
 
     seg = run_tractseg(data, args.output_type, input_type=input_type,
