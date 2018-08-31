@@ -79,6 +79,7 @@ args = parser.parse_args()
 input_type = "peaks"  # peaks / T1
 dropout_sampling = False
 threshold = 0.5         #specificity
+filter_tracking_by_endpoints = False
 
 config = get_config_name(input_type, args.output_type)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
@@ -146,7 +147,7 @@ if not args.only_track:
 if args.track or args.only_track:
     print("Tracking...")
     for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
-        Mrtrix.track(bundle, HP.PREDICT_IMG_OUTPUT, brain_mask, filter_by_endpoints=True)
+        Mrtrix.track(bundle, HP.PREDICT_IMG_OUTPUT, brain_mask, filter_by_endpoints=filter_tracking_by_endpoints)
 
 Mrtrix.clean_up(HP)
 
