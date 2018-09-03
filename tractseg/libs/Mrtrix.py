@@ -91,9 +91,9 @@ class Mrtrix():
         :return:
         '''
         tracking_folder = "TOM_trackings"
-        # tracking_folder = "bundle_trackings_dilation2"
-        smooth = None
-        # smooth = 10
+        # tracking_folder = "TOM_trackings_thr1_FiltEP_Mask"
+        smooth = None       # None / 10
+        TOM_folder = "TOM"      # TOM / TOM_thr1
 
         tmp_dir = tempfile.mkdtemp()
         os.system("export PATH=/code/mrtrix3/bin:$PATH")
@@ -110,23 +110,24 @@ class Mrtrix():
                 print("WARNING: tract endings mask of {} empty".format(bundle))
 
         if filter_by_endpoints and beginnings_mask_ok and endings_mask_ok:
+            dilation = 2
+            ImgUtils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
+                                        tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
+            ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
+                                        tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation)
+            ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
+                                        tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation)
+
             os.system("tckgen -algorithm FACT " +
-                      output_dir + "/TOM/" + bundle + ".nii.gz " +
+                      output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                       output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                       " -seed_image " + brain_mask +
-                      " -include " + output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz" +
-                      " -include " + output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz" +
+                      " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+                      " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+                      " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
                       " -minlength 40 -select 2000 -force -quiet")
 
             #Probabilistic Tracking without TOM
-            # dilation = 2
-            # ImgUtils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
-            #                             tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
-            # ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
-            #                             tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation)
-            # ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
-            #                             tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation)
-            #
             # os.system("tckgen -algorithm iFOD2 " +
             #           peaks + " " +
             #           output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
@@ -136,9 +137,8 @@ class Mrtrix():
             #           " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
             #           " -minlength 40 -seeds 200000 -select 2000 -force")
         else:
-
             os.system("tckgen -algorithm FACT " +
-                      output_dir + "/TOM/" + bundle + ".nii.gz " +
+                      output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                       output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                       " -seed_image " + brain_mask +
                       " -minlength 40 -select 2000 -force -quiet")

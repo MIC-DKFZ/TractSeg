@@ -80,6 +80,7 @@ input_type = "peaks"  # peaks / T1
 dropout_sampling = False
 threshold = 0.5         #specificity
 filter_tracking_by_endpoints = False
+peak_threshold = 0.1     #0.1 better for non-HCP, 0.3 good for HCP   (lower for more sensitivity)
 
 config = get_config_name(input_type, args.output_type)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
@@ -118,7 +119,8 @@ if not args.only_track:
     seg = run_tractseg(data, args.output_type, input_type=input_type,
                        single_orientation=args.single_orientation, verbose=args.verbose,
                        dropout_sampling=dropout_sampling, threshold=threshold,
-                       bundle_specific_threshold=args.bundle_specific_threshold, get_probs=args.get_probabilities)
+                       bundle_specific_threshold=args.bundle_specific_threshold,
+                       get_probs=args.get_probabilities, peak_threshold=peak_threshold)
 
     if args.preview:
         print("Saving preview...")

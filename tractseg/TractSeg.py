@@ -38,7 +38,7 @@ from tractseg.models.BaseModel import BaseModel
 
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                  single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5,
-                 bundle_specific_threshold=False, get_probs=False):
+                 bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1):
     '''
     Run TractSeg
 
@@ -50,6 +50,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     :param threshold: Threshold for converting probability map to binary map
     :param bundle_specific_threshold: Threshold is lower for some bundles which need more sensitivity (CA, CST, FX)
     :param get_probs: Output raw probability map instead of binary map
+    :param peak_threshold: all peaks shorter than peak_threshold will be set to zero
     :return: 4D numpy array with the output of tractseg
         for tract_segmentation:     [x,y,z,nr_of_bundles]
         for endings_segmentation:   [x,y,z,2*nr_of_bundles]
@@ -145,7 +146,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         if bundle_specific_threshold:
             seg = ImgUtils.remove_small_peaks_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:], len_thr=0.3)
         else:
-            seg = ImgUtils.remove_small_peaks(seg, len_thr=0.3)  # set lower for more sensitivity
+            seg = ImgUtils.remove_small_peaks(seg, len_thr=peak_threshold)
         #3 dir for Peaks -> not working (?)
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
         # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
