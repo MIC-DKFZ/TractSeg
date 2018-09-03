@@ -16,6 +16,9 @@ import os
 from os.path import join
 from tractseg.libs.FiberUtils import FiberUtils
 import nibabel as nib
+import tempfile
+from tractseg.libs.ImgUtils import ImgUtils
+import shutil
 
 class Mrtrix():
 
@@ -78,7 +81,7 @@ class Mrtrix():
             raise ValueError("'csd_type' contains invalid String")
 
     @staticmethod
-    def track(bundle, output_dir, brain_mask, filter_by_endpoints=False):
+    def track(bundle, peaks, output_dir, brain_mask, filter_by_endpoints=False):
         '''
 
         :param bundle:   Bundle name
@@ -87,8 +90,14 @@ class Mrtrix():
         :param filter_by_endpoints:     use results of endings_segmentation to filter out all fibers not endings in those regions
         :return:
         '''
+        tracking_folder = "TOM_trackings"
+        # tracking_folder = "bundle_trackings_dilation2"
+        smooth = None
+        # smooth = 10
+
+        tmp_dir = tempfile.mkdtemp()
         os.system("export PATH=/code/mrtrix3/bin:$PATH")
-        os.system("mkdir -p " + output_dir + "/TOM_trackings")
+        os.system("mkdir -p " + output_dir + "/" + tracking_folder)
 
         if filter_by_endpoints:
             beginnings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data().max() > 0
@@ -103,22 +112,43 @@ class Mrtrix():
         if filter_by_endpoints and beginnings_mask_ok and endings_mask_ok:
             os.system("tckgen -algorithm FACT " +
                       output_dir + "/TOM/" + bundle + ".nii.gz " +
-                      output_dir + "/TOM_trackings/" + bundle + ".tck" +
+                      output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                       " -seed_image " + brain_mask +
                       " -include " + output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz" +
                       " -include " + output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz" +
                       " -minlength 40 -select 2000 -force -quiet")
+
+            #Probabilistic Tracking without TOM
+            # dilation = 2
+            # ImgUtils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
+            #                             tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
+            # ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
+            #                             tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation)
+            # ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
+            #                             tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation)
+            #
+            # os.system("tckgen -algorithm iFOD2 " +
+            #           peaks + " " +
+            #           output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+            #           " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+            #           " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+            #           " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+            #           " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+            #           " -minlength 40 -seeds 200000 -select 2000 -force")
         else:
+
             os.system("tckgen -algorithm FACT " +
                       output_dir + "/TOM/" + bundle + ".nii.gz " +
-                      output_dir + "/TOM_trackings/" + bundle + ".tck" +
+                      output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                       " -seed_image " + brain_mask +
                       " -minlength 40 -select 2000 -force -quiet")
 
         reference_affine  = nib.load(brain_mask).get_affine()
-        FiberUtils.convert_tck_to_trk(output_dir + "/TOM_trackings/" + bundle + ".tck",
-                                      output_dir + "/TOM_trackings/" + bundle + ".trk", reference_affine)
-        os.system("rm -f " + output_dir + "/TOM_trackings/" + bundle + ".tck")
+        FiberUtils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
+                                      output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
+                                      reference_affine, smooth=smooth)
+        os.system("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck")
+        shutil.rmtree(tmp_dir)
 
     @staticmethod
     def clean_up(HP):

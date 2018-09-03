@@ -83,13 +83,15 @@ class FiberUtils:
         nib.trackvis.write(filename, streamlines_trk_format, trackvis_header, points_space="rasmm")
 
     @staticmethod
-    def convert_tck_to_trk(filename_in, filename_out, reference_affine, compress_err_thr=0.1):
+    def convert_tck_to_trk(filename_in, filename_out, reference_affine, compress_err_thr=0.1, smooth=None):
         '''
         Convert tck file to trk file and compress
 
         :param filename_in:
         :param filename_out:
         :param compress_err_thr: compress fibers if setting error threshold here (default: 0.1mm)
+        :param smooth: smooth streamlines (default: None)
+                       10: slight smoothing,  100: very smooth from beginning to end
         :return:
         '''
         #Hide large number of nipype logging outputs
@@ -99,8 +101,16 @@ class FiberUtils:
         config.set('logging', 'interface_level', 'WARNING')
         logging.update_logging(config)
         from nipype.interfaces.mrtrix.convert import read_mrtrix_tracks
+        from dipy.tracking.metrics import spline
 
         hdr, streamlines = read_mrtrix_tracks(filename_in, as_generator=False)         # Load Fibers (Tck)
+
+        if smooth is not None:
+            streamlines_smooth = []
+            for sl in streamlines:
+                streamlines_smooth.append(spline(sl, s=smooth))
+            streamlines = streamlines_smooth
+
         #Compressing also good to remove checkerboard artefacts from tracking on peaks
         if compress_err_thr is not None:
             streamlines = FiberUtils.compress_streamlines(streamlines, compress_err_thr)

@@ -233,7 +233,7 @@ class ImgUtils:
         return mask_ml.astype(labels_type)
 
     @staticmethod
-    def save_multilabel_img_as_multiple_files(HP, img, affine, path, name="tract_segmentations"):
+    def save_multilabel_img_as_multiple_files(HP, img, affine, path, name="bundle_segmentations"):
         bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
@@ -370,3 +370,16 @@ class ImgUtils:
             segs_binary.append(seg[:,:,:,idx] > thr)
 
         return np.array(segs_binary).transpose(1, 2, 3, 0).astype(np.uint8)
+
+    @staticmethod
+    def dilate_binary_mask(file_in, file_out, dilation=2):
+        img = nib.load(file_in)
+        data = img.get_data()
+
+        for i in range(dilation):
+            data = binary_dilation(data)
+
+        data = data > 0.5
+
+        img_out = nib.Nifti1Image(data.astype(np.uint8), img.get_affine())
+        nib.save(img_out, file_out)
