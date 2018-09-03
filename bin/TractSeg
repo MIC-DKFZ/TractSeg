@@ -80,7 +80,7 @@ input_type = "peaks"  # peaks / T1
 dropout_sampling = False
 threshold = 0.5         #specificity
 filter_tracking_by_endpoints = False
-peak_threshold = 0.1     #0.1 better for non-HCP, 0.3 good for HCP   (lower for more sensitivity)
+peak_threshold = 0.3     #lower for more sensitivity
 
 config = get_config_name(input_type, args.output_type)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()

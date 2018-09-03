@@ -91,7 +91,7 @@ class Mrtrix():
         :return:
         '''
         tracking_folder = "TOM_trackings"
-        # tracking_folder = "TOM_trackings_thr1_FiltEP_Mask"
+        # tracking_folder = "TOM_trackings_FiltEP6_FiltMask3"
         smooth = None       # None / 10
         TOM_folder = "TOM"      # TOM / TOM_thr1
 
@@ -110,13 +110,13 @@ class Mrtrix():
                 print("WARNING: tract endings mask of {} empty".format(bundle))
 
         if filter_by_endpoints and beginnings_mask_ok and endings_mask_ok:
-            dilation = 2
+            # dilation = 2    # dilation has to be quite high, because endings sometimes almost completely missing
             ImgUtils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
-                                        tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
+                                        tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
             ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
-                                        tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation)
+                                        tmp_dir + "/" + bundle + "_e.nii.gz", dilation=6)
             ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
-                                        tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation)
+                                        tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
 
             os.system("tckgen -algorithm FACT " +
                       output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
@@ -127,7 +127,7 @@ class Mrtrix():
                       " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
                       " -minlength 40 -select 2000 -force -quiet")
 
-            #Probabilistic Tracking without TOM
+            # #Probabilistic Tracking without TOM
             # os.system("tckgen -algorithm iFOD2 " +
             #           peaks + " " +
             #           output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
