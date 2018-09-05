@@ -119,55 +119,6 @@ class ImgUtils:
                              [0.,  0.,  2.5,  -72.],
                              [0.,  0.,  0.,    1.]])
 
-        elif dataset == "Phantom" and resolution == "1.25mm":
-            # Size (145,174,145)
-            return np.array([[-1.24138, 0.,   0.,   90.],
-                             [0., 1.24138,    0.,   -126.],
-                             [0.,    0., 1.24138,   -72.],
-                             [0.,    0.,      0.,    1.]])
-
-        elif dataset == "Phantom" and resolution == "2mm":
-            # Size (145,174,145)
-            return np.array([[-2., 0.,   0.,   90.],
-                             [0., 2.,    0.,   -126.],
-                             [0.,  0.,    2.,   -72.],
-                             [0.,  0.,      0.,    1.]])
-
-        elif dataset == "TRACED" and resolution == "2.5mm":
-            #Results in mask that fit to Training data (but not to original Challenge image)
-            # -> flip x and multiply affine x with *-1 => then fits to challenge
-            # Size (78,93,75)
-            return np.array([[-2.5, 0.,  0.,   -94.],
-                             [0.,  2.5, 0.,  -134.],
-                             [0.,  0.,  2.5,  -72.],
-                             [0.,  0.,  0.,   1.]])
-
-        else:
-            raise ValueError("No Affine defined for this dataset and resolution !!")
-
-    @staticmethod
-    def get_dwi_spacing(dataset, resolution):
-        if dataset == "HCP" and resolution == "1.25mm":
-            return (145,174,145)
-
-        elif dataset == "HCP_32g" and resolution == "1.25mm":
-            return(145,174,145)
-
-        elif (dataset == "HCP_32g" or dataset == "HCP_2mm") and resolution == "2mm":
-            return (90,108,90)
-
-        elif (dataset == "HCP_32g" or dataset == "HCP" or dataset == "HCP_2.5mm") and resolution == "2.5mm":
-            return (73,87,73)
-
-        elif dataset == "Phantom" and resolution == "1.25mm":
-            return (145,174,145)
-
-        elif dataset == "Phantom" and resolution == "2mm":
-            return (90,108,90)
-
-        elif dataset == "TRACED" and resolution == "2.5mm":
-            return (78,93,75)
-
         else:
             raise ValueError("No Affine defined for this dataset and resolution !!")
 
@@ -183,7 +134,8 @@ class ImgUtils:
         '''
         # mask, number_of_blobs = ndimage.label(img, structure=np.ones((3, 3, 3)))  #Also considers diagonal elements for determining if a element belongs to a blob
         mask, number_of_blobs = ndimage.label(img)
-        print('Number of blobs before: ' + str(number_of_blobs))
+        if debug:
+            print('Number of blobs before: ' + str(number_of_blobs))
         counts = np.bincount(mask.flatten())  # number of pixels in each blob
         if debug:
             print(counts)
@@ -200,6 +152,34 @@ class ImgUtils:
             print('Number of blobs after: ' + str(number_of_blobs_after))
 
         return mask
+
+    @staticmethod
+    def postprocess_segmentations(data, blob_thr=50, hole_closing=2):
+        '''
+        Postprocessing of segmentations. Fill holes and remove small blobs.
+
+        :param data: 4D ndarray
+        :param blob_thr:
+        :param hole_closing:
+        :return:
+        '''
+        nr_classes = data.shape[3]
+        data_new = []
+        for idx in range(nr_classes):
+            data_single = data[:,:,:,idx]
+
+            #Fill holes
+            if hole_closing is not None:
+                size = hole_closing  # Working as expected (size 2-3 good value)
+                data_single = ndimage.binary_closing(data_single, structure=np.ones((size, size, size))).astype(data_single.dtype)
+
+            # Remove small blobs
+            if blob_thr is not None:
+                data_single = ImgUtils.remove_small_blobs(data_single, threshold=blob_thr, debug=False)
+
+            data_new.append(data_single)
+        data_new = np.array(data_new).transpose(1, 2, 3, 0)
+        return data_new
 
     @staticmethod
     def resize_first_three_dims(img, order=0, zoom=0.62):
