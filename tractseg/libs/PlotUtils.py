@@ -89,9 +89,9 @@ class PlotUtils:
 
             #bigger: more border
             if orientation == "axial":
-                border_y = -120  #-60
+                border_y = -100  #-60
             else:
-                border_y = -120
+                border_y = -100
 
             x_current = X * i  # column (width)
             y_current = rows * (Y * 2 + border_y) - (Y * 2 + border_y) * j  # row (height)  (starts from bottom?)

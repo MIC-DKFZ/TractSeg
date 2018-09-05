@@ -65,7 +65,7 @@ parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. I
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
 parser.add_argument("--skip_peak_extraction", action="store_true", help="Do not calculate input peaks. You have to provide them yourself as argument to -i", default=False)
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
-parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Faster to view than nifti output image. Requires VTK.", default=False)
+parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Requires VTK.", default=False)
 parser.add_argument("--flip", action="store_true", help="Flip output peaks of TOM along z axis to make compatible with MITK.", default=False)
 parser.add_argument("--single_orientation", action="store_true", help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.", default=False)
 parser.add_argument("--bundle_specific_threshold", action="store_true", help="For converting probability maps to binary maps use lower threshold for difficult bundles like CA, FX and CST", default=False)
