@@ -52,7 +52,7 @@ This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[
 The fourth dimension contains the binary bundle segmentations.
  
 NOTE: Your input image should have the same orientation as MNI space (using [rigid 
-registration to MNI space](#my-output-segmentation-does–not-look–like-any–bundle-at-all) is a simply way to ensure this). 
+registration to MNI space](#my-output-segmentation-does-not-look-like-any-bundle-at-all) is a simply way to ensure this). 
 
 #### Custom input and output path:
 ```
