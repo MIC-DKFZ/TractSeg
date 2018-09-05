@@ -383,3 +383,37 @@ class ImgUtils:
 
         img_out = nib.Nifti1Image(data.astype(np.uint8), img.get_affine())
         nib.save(img_out, file_out)
+
+    @staticmethod
+    def change_spacing_4D(img_in, new_spacing=1.25):
+        from dipy.align.imaffine import AffineMap
+
+        data = img_in.get_data()
+        old_shape = data.shape
+        img_spacing = abs(img_in.get_affine()[0, 0])
+
+        new_affine = np.copy(img_in.get_affine())  # copy very important; otherwise new_affine changes will also be in old affine
+        new_affine[0, 0] = new_spacing if img_in.get_affine()[0, 0] > 0 else -new_spacing
+        new_affine[1, 1] = new_spacing if img_in.get_affine()[1, 1] > 0 else -new_spacing
+        new_affine[2, 2] = new_spacing if img_in.get_affine()[2, 2] > 0 else -new_spacing
+
+        new_shape = np.floor(np.array(img_in.get_data().shape) * (img_spacing / new_spacing))
+        new_shape = new_shape[:3]  # drop last dim
+
+        new_data = []
+        for i in range(data.shape[3]):
+            affine_map = AffineMap(np.eye(4),
+                                   new_shape, new_affine,
+                                   old_shape, img_in.get_affine()
+                                   )
+            #Generally nearest a bit better results than linear interpolation
+            # res = affine_map.transform(data[:,:,:,i], interp="linear")
+            res = affine_map.transform(data[:, :, :, i], interp="nearest")
+            new_data.append(res)
+
+        new_data = np.array(new_data).transpose(1, 2, 3, 0)
+        img_new = nib.Nifti1Image(new_data, new_affine)
+
+        return img_new
+
+

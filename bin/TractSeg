@@ -72,6 +72,7 @@ parser.add_argument("--bundle_specific_threshold", action="store_true", help="Fo
 parser.add_argument("--get_probabilities", action="store_true", help="Output probability map instead of binary segmentation", default=False)
 parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks", default=False)
 parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
+parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 1.4')
 args = parser.parse_args()
 
@@ -108,6 +109,9 @@ if args.skip_peak_extraction:
     data_img = nib.load(args.input)
 else:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
+
+if args.super_resolution:
+    data_img = ImgUtils.change_spacing_4D(data_img, new_spacing=1.25)
 data = data_img.get_data()
 
 if not args.only_track:
