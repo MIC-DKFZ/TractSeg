@@ -3,125 +3,153 @@
 
 import numpy as np
 import vtk
+from dipy.viz.utils import set_input
+from dipy.utils.optpkg import optional_package
+numpy_support, have_ns, _ = optional_package('vtk.util.numpy_support')
 
 class VtkUtils:
 
     @staticmethod
-    def contour_smooth(vol, voxsz=(1.0, 1.0, 1.0), affine=None, levels=[50],
-                       colors=[np.array([1.0, 0.0, 0.0])], opacities=[0.5], smoothing=10):
-        """ Take a volume and draw surface contours for any any number of
-        thresholds (levels) where every contour has its own color and opacity
+    def label(text='Origin', pos=(0, 0, 0), scale=(0.2, 0.2, 0.2),
+                      color=(1, 1, 1)):
+
+        atext = vtk.vtkVectorText()
+        atext.SetText(text)
+
+        textm = vtk.vtkPolyDataMapper()
+        textm.SetInputConnection(atext.GetOutputPort())
+
+        texta = vtk.vtkFollower()
+        texta.SetMapper(textm)
+        texta.SetScale(scale)
+
+        texta.GetProperty().SetColor(color)
+        texta.SetPosition(pos)
+
+        return texta
+
+    @staticmethod
+    def contour_from_roi_smooth(data, affine=None, color=np.array([1, 0, 0]), opacity=1, smoothing=0):
+        """Generates surface actor from a binary ROI.
+        Code from dipy, but added awesome smoothing!
 
         Parameters
         ----------
-        vol : (N, M, K) ndarray
-            An array representing the volumetric dataset for which we will draw
-            some beautiful contours .
-        voxsz : (3,) array_like
-            Voxel size.
-        affine : None
-            Not used.
-        levels : array_like
-            Sequence of thresholds for the contours taken from image values needs
-            to be same datatype as `vol`.
-        colors : (N, 3) ndarray
+        data : array, shape (X, Y, Z)
+            An ROI file that will be binarized and displayed.
+        affine : array, shape (4, 4)
+            Grid to space (usually RAS 1mm) transformation matrix. Default is None.
+            If None then the identity matrix is used.
+        color : (1, 3) ndarray
             RGB values in [0,1].
-        opacities : array_like
-            Opacities of contours.
-
+        opacity : float
+            Opacity of surface between 0 and 1.
+        smoothing: int
+            Smoothing factor e.g. 10.
         Returns
         -------
-        vtkAssembly
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from dipy.viz import fvtk
-        >>> A=np.zeros((10,10,10))
-        >>> A[3:-3,3:-3,3:-3]=1
-        >>> r=fvtk.ren()
-        >>> fvtk.add(r,fvtk.contour(A,levels=[1]))
-        >>> #fvtk.show(r)
+        contour_assembly : vtkAssembly
+            ROI surface object displayed in space
+            coordinates as calculated by the affine parameter.
 
         """
         major_version = vtk.vtkVersion.GetVTKMajorVersion()
 
+        if data.ndim != 3:
+            raise ValueError('Only 3D arrays are currently supported.')
+        else:
+            nb_components = 1
+
+        data = (data > 0) * 1
+        vol = np.interp(data, xp=[data.min(), data.max()], fp=[0, 255])
+        vol = vol.astype('uint8')
+
         im = vtk.vtkImageData()
         if major_version <= 5:
             im.SetScalarTypeToUnsignedChar()
-
-        im.SetDimensions(vol.shape[0], vol.shape[1], vol.shape[2])
+        di, dj, dk = vol.shape[:3]
+        im.SetDimensions(di, dj, dk)
+        voxsz = (1., 1., 1.)
         # im.SetOrigin(0,0,0)
-        # im.SetSpacing(voxsz[2],voxsz[0],voxsz[1])
+        im.SetSpacing(voxsz[2], voxsz[0], voxsz[1])
         if major_version <= 5:
             im.AllocateScalars()
+            im.SetNumberOfScalarComponents(nb_components)
         else:
-            im.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, 3)
+            im.AllocateScalars(vtk.VTK_UNSIGNED_CHAR, nb_components)
 
-        for i in range(vol.shape[0]):
-            for j in range(vol.shape[1]):
-                for k in range(vol.shape[2]):
-                    im.SetScalarComponentFromFloat(i, j, k, 0, vol[i, j, k])
+        # copy data
+        vol = np.swapaxes(vol, 0, 2)
+        vol = np.ascontiguousarray(vol)
 
-        ass = vtk.vtkAssembly()
-        # ass=[]
+        if nb_components == 1:
+            vol = vol.ravel()
+        else:
+            vol = np.reshape(vol, [np.prod(vol.shape[:3]), vol.shape[3]])
 
-        for (i, l) in enumerate(levels):
+        uchar_array = numpy_support.numpy_to_vtk(vol, deep=0)
+        im.GetPointData().SetScalars(uchar_array)
 
-            # print levels
-            skinExtractor = vtk.vtkContourFilter()
-            if major_version <= 5:
-                skinExtractor.SetInput(im)
-            else:
-                skinExtractor.SetInputData(im)
-            skinExtractor.SetValue(0, l)
+        if affine is None:
+            affine = np.eye(4)
 
-            #
-            # Smoothing
-            # Taken from: https://lorensen.github.io/VTKExamples/site/Python/MeshLabelImageColor/
-            #
-            smoother = vtk.vtkWindowedSincPolyDataFilter()
-            if vtk.VTK_MAJOR_VERSION <= 5:
-                smoother.SetInput(skinExtractor.GetOutput())
-            else:
-                smoother.SetInputConnection(skinExtractor.GetOutputPort())
-            smoother.SetNumberOfIterations(smoothing)  # 30  # this has little effect on the error!
-            # smoother.BoundarySmoothingOff()
-            # smoother.FeatureEdgeSmoothingOff()
-            # smoother.SetFeatureAngle(120.0)
-            # smoother.SetPassBand(.001)        #this increases the error a lot!
-            smoother.NonManifoldSmoothingOn()
-            smoother.NormalizeCoordinatesOn()
-            smoother.GenerateErrorScalarsOn()
-            # smoother.GenerateErrorVectorsOn()
+        # Set the transform (identity if none given)
+        transform = vtk.vtkTransform()
+        transform_matrix = vtk.vtkMatrix4x4()
+        transform_matrix.DeepCopy((
+            affine[0][0], affine[0][1], affine[0][2], affine[0][3],
+            affine[1][0], affine[1][1], affine[1][2], affine[1][3],
+            affine[2][0], affine[2][1], affine[2][2], affine[2][3],
+            affine[3][0], affine[3][1], affine[3][2], affine[3][3]))
+        transform.SetMatrix(transform_matrix)
+        transform.Inverse()
+
+        # Set the reslicing
+        image_resliced = vtk.vtkImageReslice()
+        set_input(image_resliced, im)
+        image_resliced.SetResliceTransform(transform)
+        image_resliced.AutoCropOutputOn()
+
+        # Adding this will allow to support anisotropic voxels
+        # and also gives the opportunity to slice per voxel coordinates
+
+        rzs = affine[:3, :3]
+        zooms = np.sqrt(np.sum(rzs * rzs, axis=0))
+        image_resliced.SetOutputSpacing(*zooms)
+
+        image_resliced.SetInterpolationModeToLinear()
+        image_resliced.Update()
+
+        # skin_extractor = vtk.vtkContourFilter()
+        skin_extractor = vtk.vtkMarchingCubes()
+        if major_version <= 5:
+            skin_extractor.SetInput(image_resliced.GetOutput())
+        else:
+            skin_extractor.SetInputData(image_resliced.GetOutput())
+        skin_extractor.SetValue(0, 100)
+
+        if smoothing > 0:
+            smoother = vtk.vtkSmoothPolyDataFilter()
+            smoother.SetInputConnection(skin_extractor.GetOutputPort())
+            smoother.SetNumberOfIterations(smoothing)
+            smoother.SetRelaxationFactor(0.1)
+            smoother.SetFeatureAngle(60)
+            smoother.FeatureEdgeSmoothingOff()
+            smoother.BoundarySmoothingOff()
+            smoother.SetConvergence(0)
             smoother.Update()
 
-            skinNormals = vtk.vtkPolyDataNormals()
-            skinNormals.SetInputConnection(smoother.GetOutputPort())
-            skinNormals.SetFeatureAngle(60.0)
+        skin_normals = vtk.vtkPolyDataNormals()
+        skin_normals.SetInputConnection(smoother.GetOutputPort())
+        skin_normals.SetFeatureAngle(60.0)
 
-            # No Smoothing
-            # skinNormals = vtk.vtkPolyDataNormals()
-            # skinNormals.SetInputConnection(skinExtractor.GetOutputPort())
-            # skinNormals.SetFeatureAngle(60.0)
+        skin_mapper = vtk.vtkPolyDataMapper()
+        skin_mapper.SetInputConnection(skin_normals.GetOutputPort())
+        skin_mapper.ScalarVisibilityOff()
 
-            skinMapper = vtk.vtkPolyDataMapper()
-            skinMapper.SetInputConnection(skinNormals.GetOutputPort())
-            skinMapper.ScalarVisibilityOff()
+        skin_actor = vtk.vtkActor()
+        skin_actor.SetMapper(skin_mapper)
+        skin_actor.GetProperty().SetOpacity(opacity)
+        skin_actor.GetProperty().SetColor(color[0], color[1], color[2])
 
-            skin = vtk.vtkActor()
-
-            skin.SetMapper(skinMapper)
-            skin.GetProperty().SetOpacity(opacities[i])
-
-            # print colors[i]
-            skin.GetProperty().SetColor(colors[i][0], colors[i][1], colors[i][2])
-            # skin.Update()
-            ass.AddPart(skin)
-
-            del skin
-            del skinMapper
-            del skinExtractor
-
-        return ass
-
+        return skin_actor

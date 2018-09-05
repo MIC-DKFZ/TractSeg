@@ -122,9 +122,10 @@ if not args.only_track:
                        bundle_specific_threshold=args.bundle_specific_threshold,
                        get_probs=args.get_probabilities, peak_threshold=peak_threshold)
 
-    if args.preview:
+    if args.preview and HP.EXPERIMENT_TYPE == "tract_segmentation":
         print("Saving preview...")
-        PlotUtils.plot_tracts(seg, HP.PREDICT_IMG_OUTPUT)
+        # brain_mask = nib.load(brain_mask).get_data()
+        PlotUtils.plot_tracts(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT, brain_mask=None)
 
     if HP.OUTPUT_MULTIPLE_FILES:
         if HP.EXPERIMENT_TYPE == "tract_segmentation":
