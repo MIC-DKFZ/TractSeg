@@ -181,7 +181,8 @@ segmentation = run_tractseg(peaks)
 ```
 
 ## FAQ
-**My output segmentation does not look like any bundle at all!**
+
+#### My output segmentation does not look like any bundle at all!
 
 The input image must have the same "orientation" as the Human Connectome Project data (MNI space) (LEFT must be on the same side as 
 LEFT of the HCP data). If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
@@ -208,7 +209,7 @@ flip the sign along the x, y or z axis. You can use the following command to do 
 flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
 ``` 
 
-**Did I install the prerequisites correctly?**
+#### Did I install the prerequisites correctly?
 
 You can check if you installed Mrtrix correctly if you can run the following command on your terminal:
 `dwi2response -help`
