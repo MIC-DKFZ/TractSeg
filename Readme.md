@@ -51,8 +51,10 @@ This will create a folder `tractseg_ouput` inside of the same directory as your 
 This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
 The fourth dimension contains the binary bundle segmentations.
  
-NOTE: Your input image should have the same orientation as MNI space (using [rigid 
-registration to MNI space](#my-output-segmentation-does-not-look-like-any-bundle-at-all) is a simply way to ensure this). 
+> NOTE: Your input image should have the same orientation as MNI space (using [rigid 
+registration to MNI space](#my-output-segmentation-does-not-look-like-any-bundle-at-all) is a simply way to ensure this).
+Moreover the MRtrix peaks are often flipped along one axis. Check them visually in `mrview` and 
+[flip](#my-output-segmentation-does-not-look-like-any-bundle-at-all) if needed. 
 
 #### Custom input and output path:
 ```
@@ -171,7 +173,7 @@ Run `TractSeg --help` for more advanced options. For example you can specify you
 If you have multi-shell data and you do not need fast runtime use `--csd_type csd_msmt_5tt` for slightly better results.
 
 #### Use python interface
-```
+```python
 import nibabel as nib
 import numpy as np
 from tractseg.TractSeg import run_tractseg
@@ -190,7 +192,7 @@ you are fine. Otherwise you should rigidly register your image to MNI space (the
 do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation).
 You can use the following FSL commands to rigidly register you image to MNI space (uses 
 the FA to calculate the transformation as this is more stable):
-```
+```shell
 calc_FA -i Diffusion.nii.gz -o FA.nii.gz --bvals Diffusion.bvals --bvecs Diffusion.bvecs \
 --brain_mask nodif_brain_mask.nii.gz
 
