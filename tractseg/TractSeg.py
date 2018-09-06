@@ -155,12 +155,12 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     if bundle_specific_threshold and HP.EXPERIMENT_TYPE == "tract_segmentation":
         seg = ImgUtils.probs_to_binary_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:])
 
-    if postprocess:
-        seg = ImgUtils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)
-
     #remove following two lines to keep super resolution
     seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
     seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES)
+
+    if postprocess:
+        seg = ImgUtils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)
 
     ExpUtils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
     return seg

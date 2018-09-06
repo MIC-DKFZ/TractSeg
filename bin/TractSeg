@@ -74,6 +74,8 @@ parser.add_argument("--track", action="store_true", help="Run tracking on TOM pe
 parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
 parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
 parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
+#Move input image to MNI space and
+parser.add_argument("--preprocess", action="store_true", help="ensure correct orientation of peaks", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 1.4')
 args = parser.parse_args()
 
@@ -120,6 +122,9 @@ if not args.only_track:
     # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[:,:,:,None]
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]  #needed if upsampling of peaks resulted in one pixel less (sometimes)
     # data = np.concatenate((data, t1_data), axis=3)
+
+    if args.preprocess:
+        data = ImgUtils.flip_peaks_to_correct_orientation_if_needed(data_img)
 
     seg = run_tractseg(data, args.output_type, input_type=input_type,
                        single_orientation=args.single_orientation, verbose=args.verbose,

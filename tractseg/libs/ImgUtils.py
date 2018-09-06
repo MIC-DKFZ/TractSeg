@@ -23,6 +23,8 @@ from tractseg.libs.Config import Config as C
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.Utils import Utils
 from scipy.ndimage.morphology import binary_dilation
+from sklearn.externals import joblib
+import os
 
 class ImgUtils:
     
@@ -365,6 +367,49 @@ class ImgUtils:
         nib.save(img_out, file_out)
 
     @staticmethod
+    def flip_peaks(data, axis="x"):
+        if axis == "x":
+            # flip x Axis  (9 channel image)  (3 peaks)
+            data[:, :, :, 0] *= -1
+            data[:, :, :, 3] *= -1
+            data[:, :, :, 6] *= -1
+        elif axis == "y":
+            data[:, :, :, 1] *= -1
+            data[:, :, :, 4] *= -1
+            data[:, :, :, 7] *= -1
+        elif axis == "z":
+            data[:, :, :, 2] *= -1
+            data[:, :, :, 5] *= -1
+            data[:, :, :, 8] *= -1
+        return data
+
+    @staticmethod
+    def enfore_shape(data, target_shape=(91, 109, 91, 9)):
+        '''
+        Cut and pad image to have same shape as target_shape
+
+        :param data:
+        :param target_shape:
+        :return:
+        '''
+        ss = data.shape  # source shape
+        ts = target_shape  # target shape
+
+        data_new = np.zeros(ts)
+
+        # cut if too much
+        if ss[0] > ts[0]:
+            data = data[ss[0] - ts[0]:, :, :]
+        if ss[1] > ts[1]:
+            data = data[:, ss[1] - ts[1]:, :]
+        if ss[2] > ts[2]:
+            data = data[:, :, ss[2] - ts[2]:]
+
+        # pad with zero if too small
+        data_new[:data.shape[0], :data.shape[1], :data.shape[2]] = data
+        return data_new
+
+    @staticmethod
     def change_spacing_4D(img_in, new_spacing=1.25):
         from dipy.align.imaffine import AffineMap
 
@@ -396,4 +441,39 @@ class ImgUtils:
 
         return img_new
 
+    @staticmethod
+    def flip_peaks_to_correct_orientation_if_needed(peaks_input):
+        '''
+        We use a pretrained random forest classifier to detect if the orientation of the peak is the same
+        orientation as the peaks used for training TractSeg. Otherwise detect along which axis they
+        have to be flipped to have the right orientation and return the flipped peaks.
+
+        :param peaks_input: nifti peak img
+        :return:
+        '''
+        peaks = ImgUtils.change_spacing_4D(peaks_input, new_spacing=2.).get_data()
+        #shape the classifier has been trained with
+        peaks = ImgUtils.enfore_shape(peaks, target_shape=(91, 109, 91, 9))
+
+        peaks_x = peaks[int(peaks.shape[0] / 2.), :, :, :]
+        peaks_y = peaks[:, int(peaks.shape[1] / 2.), :, :]
+        peaks_z = peaks[:, :, int(peaks.shape[2] / 2.), :]
+        X = [list(peaks_x.flatten()) + list(peaks_y.flatten()) + list(peaks_z.flatten())]
+        X = np.nan_to_num(X)
+
+        path_of_this_file = os.path.abspath(os.path.dirname(__file__))
+        clf = joblib.load(os.path.join(path_of_this_file, "../../examples/resources/random_forest_peak_orientation_detection.pkl"))
+        predicted_label = clf.predict(X)[0]
+
+        # labels:
+        #  ok: 0, x:1, y:2, z:3
+        peaks_input_data = peaks_input.get_data()
+        if predicted_label == 0:
+            return peaks_input_data
+        elif predicted_label == 1:
+            return ImgUtils.flip_peaks(peaks_input_data, axis="x")
+        elif predicted_label == 2:
+            return ImgUtils.flip_peaks(peaks_input_data, axis="y")
+        elif predicted_label == 3:
+            return ImgUtils.flip_peaks(peaks_input_data, axis="z")
 
