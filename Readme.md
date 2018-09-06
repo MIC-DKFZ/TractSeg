@@ -211,6 +211,19 @@ flip the sign along the x, y or z axis. You can use the following command to do 
 flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
 ``` 
 
+#### Small bundles like the CA and FX are incomplete
+You can use the following three options to improve your results:
+* `--super_resolution` The input image is upsampled to 1.25mm resolution (the resolution TractSeg was trained on) and 
+finally downsampled back to the original resolution. Using `--super_resolution` will output the image at 1.25mm. 
+Especially if image resolution is low parts of the CA can get lost during downsampling.
+* `--bundle_specific_threshold` Lowering the threshold for converting the model output to binary segmentations. Instead of
+0.5 use 0.3 for CA and 0.4 for CST and FX. For all other bundles keep 0.5. This will increase sensitivity for those
+difficult bundles.
+* `--postprocess` Will fill small holes in the segmentation and remove small blobs not connected to the rest of the
+segmentation. (not working for output_type TOM)
+
+Using those options will improve the results for CA/FX quite often. 
+
 #### Did I install the prerequisites correctly?
 
 You can check if you installed Mrtrix correctly if you can run the following command on your terminal:
