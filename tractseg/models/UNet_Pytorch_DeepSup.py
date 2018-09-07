@@ -106,7 +106,8 @@ class UNet_Pytorch_DeepSup(torch.nn.Module):
         contr_4_2 = self.contr_4_2(contr_4_1)
         pool_4 = self.pool_4(contr_4_2)
 
-        # pool_4 = self.dropout(pool_4)
+        if self.dropout:
+            pool_4 = self.dropout(pool_4)
 
         encode_1 = self.encode_1(pool_4)
         encode_2 = self.encode_2(encode_1)

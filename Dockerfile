@@ -94,7 +94,7 @@ RUN mkdir /code && cd /code \
 
 RUN mkdir -p ~/.tractseg \
     && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v2.npz https://zenodo.org/record/1410884/files/best_weights_ep274.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_dropout_v2.npz https://zenodo.org/record/1410891/files/best_weights_ep191.npz?download=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_dropout_v1.npz https://zenodo.org/record/1409680/files/TractSeg_Dropout_best_weights_ep488.npz?download=1 \
     && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v3.npz https://zenodo.org/record/1409670/files/EndingsSeg_best_weights_ep234.npz?download=1 \
     && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v1.npz https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1 \
     && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://zenodo.org/record/1409676/files/DmReg_best_weights_ep427.npz?download=1
