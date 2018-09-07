@@ -23,6 +23,34 @@ import shutil
 class Mrtrix():
 
     @staticmethod
+    def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
+        print("Moving input to MNI space...")
+
+        os.system("calc_FA -i " + input_file + " -o " + output_dir + "/FA.nii.gz --bvals " + bvals +
+                  " --bvecs " + bvecs + " --brain_mask " + brain_mask)
+
+        dwi_spacing = ImgUtils.get_image_spacing(input_file)
+
+        path_of_this_file = os.path.abspath(os.path.dirname(__file__))
+        template_path = join(path_of_this_file, "../../examples/resources/MNI_FA_template.nii.gz")
+
+        os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
+                  "/FA_MNI.nii.gz -omat " + output_dir + "/FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo")
+
+        os.system("flirt -ref " + template_path + " -in " + input_file + " -out " + output_dir +
+                  "/Diffusion_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/FA_2_MNI.mat -dof 6")
+        os.system("cp " + bvals + " " + output_dir + "/Diffusion_MNI.bvals")
+        os.system("cp " + bvecs + " " + output_dir + "/Diffusion_MNI.bvecs")
+
+        new_input_file = join(output_dir, "Diffusion_MNI.nii.gz")
+        bvecs = join(output_dir, "Diffusion_MNI.bvecs")
+        bvals = join(output_dir, "Diffusion_MNI.bvals")
+
+        brain_mask = Mrtrix.create_brain_mask(new_input_file, output_dir)
+
+        return new_input_file, bvals, bvecs, brain_mask
+
+    @staticmethod
     def create_brain_mask(input_file, output_dir):
         print("Creating brain mask...")
 

@@ -50,14 +50,14 @@ mask = nib.load(args.brain_mask).get_data()
 masked_brain = data
 masked_brain[mask < 0.5] = 0
 
-logging.info("Fit Tensor Model...")
+# logging.info("Fit Tensor Model...")
 tenmodel = dti.TensorModel(gtab)
 tenfit = tenmodel.fit(masked_brain)
 
-logging.info('Computing FA...')
+# logging.info('Computing FA...')
 FA = fractional_anisotropy(tenfit.evals)
 FA[np.isnan(FA)] = 0
 
-logging.info('Save FA...')
+# logging.info('Saving FA...')
 fa_img = nib.Nifti1Image(FA.astype(np.float32), img.get_affine())
 nib.save(fa_img, args.file_out)

@@ -86,6 +86,7 @@ threshold = 0.5         #specificity
 filter_tracking_by_endpoints = False
 peak_threshold = 0.3     #lower for more sensitivity
 
+input_path = args.input
 config = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
 HP.CSD_TYPE = args.csd_type
@@ -93,11 +94,11 @@ HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
 HP.VERBOSE = args.verbose
 HP.OUTPUT_MULTIPLE_FILES = args.output_multiple_files
 HP.FLIP_OUTPUT_PEAKS = args.flip
-HP.PREDICT_IMG = args.input is not None
+HP.PREDICT_IMG = input_path is not None
 if args.output:
     HP.PREDICT_IMG_OUTPUT = join(args.output, HP.TRACTSEG_DIR)
 elif HP.PREDICT_IMG:
-    HP.PREDICT_IMG_OUTPUT = join(os.path.dirname(args.input), HP.TRACTSEG_DIR)
+    HP.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), HP.TRACTSEG_DIR)
 
 bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
 brain_mask = ExpUtils.get_brain_mask_path(HP, args)
@@ -105,11 +106,15 @@ ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
 if not args.skip_peak_extraction:
     if args.brain_mask is None:
-        brain_mask = Mrtrix.create_brain_mask(args.input, HP.PREDICT_IMG_OUTPUT)
-    Mrtrix.create_fods(args.input, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE)
+        brain_mask = Mrtrix.create_brain_mask(input_path, HP.PREDICT_IMG_OUTPUT)
+
+    if args.preprocess:
+        input_path, bvals, bvecs, brain_mask = Mrtrix.move_to_MNI_space(input_path, bvals, bvecs, brain_mask, HP.PREDICT_IMG_OUTPUT)
+
+    Mrtrix.create_fods(input_path, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE)
 
 if args.skip_peak_extraction:
-    data_img = nib.load(args.input)
+    data_img = nib.load(input_path)
 else:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
 
@@ -161,7 +166,7 @@ if not args.only_track:
 if args.track or args.only_track:
     print("Tracking...")
     for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
-        Mrtrix.track(bundle, args.input, HP.PREDICT_IMG_OUTPUT, brain_mask, filter_by_endpoints=filter_tracking_by_endpoints)
+        Mrtrix.track(bundle, input_path, HP.PREDICT_IMG_OUTPUT, brain_mask, filter_by_endpoints=filter_tracking_by_endpoints)
 
 Mrtrix.clean_up(HP)
 

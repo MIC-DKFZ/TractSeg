@@ -477,3 +477,8 @@ class ImgUtils:
         elif predicted_label == 3:
             return ImgUtils.flip_peaks(peaks_input_data, axis="z")
 
+    @staticmethod
+    def get_image_spacing(img_path):
+        img = nib.load(img_path)
+        affine = img.get_affine()
+        return str(abs(round(affine[0, 0], 2)))

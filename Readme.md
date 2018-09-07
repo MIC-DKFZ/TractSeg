@@ -40,6 +40,7 @@ sudo docker run -v /absolute/path/to/my/data/directory:/data \
 ```
 On OSX you might have to increase the Docker memory limit from the default of 2GB to something
 like 7GB.
+
 ## Usage
 
 #### Simple example:
