@@ -29,6 +29,7 @@ Latest stable version:
 ```
 pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.4.zip
 ```
+> NOTE: MLF bundle is incorrect in v1.4. Bug is fixed in latest master branch. `pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip`
 
 #### Docker
 You can also directly use TractSeg via Docker (contains all prerequisites). However, it 
