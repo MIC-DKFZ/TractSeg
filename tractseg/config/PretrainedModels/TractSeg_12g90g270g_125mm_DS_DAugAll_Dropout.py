@@ -7,4 +7,5 @@ class HP(TractSegHP):
 
     NUM_EPOCHS = 500
     DATA_AUGMENTATION = True
+    MODEL = "UNet_Pytorch_DeepSup"
     USE_DROPOUT = True

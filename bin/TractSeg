@@ -86,7 +86,7 @@ threshold = 0.5         #specificity
 filter_tracking_by_endpoints = False
 peak_threshold = 0.3     #lower for more sensitivity
 
-config = get_config_name(input_type, args.output_type)
+config = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
 HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
 HP.CSD_TYPE = args.csd_type
 HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files

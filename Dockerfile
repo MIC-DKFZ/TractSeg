@@ -75,7 +75,7 @@ RUN apt-get update \
 
 RUN easy_install pip \
     && pip install wheel numpy scipy nilearn matplotlib scikit-image nibabel \
-    && pip install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl
+    && pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp27-cp27mu-linux_x86_64.whl
 
 # This command does not get cached -> very slow each time when building container -> use prebuild mrtrix_RC3.tar.gz instead
 RUN mkdir /code && cd /code \
@@ -93,13 +93,14 @@ RUN mkdir /code && cd /code \
 #    && /code/mrtrix3/set_path
 
 RUN mkdir -p ~/.tractseg \
-    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v1.npz https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v3.npz https://www.dropbox.com/s/i6a5c5cf6j5ok4r/EndingsSeg_best_weights_ep234.npz?dl=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v1.npz https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://www.dropbox.com/s/d82iv95flz8n5a2/DmReg_best_weights_ep427.npz?dl=1
+    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v2.npz https://zenodo.org/record/1410884/files/best_weights_ep274.npz?download=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_dropout_v2.npz https://zenodo.org/record/1410891/files/best_weights_ep191.npz?download=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v3.npz https://zenodo.org/record/1409670/files/EndingsSeg_best_weights_ep234.npz?download=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v1.npz https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://zenodo.org/record/1409676/files/DmReg_best_weights_ep427.npz?download=1
 
 RUN pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip \
-    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.4.zip
+    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.5.zip
 
 # Does not work -> added mrtrix to path in python
 ENV PATH /code/mrtrix3/bin:$PATH

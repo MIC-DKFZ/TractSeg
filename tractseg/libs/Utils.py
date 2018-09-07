@@ -181,16 +181,18 @@ class Utils:
     def download_pretrained_weights(experiment_type, dropout_sampling=False):
 
         if experiment_type == "tract_segmentation" and dropout_sampling:
-            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_v1.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_tract_segmentation_dropout_v1.npz')
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_tract_segmentation_dropout_v1.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_tract_segmentation_dropout_v2.npz')
             # WEIGHTS_URL = "https://www.dropbox.com/s/m3ccn286uy1rrhz/TractSeg_Dropout_best_weights_ep488.npz?dl=1"
-            WEIGHTS_URL = "https://zenodo.org/record/1409680/files/TractSeg_Dropout_best_weights_ep488.npz?download=1"
+            # WEIGHTS_URL = "https://zenodo.org/record/1409680/files/TractSeg_Dropout_best_weights_ep488.npz?download=1"
+            WEIGHTS_URL = "https://zenodo.org/record/1410891/files/best_weights_ep191.npz?download=1"
 
         elif experiment_type == "tract_segmentation":
-            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_v1.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_tract_segmentation_v1.npz')
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_tract_segmentation_v1.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_tract_segmentation_v2.npz')
             # WEIGHTS_URL = "https://www.dropbox.com/s/nygr0j2zgztedh0/TractSeg_best_weights_ep448.npz?dl=1"
-            WEIGHTS_URL = "https://zenodo.org/record/1409684/files/TractSeg_best_weights_ep448.npz?download=1"
+            # WEIGHTS_URL = "https://zenodo.org/record/1409684/files/TractSeg_best_weights_ep448.npz?download=1"
+            WEIGHTS_URL = "https://zenodo.org/record/1410884/files/best_weights_ep274.npz?download=1"
 
         elif experiment_type == "endings_segmentation":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_endings_segmentation_v2.npz')
