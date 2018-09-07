@@ -100,7 +100,7 @@ RUN mkdir -p ~/.tractseg \
     && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://zenodo.org/record/1409676/files/DmReg_best_weights_ep427.npz?download=1
 
 RUN pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip \
-    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.5.zip
+    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.4.zip
 
 # Does not work -> added mrtrix to path in python
 ENV PATH /code/mrtrix3/bin:$PATH
