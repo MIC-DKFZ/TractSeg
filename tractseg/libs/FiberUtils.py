@@ -103,7 +103,7 @@ class FiberUtils:
         from nipype.interfaces.mrtrix.convert import read_mrtrix_tracks
         from dipy.tracking.metrics import spline
 
-        hdr, streamlines = read_mrtrix_tracks(filename_in, as_generator=False)         # Load Fibers (Tck)
+        streamlines = nib.streamlines.load(filename_in).streamlines  # Load Fibers (Tck)
 
         if smooth is not None:
             streamlines_smooth = []
