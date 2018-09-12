@@ -164,6 +164,9 @@ if not args.only_track:
         elif HP.EXPERIMENT_TYPE == "dm_regression":
             nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
 
+    if args.preprocess and HP.EXPERIMENT_TYPE == "tract_segmentation" and not HP.OUTPUT_MULTIPLE_FILES:
+        Mrtrix.move_to_subject_space(HP.PREDICT_IMG_OUTPUT)
+
 if args.track or args.only_track:
     print("Tracking...")
     for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:

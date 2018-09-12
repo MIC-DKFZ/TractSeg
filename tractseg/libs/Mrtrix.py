@@ -51,6 +51,19 @@ class Mrtrix():
         return new_input_file, bvals, bvecs, brain_mask
 
     @staticmethod
+    def move_to_subject_space(output_dir):
+        print("Moving input to subject space...")
+
+        file_path_in = output_dir + "/bundle_segmentations.nii.gz"
+        file_path_out = output_dir + "/bundle_segmentations_subjectSpace.nii.gz"
+        dwi_spacing = ImgUtils.get_image_spacing(file_path_in)
+        os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
+        os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
+                  " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6")
+        os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
+
+
+    @staticmethod
     def create_brain_mask(input_file, output_dir):
         print("Creating brain mask...")
 
