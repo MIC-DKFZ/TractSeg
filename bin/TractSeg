@@ -73,6 +73,7 @@ parser.add_argument("--get_probabilities", action="store_true", help="Output pro
 parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks", default=False)
 parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
 parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
+parser.add_argument("--uncertainty", action="store_true", help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)", default=False)
 parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
 #Move input image to MNI space and
 parser.add_argument("--preprocess", action="store_true", help="ensure correct orientation of peaks", default=False)
@@ -81,7 +82,7 @@ args = parser.parse_args()
 
 #Private parameters
 input_type = "peaks"  # peaks / T1
-dropout_sampling = False
+dropout_sampling = args.uncertainty
 threshold = 0.5         #specificity
 filter_tracking_by_endpoints = False
 peak_threshold = 0.3     #lower for more sensitivity
