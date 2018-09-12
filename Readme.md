@@ -21,7 +21,8 @@ TractSeg only runs on Linux and OSX. It works with Python 2 and Python 3.
 #### Install Prerequisites
 * [Pytorch](http://pytorch.org/) (if you do not have a GPU, installing Pytorch via conda might be faster)
 * [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
-* [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask this is not needed)
+* [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask and do not use the 
+option `--preprocess` this is not needed)
 * BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip`
 
 #### Install TractSeg
@@ -53,19 +54,20 @@ This will create a folder `tractseg_ouput` inside of the same directory as your 
 This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
 The fourth dimension contains the binary bundle segmentations.
  
-> NOTE: Your input image should have the same orientation as MNI space (using [rigid 
-registration to MNI space](#my-output-segmentation-does-not-look-like-any-bundle-at-all) is a simply way to ensure this).
-Moreover the MRtrix peaks are often flipped along one axis. Check them visually in `mrview` and 
-[flip](#my-output-segmentation-does-not-look-like-any-bundle-at-all) if needed. 
+> NOTE: Your input image should have the same orientation as MNI space. Moreover the MRtrix peaks are often 
+flipped along one axis. Using the option `--preprocess` TractSeg will automatically move your input
+image to MNI space (rigid registration) and make sure the peaks are correctly flipped. 
 
-#### Custom input and output path:
+#### Custom input and output path and preprocessing:
 ```
 TractSeg -i my/path/my_diffusion_image.nii.gz
          -o my/output/directory
          --bvals my/other/path/my.bvals
          --bvecs yet/another/path/my.bvecs
          --output_multiple_files
+         --preprocess
 ```
+Use `--help` to see all options.
 
 #### Use existing peaks
 ```
@@ -192,7 +194,8 @@ The input image must have the same "orientation" as the Human Connectome Project
 LEFT of the HCP data). If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
 you are fine. Otherwise you should rigidly register your image to MNI space (the brains
 do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation).
-You can use the following FSL commands to rigidly register you image to MNI space (uses 
+If you use the option `--preprocess` TractSeg will do this automatically for you. Otherwise
+you can use the following FSL commands to rigidly register you image to MNI space (uses 
 the FA to calculate the transformation as this is more stable):
 ```shell
 calc_FA -i Diffusion.nii.gz -o FA.nii.gz --bvals Diffusion.bvals --bvecs Diffusion.bvecs \
@@ -208,7 +211,8 @@ cp Diffusion.bvecs Diffusion_MNI.bvecs
 ```
 Even if the input image is in MNI space the Mrtrix peaks might still be flipped. You should view
 the peaks in `mrview` and make sure they have the proper orientation. Otherwise you might have to 
-flip the sign along the x, y or z axis. You can use the following command to do that 
+flip the sign along the x, y or z axis. If you use the option `--preprocess` TractSeg will do this automatically for you.
+Otherwise you can use the following command to do that 
 ```
 flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
 ``` 
