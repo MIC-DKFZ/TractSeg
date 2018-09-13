@@ -94,13 +94,6 @@ class FiberUtils:
                        10: slight smoothing,  100: very smooth from beginning to end
         :return:
         '''
-        #Hide large number of nipype logging outputs
-        from nipype import config, logging
-        config.set('execution', 'remove_unnecessary_outputs', 'true')
-        config.set('logging', 'workflow_level', 'WARNING')
-        config.set('logging', 'interface_level', 'WARNING')
-        logging.update_logging(config)
-        from nipype.interfaces.mrtrix.convert import read_mrtrix_tracks
         from dipy.tracking.metrics import spline
 
         streamlines = nib.streamlines.load(filename_in).streamlines  # Load Fibers (Tck)
