@@ -449,7 +449,7 @@ class ImgUtils:
         have to be flipped to have the right orientation and return the flipped peaks.
 
         :param peaks_input: nifti peak img
-        :return:
+        :return: 4D numpy array (flipped peaks)
         '''
         peaks = ImgUtils.change_spacing_4D(peaks_input, new_spacing=2.).get_data()
         #shape the classifier has been trained with
