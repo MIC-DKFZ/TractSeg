@@ -51,7 +51,7 @@ TractSeg -i Diffusion.nii.gz    # expects Diffusion.bvals and Diffusion.bvecs to
 ```
 This will create a folder `tractseg_ouput` inside of the same directory as your input file. 
 This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
-The fourth dimension contains the binary bundle segmentations.
+The [fourth dimension](#bundle-names) contains the binary bundle segmentations.
  
 > NOTE: Your input image should have the same orientation as MNI space. Moreover the MRtrix peaks are often 
 flipped along one axis. Using the option `--preprocess` TractSeg will automatically move your input
@@ -93,8 +93,7 @@ TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type TOM --output_multi
 ```
 
 #### Bundle names
-The following list shows the index of 
-each extracted bundle in the output file.
+The following list shows the index of each extracted bundle in the output file.
 ```
 0: AF_left         (Arcuate fascicle)
 1: AF_right
