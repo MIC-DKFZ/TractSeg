@@ -76,12 +76,20 @@ TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
 #### Create Tract Orientation Maps (TOMs)
 TOM ([Wasserthal et al., Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)) only supports 20 bundles.
 ```
-TractSeg -i Diffusion.nii.gz --output_type TOM --output_multiple_files
+TractSeg -i Diffusion.nii.gz --output_type TOM --output_multiple_files   # add '--track' option to also generate streamlines
 ```
 
 #### Segment bundle start and end regions
 ```
 TractSeg -i Diffusion.nii.gz --output_type endings_segmentation --output_multiple_files
+```
+
+#### Create trackings filtered by start and end region and bundle mask
+Only keeps fibers not leaving the bundle mask and starting and ending in the endpoint regions.
+```
+TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type tract_segmentation --output_multiple_files
+TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type endings_segmentation --output_multiple_files
+TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type TOM --output_multiple_files --track --filter_tracking_by_endpoints
 ```
 
 #### Bundle names
