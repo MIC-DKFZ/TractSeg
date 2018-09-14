@@ -28,7 +28,8 @@ def get_config_name(input_type, output_type, dropout_sampling=False):
         elif output_type == "endings_segmentation":
             config = "EndingsSeg_12g90g270g_125mm_DS_DAugAll"
         elif output_type == "TOM":
-            config = "Peaks20_12g90g270g_125mm"
+            # config = "Peaks20_12g90g270g_125mm"
+            config = "Peaks_12g90g270g_125mm_DS"
         elif output_type == "dm_regression":
             config = "DmReg_12g90g270g_125mm_DAugAll"
     elif input_type == "T1":
