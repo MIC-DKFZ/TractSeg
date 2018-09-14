@@ -103,6 +103,12 @@ TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type endings_segmentati
 TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type TOM --output_multiple_files --track --filter_tracking_by_endpoints
 ```
 
+#### Show uncertainty map
+Create map showing where the method is uncertain about its segmentation (uses monte carlo dropout: https://arxiv.org/abs/1506.02142)
+```
+TractSeg -i peaks.nii.gz --skip_peak_extraction --uncertainty --output_multiple_files
+```
+
 #### Bundle names
 The following list shows the index of each extracted bundle in the output file.
 ```
