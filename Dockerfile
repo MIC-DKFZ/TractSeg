@@ -91,7 +91,7 @@ RUN mkdir -p ~/.tractseg \
     && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v2.npz https://zenodo.org/record/1410884/files/best_weights_ep274.npz?download=1 \
     && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_dropout_v2.npz https://zenodo.org/record/1414130/files/best_weights_ep407.npz?download=1 \
     && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v3.npz https://zenodo.org/record/1409670/files/EndingsSeg_best_weights_ep234.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v1.npz https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1 \
+    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_v2.npz https://zenodo.org/record/1419198/files/best_weights_ep125.npz?download=1 \
     && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://zenodo.org/record/1409676/files/DmReg_best_weights_ep427.npz?download=1 \
     && curl -SL -o /code/mrtrix3_RC3.tar.gz https://zenodo.org/record/1415322/files/mrtrix3_RC3.tar.gz?download=1
 
