@@ -14,6 +14,12 @@ Please cite the papers if you use it.
 
 [![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
 
+## Table of contents
+* [Install](#install)
+* [How to use](#usage)
+* [FAQ](#faq)
+* [Train your own model](#train-your-own-model)
+
 ## Install
 TractSeg only runs on Linux and OSX. It works with Python 2 and Python 3.
 
@@ -35,12 +41,12 @@ You can also directly use TractSeg via Docker (contains all prerequisites). Howe
 only supports CPU, not GPU. 
 ```
 sudo docker run -v /absolute/path/to/my/data/directory:/data \
--t wasserth/tractseg_container:v1.5 TractSeg -i /data/my_diffusion_file.nii.gz -o /data
+-t wasserth/tractseg_container:v1.5 TractSeg -i /data/my_diffusion_file.nii.gz -o /data --preprocess
 ```
 On OSX you might have to increase the Docker memory limit from the default of 2GB to something
 like 7GB.
 
-## Usage
+## How to use
 
 #### Simple example:
 To segment the bundles on a Diffusion Nifti image run the following command. 
@@ -68,19 +74,25 @@ TractSeg -i my/path/my_diffusion_image.nii.gz
 Use `--help` to see all options.
 
 #### Use existing peaks
+To avoid generating the MRtrix CSD peaks every time you run TractSeg you can also provide them directly. (To get
+those peaks you can run TractSeg with the option `--keep_intermediate_files` and use the file `peaks.nii.gz`).
 ```
 TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
 ```
 
 #### Create Tract Orientation Maps (TOMs)
-TOM ([Wasserthal et al., Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)) only supports 20 bundles.
+For each bundle create a Tract Orientation Map ([Wasserthal et al., Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)). 
+This gives you one peak per voxel telling you the main orientation of the respective bundle at this voxel. 
+Can be used for bundle-specific tracking (add option `--track` to generate streamlines). TOM only supports 20 bundles.
 ```
-TractSeg -i Diffusion.nii.gz --output_type TOM --output_multiple_files   # add '--track' option to also generate streamlines
+TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type TOM --output_multiple_files
 ```
 
 #### Segment bundle start and end regions
+Get segmentations of the regions were the bundles start and end (helpful for filtering fibers that do not run
+from start until end).
 ```
-TractSeg -i Diffusion.nii.gz --output_type endings_segmentation --output_multiple_files
+TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type endings_segmentation --output_multiple_files
 ```
 
 #### Create trackings filtered by start and end region and bundle mask
@@ -174,12 +186,6 @@ The following list shows the index of each extracted bundle in the output file.
 "ICP_left", "ICP_right", "MCP", "SCP_left", "SCP_right", "ILF_left", "ILF_right",
 "IFO_left", "IFO_right", "OR_left", "OR_right", "UF_left", "UF_right"
 ```
-
-#### Advanced Options
-Run `TractSeg --help` for more advanced options. For example you can specify your own `brain_mask`,
-`bvals` and `bvecs`.
-
-If you have multi-shell data and you do not need fast runtime use `--csd_type csd_msmt_5tt` for slightly better results.
 
 #### Use python interface
 ```python
