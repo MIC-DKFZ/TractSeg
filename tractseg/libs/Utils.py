@@ -203,10 +203,11 @@ class Utils:
             WEIGHTS_URL = "https://zenodo.org/record/1409670/files/EndingsSeg_best_weights_ep234.npz?download=1"
 
         elif experiment_type == "peak_regression":
-            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
+            weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v2.npz')
             # WEIGHTS_URL = "https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1"
-            WEIGHTS_URL = "https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1"
+            # WEIGHTS_URL = "https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1"
+            WEIGHTS_URL = "https://zenodo.org/record/1419198/files/best_weights_ep125.npz?download=1"
 
         elif experiment_type == "dm_regression":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
