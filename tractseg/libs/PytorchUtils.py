@@ -219,8 +219,13 @@ class PytorchUtils:
             lenghts_weighted = lengths * weights_bund
 
             # Divide by weights.max otherwise lens would be way bigger
+            # Would also work: just divide by inverted weights_bund -> keeps foreground the same and penalizes the background less
+            # (weights.max just simple way of getting the current weight factor (because weights_bund is tensor, but we want scalar))
             # Flip angles to make it a minimization problem
             combined = -angles_weighted + lenghts_weighted / weights_bund.max()
+
+            #Would this work? (mathematically not the same (!), but correct concept?)
+            # combined = weights_bund * (-angles + lengths)
 
             scores[idx] = torch.mean(combined)
 
