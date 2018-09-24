@@ -137,17 +137,16 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
 
     elif HP.EXPERIMENT_TYPE == "peak_regression":
         parts = ["Part1", "Part2", "Part3", "Part4"]
-        # parts = ["Part1"]
         weights = {
-            "Part1": "PeaksPart1_12g90g270g_125mm_DS/best_weights_ep201.npz",
-            "Part2": "PeaksPart2_12g90g270g_125mm_DS/best_weights_ep196.npz",
-            "Part3": "PeaksPart3_12g90g270g_125mm_DS/best_weights_ep171.npz",
-            "Part4": "PeaksPart4_12g90g270g_125mm_DS/best_weights_ep161.npz",
+            "Part1": "pretrained_weights_peak_regression_part1_v1.npz",
+            "Part2": "pretrained_weights_peak_regression_part2_v1.npz",
+            "Part3": "pretrained_weights_peak_regression_part3_v1.npz",
+            "Part4": "pretrained_weights_peak_regression_part4_v1.npz",
         }
-        seg_all = []
-        for part in parts:
+        seg_all = np.zeros((data.shape[0], data.shape[1], data.shape[2], HP.NR_OF_CLASSES*3))
+        for idx, part in enumerate(parts):
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/" + weights[part])
-            HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", weights[part])
+            HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, weights[part])
             print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
             HP.CLASSES = "All_" + part
             HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
@@ -156,19 +155,18 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             model = BaseModel(HP)
             trainerSingle = Trainer(model, dataManagerSingle)
             seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False, only_prediction=True)
-            seg_all.append(seg)
-        HP.CLASSES = "All"
-        # HP.CLASSES = "All_Part1"
-        HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
-        seg = np.array(seg_all).transpose(1, 2, 3, 4, 0)    # [144, 144, 144, 54, 4]
-        #todo: This probably wrong way to concatenate (single part looks better, than all concatenated)
-        # or maybe: bundle name lists get messed up
-        seg = seg.reshape(seg.shape[0], seg.shape[1], seg.shape[2], seg.shape[3] * seg.shape[4])    # [144, 144, 144, 54*4]
 
+            seg_all[:, :, :, (idx*HP.NR_OF_CLASSES) : (idx*HP.NR_OF_CLASSES+HP.NR_OF_CLASSES)] = seg
+        HP.CLASSES = "All"
+        HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+        seg = seg_all
+
+        #quite fast
         if bundle_specific_threshold:
             seg = ImgUtils.remove_small_peaks_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:], len_thr=0.3)
         else:
             seg = ImgUtils.remove_small_peaks(seg, len_thr=peak_threshold)
+
         #3 dir for Peaks -> not working (?)
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
         # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
@@ -177,8 +175,8 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         seg = ImgUtils.probs_to_binary_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:])
 
     #remove following two lines to keep super resolution
-    seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
-    seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES)
+    seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)  #quite slow
+    seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES) #quite slow
 
     if postprocess:
         seg = ImgUtils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)

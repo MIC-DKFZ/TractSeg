@@ -210,27 +210,23 @@ class Utils:
 
         elif experiment_type == "peak_regression" and part == "Part1":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
-            # WEIGHTS_URL = "https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1"
-            WEIGHTS_URL = "https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1"
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_part1_v1.npz')
+            WEIGHTS_URL = "https://zenodo.org/record/1434206/files/best_weights_ep226.npz?download=1"
 
         elif experiment_type == "peak_regression" and part == "Part2":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
-            # WEIGHTS_URL = "https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1"
-            WEIGHTS_URL = "https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1"
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_part2_v1.npz')
+            WEIGHTS_URL = "https://zenodo.org/record/1434208/files/best_weights_ep210.npz?download=1"
 
         elif experiment_type == "peak_regression" and part == "Part3":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
-            # WEIGHTS_URL = "https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1"
-            WEIGHTS_URL = "https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1"
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_part3_v1.npz')
+            WEIGHTS_URL = "https://zenodo.org/record/1434210/files/best_weights_ep185.npz?download=1"
 
         elif experiment_type == "peak_regression" and part == "Part4":
             weights_path_old = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights.npz')
-            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_v1.npz')
-            # WEIGHTS_URL = "https://www.dropbox.com/s/ogywkbrj3165v3e/PeakReg_best_weights_ep229.npz?dl=1"
-            WEIGHTS_URL = "https://zenodo.org/record/1409678/files/PeakReg_best_weights_ep229.npz?download=1"
+            weights_path = os.path.join(C.TRACT_SEG_HOME, 'pretrained_weights_peak_regression_part4_v1.npz')
+            WEIGHTS_URL = "https://zenodo.org/record/1434212/files/best_weights_ep174.npz?download=1"
 
 
         if os.path.exists(weights_path_old):
