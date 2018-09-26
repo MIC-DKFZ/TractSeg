@@ -122,7 +122,7 @@ class Mrtrix():
             raise ValueError("'csd_type' contains invalid String")
 
     @staticmethod
-    def track(bundle, peaks, output_dir, brain_mask, filter_by_endpoints=False):
+    def track(bundle, peaks, output_dir, brain_mask, filter_by_endpoints=False, output_format="trk"):
         '''
 
         :param bundle:   Bundle name
@@ -184,11 +184,12 @@ class Mrtrix():
                       " -seed_image " + brain_mask +
                       " -minlength 40 -select 2000 -force -quiet")
 
-        reference_affine  = nib.load(brain_mask).get_affine()
-        FiberUtils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
-                                      output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
-                                      reference_affine, smooth=smooth)
-        os.system("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck")
+        if output_format == "trk":
+            reference_affine  = nib.load(brain_mask).get_affine()
+            FiberUtils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
+                                          output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
+                                          reference_affine, smooth=smooth)
+            os.system("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck")
         shutil.rmtree(tmp_dir)
 
     @staticmethod

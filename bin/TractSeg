@@ -70,8 +70,9 @@ parser.add_argument("--flip", action="store_true", help="Flip output peaks of TO
 parser.add_argument("--single_orientation", action="store_true", help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.", default=False)
 parser.add_argument("--bundle_specific_threshold", action="store_true", help="For converting probability maps to binary maps use lower threshold for difficult bundles like CA, FX and CST", default=False)
 parser.add_argument("--get_probabilities", action="store_true", help="Output probability map instead of binary segmentation", default=False)
-parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks", default=False)
+parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks (MRtrix FACT)", default=False)
 parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
+parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
 parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
                     help="Only keep fibers starting and ending in endpoint regions (need to run TractSeg with '--output_type endings_segmentation' first. See documentation for more details.)", default=False)
 parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
@@ -123,6 +124,7 @@ else:
 if args.super_resolution:
     data_img = ImgUtils.change_spacing_4D(data_img, new_spacing=1.25)
 data = data_img.get_data()
+data_affine = data_img.get_affine()
 
 if not args.only_track:
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
@@ -132,6 +134,7 @@ if not args.only_track:
 
     if args.preprocess:
         data = ImgUtils.flip_peaks_to_correct_orientation_if_needed(data_img)
+    data_img = None
 
     seg = run_tractseg(data, args.output_type, input_type=input_type,
                        single_orientation=args.single_orientation, verbose=args.verbose,
@@ -139,25 +142,27 @@ if not args.only_track:
                        bundle_specific_threshold=args.bundle_specific_threshold,
                        get_probs=args.get_probabilities, peak_threshold=peak_threshold,
                        postprocess=args.postprocess)
+    data = None
 
     if args.preview and HP.EXPERIMENT_TYPE == "tract_segmentation":
         print("Saving preview...")
         # brain_mask = nib.load(brain_mask).get_data()
-        PlotUtils.plot_tracts(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT, brain_mask=None)
+        PlotUtils.plot_tracts(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, brain_mask=None)
 
     if HP.OUTPUT_MULTIPLE_FILES:
         if HP.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
+            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
         elif HP.EXPERIMENT_TYPE == "tract_segmentation":
-            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)
+            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
         elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-            ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)
+            ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
         elif HP.EXPERIMENT_TYPE == "peak_regression":
-            ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT)
+            ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
         elif HP.EXPERIMENT_TYPE == "dm_regression":
-            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_img.get_affine(), HP.PREDICT_IMG_OUTPUT, name="dm_regression")
+            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="dm_regression")
     else:
-        img = nib.Nifti1Image(seg, data_img.get_affine())
+        img = nib.Nifti1Image(seg, data_affine)
+        seg = None
         if HP.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
             nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
         elif HP.EXPERIMENT_TYPE == "tract_segmentation":
@@ -169,13 +174,19 @@ if not args.only_track:
         elif HP.EXPERIMENT_TYPE == "dm_regression":
             nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
 
+    #Free memory
+    seg = None
+    img = None
+
     if args.preprocess and HP.EXPERIMENT_TYPE == "tract_segmentation" and not HP.OUTPUT_MULTIPLE_FILES:
         Mrtrix.move_to_subject_space(HP.PREDICT_IMG_OUTPUT)
 
 if args.track or args.only_track:
     print("Tracking...")
     for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
-        Mrtrix.track(bundle, input_path, HP.PREDICT_IMG_OUTPUT, brain_mask, filter_by_endpoints=args.filter_tracking_by_endpoints)
+        Mrtrix.track(bundle, input_path, HP.PREDICT_IMG_OUTPUT, brain_mask,
+                     filter_by_endpoints=args.filter_tracking_by_endpoints,
+                     output_format=args.tracking_format)
 
 Mrtrix.clean_up(HP)
 

@@ -86,9 +86,9 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         elif HP.EXPERIMENT_TYPE == "endings_segmentation":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v3.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DS_DAugAll", "best_weights_ep234.npz")
-        elif HP.EXPERIMENT_TYPE == "peak_regression":
-            HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v2.npz")
-            # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/Peaks20_12g90g270g_125mm_DAugSimp_constW5", "best_weights_ep441.npz")  #more oversegmentation with DAug
+        # elif HP.EXPERIMENT_TYPE == "peak_regression":
+        #     HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
+        #     # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/Peaks20_12g90g270g_125mm_DAugSimp_constW5", "best_weights_ep441.npz")  #more oversegmentation with DAug
         elif HP.EXPERIMENT_TYPE == "dm_regression":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_dm_regression_v1.npz")
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "DmReg_12g90g270g_125mm_DAugAll_Ubuntu", "best_weights_ep80.npz")
@@ -100,18 +100,10 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_endings_segmentation_v1.npz")
         elif HP.EXPERIMENT_TYPE == "peak_regression":
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, "pretrained_weights_peak_regression_v1.npz")
-    print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
-
-    if HP.EXPERIMENT_TYPE == "peak_regression":
-        HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
-    else:
-        HP.NR_OF_CLASSES = len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
 
     if HP.VERBOSE:
         print("Hyperparameters:")
         ExpUtils.print_HPs(HP)
-
-    Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING)
 
     data = np.nan_to_num(data)
     # brain_mask = ImgUtils.simple_brain_mask(data)
@@ -123,9 +115,11 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     data, seg_None, bbox, original_shape = DatasetUtils.crop_to_nonzero(data)
     data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data, target_size=HP.INPUT_DIM[0])
 
-    model = BaseModel(HP)
-
     if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation" or HP.EXPERIMENT_TYPE == "dm_regression":
+        print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
+        HP.NR_OF_CLASSES = len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+        Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING)
+        model = BaseModel(HP)
         if single_orientation:     # mainly needed for testing because of less RAM requirements
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
             trainerSingle = Trainer(model, dataManagerSingle)
@@ -141,13 +135,37 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                 seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
 
     elif HP.EXPERIMENT_TYPE == "peak_regression":
-        dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
-        trainerSingle = Trainer(model, dataManagerSingle)
-        seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False, only_prediction=True)
+        parts = ["Part1", "Part2", "Part3", "Part4"]
+        weights = {
+            "Part1": "pretrained_weights_peak_regression_part1_v1.npz",
+            "Part2": "pretrained_weights_peak_regression_part2_v1.npz",
+            "Part3": "pretrained_weights_peak_regression_part3_v1.npz",
+            "Part4": "pretrained_weights_peak_regression_part4_v1.npz",
+        }
+        seg_all = np.zeros((data.shape[0], data.shape[1], data.shape[2], HP.NR_OF_CLASSES*3))
+        for idx, part in enumerate(parts):
+            # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/" + weights[part])
+            HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, weights[part])
+            print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
+            HP.CLASSES = "All_" + part
+            HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+            Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING, part=part)
+            dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
+            model = BaseModel(HP)
+            trainerSingle = Trainer(model, dataManagerSingle)
+            seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False, only_prediction=True)
+
+            seg_all[:, :, :, (idx*HP.NR_OF_CLASSES) : (idx*HP.NR_OF_CLASSES+HP.NR_OF_CLASSES)] = seg
+        HP.CLASSES = "All"
+        HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+        seg = seg_all
+
+        #quite fast
         if bundle_specific_threshold:
             seg = ImgUtils.remove_small_peaks_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:], len_thr=0.3)
         else:
             seg = ImgUtils.remove_small_peaks(seg, len_thr=peak_threshold)
+
         #3 dir for Peaks -> not working (?)
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
         # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
@@ -156,8 +174,8 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         seg = ImgUtils.probs_to_binary_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:])
 
     #remove following two lines to keep super resolution
-    seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)
-    seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES)
+    seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)  #quite slow
+    seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES) #quite slow
 
     if postprocess:
         seg = ImgUtils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)

@@ -59,6 +59,7 @@ class PlotUtils:
         On the remote Server you can do 'export DISPLAY=":0"' (you should set the value you get if you do 'echo $DISPLAY' if you
         login locally on the remote server). Then all graphics will get rendered locally and not via -X.
         (important: graphical session needs to be running on remote server (e.g. via login locally))
+        (important: login needed, not just stay at login screen)
         '''
         from dipy.viz import window
         from tractseg.libs.VtkUtils import VtkUtils
