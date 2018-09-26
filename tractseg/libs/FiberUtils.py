@@ -9,6 +9,7 @@ import logging
 import psutil
 from dipy.tracking.streamline import compress_streamlines
 from tractseg.libs.Utils import Utils
+from dipy.segment.metric import ResampleFeature
 
 logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of output
 logging.getLogger().setLevel(logging.INFO)
@@ -108,4 +109,12 @@ class FiberUtils:
         if compress_err_thr is not None:
             streamlines = FiberUtils.compress_streamlines(streamlines, compress_err_thr)
         FiberUtils.save_streamlines_as_trk(filename_out, streamlines, reference_affine)
+
+    @staticmethod
+    def resample_fibers(streamlines, nb_points=12):
+        streamlines_new = []
+        for sl in streamlines:
+            feature = ResampleFeature(nb_points=nb_points)
+            streamlines_new.append(feature.extract(sl))
+        return streamlines_new
 
