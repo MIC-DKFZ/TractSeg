@@ -14,21 +14,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os, sys, inspect
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
-if not parent_dir in sys.path: sys.path.insert(0, parent_dir)
-
 import nibabel as nib
 import numpy as np
 import dipy.reconst.dti as dti
 from dipy.io import read_bvals_bvecs
-import logging
 from dipy.core.gradients import gradient_table
-from dipy.reconst.dti import fractional_anisotropy, color_fa, lower_triangular
+from dipy.reconst.dti import fractional_anisotropy
 import argparse
-
-logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of output
-logging.getLogger().setLevel(logging.INFO)
 
 parser = argparse.ArgumentParser(description="Generate FA image.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
