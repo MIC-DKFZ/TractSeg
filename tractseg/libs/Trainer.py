@@ -24,6 +24,7 @@ import numpy as np
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.MetricUtils import MetricUtils
 from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs.PlotUtils import PlotUtils
 import socket
 from tqdm import tqdm
 import datetime
@@ -167,7 +168,7 @@ class Trainer:
                         print_loss = []
 
                     if HP.USE_VISLOGGER:
-                        ExpUtils.plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr)
+                        PlotUtils.plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr)
 
 
             ###################################
@@ -197,8 +198,8 @@ class Trainer:
             # Create Plots
             start_time_plotting = time.time()
             pickle.dump(metrics, open(join(HP.EXP_PATH, "metrics.pkl"), "wb")) # wb -> write (override) and binary (binary only needed on windows, on unix also works without) # for loading: pickle.load(open("metrics.pkl", "rb"))
-            ExpUtils.create_exp_plot(metrics, HP.EXP_PATH, HP.EXP_NAME)
-            ExpUtils.create_exp_plot(metrics, HP.EXP_PATH, HP.EXP_NAME, without_first_epochs=True)
+            PlotUtils.create_exp_plot(metrics, HP.EXP_PATH, HP.EXP_NAME)
+            PlotUtils.create_exp_plot(metrics, HP.EXP_PATH, HP.EXP_NAME, without_first_epochs=True)
             plotting_time += time.time() - start_time_plotting
 
             epoch_time = time.time() - start_time
