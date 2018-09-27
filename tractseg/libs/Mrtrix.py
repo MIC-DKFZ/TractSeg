@@ -19,6 +19,7 @@ import nibabel as nib
 import tempfile
 from tractseg.libs.ImgUtils import ImgUtils
 import shutil
+from pkg_resources import resource_filename
 
 class Mrtrix():
 
@@ -31,8 +32,7 @@ class Mrtrix():
 
         dwi_spacing = ImgUtils.get_image_spacing(input_file)
 
-        path_of_this_file = os.path.abspath(os.path.dirname(__file__))
-        template_path = join(path_of_this_file, "../../examples/resources/MNI_FA_template.nii.gz")
+        template_path = resource_filename('examples.resources', 'MNI_FA_template.nii.gz')
 
         os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
                   "/FA_MNI.nii.gz -omat " + output_dir + "/FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo")

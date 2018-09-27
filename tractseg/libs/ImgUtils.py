@@ -25,6 +25,7 @@ from tractseg.libs.Utils import Utils
 from scipy.ndimage.morphology import binary_dilation
 from sklearn.externals import joblib
 import os
+from pkg_resources import resource_filename
 
 class ImgUtils:
     
@@ -461,8 +462,8 @@ class ImgUtils:
         X = [list(peaks_x.flatten()) + list(peaks_y.flatten()) + list(peaks_z.flatten())]
         X = np.nan_to_num(X)
 
-        path_of_this_file = os.path.abspath(os.path.dirname(__file__))
-        clf = joblib.load(os.path.join(path_of_this_file, "../../examples/resources/random_forest_peak_orientation_detection.pkl"))
+        random_forest_path = resource_filename('examples.resources', 'random_forest_peak_orientation_detection.pkl')
+        clf = joblib.load(random_forest_path)
         predicted_label = clf.predict(X)[0]
 
         # labels:
