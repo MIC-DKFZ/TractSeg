@@ -111,7 +111,7 @@ TractSeg -i peaks.nii.gz --skip_peak_extraction --uncertainty --output_multiple_
 ```
 
 #### Perform Tractometry
-See [Documentation of Tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/plot_tractometry_results.ipynb).
+See [Documentation of Tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tractometry_documentation.md).
 
 #### Bundle names
 The following list shows the index of each extracted bundle in the output file.
