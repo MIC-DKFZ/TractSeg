@@ -450,7 +450,7 @@ class ImgUtils:
         have to be flipped to have the right orientation and return the flipped peaks.
 
         :param peaks_input: nifti peak img
-        :return: 4D numpy array (flipped peaks)
+        :return: 4D numpy array (flipped peaks), boolean if flip was done
         '''
         peaks = ImgUtils.change_spacing_4D(peaks_input, new_spacing=2.).get_data()
         #shape the classifier has been trained with
@@ -470,13 +470,13 @@ class ImgUtils:
         #  ok: 0, x:1, y:2, z:3
         peaks_input_data = peaks_input.get_data()
         if predicted_label == 0:
-            return peaks_input_data
+            return peaks_input_data, False
         elif predicted_label == 1:
-            return ImgUtils.flip_peaks(peaks_input_data, axis="x")
+            return ImgUtils.flip_peaks(peaks_input_data, axis="x"), True
         elif predicted_label == 2:
-            return ImgUtils.flip_peaks(peaks_input_data, axis="y")
+            return ImgUtils.flip_peaks(peaks_input_data, axis="y"), True
         elif predicted_label == 3:
-            return ImgUtils.flip_peaks(peaks_input_data, axis="z")
+            return ImgUtils.flip_peaks(peaks_input_data, axis="z"), True
 
     @staticmethod
     def get_image_spacing(img_path):

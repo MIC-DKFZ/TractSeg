@@ -58,9 +58,9 @@ This will create a folder `tractseg_ouput` inside of the same directory as your 
 This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
 The [fourth dimension](#bundle-names) contains the binary bundle segmentations.
  
-> NOTE: Your input image should have the same orientation as MNI space. Moreover the MRtrix peaks are often 
-flipped along one axis. Using the option `--preprocess` TractSeg will automatically move your input
-image to MNI space (rigid registration) and make sure the peaks are correctly flipped. 
+> NOTE: Your input image should have the same orientation as MNI space. 
+Using the option `--preprocess` TractSeg will automatically move your input
+image to MNI space (rigid registration). 
 
 #### Custom input and output path and preprocessing:
 ```
@@ -230,13 +230,6 @@ flirt -ref tractseg/examples/resources/MNI_FA_template.nii.gz -in Diffusion.nii.
 cp Diffusion.bvals Diffusion_MNI.bvals
 cp Diffusion.bvecs Diffusion_MNI.bvecs
 ```
-Even if the input image is in MNI space the Mrtrix peaks might still be flipped. You should view
-the peaks in `mrview` and make sure they have the proper orientation. Otherwise you might have to 
-flip the sign along the x, y or z axis. If you use the option `--preprocess` TractSeg will do this automatically for you.
-Otherwise you can use the following command to do that 
-```
-flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
-``` 
 
 #### Small bundles like the CA and FX are incomplete
 You can use the following three options to improve your results:

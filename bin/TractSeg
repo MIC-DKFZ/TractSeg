@@ -79,7 +79,9 @@ parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm
 parser.add_argument("--uncertainty", action="store_true", help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)", default=False)
 parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
 #Move input image to MNI space and
-parser.add_argument("--preprocess", action="store_true", help="ensure correct orientation of peaks", default=False)
+parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
+parser.add_argument("--deactivate_peak_check", action="store_true",
+                    help="Deactivate automatically checking if the peaks have the right orientation and flipping them if needed", default=False)
 parser.add_argument('--version', action='version', version='TractSeg 1.5')
 args = parser.parse_args()
 
@@ -123,18 +125,22 @@ else:
 
 if args.super_resolution:
     data_img = ImgUtils.change_spacing_4D(data_img, new_spacing=1.25)
-data = data_img.get_data()
 data_affine = data_img.get_affine()
 
 if not args.only_track:
+    if not args.deactivate_peak_check:
+        data, flip_done = ImgUtils.flip_peaks_to_correct_orientation_if_needed(data_img)
+        if flip_done:
+            print("INFO: Detected that peaks have wrong orientation and automatically flipped them.")
+    else:
+        data = data_img.get_data()
+    data_img = None     # free memory
+
+    #Use Peaks + T1
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
     # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[:,:,:,None]
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]  #needed if upsampling of peaks resulted in one pixel less (sometimes)
     # data = np.concatenate((data, t1_data), axis=3)
-
-    if args.preprocess:
-        data = ImgUtils.flip_peaks_to_correct_orientation_if_needed(data_img)
-    data_img = None
 
     seg = run_tractseg(data, args.output_type, input_type=input_type,
                        single_orientation=args.single_orientation, verbose=args.verbose,
