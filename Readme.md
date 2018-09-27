@@ -110,6 +110,9 @@ Create map showing where the method is uncertain about its segmentation (uses mo
 TractSeg -i peaks.nii.gz --skip_peak_extraction --uncertainty --output_multiple_files
 ```
 
+#### Perform Tractometry
+See [Documentation of Tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/plot_tractometry_results.ipynb).
+
 #### Bundle names
 The following list shows the index of each extracted bundle in the output file.
 ```
