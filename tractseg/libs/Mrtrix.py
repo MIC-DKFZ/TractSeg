@@ -151,7 +151,7 @@ class Mrtrix():
                 print("WARNING: tract endings mask of {} empty".format(bundle))
 
         if filter_by_endpoints and beginnings_mask_ok and endings_mask_ok:
-            # dilation = 2    # dilation has to be quite high, because endings sometimes almost completely missing
+            # dilation has to be quite high, because endings sometimes almost completely missing
             ImgUtils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
                                         tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
             ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
