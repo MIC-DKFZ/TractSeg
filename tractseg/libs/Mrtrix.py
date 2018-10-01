@@ -141,16 +141,20 @@ class Mrtrix():
         os.system("mkdir -p " + output_dir + "/" + tracking_folder)
 
         if filter_by_endpoints:
+            bundle_mask_ok = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz").get_data().max() > 0
             beginnings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data().max() > 0
             endings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data().max() > 0
 
+            if not bundle_mask_ok:
+                print("WARNING: tract mask of {} empty. Falling back to tracking without filtering by endpoints.".format(bundle))
+
             if not beginnings_mask_ok:
-                print("WARNING: tract beginnings mask of {} empty".format(bundle))
+                print("WARNING: tract beginnings mask of {} empty. Falling back to tracking without filtering by endpoints.".format(bundle))
 
             if not endings_mask_ok:
-                print("WARNING: tract endings mask of {} empty".format(bundle))
+                print("WARNING: tract endings mask of {} empty. Falling back to tracking without filtering by endpoints.".format(bundle))
 
-        if filter_by_endpoints and beginnings_mask_ok and endings_mask_ok:
+        if filter_by_endpoints and bundle_mask_ok and beginnings_mask_ok and endings_mask_ok:
             # dilation has to be quite high, because endings sometimes almost completely missing
             ImgUtils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
                                         tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
