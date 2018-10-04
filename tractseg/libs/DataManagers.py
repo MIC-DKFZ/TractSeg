@@ -42,8 +42,6 @@ from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.Config import Config as C
 from tractseg.libs.ExpUtils import ExpUtils
 
-from tractseg.libs.DLDABG_Standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
-from tractseg.libs.DLDABG_Standalone import SingleThreadedAugmenter
 from tractseg.libs.DLDABG_Standalone import ReorderSegTransform
 
 np.random.seed(1337)  # for reproducibility

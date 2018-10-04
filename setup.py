@@ -11,6 +11,7 @@ setup(name='TractSeg',
         packages=find_packages(),
         #Torch/Lasagne has to be installed manually
         install_requires=[
+            'future',
             'numpy',
             'nibabel>=2.3.0',
             'matplotlib',

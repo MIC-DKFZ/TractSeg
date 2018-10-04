@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import object
 import numpy as np
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.DLDABG_Standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
@@ -24,7 +25,7 @@ from tractseg.libs.DLDABG_Standalone import Compose
 
 np.random.seed(1337)  # for reproducibility
 
-class SlicesBatchGenerator_Standalone():
+class SlicesBatchGenerator_Standalone(object):
     '''
     Same as tractseg.libs.BatchGenerators.SlicesBatchGenerator, but does not depend on DKFZ/BatchGenerators package.
     Therefore good for inference on windows where DKFZ/Batchgenerators do not work (because of MultiThreading problems)
