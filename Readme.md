@@ -113,7 +113,7 @@ TractSeg -i peaks.nii.gz --uncertainty
 See [Documentation of Tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tractometry_documentation.md).
 
 #### Tutorial
-[Best pratices for basic usecases](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tutorial.md).
+[Best pratices for standard usecases](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tutorial.md).
 
 #### Bundle names
 The following list shows the index of each extracted bundle in the output file (if using `--single_output_file`).
