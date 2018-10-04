@@ -3,7 +3,7 @@
 This tutorial shows best practices for how to you use TractSeg for 1. HCP-like data and 2. non-HCP data.  
 
 
-##1. HCP (Human Connectome Project) or similar data
+## 1. HCP (Human Connectome Project) or similar data
 
 If you want to use TractSeg for data from the original Human Connectome Project or for data that was acquired similarly 
 (resolution <1.5mm, high number of orientations, good preprocessing, ...) like for example the HCP Lifespan project, TractSeg 
@@ -47,7 +47,7 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter
 * results for right CST (corticospinal tract):  
 ![trackings](resources/trackings.png)
 
-##2. non-HCP data
+## 2. non-HCP data
 
 Most diffusion dataset have lower resolution than HCP data (2-2.5mm) and only one b-value with only a small number of orientations (e.g. 32).
 Because of the reduced image quality the results of TractSeg will also suffer to a certain degree. But using the right options TractSeg can still
