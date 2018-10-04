@@ -38,7 +38,7 @@ from tractseg.TractSeg import run_tractseg
 
 '''
 Usage:
-TractSeg -i peaks.nii.gz --output_multiple_files --skip_peak_extraction
+TractSeg -i peaks.nii.gz --skip_peak_extraction
 '''
 
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
@@ -46,7 +46,7 @@ parser = argparse.ArgumentParser(description="Segment white matter bundles in a 
                                            "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070'")
 parser.add_argument("-i", metavar="filepath", dest="input", help="Diffusion Input image path (Nifti image)", required=True)
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
-parser.add_argument("--output_multiple_files", action="store_true", help="Create extra output file for each bundle", default=False)
+parser.add_argument("--single_output_file", action="store_true", help="Output all bundles in one file (4D image)", default=False)
 parser.add_argument("--csd_type", metavar="csd|csd_msmt|csd_msmt_5tt", choices=["csd", "csd_msmt", "csd_msmt_5tt"],
                     help="Which MRtrix constrained spherical deconvolution (CSD) is used for peak generation.\n" +
                          "'csd' [DEFAULT]: Standard CSD. Very fast.\n" +
@@ -97,7 +97,7 @@ HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + confi
 HP.CSD_TYPE = args.csd_type
 HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
 HP.VERBOSE = args.verbose
-HP.OUTPUT_MULTIPLE_FILES = args.output_multiple_files
+HP.SINGLE_OUTPUT_FILE = args.single_output_file
 HP.FLIP_OUTPUT_PEAKS = args.flip
 HP.PREDICT_IMG = input_path is not None
 if args.output:
@@ -155,18 +155,7 @@ if not args.only_track:
         # brain_mask = nib.load(brain_mask).get_data()
         PlotUtils.plot_tracts(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, brain_mask=None)
 
-    if HP.OUTPUT_MULTIPLE_FILES:
-        if HP.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
-        elif HP.EXPERIMENT_TYPE == "tract_segmentation":
-            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
-        elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-            ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
-        elif HP.EXPERIMENT_TYPE == "peak_regression":
-            ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
-        elif HP.EXPERIMENT_TYPE == "dm_regression":
-            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="dm_regression")
-    else:
+    if HP.SINGLE_OUTPUT_FILE:
         img = nib.Nifti1Image(seg, data_affine)
         seg = None
         if HP.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
@@ -179,12 +168,23 @@ if not args.only_track:
             nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
         elif HP.EXPERIMENT_TYPE == "dm_regression":
             nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
+    else:
+        if HP.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
+            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
+        elif HP.EXPERIMENT_TYPE == "tract_segmentation":
+            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
+        elif HP.EXPERIMENT_TYPE == "endings_segmentation":
+            ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
+        elif HP.EXPERIMENT_TYPE == "peak_regression":
+            ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
+        elif HP.EXPERIMENT_TYPE == "dm_regression":
+            ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="dm_regression")
 
     #Free memory
     seg = None
     img = None
 
-    if args.preprocess and HP.EXPERIMENT_TYPE == "tract_segmentation" and not HP.OUTPUT_MULTIPLE_FILES:
+    if args.preprocess and HP.EXPERIMENT_TYPE == "tract_segmentation" and HP.SINGLE_OUTPUT_FILE:
         Mrtrix.move_to_subject_space(HP.PREDICT_IMG_OUTPUT)
 
 if args.track or args.only_track:
