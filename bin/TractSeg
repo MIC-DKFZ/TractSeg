@@ -38,7 +38,7 @@ from tractseg.TractSeg import run_tractseg
 
 '''
 Usage:
-TractSeg -i peaks.nii.gz --skip_peak_extraction
+TractSeg -i peaks.nii.gz
 '''
 
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
@@ -63,7 +63,7 @@ parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is 
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is '<name_of_input_file>.bvecs' in same directory as input")
 parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
-parser.add_argument("--skip_peak_extraction", action="store_true", help="Do not calculate input peaks. You have to provide them yourself as argument to -i", default=False)
+parser.add_argument("--raw_diffusion_input", action="store_true", help="Provide a Diffusion nifti image as argument to -i. Will calculate CSD and extract the mean peaks needed as input for TractSeg.", default=False)
 parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
 parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Requires VTK.", default=False)
 parser.add_argument("--flip", action="store_true", help="Flip output peaks of TOM along z axis to make compatible with MITK.", default=False)
@@ -109,7 +109,7 @@ bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
 brain_mask = ExpUtils.get_brain_mask_path(HP, args)
 ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
-if not args.skip_peak_extraction:
+if args.raw_diffusion_input:
     if args.brain_mask is None:
         brain_mask = Mrtrix.create_brain_mask(input_path, HP.PREDICT_IMG_OUTPUT)
 
@@ -118,10 +118,10 @@ if not args.skip_peak_extraction:
 
     Mrtrix.create_fods(input_path, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE)
 
-if args.skip_peak_extraction:
-    data_img = nib.load(input_path)
-else:
+if args.raw_diffusion_input:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
+else:
+    data_img = nib.load(input_path)
 
 if args.super_resolution:
     data_img = ImgUtils.change_spacing_4D(data_img, new_spacing=1.25)
