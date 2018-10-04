@@ -1,6 +1,6 @@
 ## Release 1.6
 
-* TOM now supports all 72 bundles instead of only 20. Downside: needs 4x more RAM (roughly 22GB).
+* TOM (Tract Orientation Mapping) now supports all 72 bundles instead of only 20. Downside: needs 4x more RAM (roughly 22GB).
 * Code for performing [tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tractometry_documentation.md)
 * Added more documentation: [Best pratices for standard usecases](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tutorial.md)
 * Removed batchgenerators dependency. Now it might even work on windows (not tested yet!).
