@@ -49,14 +49,14 @@ like 7GB.
 ## How to use
 
 #### Simple example:
-To segment the bundles on a Diffusion Nifti image run the following command. 
-You can use the example image provided in this repository under `examples`.  
+To segment the bundles on a Diffusion Nifti image run the following command. (Diffusion.bvals and Diffusion.bvecs have to be in the same directory
+as the input image.)
+(You can use the example image provided in this repository under `examples`.)  
 ```
-TractSeg -i Diffusion.nii.gz    # expects Diffusion.bvals and Diffusion.bvecs to be in the same directory
+TractSeg -i Diffusion.nii.gz --raw_diffusion_input
 ```
-This will create a folder `tractseg_ouput` inside of the same directory as your input file. 
-This folder contains `bundle_segmentations.nii.gz` which is a 4D Nifti image (`[x,y,z,bundle]`). 
-The [fourth dimension](#bundle-names) contains the binary bundle segmentations.
+This will create a folder `tractseg_ouput` inside of the same directory as your input file with one binary segmentation nifti image
+for each bundle.
  
 > NOTE: Your input image should have the same orientation as MNI space. 
 Using the option `--preprocess` TractSeg will automatically move your input
@@ -67,17 +67,17 @@ image to MNI space (rigid registration).
 TractSeg -i my/path/my_diffusion_image.nii.gz
          -o my/output/directory
          --bvals my/other/path/my.bvals
-         --bvecs yet/another/path/my.bvecs
-         --output_multiple_files
+         --bvecs yet/another/path/my.bvec
+         --raw_diffusion_input
          --preprocess
 ```
 Use `--help` to see all options.
 
 #### Use existing peaks
-To avoid generating the MRtrix CSD peaks every time you run TractSeg you can also provide them directly. (To get
-those peaks you can run TractSeg with the option `--keep_intermediate_files` and use the file `peaks.nii.gz`).
+To avoid generating the MRtrix CSD peaks every time you run TractSeg you can also provide them directly by skipping the 
+option `--raw_diffusion_input`.
 ```
-TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz --skip_peak_extraction
+TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz
 ```
 
 #### Create Tract Orientation Maps (TOMs)
@@ -86,35 +86,38 @@ This gives you one peak per voxel telling you the main orientation of the respec
 Can be used for bundle-specific tracking (add option `--track` to generate streamlines). Needs around 22GB of RAM because
 for each bundle three channels have to be stored (216 channels in total).
 ```
-TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type TOM --output_multiple_files
+TractSeg -i peaks.nii.gz --output_type TOM
 ```
 
 #### Segment bundle start and end regions
 Get segmentations of the regions were the bundles start and end (helpful for filtering fibers that do not run
 from start until end).
 ```
-TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type endings_segmentation --output_multiple_files
+TractSeg -i peaks.nii.gz --output_type endings_segmentation
 ```
 
 #### Create trackings filtered by start and end region and bundle mask
 Only keeps fibers not leaving the bundle mask and starting and ending in the endpoint regions.
 ```
-TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type tract_segmentation --output_multiple_files
-TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type endings_segmentation --output_multiple_files
-TractSeg -i peaks.nii.gz --skip_peak_extraction --output_type TOM --output_multiple_files --track --filter_tracking_by_endpoints
+TractSeg -i peaks.nii.gz --output_type tract_segmentation
+TractSeg -i peaks.nii.gz --output_type endings_segmentation
+TractSeg -i peaks.nii.gz --output_type TOM --track --filter_tracking_by_endpoints
 ```
 
 #### Show uncertainty map
 Create map showing where the method is uncertain about its segmentation (uses monte carlo dropout: https://arxiv.org/abs/1506.02142)
 ```
-TractSeg -i peaks.nii.gz --skip_peak_extraction --uncertainty --output_multiple_files
+TractSeg -i peaks.nii.gz --uncertainty
 ```
 
 #### Perform Tractometry
 See [Documentation of Tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tractometry_documentation.md).
 
+#### Tutorial
+[Best pratices for basic usecases](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tutorial.md).
+
 #### Bundle names
-The following list shows the index of each extracted bundle in the output file.
+The following list shows the index of each extracted bundle in the output file (if using `--single_output_file`).
 ```
 0: AF_left         (Arcuate fascicle)
 1: AF_right
