@@ -23,9 +23,9 @@ NOTE: This expects the T1 image to be in the same folder as the Diffusion.nii.gz
 * You can use the options `--bvals` and `--bvecs` if your bvals and bvecs file use a different naming convention.  
 * If you have a NVIDIA GPU and CUDA installed TractSeg will run in less than 1min. Otherwise it will fall back to CPU and run several minutes.
 * The output is a directory `tractseg_output` containing the file `peaks.nii.gz` and a subdirectory `bundle_segmentations` containing one 
-binary nifti image for each segmented bundle.
-
-<img src="resources/tract_segmentation.png" width="248">
+binary nifti image for each segmented bundle.  
+* results for right CST (corticospinal tract):  
+![tract_segmentation](resources/tract_segmentation.png)
 
 Now we have binary tract segmentations but TractSeg can also segment the start and end regions of those bundles and generate Tract Orientation
 Maps (TOM) which can be used to generated bundle-specific tractograms:
@@ -34,6 +34,8 @@ Maps (TOM) which can be used to generated bundle-specific tractograms:
 TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation
 ```
 * This will add another subdirectory `endings_segmentations` containing the beginning region (`_b`) and ending region (`_e`) of each bundle.
+* results for right CST (corticospinal tract):  
+![endings_segmentation](resources/endings_segmentation.png)
 
 ```
 TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter_tracking_by_endpoints
@@ -41,8 +43,9 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter
 * This will add another subdirectory `TOM` containing the Tract Orientation Maps.  
 * `--track`: This will automatically run MRtrix FACT tracking on the TOM peaks.  
 * `--filter_tracking_by_endpoints`: Only keeps those fibers starting and ending in the beginnings and endings regions (plus a small margin).  
-* You can add the option `--tracking_format tck` to generate tck instead of trk files.
-
+* You can add the option `--tracking_format tck` to generate tck instead of trk files.  
+* results for right CST (corticospinal tract):  
+![trackings](resources/trackings.png)
 
 ##2. non-HCP data
 
