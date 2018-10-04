@@ -18,7 +18,7 @@ script:
 #  - docker build -t tractseg_container .
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion.nii.gz -o /data
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:v1.4 TractSeg -i /data/Diffusion.nii.gz -o /data
-  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --single_orientation
-#  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type TOM --single_orientation
-  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type endings_segmentation --single_orientation
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --single_orientation --single_output_file
+#  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type TOM --single_orientation --single_output_file
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --skip_peak_extraction --output_type endings_segmentation --single_orientation --single_output_file
   - pytest
