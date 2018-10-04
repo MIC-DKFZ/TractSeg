@@ -102,7 +102,7 @@ RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
     && /code/mrtrix3/set_path
 
 RUN pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip \
-    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.5.zip
+    && pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.6.zip
 
 # Does not work -> added mrtrix to path in python
 ENV PATH /code/mrtrix3/bin:$PATH
