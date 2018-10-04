@@ -86,68 +86,6 @@ class SlicesBatchGenerator(SlimDataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGenerator_Standalone():
-    '''
-    Same as SlicesBatchGenerator, but does not depend on DKFZ/BatchGenerators package.
-    Therefore good for inference on windows where DKFZ/Batchgenerators do not work (because of MultiThreading problems)
-    '''
-    def __init__(self, data, batch_size):
-        # super(self.__class__, self).__init__(*args, **kwargs)
-        self.HP = None
-        self.batch_size = batch_size
-        self.global_idx = 0
-        self._data = data
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        return self.generate_train_batch()
-
-    def generate_train_batch(self):
-        if self.HP.SLICE_DIRECTION == "x":
-            end = self._data[0].shape[0]
-        elif self.HP.SLICE_DIRECTION == "y":
-            end = self._data[0].shape[1]
-        elif self.HP.SLICE_DIRECTION == "z":
-            end = self._data[0].shape[2]
-
-        # Stop iterating if we reached end of data
-        if self.global_idx >= end:
-            # print("Stopped because end of file")
-            self.global_idx = 0
-            raise StopIteration
-
-        new_global_idx = self.global_idx + self.batch_size
-
-        # If we reach end, make last batch smaller, so it fits exactly into rest
-        if new_global_idx >= end:
-            new_global_idx = end  # not end-1, because this goes into range, and there automatically -1
-
-        idxs = list(range(self.global_idx, new_global_idx))
-
-        if self.HP.SLICE_DIRECTION == "x":
-            x = np.array(self._data[0][idxs,:,:,:]).astype(np.float32)
-            y = np.array(self._data[1][idxs,:,:,:]).astype(self.HP.LABELS_TYPE)
-            x = x.transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
-            y = y.transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif self.HP.SLICE_DIRECTION == "y":
-            x = np.array(self._data[0][:,idxs,:,:]).astype(np.float32)
-            y = np.array(self._data[1][:,idxs,:,:]).astype(self.HP.LABELS_TYPE)
-            x = x.transpose(1, 3, 0, 2)  # depth-channel has to be before width and height for Unet (but after batches)
-            y = y.transpose(1, 3, 0, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif self.HP.SLICE_DIRECTION == "z":
-            x = np.array(self._data[0][:,:,idxs,:]).astype(np.float32)
-            y = np.array(self._data[1][:,:,idxs,:]).astype(self.HP.LABELS_TYPE)
-            x = x.transpose(2, 3, 0, 1)  # depth-channel has to be before width and height for Unet (but after batches)
-            y = y.transpose(2, 3, 0, 1)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-
-        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
-                     "seg": y}      # (batch_size, channels, x, y, [z])
-        self.global_idx = new_global_idx
-        return data_dict
-
-
 class SlicesBatchGeneratorRandomNiftiImg(SlimDataLoaderBase):
     '''
     Randomly sample 2D slices from a .nii.gz image.

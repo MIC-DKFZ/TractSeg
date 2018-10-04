@@ -32,7 +32,7 @@ from tractseg.libs.Utils import Utils
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.DirectionMerger import DirectionMerger
 from tractseg.libs.ImgUtils import ImgUtils
-from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
+from tractseg.libs.DataManagersInference import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
 from tractseg.models.BaseModel import BaseModel
 

@@ -28,7 +28,6 @@ TractSeg only runs on Linux and OSX. It works with Python 2 and Python 3.
 * [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask and do not use the 
 option `--preprocess` this is not needed)
-* BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip`
 
 #### Install TractSeg
 Latest stable version:
@@ -273,7 +272,8 @@ But be aware: This is more complicated than just running with the pretrained mod
 guide is quite short and you might have problems following every step. Contact the author if
 you need help training your own model.
 
-1. The folder structure of your training data should be the following:
+1. Install BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip`
+2. The folder structure of your training data should be the following:
 ```
 custom_path/HCP/subject_01/
       '-> mrtrix_peaks.nii.gz       (mrtrix CSD peaks;  shape: [x,y,z,9])
@@ -281,16 +281,16 @@ custom_path/HCP/subject_01/
 custom_path/HCP/subject_02/
       ...
 ```
-2. Adapt the file tractseg/config/custom/My_custom_experiment.py.
-3. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory, e.g.
+3. Adapt the file tractseg/config/custom/My_custom_experiment.py.
+4. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory, e.g.
 `working_dir=custom_path`.
-4. Adapt `tractseg.libs.DatasetUtils.scale_input_to_unet_shape()` to scale your input data to the 
+5. Adapt `tractseg.libs.DatasetUtils.scale_input_to_unet_shape()` to scale your input data to the 
 UNet input size of `144x144`. This is not very convenient. Contact the author if you need help.
-5. Adapt `tractseg.libs.ExpUtils.get_bundle_names()` with the bundles you use in your reference data.
-6. Adapt `tractseg.libs.ExpUtils.get_labels_filename()` with the names of your label files.
-7. Adapt `tractseg.libs.Subjects` with the list of your subject IDs.
-8. Run `ExpRunner --config My_custom_experiment` 
-9. `custom_path/hcp_exp/My_custom_experiment` contains the results
+6. Adapt `tractseg.libs.ExpUtils.get_bundle_names()` with the bundles you use in your reference data.
+7. Adapt `tractseg.libs.ExpUtils.get_labels_filename()` with the names of your label files.
+8. Adapt `tractseg.libs.Subjects` with the list of your subject IDs.
+9. Run `ExpRunner --config My_custom_experiment` 
+10. `custom_path/hcp_exp/My_custom_experiment` contains the results
 
 
 ## Docker

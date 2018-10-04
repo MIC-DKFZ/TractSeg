@@ -17,7 +17,7 @@
 
 import numpy as np
 import random
-from batchgenerators.dataloading.data_loader import DataLoaderBase
+from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 from os.path import join
 from tractseg.libs.Config import Config as C
 
@@ -26,7 +26,7 @@ Info:
 Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
 '''
 
-class SlicesBatchGeneratorNpyImg_fusion(DataLoaderBase):
+class SlicesBatchGeneratorNpyImg_fusion(SlimDataLoaderBase):
     '''
     Returns 2D slices ordered way. Takes data in form of a npy file for each image. Npy file is already cropped to right size.
     '''

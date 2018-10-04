@@ -36,7 +36,6 @@ from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorPrecomputedBatches
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg_5slices
 from tractseg.libs.BatchGenerators import SlicesBatchGenerator
-from tractseg.libs.BatchGenerators import SlicesBatchGenerator_Standalone
 from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
 from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorNpyImg_fusion
 from tractseg.libs.DatasetUtils import DatasetUtils
@@ -127,29 +126,6 @@ class DataManagerSingleSubjectById:
 
         tfs.append(ReorderSegTransform())
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=2, seeds=None) # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
-        return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)
-
-
-class DataManagerSingleSubjectByFile:
-    def __init__(self, HP, data):
-        self.data = data
-        self.HP = HP
-        ExpUtils.print_verbose(self.HP, "Loading data from PREDICT_IMG input file")
-
-    def get_batches(self, batch_size=1):
-        data = np.nan_to_num(self.data)
-        # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
-        seg = np.zeros((self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.NR_OF_CLASSES)).astype(self.HP.LABELS_TYPE)
-
-        num_processes = 1  # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
-        batch_gen = SlicesBatchGenerator_Standalone((data, seg), batch_size=batch_size)
-        batch_gen.HP = self.HP
-        tfs = []  # transforms
-
-        if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=self.HP.NORMALIZE_PER_CHANNEL))
-        tfs.append(ReorderSegTransform())
-        batch_gen = SingleThreadedAugmenter(batch_gen, Compose(tfs))
         return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)
 
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from future.builtins import object
+from builtins import object
 import abc
 from warnings import warn
 
@@ -73,6 +73,31 @@ class AbstractTransform(object):
         return ret_str
 
 
+class Compose(AbstractTransform):
+    """Composes several transforms together.
+
+    Args:
+        transforms (list of ``Transform`` objects): list of transforms to compose.
+
+    Example:
+        >>> transforms.Compose([
+        >>>     transforms.CenterCrop(10),
+        >>>     transforms.ToTensor(),
+        >>> ])
+    """
+
+    def __init__(self, transforms):
+        self.transforms = transforms
+
+    def __call__(self, **data_dict):
+        for t in self.transforms:
+            data_dict = t(**data_dict)
+        return data_dict
+
+    def __repr__(self):
+        return str(type(self).__name__) + " ( " + repr(self.transforms) + " )"
+
+
 class ZeroMeanUnitVarianceTransform(AbstractTransform):
     """ Zero mean unit variance transform
 
@@ -93,6 +118,7 @@ class ZeroMeanUnitVarianceTransform(AbstractTransform):
         data_dict[self.data_key] = zero_mean_unit_variance_normalization(data_dict[self.data_key], self.per_channel,
                                                                          self.epsilon)
         return data_dict
+
 
 class ReorderSegTransform(AbstractTransform):
     """

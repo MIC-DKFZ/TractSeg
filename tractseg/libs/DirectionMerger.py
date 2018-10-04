@@ -17,8 +17,8 @@
 
 import importlib
 import numpy as np
-from tractseg.libs.DataManagers import DataManagerSingleSubjectById
-from tractseg.libs.DataManagers import DataManagerSingleSubjectByFile
+
+from tractseg.libs.DataManagersInference import DataManagerSingleSubjectByFile
 
 class DirectionMerger:
 
@@ -44,6 +44,7 @@ class DirectionMerger:
             # print("Processing direction " + HP.SLICE_DIRECTION)
 
             if subject:
+                from tractseg.libs.DataManagers import DataManagerSingleSubjectById
                 dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject)
             else:
                 dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
