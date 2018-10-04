@@ -36,12 +36,16 @@ from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorPrecomputedBatches
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg_5slices
 from tractseg.libs.BatchGenerators import SlicesBatchGenerator
+from tractseg.libs.BatchGenerators import SlicesBatchGenerator_Standalone
 from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
 from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorNpyImg_fusion
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.Config import Config as C
 from tractseg.libs.ExpUtils import ExpUtils
-from tractseg.libs.AugmentationGenerators import *
+
+from tractseg.libs.DLDABG_Standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
+from tractseg.libs.DLDABG_Standalone import SingleThreadedAugmenter
+from tractseg.libs.DLDABG_Standalone import ReorderSegTransform
 
 np.random.seed(1337)  # for reproducibility
 
@@ -96,7 +100,7 @@ class DataManagerSingleSubjectById:
                 # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
                 seg = np.zeros((self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.NR_OF_CLASSES)).astype(self.HP.LABELS_TYPE)
 
-            batch_gen = SlicesBatchGenerator((data, seg), BATCH_SIZE=batch_size)
+            batch_gen = SlicesBatchGenerator((data, seg), batch_size=batch_size)
 
         batch_gen.HP = self.HP
         tfs = []  # transforms
@@ -138,18 +142,22 @@ class DataManagerSingleSubjectByFile:
         seg = np.zeros((self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.NR_OF_CLASSES)).astype(self.HP.LABELS_TYPE)
 
         num_processes = 1  # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
-        batch_gen = SlicesBatchGenerator((data, seg), BATCH_SIZE=batch_size)
+        batch_gen = SlicesBatchGenerator_Standalone((data, seg), batch_size=batch_size)
         batch_gen.HP = self.HP
         tfs = []  # transforms
 
         if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.HP.NORMALIZE_PER_CHANNEL))
+            tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=self.HP.NORMALIZE_PER_CHANNEL))
         tfs.append(ReorderSegTransform())
-        batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=2, seeds=None)  # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
+        batch_gen = SingleThreadedAugmenter(batch_gen, Compose(tfs))
         return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)
 
 
 class DataManagerTrainingNiftiImgs:
+    '''
+    This is the DataManager used during training
+    '''
+
     def __init__(self, HP):
         self.HP = HP
         print("Loading data from: " + join(C.DATA_PATH, self.HP.DATASET_FOLDER))
@@ -172,11 +180,11 @@ class DataManagerTrainingNiftiImgs:
 
         if self.HP.TYPE == "combined":
             # Simple with .npy  -> just a little bit faster than Nifti (<10%) and f1 not better => use Nifti
-            batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
-            # batch_gen = SlicesBatchGeneratorRandomNpyImg_fusionMean((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
+            # batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), batch_size=batch_size)
+            batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), batch_size=batch_size)
         else:
-            batch_gen = SlicesBatchGeneratorRandomNiftiImg((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
-            # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
+            batch_gen = SlicesBatchGeneratorRandomNiftiImg((data, seg), batch_size=batch_size)
+            # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), batch_size=batch_size)
 
         batch_gen.HP = self.HP
         tfs = []  #transforms
@@ -231,14 +239,8 @@ class DataManagerPrecomputedBatches:
         seg = []
 
         num_processes = 1  # 6 is a bit faster than 16
-        nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
-        if num_batches is None:
-            num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
-        else:
-            num_batches_multithr = int(num_batches / num_processes)
 
-
-        batch_gen = SlicesBatchGeneratorPrecomputedBatches((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches_multithr, seed=None)
+        batch_gen = SlicesBatchGeneratorPrecomputedBatches((data, seg), batch_size=batch_size)
         batch_gen.HP = self.HP
 
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose([]), num_processes=num_processes, num_cached_per_queue=1, seeds=None)

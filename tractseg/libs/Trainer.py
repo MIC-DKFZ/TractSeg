@@ -95,9 +95,13 @@ class Trainer:
                 batch_gen_time = time.time() - start_time_batch_gen
                 # print("batch_gen_time: {}s".format(batch_gen_time))
 
+                nr_of_samples = len(getattr(HP, type.upper() + "_SUBJECTS")) * HP.INPUT_DIM[0]
+                nr_batches = int(nr_of_samples / HP.BATCH_SIZE)
+
                 print("Start looping batches...")
                 start_time_batch_part = time.time()
-                for batch in batch_generator:                   #getting next batch takes around 0.14s -> second largest Time part after mode!
+                for i in range(nr_batches):
+                    batch = next(batch_generator)
 
                     start_time_data_preparation = time.time()
                     batch_nr[type] += 1

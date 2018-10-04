@@ -15,23 +15,7 @@
 from warnings import warn
 from batchgenerators.transforms.abstract_transforms import AbstractTransform
 
-class ReorderSegTransform(AbstractTransform):
-    """
-    Yields reordered seg (needed for DataAugmentation: x&y have to be last 2 dims and nr_classes must be before, for DataAugmentation to work)
-    -> here we move it back to (bs, x, y, nr_classes) for easy calculating of f1
-    """
-    def __init__(self):
-        pass
 
-    def __call__(self, **data_dict):
-        seg = data_dict.get("seg")
-
-        if seg is None:
-            warn("You used ReorderSegTransform but there is no 'seg' key in your data_dict, returning data_dict unmodified", Warning)
-        else:
-            seg = data_dict["seg"]  # (bs, nr_of_classes, x, y)
-            data_dict["seg"] = seg.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-        return data_dict
 
 
 

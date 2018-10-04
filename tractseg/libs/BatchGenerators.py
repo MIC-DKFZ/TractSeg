@@ -17,7 +17,8 @@
 
 import numpy as np
 import random
-from batchgenerators.dataloading.data_loader import DataLoaderBase
+# from batchgenerators.dataloading.data_loader import DataLoaderBase
+from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 from time import sleep
 import os
 
@@ -33,7 +34,7 @@ Info:
 Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
 '''
 
-class SlicesBatchGenerator(DataLoaderBase):
+class SlicesBatchGenerator(SlimDataLoaderBase):
     '''
     Returns 2D slices in ordered way.
     '''
@@ -52,11 +53,10 @@ class SlicesBatchGenerator(DataLoaderBase):
 
         # Stop iterating if we reached end of data
         if self.global_idx >= end:
-            # print("Stopped because end of file")
             self.global_idx = 0
             raise StopIteration
 
-        new_global_idx = self.global_idx + self.BATCH_SIZE
+        new_global_idx = self.global_idx + self.batch_size
 
         # If we reach end, make last batch smaller, so it fits exactly into rest
         if new_global_idx >= end:
@@ -86,33 +86,69 @@ class SlicesBatchGenerator(DataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandom(DataLoaderBase):
+class SlicesBatchGenerator_Standalone():
     '''
-    Randomly sample 2D slices from list of 2D slices.
-
-    About 1.6-2s per 54-batch 45 bundles 1.25mm.
-    ( a bit faster than SlicesBatchGeneratorRandomNiftiImg but not much)
+    Same as SlicesBatchGenerator, but does not depend on DKFZ/BatchGenerators package.
+    Therefore good for inference on windows where DKFZ/Batchgenerators do not work (because of MultiThreading problems)
     '''
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
+    def __init__(self, data, batch_size):
+        # super(self.__class__, self).__init__(*args, **kwargs)
         self.HP = None
+        self.batch_size = batch_size
+        self.global_idx = 0
+        self._data = data
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.generate_train_batch()
 
     def generate_train_batch(self):
-        # np.random.seed(1337) #Global random seed not working here; have to seed again
+        if self.HP.SLICE_DIRECTION == "x":
+            end = self._data[0].shape[0]
+        elif self.HP.SLICE_DIRECTION == "y":
+            end = self._data[0].shape[1]
+        elif self.HP.SLICE_DIRECTION == "z":
+            end = self._data[0].shape[2]
 
-        # If shape of data is (x, y, z, channels) -> we are iterating over x
-        idxs = np.random.choice(self._data[0].shape[0], self.BATCH_SIZE, False, None)
-        x = np.array(self._data[0][idxs]).astype(np.float32)
-        x = x.transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
-        y = np.array(self._data[1][idxs]).astype(self.HP.LABELS_TYPE)
-        y = y.transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
+        # Stop iterating if we reached end of data
+        if self.global_idx >= end:
+            # print("Stopped because end of file")
+            self.global_idx = 0
+            raise StopIteration
+
+        new_global_idx = self.global_idx + self.batch_size
+
+        # If we reach end, make last batch smaller, so it fits exactly into rest
+        if new_global_idx >= end:
+            new_global_idx = end  # not end-1, because this goes into range, and there automatically -1
+
+        idxs = list(range(self.global_idx, new_global_idx))
+
+        if self.HP.SLICE_DIRECTION == "x":
+            x = np.array(self._data[0][idxs,:,:,:]).astype(np.float32)
+            y = np.array(self._data[1][idxs,:,:,:]).astype(self.HP.LABELS_TYPE)
+            x = x.transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
+            y = y.transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
+        elif self.HP.SLICE_DIRECTION == "y":
+            x = np.array(self._data[0][:,idxs,:,:]).astype(np.float32)
+            y = np.array(self._data[1][:,idxs,:,:]).astype(self.HP.LABELS_TYPE)
+            x = x.transpose(1, 3, 0, 2)  # depth-channel has to be before width and height for Unet (but after batches)
+            y = y.transpose(1, 3, 0, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
+        elif self.HP.SLICE_DIRECTION == "z":
+            x = np.array(self._data[0][:,:,idxs,:]).astype(np.float32)
+            y = np.array(self._data[1][:,:,idxs,:]).astype(self.HP.LABELS_TYPE)
+            x = x.transpose(2, 3, 0, 1)  # depth-channel has to be before width and height for Unet (but after batches)
+            y = y.transpose(2, 3, 0, 1)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])
+        self.global_idx = new_global_idx
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
+class SlicesBatchGeneratorRandomNiftiImg(SlimDataLoaderBase):
     '''
     Randomly sample 2D slices from a .nii.gz image.
 
@@ -181,7 +217,7 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
             else:
                 seg = DatasetUtils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
 
-        slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
+        slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
 
         # Randomly sample slice orientation
         if self.HP.TRAINING_SLICE_DIRECTION == "xyz":
@@ -210,7 +246,15 @@ class SlicesBatchGeneratorRandomNiftiImg(DataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNiftiImg_5slices(DataLoaderBase):
+
+
+
+
+############################################################################################################
+# Backup
+############################################################################################################
+
+class SlicesBatchGeneratorRandomNiftiImg_5slices(SlimDataLoaderBase):
     '''
     Randomly sample 2D slices from a .nii.gz image.
     Always 2 slices above and bellow.
@@ -259,7 +303,7 @@ class SlicesBatchGeneratorRandomNiftiImg_5slices(DataLoaderBase):
         else:
             seg = DatasetUtils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
 
-        slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
+        slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
 
         # Randomly sample slice orientation
         slice_direction = int(round(random.uniform(0,2)))
@@ -304,7 +348,7 @@ class SlicesBatchGeneratorRandomNiftiImg_5slices(DataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNpyImg(DataLoaderBase):
+class SlicesBatchGeneratorRandomNpyImg(SlimDataLoaderBase):
     '''
     Randomly sample 2D slices from a npy file for each subject.
 
@@ -323,7 +367,7 @@ class SlicesBatchGeneratorRandomNpyImg(DataLoaderBase):
         data = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
         seg = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
-        slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
+        slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
 
         # Randomly sample slice orientation
         slice_direction = int(round(random.uniform(0,2)))
@@ -352,7 +396,7 @@ class SlicesBatchGeneratorRandomNpyImg(DataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorPrecomputedBatches(DataLoaderBase):
+class SlicesBatchGeneratorPrecomputedBatches(SlimDataLoaderBase):
     '''
     '''
     def __init__(self, *args, **kwargs):
