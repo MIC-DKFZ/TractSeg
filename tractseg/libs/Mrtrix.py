@@ -201,9 +201,9 @@ class Mrtrix():
         if not HP.KEEP_INTERMEDIATE_FILES:
             os.chdir(HP.PREDICT_IMG_OUTPUT)
 
-            os.system("rm -f nodif_brain_mask.nii.gz")
+            # os.system("rm -f nodif_brain_mask.nii.gz")
+            # os.system("rm -f peaks.nii.gz")
             os.system("rm -f WM_FODs.mif")
-            os.system("rm -f peaks.nii.gz")
 
             if HP.CSD_TYPE == "csd_msmt" or HP.CSD_TYPE == "csd_msmt_5tt":
                 os.system("rm -f 5TT.mif")

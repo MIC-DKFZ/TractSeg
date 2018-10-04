@@ -207,10 +207,7 @@ peaks = np.nan_to_num(peaks)
 segmentation = run_tractseg(peaks)
 ```
 
-## FAQ
-
-#### My output segmentation does not look like any bundle at all!
-
+#### Aligning image to MNI space
 The input image must have the same "orientation" as the Human Connectome Project data (MNI space) (LEFT must be on the same side as 
 LEFT of the HCP data). If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
 you are fine. Otherwise you should rigidly register your image to MNI space (the brains
@@ -230,6 +227,18 @@ flirt -ref tractseg/examples/resources/MNI_FA_template.nii.gz -in Diffusion.nii.
 cp Diffusion.bvals Diffusion_MNI.bvals
 cp Diffusion.bvecs Diffusion_MNI.bvecs
 ```
+
+
+## FAQ
+
+#### My output segmentation does not look like any bundle at all!
+Make sure your input image is in MNI space. Even if the input image is in MNI space the Mrtrix peaks might still be flipped. 
+TractSeg is automatically checking for that and flipping the peaks if needed. However, in very few cases (~2%) TractSeg fails 
+to detect the right flipping axis. In those cases you should view the peaks in `mrview` and make sure they have the proper 
+orientation. Otherwise you might have to flip the sign along the x, y or z axis using the following command: 
+```
+flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
+``` 
 
 #### Small bundles like the CA and FX are incomplete
 You can use the following three options to improve your results:

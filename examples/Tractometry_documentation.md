@@ -4,15 +4,16 @@ Measuring the FA (or MD or other values) along tracts can provide valuable insig
 
 ![Tractometry concept figure](resources/Tractometry_concept1.png)
 
-TractSeg provides an easy way to do so by following these steps (latest `master` branch needed):
-1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. They should rigidly be aligned to MNI space, if not add the option `--preprocess` in step 2 and `Diffusion.nii.gz` will automatically be rigidly registered to MNI space (but not `FA.nii.gz`. You have to take care of that).
+TractSeg provides an easy way to do so by following these steps (version `1.6` needed):
+1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
+They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space).
 2. Create segmentation of bundles:  
-`TractSeg -i Diffusion.nii.gz --output_type tract_segmentation --output_multiple_files --keep_intermediate_files` (runtime on GPU: 2min ~14s)  
-(**Note**: if you already have the MRtrix CSD peaks you can also pass those as input and add the option `--skip_peak_extraction` which is faster)
-3. Create segmentation of start and end regions of bundles:  
-`TractSeg -i tractseg_output/peaks.nii.gz -o . --skip_peak_extraction --output_type endings_segmentation --output_multiple_files --keep_intermediate_files` (runtime on GPU: ~42s)
+`TractSeg -i Diffusion.nii.gz --raw_diffusion_input --output_type tract_segmentation` (runtime on GPU: 2min ~14s)  
+(**Note**: if you already have the MRtrix CSD peaks you can also pass those as input and remove the option `--raw_diffusion_input`)
+3. Create segmentation of start and end regions of bundles:
+`TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation` (runtime on GPU: ~42s)
 4. Create Tract Orientation Maps and use them to do bundle-specific tracking:  
-`TractSeg -i tractseg_output/peaks.nii.gz -o . --skip_peak_extraction --output_type TOM --output_multiple_files --keep_intermediate_files --track --filter_tracking_by_endpoints` (runtime on GPU: ~3min 34s)  
+`TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter_tracking_by_endpoints` (runtime on GPU: ~3min 34s)  
 (**Note**: `--filter_tracking_by_endpoints` only keeps those fibers starting and ending in the regions segmented in step 2 and 3. On low resolution datasets the results from
  step 2 and 3 might not be so good and subsequently the resulting tractograms are sometimes very sparse or empty. If that is the case manually check the results of the
  previous steps.)

@@ -44,7 +44,7 @@ TractSeg -i peaks.nii.gz
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
                                            "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070'")
-parser.add_argument("-i", metavar="filepath", dest="input", help="Diffusion Input image path (Nifti image)", required=True)
+parser.add_argument("-i", metavar="filepath", dest="input", help="CSD peaks in MRtrix format (4D Nifti image with dimensions [x,y,z,9])", required=True)
 parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
 parser.add_argument("--single_output_file", action="store_true", help="Output all bundles in one file (4D image)", default=False)
 parser.add_argument("--csd_type", metavar="csd|csd_msmt|csd_msmt_5tt", choices=["csd", "csd_msmt", "csd_msmt_5tt"],
@@ -74,7 +74,8 @@ parser.add_argument("--track", action="store_true", help="Run tracking on TOM pe
 parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
 parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
 parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
-                    help="Only keep fibers starting and ending in endpoint regions (need to run TractSeg with '--output_type endings_segmentation' first. See documentation for more details.)", default=False)
+                    help="Only keep fibers starting and ending in endpoint regions (need to run TractSeg with '--output_type endings_segmentation' first) and " +
+                         "and not leaving the tract mask (need to run TractSeg with '--output_type tract_segmentation' (default) first). See documentation for more details.", default=False)
 parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
 parser.add_argument("--uncertainty", action="store_true", help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)", default=False)
 parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
