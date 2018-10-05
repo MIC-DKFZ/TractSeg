@@ -27,6 +27,7 @@ import os
 import nibabel as nib
 from os.path import join
 import numpy as np
+import sys
 
 from tractseg.libs.Config import get_config_name
 from tractseg.libs.ExpUtils import ExpUtils
@@ -123,6 +124,11 @@ if args.raw_diffusion_input:
     data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
 else:
     data_img = nib.load(input_path)
+    data_img_shape = data_img.get_data().shape
+    if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
+        print("ERROR: Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
+                      "If you input a Diffusion image add the option '--raw_diffusion_input'.")
+        sys.exit()
 
 if args.super_resolution:
     data_img = ImgUtils.change_spacing_4D(data_img, new_spacing=1.25)

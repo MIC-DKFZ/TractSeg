@@ -104,7 +104,7 @@ class SlicesBatchGeneratorNpyImg_fusion(SlimDataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNpyImg_fusion(DataLoaderBase):
+class SlicesBatchGeneratorRandomNpyImg_fusion(SlimDataLoaderBase):
     '''
     Randomly sample 2D slices from a npy file for each subject.
 
@@ -180,7 +180,7 @@ class SlicesBatchGeneratorRandomNpyImg_fusion(DataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNpyImg_fusionMean(DataLoaderBase):
+class SlicesBatchGeneratorRandomNpyImg_fusionMean(SlimDataLoaderBase):
     '''
     take mean of xyz channel and return slices (x,y,nrBundles)
     '''

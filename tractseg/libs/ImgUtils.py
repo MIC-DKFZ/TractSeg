@@ -385,9 +385,10 @@ class ImgUtils:
         return data
 
     @staticmethod
-    def enfore_shape(data, target_shape=(91, 109, 91, 9)):
+    def enforce_shape(data, target_shape=(91, 109, 91, 9)):
         '''
-        Cut and pad image to have same shape as target_shape
+        Cut and pad image to have same shape as target_shape (adapts first 3 dimensions, all further dimensions
+        have to be the same in data and target_shape).
 
         :param data:
         :param target_shape:
@@ -454,7 +455,7 @@ class ImgUtils:
         '''
         peaks = ImgUtils.change_spacing_4D(peaks_input, new_spacing=2.).get_data()
         #shape the classifier has been trained with
-        peaks = ImgUtils.enfore_shape(peaks, target_shape=(91, 109, 91, 9))
+        peaks = ImgUtils.enforce_shape(peaks, target_shape=(91, 109, 91, 9))
 
         peaks_x = peaks[int(peaks.shape[0] / 2.), :, :, :]
         peaks_y = peaks[:, int(peaks.shape[1] / 2.), :, :]

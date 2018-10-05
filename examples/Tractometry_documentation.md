@@ -10,7 +10,7 @@ They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractS
 2. Create segmentation of bundles:  
 `TractSeg -i Diffusion.nii.gz --raw_diffusion_input --output_type tract_segmentation` (runtime on GPU: 2min ~14s)  
 (**Note**: if you already have the MRtrix CSD peaks you can also pass those as input and remove the option `--raw_diffusion_input`)
-3. Create segmentation of start and end regions of bundles:
+3. Create segmentation of start and end regions of bundles:  
 `TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation` (runtime on GPU: ~42s)
 4. Create Tract Orientation Maps and use them to do bundle-specific tracking:  
 `TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter_tracking_by_endpoints` (runtime on GPU: ~3min 34s)  
