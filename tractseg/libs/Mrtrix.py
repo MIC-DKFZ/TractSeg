@@ -90,7 +90,7 @@ class Mrtrix():
             print("Creating peaks (2 of 4)...")
             os.system("dwi2response msmt_5tt " + input_file + " " + output_dir + "/5TT.mif " + output_dir + "/RF_WM.txt " +
                       output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -voxels " + output_dir + "/RF_voxels.mif -fslgrad " +
-                      bvecs + " " + bvals)         # multi-shell, multi-tissue
+                      bvecs + " " + bvals + " -mask " + brain_mask)         # multi-shell, multi-tissue
             print("Creating peaks (3 of 4)...")
             os.system("dwi2fod msmt_csd " + input_file + " " + output_dir + "/RF_WM.txt " + output_dir +
                       "/WM_FODs.mif " + output_dir + "/RF_GM.txt " + output_dir + "/GM.mif " + output_dir +
@@ -102,7 +102,7 @@ class Mrtrix():
             # dhollander does not need a T1 image to estimate the response function (more recent (2016) than tournier (2013))
             print("Creating peaks (1 of 3)...")
             os.system("dwi2response dhollander -mask " + brain_mask + " " + input_file + " " + output_dir + "/RF_WM.txt " +
-                      output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -fslgrad " + bvecs + " " + bvals)
+                      output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask)
             print("Creating peaks (2 of 3)...")
             os.system("dwi2fod msmt_csd " + input_file + " " + output_dir + "/RF_WM.txt " + output_dir +
                       "/WM_FODs.mif -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask + "")
