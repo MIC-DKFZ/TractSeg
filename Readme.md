@@ -241,6 +241,7 @@ orientation. Otherwise you might have to flip the sign along the x, y or z axis 
 ```
 flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
 ``` 
+Using the option `--deactivate_peak_check` you can tell TractSeg to not automatically correct the peaks.
 
 #### Small bundles like the CA and FX are incomplete
 You can use the following three options to improve your results:
