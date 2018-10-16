@@ -82,6 +82,7 @@ parser.add_argument("--peak_length", action="store_true",
                          "peak pointing in the same direction as the respective bundle. Gives better results in areas of crossing fibers than FA.",
                     default=False)
 parser.add_argument("--TOM", metavar="TOM_dir", dest="TOM_dir", help="Folder containing Tract Orientation Maps (TOMs) (normally '.../tractseg_output/TOM'). Needed if using the '--peak_length' option.")
+parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
 args = parser.parse_args()
 
 bundles = ExpUtils.get_bundle_names("All")[1:]
@@ -96,8 +97,14 @@ for bundle in bundles:
     else:
         predicted_peaks = None
     beginnings = nib.load(join(args.endings_dir, bundle + "_b.nii.gz"))
-    streams, hdr = trackvis.read(join(args.tracking_dir, bundle + ".trk"))
-    streamlines = [s[0] for s in streams]
+
+    if args.tracking_format == "trk":
+	streams, hdr = trackvis.read(join(args.tracking_dir, bundle + ".trk"))
+        streamlines = [s[0] for s in streams]
+    else:
+        tck = nib.streamlines.load(join(args.tracking_dir, bundle + ".tck"))
+	streamlines = tck.streamlines
+
     if len(streamlines) > 0:
         streamlines = FiberUtils.resample_fibers(streamlines, nb_points=NR_POINTS)    #mean over bundles
         streamlines = list(move_streamlines(streamlines, np.linalg.inv(scalar_image.get_affine())))
