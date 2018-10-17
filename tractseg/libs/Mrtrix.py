@@ -192,7 +192,7 @@ class Mrtrix():
             reference_affine  = nib.load(brain_mask).get_affine()
             FiberUtils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
                                           output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
-                                          reference_affine, smooth=smooth)
+                                          reference_affine, compress_err_thr=0.1, smooth=smooth)
             os.system("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck")
         shutil.rmtree(tmp_dir)
 
