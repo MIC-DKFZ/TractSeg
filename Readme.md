@@ -87,6 +87,8 @@ for each bundle three channels have to be stored (216 channels in total).
 ```
 TractSeg -i peaks.nii.gz --output_type TOM
 ```
+Peaks and streamlines can be visualized using for example [MITK Diffusion](http://mitk.org/wiki/DiffusionImaging#Downloads).
+> NOTE: Peaks have to be flipped along the z-axis to be displayed correctly in MITK.
 
 #### Segment bundle start and end regions
 Get segmentations of the regions were the bundles start and end (helpful for filtering fibers that do not run
@@ -190,13 +192,6 @@ The following list shows the index of each extracted bundle in the output file (
 69: ST_PAR_right 
 70: ST_OCC_left    (Striato-occipital)
 71: ST_OCC_right
-```
-
-#### Bundles supported by TOM
-```
-"AF_left", "AF_right", "CA", "CST_left", "CST_right", "CG_left", "CG_right",
-"ICP_left", "ICP_right", "MCP", "SCP_left", "SCP_right", "ILF_left", "ILF_right",
-"IFO_left", "IFO_right", "OR_left", "OR_right", "UF_left", "UF_right"
 ```
 
 #### Use python interface

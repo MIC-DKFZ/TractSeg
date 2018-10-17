@@ -43,7 +43,9 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter
 * This will add another subdirectory `TOM` containing the Tract Orientation Maps.  
 * `--track`: This will automatically run MRtrix FACT tracking on the TOM peaks.  
 * `--filter_tracking_by_endpoints`: Only keeps those fibers starting and ending in the beginnings and endings regions (plus a small margin).  
-* You can add the option `--tracking_format tck` to generate tck instead of trk files.  
+* You can add the option `--tracking_format tck` to generate tck instead of trk files.
+* Peaks and streamlines can be visualized using for example [MITK Diffusion](http://mitk.org/wiki/DiffusionImaging#Downloads).
+(NOTE: Peaks have to be flipped along the z-axis to be displayed correctly in MITK.)  
 * results for right CST (corticospinal tract):  
 ![trackings](resources/trackings.png)
 
