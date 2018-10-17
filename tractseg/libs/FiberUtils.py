@@ -66,7 +66,7 @@ class FiberUtils:
         return streamlines_c
 
     @staticmethod
-    def save_streamlines_as_trk(filename, streamlines, affine):
+    def save_streamlines_as_trk(filename, streamlines, affine, shape):
         '''
         streamlines: list of 2D ndarrays   list(ndarray(N,3))
         affine: affine of reference img (e.g. brainmask)
@@ -79,12 +79,13 @@ class FiberUtils:
         # Make a trackvis header so we can save streamlines
         trackvis_header = nib.trackvis.empty_header()
         trackvis_header['voxel_order'] = 'RAS'
+        trackvis_header['dim'] = shape
         nib.trackvis.aff_to_hdr(affine, trackvis_header, pos_vox=False, set_order=False)
         streamlines_trk_format = [(sl, None, None) for sl in streamlines]
         nib.trackvis.write(filename, streamlines_trk_format, trackvis_header, points_space="rasmm")
 
     @staticmethod
-    def convert_tck_to_trk(filename_in, filename_out, reference_affine, compress_err_thr=0.1, smooth=None):
+    def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_shape, compress_err_thr=0.1, smooth=None):
         '''
         Convert tck file to trk file and compress
 
@@ -108,7 +109,7 @@ class FiberUtils:
         #Compressing also good to remove checkerboard artefacts from tracking on peaks
         if compress_err_thr is not None:
             streamlines = FiberUtils.compress_streamlines(streamlines, compress_err_thr)
-        FiberUtils.save_streamlines_as_trk(filename_out, streamlines, reference_affine)
+        FiberUtils.save_streamlines_as_trk(filename_out, streamlines, reference_affine, reference_shape)
 
     @staticmethod
     def resample_fibers(streamlines, nb_points=12):
