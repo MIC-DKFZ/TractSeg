@@ -18,7 +18,7 @@ They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractS
  step 2 and 3 might not be so good and subsequently the resulting tractograms are sometimes very sparse or empty. If that is the case manually check the results of the
  previous steps.)
 5. Run tractometry:  
-`cd tractseg_output`
+`cd tractseg_output`  
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
 Tractometry will evaluate the FA along 20 equality distant points along each streamline. Finally it will take the mean for each of those 20 points over all streamlines.
 6. Repeat step 1-4 for every subject (use a shell script for that)
