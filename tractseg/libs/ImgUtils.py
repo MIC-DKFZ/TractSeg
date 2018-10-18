@@ -484,3 +484,17 @@ class ImgUtils:
         img = nib.load(img_path)
         affine = img.get_affine()
         return str(abs(round(affine[0, 0], 2)))
+
+    @staticmethod
+    def peak_image_to_binary_mask_path(path_in, path_out, peak_length_threshold=0.1):
+        '''
+        Create binary mask from a peak image.
+        :param path_in: Path of peak image
+        :param path_out: Path of binary output image
+        :return:
+        '''
+        peak_img = nib.load(path_in)
+        peak_data = peak_img.get_data()
+        peak_mask = ImgUtils.peak_image_to_binary_mask(peak_data, len_thr=peak_length_threshold)
+        peak_mask_img = nib.Nifti1Image(peak_mask.astype(np.uint8), peak_img.get_affine())
+        nib.save(peak_mask_img, path_out)

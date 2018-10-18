@@ -20,6 +20,7 @@ import tempfile
 from tractseg.libs.ImgUtils import ImgUtils
 import shutil
 from pkg_resources import resource_filename
+import numpy as np
 
 class Mrtrix():
 
@@ -122,12 +123,12 @@ class Mrtrix():
             raise ValueError("'csd_type' contains invalid String")
 
     @staticmethod
-    def track(bundle, peaks, output_dir, brain_mask, filter_by_endpoints=False, output_format="trk"):
+    def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk"):
         '''
 
         :param bundle:   Bundle name
+        :param peaks:
         :param output_dir:
-        :param brain_mask:
         :param filter_by_endpoints:     use results of endings_segmentation to filter out all fibers not endings in those regions
         :return:
         '''
@@ -163,10 +164,13 @@ class Mrtrix():
             ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
 
+            # import IPython
+            # IPython.embed()
+
             os.system("tckgen -algorithm FACT " +
                       output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                       output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                      " -seed_image " + brain_mask +
+                      " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
                       " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
                       " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                       " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
@@ -182,16 +186,17 @@ class Mrtrix():
             #           " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
             #           " -minlength 40 -seeds 200000 -select 2000 -force")
         else:
+            ImgUtils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
             os.system("tckgen -algorithm FACT " +
                       output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                       output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                      " -seed_image " + brain_mask +
+                      " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
                       " -minlength 40 -select 2000 -force -quiet")
 
         if output_format == "trk":
-            ref_img = nib.load(brain_mask)
+            ref_img = nib.load(peaks)
             reference_affine = ref_img.get_affine()
-            reference_shape = ref_img.get_data().shape
+            reference_shape = ref_img.get_data().shape[:3]
             FiberUtils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
                                           output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
                                           reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth)
