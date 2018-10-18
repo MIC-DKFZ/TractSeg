@@ -39,7 +39,7 @@ from tractseg.models.BaseModel import BaseModel
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                  single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5,
                  bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
-                 postprocess=False):
+                 postprocess=False, peak_regression_part="All"):
     '''
     Run TractSeg
 
@@ -135,14 +135,20 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                 seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
 
     elif HP.EXPERIMENT_TYPE == "peak_regression":
-        parts = ["Part1", "Part2", "Part3", "Part4"]
         weights = {
             "Part1": "pretrained_weights_peak_regression_part1_v1.npz",
             "Part2": "pretrained_weights_peak_regression_part2_v1.npz",
             "Part3": "pretrained_weights_peak_regression_part3_v1.npz",
             "Part4": "pretrained_weights_peak_regression_part4_v1.npz",
         }
-        seg_all = np.zeros((data.shape[0], data.shape[1], data.shape[2], HP.NR_OF_CLASSES*3))
+        if peak_regression_part == "All":
+            parts = ["Part1", "Part2", "Part3", "Part4"]
+            seg_all = np.zeros((data.shape[0], data.shape[1], data.shape[2], HP.NR_OF_CLASSES * 3))
+        else:
+            parts = [peak_regression_part]
+            HP.CLASSES = "All_" + peak_regression_part
+            HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+
         for idx, part in enumerate(parts):
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/" + weights[part])
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, weights[part])
@@ -155,10 +161,13 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             trainerSingle = Trainer(model, dataManagerSingle)
             seg, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=False, only_prediction=True)
 
-            seg_all[:, :, :, (idx*HP.NR_OF_CLASSES) : (idx*HP.NR_OF_CLASSES+HP.NR_OF_CLASSES)] = seg
-        HP.CLASSES = "All"
-        HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
-        seg = seg_all
+            if peak_regression_part == "All":
+                seg_all[:, :, :, (idx*HP.NR_OF_CLASSES) : (idx*HP.NR_OF_CLASSES+HP.NR_OF_CLASSES)] = seg
+
+        if peak_regression_part == "All":
+            HP.CLASSES = "All"
+            HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+            seg = seg_all
 
         #quite fast
         if bundle_specific_threshold:
