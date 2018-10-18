@@ -15,9 +15,10 @@ install:
   - pip install .
 script:
   - docker build -t tractseg_container .
-  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --single_orientation --single_output_file
+#  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --single_orientation --single_output_file
+  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --output_type TOM --single_orientation --single_output_file
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:v1.4 TractSeg -i /data/Diffusion.nii.gz -o /data
 #  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --single_orientation --single_output_file
 #  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --output_type endings_segmentation --single_orientation --single_output_file
 #  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --output_type TOM --single_orientation --single_output_file
-  - pytest
+#  - pytest
