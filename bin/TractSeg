@@ -197,7 +197,7 @@ if not args.only_track:
 if args.track or args.only_track:
     print("Tracking...")
     for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
-        Mrtrix.track(bundle, input_path, HP.PREDICT_IMG_OUTPUT, brain_mask,
+        Mrtrix.track(bundle, HP.PREDICT_IMG_OUTPUT,
                      filter_by_endpoints=args.filter_tracking_by_endpoints,
                      output_format=args.tracking_format)
 
