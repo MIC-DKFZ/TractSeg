@@ -463,7 +463,7 @@ class ImgUtils:
         X = [list(peaks_x.flatten()) + list(peaks_y.flatten()) + list(peaks_z.flatten())]
         X = np.nan_to_num(X)
 
-        random_forest_path = resource_filename('examples.resources', 'random_forest_peak_orientation_detection.pkl')
+        random_forest_path = resource_filename('resources', 'random_forest_peak_orientation_detection.pkl')
         clf = joblib.load(random_forest_path)
         predicted_label = clf.predict(X)[0]
 

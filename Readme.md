@@ -1,6 +1,6 @@
 # TractSeg
  
-![Alt text](examples/resources/Pipeline_img_for_readme.png)
+![Alt text](resources/Pipeline_img_for_readme.png)
 
 Tool for fast and accurate white matter bundle segmentation from Diffusion MRI. It can create 
 bundle segmentations, segmentations of the endregions of bundles and Tract Orientation Maps (TOMs).
@@ -112,10 +112,10 @@ TractSeg -i peaks.nii.gz --uncertainty
 ```
 
 #### Perform Tractometry
-See [Documentation of Tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tractometry_documentation.md).
+See [Documentation of Tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/Tractometry_documentation.md).
 
 #### Tutorial
-[Best pratices for standard usecases](https://github.com/MIC-DKFZ/TractSeg/blob/master/examples/Tutorial.md).
+[Best pratices for standard usecases](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/Tutorial.md).
 
 #### Bundle names
 The following list shows the index of each extracted bundle in the output file (if using `--single_output_file`).
@@ -199,7 +199,7 @@ The following list shows the index of each extracted bundle in the output file (
 import nibabel as nib
 import numpy as np
 from tractseg.TractSeg import run_tractseg
-peaks = nib.load("examples/Diffusion_mrtrix_peaks.nii.gz").get_data()
+peaks = nib.load("examples/Tests/peaks.nii.gz").get_data()
 peaks = np.nan_to_num(peaks)
 segmentation = run_tractseg(peaks)
 ```
@@ -216,10 +216,10 @@ the FA to calculate the transformation as this is more stable):
 calc_FA -i Diffusion.nii.gz -o FA.nii.gz --bvals Diffusion.bvals --bvecs Diffusion.bvecs \
 --brain_mask nodif_brain_mask.nii.gz
 
-flirt -ref tractseg/examples/resources/MNI_FA_template.nii.gz -in FA.nii.gz \
+flirt -ref tractseg/resources/MNI_FA_template.nii.gz -in FA.nii.gz \
 -out FA_MNI.nii.gz -omat FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo
 
-flirt -ref tractseg/examples/resources/MNI_FA_template.nii.gz -in Diffusion.nii.gz \
+flirt -ref tractseg/resources/MNI_FA_template.nii.gz -in Diffusion.nii.gz \
 -out Diffusion_MNI.nii.gz -applyxfm -init FA_2_MNI.mat -dof 6
 cp Diffusion.bvals Diffusion_MNI.bvals
 cp Diffusion.bvecs Diffusion_MNI.bvecs

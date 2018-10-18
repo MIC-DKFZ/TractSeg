@@ -33,7 +33,7 @@ class Mrtrix():
 
         dwi_spacing = ImgUtils.get_image_spacing(input_file)
 
-        template_path = resource_filename('examples.resources', 'MNI_FA_template.nii.gz')
+        template_path = resource_filename('resources', 'MNI_FA_template.nii.gz')
 
         os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
                   "/FA_MNI.nii.gz -omat " + output_dir + "/FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo")
