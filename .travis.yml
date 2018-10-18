@@ -22,5 +22,6 @@ script:
 #  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --single_orientation --single_output_file
 #  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --output_type endings_segmentation --single_orientation --single_output_file
 #  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --output_type TOM --single_orientation --single_output_file
-  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --output_type TOM
+  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz
+    --output_type TOM
 #  - pytest
