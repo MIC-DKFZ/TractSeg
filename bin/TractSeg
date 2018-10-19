@@ -60,7 +60,7 @@ parser.add_argument("--output_type", metavar="tract_segmentation|endings_segment
                          "'endings_segmentation': Segmentation of bundle end regions (72 bundles).\n" +
                          "'TOM': Tract Orientation Maps (20 bundles).",
                     default="tract_segmentation")
-parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is '<name_of_input_file>.bvals' in same directory as input")  #todo: change default
+parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is '<name_of_input_file>.bvals' in same directory as input")
 parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is '<name_of_input_file>.bvecs' in same directory as input")
 parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
@@ -72,6 +72,7 @@ parser.add_argument("--single_orientation", action="store_true", help="Do not ru
 parser.add_argument("--bundle_specific_threshold", action="store_true", help="For converting probability maps to binary maps use lower threshold for difficult bundles like CA, FX and CST", default=False)
 parser.add_argument("--get_probabilities", action="store_true", help="Output probability map instead of binary segmentation", default=False)
 parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks (MRtrix FACT)", default=False)
+parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create", default=2000)
 parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
 parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
 parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
@@ -90,8 +91,8 @@ args = parser.parse_args()
 #Private parameters
 input_type = "peaks"  # peaks / T1
 dropout_sampling = args.uncertainty
-threshold = 0.5         #specificity
-peak_threshold = 0.3     #lower for more sensitivity
+threshold = 0.5          #specificity (tract_segmentation and endings_segmentation)
+peak_threshold = 0.3     #specificity (TOM)
 
 input_path = args.input
 config = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
@@ -212,7 +213,7 @@ if args.track or args.only_track:
     for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
         Mrtrix.track(bundle, peaks_path, HP.PREDICT_IMG_OUTPUT,
                      filter_by_endpoints=args.filter_tracking_by_endpoints,
-                     output_format=args.tracking_format)
+                     output_format=args.tracking_format, nr_fibers=args.nr_fibers)
 
 Mrtrix.clean_up(HP)
 

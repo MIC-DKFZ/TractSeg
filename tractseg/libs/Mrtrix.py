@@ -123,7 +123,7 @@ class Mrtrix():
             raise ValueError("'csd_type' contains invalid String")
 
     @staticmethod
-    def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk"):
+    def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000):
         '''
 
         :param bundle:   Bundle name
@@ -171,7 +171,7 @@ class Mrtrix():
                       " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
                       " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                       " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                      " -minlength 40 -select 2000 -force -quiet")
+                      " -minlength 40 -select " + str(nr_fibers) + " -force -quiet")
 
             # #Probabilistic Tracking without TOM
             # os.system("tckgen -algorithm iFOD2 " +
@@ -188,7 +188,7 @@ class Mrtrix():
                       output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                       output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                       " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
-                      " -minlength 40 -select 2000 -force -quiet")
+                      " -minlength 40 -select " + str(nr_fibers) + " -force -quiet")
 
         if output_format == "trk":
             ref_img = nib.load(peaks)
