@@ -1,8 +1,8 @@
 dist: trusty
 sudo: required  # gives more RAM (otherwise memory error for TOM)
 language: python
-#services:
-#  - docker
+services:
+  - docker
 matrix:
   include:
   - python: "2.7"
@@ -39,7 +39,7 @@ script:
   - calc_FA -i examples/Diffusion.nii.gz -o examples/FA.nii.gz --brain_mask tests/reference_files/nodif_brain_mask.nii.gz
     --bvals examples/Diffusion.bvals --bvecs examples/Diffusion.bvecs
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_FA
- # - python tests/test_end_to_end.py test_end_to_end.test_FA  #would also work
+ #- python tests/test_end_to_end.py test_end_to_end.test_FA  #would also work
 
   #Track
   - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master TractSeg
