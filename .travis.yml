@@ -23,7 +23,7 @@ script:
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
 #
 #  #Bundles
-#  - TractSeg -i examples/tractseg_output/peaks.nii.gz -o examples --single_orientation --single_output_file
+#  - TractSeg -i examples/tractseg_output/peaks.nii.gz -o examples --single_orientation
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
 #
 #  #Endings
@@ -50,7 +50,7 @@ script:
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
 
 
-  - TractSeg -i examples/Diffusion_mrtrix_peaks.nii.gz --single_orientation
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
   - pytest
 
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --single_orientation --single_output_file
