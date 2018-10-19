@@ -4,7 +4,7 @@ Measuring the FA (or MD or other values) along tracts can provide valuable insig
 
 ![Tractometry concept figure](Tractometry_concept1.png)
 
-TractSeg provides an easy way to do so by following these steps (version `1.6` needed):
+TractSeg provides an easy way to do so by following these steps (version >=`1.6` needed):
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
 They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space).
 2. Create segmentation of bundles:  

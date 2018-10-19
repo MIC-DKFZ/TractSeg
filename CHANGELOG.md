@@ -1,4 +1,4 @@
-## Release 1.6.1
+## Release 1.7
 
 * Reduced memory consumption of TOM (downside: `--single_output_file` for TOM not working anymore)
 * Added more testing

@@ -85,7 +85,7 @@ parser.add_argument("--postprocess", action="store_true", help="Simple postproce
 parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
 parser.add_argument("--deactivate_peak_check", action="store_true",
                     help="Deactivate automatically checking if the peaks have the right orientation and flipping them if needed", default=False)
-parser.add_argument('--version', action='version', version='TractSeg 1.6')
+parser.add_argument('--version', action='version', version='TractSeg 1.7')
 args = parser.parse_args()
 
 #Private parameters

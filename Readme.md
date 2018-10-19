@@ -32,7 +32,7 @@ option `--preprocess` this is not needed)
 #### Install TractSeg
 Latest stable version:
 ```
-pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.6.zip
+pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.7.zip
 ```
 
 #### Docker
@@ -40,7 +40,7 @@ You can also directly use TractSeg via Docker (contains all prerequisites). Howe
 only supports CPU, not GPU. 
 ```
 sudo docker run -v /absolute/path/to/my/data/directory:/data \
--t wasserth/tractseg_container:v1.6 TractSeg -i /data/my_diffusion_file.nii.gz -o /data --preprocess
+-t wasserth/tractseg_container:master TractSeg -i /data/my_diffusion_file.nii.gz -o /data --preprocess
 ```
 On OSX you might have to increase the Docker memory limit from the default of 2GB to something
 like 7GB.
@@ -82,8 +82,7 @@ TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz
 #### Create Tract Orientation Maps (TOMs)
 For each bundle create a Tract Orientation Map ([Wasserthal et al., Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)). 
 This gives you one peak per voxel telling you the main orientation of the respective bundle at this voxel. 
-Can be used for bundle-specific tracking (add option `--track` to generate streamlines). Needs around 22GB of RAM because
-for each bundle three channels have to be stored (216 channels in total).
+Can be used for bundle-specific tracking (add option `--track` to generate streamlines).
 ```
 TractSeg -i peaks.nii.gz --output_type TOM
 ```
