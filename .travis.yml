@@ -14,50 +14,50 @@ before_install:
 install:
   - pip install .
 script:
-  - docker build -t tractseg_container .
-
-  #Peaks
-  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion.nii.gz
-    -o /data/docker_test --raw_diffusion_input --single_orientation
-  #- pytest -v tests/test_end_to_end.py::test_end_to_end::test_csd_peaks
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
-
-#  - rm -vR examples/tractseg_output/bundle_segmentations
-#  - cp -v tests/reference_files/peaks.nii.gz examples/tractseg_output/peaks.nii.gz
-
-  #Bundles
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
-
-  #Endings
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --output_type endings_segmentation --single_orientation
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
+#  - docker build -t tractseg_container .
+#
+#  #Peaks
+#  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion.nii.gz
+#    -o /data/docker_test --raw_diffusion_input --single_orientation
+#  #- pytest -v tests/test_end_to_end.py::test_end_to_end::test_csd_peaks
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
+#
+##  - rm -vR examples/tractseg_output/bundle_segmentations
+##  - cp -v tests/reference_files/peaks.nii.gz examples/tractseg_output/peaks.nii.gz
+#
+#  #Bundles
+#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
+#
+#  #Endings
+#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --output_type endings_segmentation --single_orientation
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
 
   #TOM
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --output_type TOM
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
 
-  #FA
-  - calc_FA -i examples/Diffusion.nii.gz -o examples/FA.nii.gz --brain_mask examples/tractseg_output/nodif_brain_mask.nii.gz
-    --bvals examples/Diffusion.bvals --bvecs examples/Diffusion.bvecs
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_FA
- # - python tests/test_end_to_end.py test_end_to_end.test_FA  #would also work
-
-  #Track
-  - docker run -v $TRAVIS_BUILD_DIR:/data -it tractseg_container TractSeg -i /data/tests/reference_files/peaks.nii.gz -o /data/examples
-    --output_type TOM --track --only_track --filter_tracking_by_endpoints
-
-  #Tractometry
-  - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
-    -e examples/tractseg_output/endings_segmentations/ -s examples/FA.nii.gz
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
-
-
-#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
-
-#  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --single_orientation --single_output_file
-#  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --output_type TOM --single_orientation --single_output_file   #out of memory
-#  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:v1.4 TractSeg -i /data/Diffusion.nii.gz -o /data
-
-  - pytest
+#  #FA
+#  - calc_FA -i examples/Diffusion.nii.gz -o examples/FA.nii.gz --brain_mask examples/tractseg_output/nodif_brain_mask.nii.gz
+#    --bvals examples/Diffusion.bvals --bvecs examples/Diffusion.bvecs
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_FA
+# # - python tests/test_end_to_end.py test_end_to_end.test_FA  #would also work
+#
+#  #Track
+#  - docker run -v $TRAVIS_BUILD_DIR:/data -it tractseg_container TractSeg -i /data/tests/reference_files/peaks.nii.gz -o /data/examples
+#    --output_type TOM --track --only_track --filter_tracking_by_endpoints
+#
+#  #Tractometry
+#  - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
+#    -e examples/tractseg_output/endings_segmentations/ -s examples/FA.nii.gz
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
+#
+#
+##  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
+##  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
+#
+##  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --single_orientation --single_output_file
+##  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --output_type TOM --single_orientation --single_output_file   #out of memory
+##  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:v1.4 TractSeg -i /data/Diffusion.nii.gz -o /data
+#
+#  - pytest
