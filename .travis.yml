@@ -27,11 +27,11 @@ script:
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
 #
 #  #Endings
-#  - TractSeg -i examples/tractseg_output/Diffusion_mrtrix_peaks.nii.gz -o examples --output_type endings_segmentation --single_orientation
+#  - TractSeg -i examples/tractseg_output/peaks.nii.gz -o examples --output_type endings_segmentation --single_orientation
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
 #
 #  #TOM
-#  - TractSeg -i examples/tractseg_output/Diffusion_mrtrix_peaks.nii.gz -o examples --output_type TOM --single_orientation
+#  - TractSeg -i examples/tractseg_output/peaks.nii.gz -o examples --output_type TOM --single_orientation
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
 #
 #  #FA
