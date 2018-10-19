@@ -1,8 +1,8 @@
 ## Release 1.6
 
 * TOM (Tract Orientation Mapping) now supports all 72 bundles instead of only 20. Downside: needs 4x more RAM (roughly 22GB).
-* Code for performing [tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/Tractometry_documentation.md)
-* Added more documentation: [Best pratices for standard usecases](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/Tutorial.md)
+* Code for performing [tractometry](resources/Tractometry_documentation.md)
+* Added more documentation: [Best pratices for standard usecases](resources/Tutorial.md)
 * Removed batchgenerators dependency. Now it might even work on windows (not tested yet!).
 * **Breaking Change**: Improved interface:
     * `-i` expects a peak image by default now. If you provide a Diffusion image you have to set `--raw_diffusion_input` to make
