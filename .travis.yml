@@ -51,7 +51,8 @@ script:
 
 
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
-  - pytest
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
+#  - pytest
 
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --single_orientation --single_output_file
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --output_type TOM --single_orientation --single_output_file   #out of memory
