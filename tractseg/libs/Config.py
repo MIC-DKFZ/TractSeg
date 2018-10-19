@@ -58,6 +58,8 @@ def get_config_file():
         return {}
 
 class Config:
+    TRACT_SEG_HOME = os.path.join(os.path.expanduser('~'), '.tractseg')
+
     paths = get_config_file()
 
     if "working_dir" in paths:                                # check if config file
@@ -70,6 +72,11 @@ class Config:
     else:
         NETWORK_DRIVE = None
 
+    if "weights_dir" in paths:
+        WEIGHTS_DIR = paths["weights_dir"]
+    else:
+        WEIGHTS_DIR = TRACT_SEG_HOME
+
     if os.environ.get("TRACTSEG_DATA_DIR") is not None:      # check if environment variable
         DATA_PATH = os.environ.get("TRACTSEG_DATA_DIR")
     else:
@@ -79,7 +86,4 @@ class Config:
         EXP_PATH = join(NETWORK_DRIVE, "hcp_exp_nodes")
     else:
         EXP_PATH = join(HOME, "hcp_exp")
-
-    TRACT_SEG_HOME = os.path.join(os.path.expanduser('~'), '.tractseg')
-
 

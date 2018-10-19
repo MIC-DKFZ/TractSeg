@@ -88,14 +88,6 @@ RUN easy_install pip \
 
 RUN mkdir -p ~/.tractseg \
     && mkdir -p /code \
-    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_v2.npz https://zenodo.org/record/1410884/files/best_weights_ep274.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_tract_segmentation_dropout_v2.npz https://zenodo.org/record/1414130/files/best_weights_ep407.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_endings_segmentation_v3.npz https://zenodo.org/record/1409670/files/EndingsSeg_best_weights_ep234.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_part1_v1.npz https://zenodo.org/record/1434206/files/best_weights_ep226.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_part2_v1.npz https://zenodo.org/record/1434208/files/best_weights_ep210.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_part3_v1.npz https://zenodo.org/record/1434210/files/best_weights_ep185.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_peak_regression_part4_v1.npz https://zenodo.org/record/1434212/files/best_weights_ep174.npz?download=1 \
-    && curl -SL -o ~/.tractseg/pretrained_weights_dm_regression_v1.npz https://zenodo.org/record/1409676/files/DmReg_best_weights_ep427.npz?download=1 \
     && curl -SL -o /code/mrtrix3_RC3.tar.gz https://zenodo.org/record/1415322/files/mrtrix3_RC3.tar.gz?download=1
 
 RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
@@ -103,6 +95,8 @@ RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
 
 #RUN pip install --upgrade https://github.com/MIC-DKFZ/TractSeg/archive/v1.6.zip
 RUN pip install --upgrade https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
+
+RUN download_all_pretrained_weights
 
 # Does not work -> added mrtrix to path in python
 ENV PATH /code/mrtrix3/bin:$PATH
