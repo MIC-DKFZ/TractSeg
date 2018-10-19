@@ -31,7 +31,7 @@ script:
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
 #
 #  #TOM
-#  - TractSeg -i examples/tractseg_output/peaks.nii.gz -o examples --output_type TOM --single_orientation
+#  - TractSeg -i examples/tractseg_output/peaks.nii.gz -o examples --output_type TOM
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
 #
 #  #FA
@@ -42,7 +42,7 @@ script:
 #
 #  #Track
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/tractseg_output/peaks.nii.gz -o /data
-#    --output_type TOM --single_orientation --track --only_track --filter_tracking_by_endpoints
+#    --output_type TOM --track --only_track --filter_tracking_by_endpoints
 #
 #  #Tractometry
 #  - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
