@@ -251,6 +251,14 @@ segmentation. (not working for output_type TOM)
 
 Using those options will improve the results for CA/FX quite often. 
 
+#### Can I save the pretrained weights at a different location?
+Per default the pretrained weights will be downloaded to and loaded from `~/.tractseg/`. You can change this directory
+by adding `weights_dir=/absolute/path_to_where/you_want_it` to `~/.tractseg/config.txt` in a new line (if the file does 
+not exist yet you have to create it).  
+Normally the pretrained weights will automatically be downloaded in the background right when they are needed. In some
+cases you might want to download all of them at once. To do so you can simply run `download_all_pretrained_weights` and 
+the weights will be download to `~/.tractseg/` or the location you specified in `~/.tractseg/config.txt`.
+
 #### Did I install the prerequisites correctly?
 
 You can check if you installed Mrtrix correctly if you can run the following command on your terminal:
