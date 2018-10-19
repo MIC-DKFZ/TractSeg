@@ -64,7 +64,7 @@ class PlotUtils:
 
 
     @staticmethod
-    def plot_tracts(HP, bundle_segmentations, affine, out_dir, brain_mask=None):
+    def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None):
         '''
         By default this does not work on a remote server connection (ssh -X) because -X does not support OpenGL.
         On the remote Server you can do 'export DISPLAY=":0"' (you should set the value you get if you do 'echo $DISPLAY' if you
@@ -87,7 +87,7 @@ class PlotUtils:
         for j, bundle in enumerate(bundles):
             i = 0  #only one method
 
-            bundle_idx = ExpUtils.get_bundle_names(HP.CLASSES)[1:].index(bundle)
+            bundle_idx = ExpUtils.get_bundle_names(classes)[1:].index(bundle)
             mask_data = bundle_segmentations[:,:,:,bundle_idx]
 
             if bundle == "CST_right":
