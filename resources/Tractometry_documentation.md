@@ -2,7 +2,7 @@
 
 Measuring the FA (or MD or other values) along tracts can provide valuable insights (e.g. [Yeatman et al. 2012](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790)).
 
-![Tractometry concept figure](resources/Tractometry_concept1.png)
+![Tractometry concept figure](Tractometry_concept1.png)
 
 TractSeg provides an easy way to do so by following these steps (version `1.6` needed):
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
@@ -22,7 +22,7 @@ They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractS
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
 Tractometry will evaluate the FA along 20 equality distant points along each streamline. Finally it will take the mean for each of those 20 points over all streamlines.
 6. Repeat step 1-4 for every subject (use a shell script for that)
-7. Plot the results with [this python code](examples/plot_tractometry_results.ipynb)
+7. Plot the results with [this python code](../examples/plot_tractometry_results.ipynb)
 
 ### Further options   
 Instead of analysing the FA along the tracts you can also analyze the peak length along the tracts. This has one major advantage: The peaks are generated using Constrained Spherical Deconvolution (CSD) which can handle crossing fibers in contrast to FA which can not. How does TractSeg analyze the peak length along a certain tract:
