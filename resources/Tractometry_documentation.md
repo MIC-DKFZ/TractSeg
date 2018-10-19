@@ -14,9 +14,14 @@ They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractS
 `TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation` (runtime on GPU: ~42s)
 4. Create Tract Orientation Maps and use them to do bundle-specific tracking:  
 `TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter_tracking_by_endpoints` (runtime on GPU: ~3min 34s)  
-(**Note**: `--filter_tracking_by_endpoints` only keeps those fibers starting and ending in the regions segmented in step 2 and 3. On low resolution datasets the results from
+**Note**: `--filter_tracking_by_endpoints` only keeps those fibers starting and ending in the regions segmented in step 2 and 3. On low resolution datasets the results from
  step 2 and 3 might not be so good and subsequently the resulting tractograms are sometimes very sparse or empty. If that is the case manually check the results of the
- previous steps.)
+ previous steps.  
+ **Note**: Per default 2000 streamlines will be created per bundle. Using `--nr_fibers N` a different number can be chosen. 
+ If longer runtime is ok, it is advisable to choose a higher number like 6000 or 10000. As the streamline seeding is random, 
+ results will be slightly different everytime you run it. If you only choose 2000 streamlines, the results you will get for 
+ the tractometry can vary up to 0.03 difference in FA just between 2 runs. If you choose 10000 this will go down to around
+ 0.004 which is more acceptable.
 5. Run tractometry:  
 `cd tractseg_output`  
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
