@@ -14,13 +14,13 @@ class test_end_to_end(unittest.TestCase):
     #     images_equal = np.allclose(img_ref, img_new, rtol=1, atol=1)    #somehow not working; order of channels randomly changing?
     #     self.assertTrue(images_equal, "CSD peaks not correct")
 
-    def test_tractseg_output_docker(self):
-        bundles = ExpUtils.get_bundle_names("All")[1:]
-        for bundle in bundles:
-            img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_data()
-            img_new = nib.load("examples/docker_test/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
-            images_equal = np.array_equal(img_ref, img_new)
-            self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
+    # def test_tractseg_output_docker(self):
+    #     bundles = ExpUtils.get_bundle_names("All")[1:]
+    #     for bundle in bundles:
+    #         img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_data()
+    #         img_new = nib.load("examples/docker_test/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
+    #         images_equal = np.array_equal(img_ref, img_new)
+    #         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
 
     def test_tractseg_output(self):
         bundles = ExpUtils.get_bundle_names("All")[1:]
@@ -60,21 +60,15 @@ class test_end_to_end(unittest.TestCase):
             images_equal = np.allclose(img_ref, img_new, rtol=1e-4, atol=1e-4)  # because of floats small tolerance margin needed
             self.assertTrue(images_equal, "TOMs are not correct (bundle: " + bundle + ")")
 
-    def test_FA(self):
-        # img_ref = nib.load("/mnt/jakob/E130-Personal/Wasserthal/tmp/tractseg_examples/FA.nii.gz").get_data()
-        # img_new = nib.load("/mnt/jakob/E130-Personal/Wasserthal/tmp/tractseg_examples/FA_2.nii.gz").get_data()
-        img_ref = nib.load("tests/reference_files/FA.nii.gz").get_data()
-        img_new = nib.load("examples/FA.nii.gz").get_data()
-        images_equal = np.allclose(img_ref, img_new, rtol=1e-6, atol=1e-6)
-        self.assertTrue(images_equal, "FA not correct")
+    # def test_FA(self):
+    #     img_ref = nib.load("tests/reference_files/FA.nii.gz").get_data()
+    #     img_new = nib.load("examples/FA.nii.gz").get_data()
+    #     images_equal = np.allclose(img_ref, img_new, rtol=1e-6, atol=1e-6)
+    #     self.assertTrue(images_equal, "FA not correct")
 
     def test_tractometry(self):
-        # ref = np.loadtxt("/mnt/jakob/E130-Personal/Wasserthal/tmp/tractseg_examples/Tractometry_1_10k.csv", delimiter=";", skiprows=1).transpose()
-        # new = np.loadtxt("/mnt/jakob/E130-Personal/Wasserthal/tmp/tractseg_examples/Tractometry_2_10k.csv", delimiter=";", skiprows=1).transpose()
-
         ref = np.loadtxt("tests/reference_files/Tractometry_2k.csv", delimiter=";", skiprows=1).transpose()
         new = np.loadtxt("examples/Tractometry.csv", delimiter=";", skiprows=1).transpose()
-
         arrays_equal = np.allclose(ref, new, rtol=3e-2, atol=3e-2)  #allow error of around 0.03      #2k fibers
         # arrays_equal = np.allclose(ref, new, rtol=9e-3, atol=9e-3)    #allow error of around 0.009     #10k fibers
         self.assertTrue(arrays_equal, "Tractometry not correct")

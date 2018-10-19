@@ -17,29 +17,26 @@ script:
 
   #Docker
   - docker build -t wasserth/tractseg_container:master .
+#  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
+#    -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
   - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
-    -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
+    -i /data/Diffusion.nii.gz -o /data --raw_diffusion_input --single_orientation
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push wasserth/tractseg_container:master
 
   #Bundles
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
+#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
 
   #Endings
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --output_type endings_segmentation --single_orientation
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
+ #- python tests/test_end_to_end.py test_end_to_end.test_endingsseg_output  #would also work
 
   #TOM
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --output_type TOM
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
-
-  #FA
-  - calc_FA -i examples/Diffusion.nii.gz -o examples/FA.nii.gz --brain_mask tests/reference_files/nodif_brain_mask.nii.gz
-    --bvals examples/Diffusion.bvals --bvecs examples/Diffusion.bvecs
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_FA
- #- python tests/test_end_to_end.py test_end_to_end.test_FA  #would also work
 
   #Track
   - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master TractSeg
@@ -48,7 +45,7 @@ script:
 
   #Tractometry
   - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
-    -e examples/tractseg_output/endings_segmentations/ -s examples/FA.nii.gz
+    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
 
   #Bundles SR PP BST
@@ -56,4 +53,4 @@ script:
     --postprocess --bundle_specific_threshold
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_PP_BST
 
-  - pytest
+#  - pytest
