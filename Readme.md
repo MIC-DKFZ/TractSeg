@@ -112,7 +112,7 @@ TractSeg -i peaks.nii.gz --uncertainty
 ```
 
 #### Perform Tractometry
-See [Documentation of Tractometry](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/Tractometry_documentation.md).
+See [Documentation of Tractometry](resources/Tractometry_documentation.md).
 
 #### Tutorial
 [Best pratices for standard usecases](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/Tutorial.md).

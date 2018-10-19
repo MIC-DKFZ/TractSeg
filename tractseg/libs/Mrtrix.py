@@ -164,9 +164,6 @@ class Mrtrix():
             ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
 
-            # import IPython
-            # IPython.embed()
-
             os.system("tckgen -algorithm FACT " +
                       output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                       output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
