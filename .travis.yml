@@ -42,7 +42,8 @@ script:
  # - python tests/test_end_to_end.py test_end_to_end.test_FA  #would also work
 
   #Track
-  - docker run -v $TRAVIS_BUILD_DIR:/data -it tractseg_container TractSeg -i /data/tests/reference_files/peaks.nii.gz -o /data/examples
+  - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master TractSeg
+    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples
     --output_type TOM --track --only_track --filter_tracking_by_endpoints
 
   #Tractometry
