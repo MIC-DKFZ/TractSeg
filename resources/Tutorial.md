@@ -25,7 +25,7 @@ NOTE: This expects the T1 image to be in the same folder as the Diffusion.nii.gz
 * The output is a directory `tractseg_output` containing the file `peaks.nii.gz` and a subdirectory `bundle_segmentations` containing one 
 binary nifti image for each segmented bundle.  
 * results for right CST (corticospinal tract):  
-![tract_segmentation](resources/tract_segmentation.png)
+![tract_segmentation](tract_segmentation.png)
 
 Now we have binary tract segmentations but TractSeg can also segment the start and end regions of those bundles and generate Tract Orientation
 Maps (TOM) which can be used to generated bundle-specific tractograms:
@@ -35,7 +35,7 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation
 ```
 * This will add another subdirectory `endings_segmentations` containing the beginning region (`_b`) and ending region (`_e`) of each bundle.
 * results for right CST (corticospinal tract):  
-![endings_segmentation](resources/endings_segmentation.png)
+![endings_segmentation](endings_segmentation.png)
 
 ```
 TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter_tracking_by_endpoints
@@ -47,7 +47,7 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter
 * Peaks and streamlines can be visualized using for example [MITK Diffusion](http://mitk.org/wiki/DiffusionImaging#Downloads).
 (NOTE: Peaks have to be flipped along the z-axis to be displayed correctly in MITK.)  
 * results for right CST (corticospinal tract):  
-![trackings](resources/trackings.png)
+![trackings](trackings.png)
 
 ## 2. non-HCP data
 
