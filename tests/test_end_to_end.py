@@ -53,9 +53,11 @@ class test_end_to_end(unittest.TestCase):
             self.assertTrue(images_equal, "TOMs are not correct (bundle: " + bundle + ")")
 
     def test_FA(self):
+        # img_ref = nib.load("/mnt/jakob/E130-Personal/Wasserthal/tmp/tractseg_examples/FA.nii.gz").get_data()
+        # img_new = nib.load("/mnt/jakob/E130-Personal/Wasserthal/tmp/tractseg_examples/FA_2.nii.gz").get_data()
         img_ref = nib.load("tests/reference_files/FA.nii.gz").get_data()
         img_new = nib.load("examples/FA.nii.gz").get_data()
-        images_equal = np.array_equal(img_ref, img_new)
+        images_equal = np.allclose(img_ref, img_new, rtol=1e-6, atol=1e-6)
         self.assertTrue(images_equal, "FA not correct")
 
     def test_tractometry(self):
