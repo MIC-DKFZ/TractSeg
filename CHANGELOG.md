@@ -1,3 +1,12 @@
+## Release 1.6.1
+
+* Reduced memory consumption of TOM (downside: `--single_output_file` for TOM not working anymore)
+* Added more testing
+* Number of fibers can be set as parameter
+* Brain mask not needed anymore for tracking
+* bugfixes and minor improvements
+
+
 ## Release 1.6
 
 * TOM (Tract Orientation Mapping) now supports all 72 bundles instead of only 20. Downside: needs 4x more RAM (roughly 22GB).
