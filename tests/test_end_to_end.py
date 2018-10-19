@@ -48,8 +48,8 @@ class test_end_to_end(unittest.TestCase):
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/TOM/" + bundle + ".nii.gz").get_data()
             img_new = nib.load("examples/tractseg_output/TOM/" + bundle + ".nii.gz").get_data()
-            # images_equal = np.allclose(img_ref, img_new, rtol=1e-5, atol=1e-5)  # because of floats small tolerance margin needed
-            images_equal = np.allclose(img_ref, img_new, rtol=1e-4, atol=1e-4)  # because of floats small tolerance margin needed
+            images_equal = np.allclose(img_ref, img_new, rtol=1e-5, atol=1e-5)  # because of floats small tolerance margin needed
+            # images_equal = np.allclose(img_ref, img_new, rtol=1e-4, atol=1e-4)  # because of floats small tolerance margin needed
             self.assertTrue(images_equal, "TOMs are not correct (bundle: " + bundle + ")")
 
     def test_FA(self):
