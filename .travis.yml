@@ -17,12 +17,12 @@ script:
 #  - docker build -t tractseg_container .
 
   #Peaks
-#  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion.nii.gz -o /data
-#    --raw_diffusion_input --single_orientation
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_csd_peaks
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
-#  - rm -vR examples/tractseg_output/bundle_segmentations
+  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion.nii.gz
+    -o /data/docker_test --raw_diffusion_input --single_orientation
+  #- pytest -v tests/test_end_to_end.py::test_end_to_end::test_csd_peaks
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
 
+#  - rm -vR examples/tractseg_output/bundle_segmentations
 #  - cp -v tests/reference_files/peaks.nii.gz examples/tractseg_output/peaks.nii.gz
 
   #Bundles
@@ -59,4 +59,5 @@ script:
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --single_orientation --single_output_file
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it tractseg_container TractSeg -i /data/Diffusion_mrtrix_peaks.nii.gz -o /data --output_type TOM --single_orientation --single_output_file   #out of memory
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:v1.4 TractSeg -i /data/Diffusion.nii.gz -o /data
-#  - pytest
+
+  - pytest
