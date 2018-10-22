@@ -17,13 +17,13 @@ script:
 
   #Docker
   - docker build -t wasserth/tractseg_container:master .
-  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
-    -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
-#    -i /data/Diffusion.nii.gz -o /data --raw_diffusion_input --single_orientation
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker push wasserth/tractseg_container:master
+#    -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
+##  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
+##    -i /data/Diffusion.nii.gz -o /data --raw_diffusion_input --single_orientation
+#  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+#  - docker push wasserth/tractseg_container:master
 
   #Bundles
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
