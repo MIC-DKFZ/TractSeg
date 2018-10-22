@@ -205,13 +205,14 @@ if not args.only_track:
         if args.preprocess and HP.EXPERIMENT_TYPE == "tract_segmentation" and HP.SINGLE_OUTPUT_FILE:
             Mrtrix.move_to_subject_space(HP.PREDICT_IMG_OUTPUT)
 
+    HP.CLASSES = "All"
+
 if args.track or args.only_track:
     print("Tracking...")
     if args.raw_diffusion_input:
         peaks_path = join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
     else:
         peaks_path = input_path
-    # for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
     for bundle in tqdm(ExpUtils.get_bundle_names(HP.CLASSES)[1:]):
         Mrtrix.track(bundle, peaks_path, HP.PREDICT_IMG_OUTPUT,
                      filter_by_endpoints=args.filter_tracking_by_endpoints,
