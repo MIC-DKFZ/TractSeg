@@ -8,7 +8,7 @@ bundle segmentations, segmentations of the endregions of bundles and Tract Orien
 The tool works very well for data similar to the Human Connectome Project. For other MRI datasets it works well for all
 bundles except for the Commissure Anterior (CA) and the Fornix (FX) which are [incomplete sometimes](#small-bundles-like-the-ca-and-fx-are-incomplete).
 
-TractSeg is the code for the papers [TractSeg - Fast and accurate white matter tract segmentation](https://doi.org/10.1016/j.neuroimage.2018.07.070)
+TractSeg is the code for the papers [TractSeg - Fast and accurate white matter tract segmentation](https://doi.org/10.1016/j.neuroimage.2018.07.070) ([free arxiv version](https://arxiv.org/abs/1805.07103))
 and [Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580). 
 Please cite the papers if you use it. 
 
