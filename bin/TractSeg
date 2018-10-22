@@ -28,6 +28,7 @@ import nibabel as nib
 from os.path import join
 import numpy as np
 import sys
+from tqdm import tqdm
 
 from tractseg.libs.Config import get_config_name
 from tractseg.libs.ExpUtils import ExpUtils
@@ -210,7 +211,8 @@ if args.track or args.only_track:
         peaks_path = join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
     else:
         peaks_path = input_path
-    for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
+    # for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
+    for bundle in tqdm(ExpUtils.get_bundle_names(HP.CLASSES)[1:]):
         Mrtrix.track(bundle, peaks_path, HP.PREDICT_IMG_OUTPUT,
                      filter_by_endpoints=args.filter_tracking_by_endpoints,
                      output_format=args.tracking_format, nr_fibers=args.nr_fibers)

@@ -62,6 +62,9 @@ class FiberUtils:
         # Needed otherwise memory problems when processing the raw tracking output (on disk >10GB and in memory >20GB)
         result = pool.map(compress_fibers_worker_shared_mem, range(0, len(fiber_batches)))
 
+        pool.close()
+        pool.join()
+
         streamlines_c = Utils.flatten(result)
         return streamlines_c
 

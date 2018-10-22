@@ -266,8 +266,7 @@ class Trainer:
             layers_y = []
             batch_generator = self.dataManager.get_batches(batch_size=1)
             batch_generator = list(batch_generator)
-            for j in tqdm(list(range(len(batch_generator)))):
-                batch = batch_generator[j]
+            for batch in tqdm(batch_generator):
                 x = batch["data"]   # (bs, nr_of_channels, x, y)
                 y = batch["seg"]    # (bs, x, y, nr_of_classes)
                 y = y.astype(HP.LABELS_TYPE)

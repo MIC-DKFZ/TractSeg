@@ -21,6 +21,7 @@ from tractseg.libs.ImgUtils import ImgUtils
 import shutil
 from pkg_resources import resource_filename
 import numpy as np
+import subprocess
 
 class Mrtrix():
 
@@ -138,8 +139,8 @@ class Mrtrix():
         TOM_folder = "TOM"      # TOM / TOM_thr1
 
         tmp_dir = tempfile.mkdtemp()
-        os.system("export PATH=/code/mrtrix3/bin:$PATH")
-        os.system("mkdir -p " + output_dir + "/" + tracking_folder)
+        subprocess.call("export PATH=/code/mrtrix3/bin:$PATH", shell=True)
+        subprocess.call("mkdir -p " + output_dir + "/" + tracking_folder, shell=True)
 
         if filter_by_endpoints:
             bundle_mask_ok = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz").get_data().max() > 0
@@ -164,14 +165,14 @@ class Mrtrix():
             ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
 
-            os.system("tckgen -algorithm FACT " +
+            subprocess.call("tckgen -algorithm FACT " +
                       output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                       output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                       " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
                       " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
                       " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                       " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                      " -minlength 40 -select " + str(nr_fibers) + " -force -quiet")
+                      " -minlength 40 -select " + str(nr_fibers) + " -force -quiet", shell=True)
 
             # #Probabilistic Tracking without TOM
             # os.system("tckgen -algorithm iFOD2 " +
@@ -184,11 +185,20 @@ class Mrtrix():
             #           " -minlength 40 -seeds 200000 -select 2000 -force")
         else:
             ImgUtils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
-            os.system("tckgen -algorithm FACT " +
-                      output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
-                      output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                      " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
-                      " -minlength 40 -select " + str(nr_fibers) + " -force -quiet")
+
+            subprocess.call("tckgen -algorithm FACT " +
+                            output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
+                            output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+                            " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
+                            " -minlength 40 -select " + str(nr_fibers) + " -force -quiet", shell=True)
+
+            # To avoid shell=True (which is system depended) pass all arguments as list (but Mrtrix in PATH then because does not read env vars ?)
+            # subprocess.call(["tckgen", "-algorithm", "FACT",
+            #                  output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz",
+            #                  output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
+            #                  "-seed_image", tmp_dir + "/peak_mask.nii.gz",
+            #                  "-minlength", "40", "-select", str(nr_fibers), "-force", "-quiet"], shell=False)
+
 
         if output_format == "trk":
             ref_img = nib.load(peaks)
@@ -197,7 +207,7 @@ class Mrtrix():
             FiberUtils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
                                           output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
                                           reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth)
-            os.system("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck")
+            subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
         shutil.rmtree(tmp_dir)
 
     @staticmethod
