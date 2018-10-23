@@ -61,5 +61,3 @@ script:
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_PP_BST --single_orientation --super_resolution
     --postprocess --bundle_specific_threshold
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_PP_BST
-
-  - pytest
