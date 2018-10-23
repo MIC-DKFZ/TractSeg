@@ -20,19 +20,19 @@ install:
 script:
 
   #Docker
+  # On python 3 building the container is too slow to avoid travis timeout -> we only test it on python 2
+  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker";
+    else docker build -t wasserth/tractseg_container:master .; fi
+
 #  - docker build -t wasserth/tractseg_container:master .
-
-  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "using python 3"; else echo "using python 2"; fi
-
-  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker"; else docker build -t wasserth/tractseg_container:master .; fi
-
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
 #    -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
-##  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
-##    -i /data/Diffusion.nii.gz -o /data --raw_diffusion_input --single_orientation
-#  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 #  - docker push wasserth/tractseg_container:master
+
+  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker upload";
+    else docker push wasserth/tractseg_container:master; fi
 
   #Bundles
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
@@ -48,6 +48,7 @@ script:
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
 
   #Track
+  # for python 3 it uses the online available container -> built from the previous commit
   - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master TractSeg
     -i /data/tests/reference_files/peaks.nii.gz -o /data/examples
     --output_type TOM --track --only_track --filter_tracking_by_endpoints
