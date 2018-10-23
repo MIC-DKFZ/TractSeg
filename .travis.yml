@@ -30,7 +30,6 @@ script:
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 #  - docker push wasserth/tractseg_container:master
-
   - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker upload";
     else docker push wasserth/tractseg_container:master; fi
 
@@ -63,4 +62,4 @@ script:
     --postprocess --bundle_specific_threshold
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_PP_BST
 
-#  - pytest
+  - pytest
