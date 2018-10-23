@@ -14,13 +14,13 @@ class test_end_to_end(unittest.TestCase):
     #     images_equal = np.allclose(img_ref, img_new, rtol=1, atol=1)    #somehow not working; order of channels randomly changing?
     #     self.assertTrue(images_equal, "CSD peaks not correct")
 
-    def test_tractseg_output_docker(self):
-        bundles = ExpUtils.get_bundle_names("All")[1:]
-        for bundle in bundles:
-            img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_data()
-            img_new = nib.load("examples/docker_test/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
-            images_equal = np.array_equal(img_ref, img_new)
-            self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
+    # def test_tractseg_output_docker(self):
+    #     bundles = ExpUtils.get_bundle_names("All")[1:]
+    #     for bundle in bundles:
+    #         img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_data()
+    #         img_new = nib.load("examples/docker_test/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
+    #         images_equal = np.array_equal(img_ref, img_new)
+    #         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
 
     def test_tractseg_output(self):
         bundles = ExpUtils.get_bundle_names("All")[1:]
