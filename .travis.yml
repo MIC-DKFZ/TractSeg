@@ -6,11 +6,13 @@ services:
 matrix:
   include:
   - python: "2.7"
-    env: PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-0.4.1-cp27-cp27mu-linux_x86_64.whl
-    env: PYTHON_VERS=2.7
+    env:
+      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-0.4.1-cp27-cp27mu-linux_x86_64.whl
+      - PYTHON_VERS=2.7
   - python: "3.5"
-    env: PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-0.4.1-cp35-cp35m-linux_x86_64.whl
-    env: PYTHON_VERS=3.5
+    env:
+      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-0.4.1-cp35-cp35m-linux_x86_64.whl
+      - PYTHON_VERS=3.5
 before_install:
   - pip install $PYTORCH_URL
 install:
