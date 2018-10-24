@@ -73,7 +73,7 @@ parser.add_argument("--single_orientation", action="store_true", help="Do not ru
 parser.add_argument("--bundle_specific_threshold", action="store_true", help="For converting probability maps to binary maps use lower threshold for difficult bundles like CA, FX and CST", default=False)
 parser.add_argument("--get_probabilities", action="store_true", help="Output probability map instead of binary segmentation", default=False)
 parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks (MRtrix FACT)", default=False)
-parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create", default=2000)
+parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create (default: 2000)", default=2000)
 parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
 parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
 parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
@@ -86,6 +86,8 @@ parser.add_argument("--postprocess", action="store_true", help="Simple postproce
 parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
 parser.add_argument("--deactivate_peak_check", action="store_true",
                     help="Deactivate automatically checking if the peaks have the right orientation and flipping them if needed", default=False)
+parser.add_argument("--nr_cpus", metavar="n", type=int, help="Number of CPUs to use during track compression. "
+                                                             "-1 means all available cpus (default: -1)", default=-1)
 parser.add_argument('--version', action='version', version='TractSeg 1.7')
 args = parser.parse_args()
 
@@ -216,7 +218,7 @@ if args.track or args.only_track:
     for bundle in tqdm(ExpUtils.get_bundle_names(HP.CLASSES)[1:]):
         Mrtrix.track(bundle, peaks_path, HP.PREDICT_IMG_OUTPUT,
                      filter_by_endpoints=args.filter_tracking_by_endpoints,
-                     output_format=args.tracking_format, nr_fibers=args.nr_fibers)
+                     output_format=args.tracking_format, nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus)
 
 Mrtrix.clean_up(HP)
 

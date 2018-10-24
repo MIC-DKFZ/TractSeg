@@ -124,13 +124,16 @@ class Mrtrix():
             raise ValueError("'csd_type' contains invalid String")
 
     @staticmethod
-    def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000):
+    def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1):
         '''
 
         :param bundle:   Bundle name
         :param peaks:
         :param output_dir:
         :param filter_by_endpoints:     use results of endings_segmentation to filter out all fibers not endings in those regions
+        :param output_format:
+        :param nr_fibers:
+        :param nr_cpus:
         :return:
         '''
         tracking_folder = "TOM_trackings"
@@ -206,7 +209,8 @@ class Mrtrix():
             reference_shape = ref_img.get_data().shape[:3]
             FiberUtils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
                                           output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
-                                          reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth)
+                                          reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth,
+                                          nr_cpus=nr_cpus)
             subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
         shutil.rmtree(tmp_dir)
 

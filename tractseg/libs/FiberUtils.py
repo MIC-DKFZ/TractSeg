@@ -32,8 +32,11 @@ def compress_fibers_worker_shared_mem(idx):
 class FiberUtils:
 
     @staticmethod
-    def compress_streamlines(streamlines, error_threshold=0.1):
-        nr_processes = psutil.cpu_count()
+    def compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=-1):
+        if nr_cpus == -1:
+            nr_processes = psutil.cpu_count()
+        else:
+            nr_processes = nr_cpus
         number_streamlines = len(streamlines)
 
         if nr_processes >= number_streamlines:
@@ -88,7 +91,8 @@ class FiberUtils:
         nib.trackvis.write(filename, streamlines_trk_format, trackvis_header, points_space="rasmm")
 
     @staticmethod
-    def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_shape, compress_err_thr=0.1, smooth=None):
+    def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_shape,
+                           compress_err_thr=0.1, smooth=None, nr_cpus=-1):
         '''
         Convert tck file to trk file and compress
 
@@ -97,6 +101,7 @@ class FiberUtils:
         :param compress_err_thr: compress fibers if setting error threshold here (default: 0.1mm)
         :param smooth: smooth streamlines (default: None)
                        10: slight smoothing,  100: very smooth from beginning to end
+        :param nr_cpus:
         :return:
         '''
         from dipy.tracking.metrics import spline
@@ -111,7 +116,7 @@ class FiberUtils:
 
         #Compressing also good to remove checkerboard artefacts from tracking on peaks
         if compress_err_thr is not None:
-            streamlines = FiberUtils.compress_streamlines(streamlines, compress_err_thr)
+            streamlines = FiberUtils.compress_streamlines(streamlines, compress_err_thr, nr_cpus=nr_cpus)
         FiberUtils.save_streamlines_as_trk(filename_out, streamlines, reference_affine, reference_shape)
 
     @staticmethod
