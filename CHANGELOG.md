@@ -1,3 +1,13 @@
+## Release 1.7.1
+
+* **Interface change**: TractSeg does not automatically flip the peaks anymore if it detects that they probably have
+the wrong orientation (The peak check is only correct in 98% of the cases. In the remaining 2% it would incorrectly flip
+the peaks and the user would wonder why the results of TractSeg are so bad. Therefore now the user is informed if
+TractSeg thinks that flipping is needed, but he has to do it on his own and manually verify the result.) Therefore
+the command line option `-deactivate_peak_check` is not needed anymore and removed.
+* Bugfixes
+
+
 ## Release 1.7
 
 * Reduced memory consumption of TOM (downside: `--single_output_file` for TOM not working anymore)

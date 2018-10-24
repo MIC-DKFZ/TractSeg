@@ -32,7 +32,7 @@ option `--preprocess` this is not needed)
 #### Install TractSeg
 Latest stable version:
 ```
-pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.7.zip
+pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.7.1.zip
 ```
 
 #### Docker
@@ -229,13 +229,12 @@ cp Diffusion.bvecs Diffusion_MNI.bvecs
 
 #### My output segmentation does not look like any bundle at all!
 Make sure your input image is in MNI space. Even if the input image is in MNI space the Mrtrix peaks might still be flipped. 
-TractSeg is automatically checking for that and flipping the peaks if needed. However, in very few cases (~2%) TractSeg fails 
+TractSeg is automatically checking for that and printing a warning if the peaks have the wrong orientation. However, in very few cases (~2%) TractSeg fails 
 to detect the right flipping axis. In those cases you should view the peaks in `mrview` and make sure they have the proper 
 orientation. Otherwise you might have to flip the sign along the x, y or z axis using the following command: 
 ```
 flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
-``` 
-Using the option `--deactivate_peak_check` you can tell TractSeg to not automatically correct the peaks.
+```
 
 #### Small bundles like the CA and FX are incomplete
 You can use the following three options to improve your results:

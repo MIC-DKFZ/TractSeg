@@ -86,7 +86,7 @@ parser.add_argument("--postprocess", action="store_true", help="Simple postproce
 parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
 parser.add_argument("--nr_cpus", metavar="n", type=int, help="Number of CPUs to use during track compression. "
                                                              "-1 means all available cpus (default: -1)", default=-1)
-parser.add_argument('--version', action='version', version='TractSeg 1.7')
+parser.add_argument('--version', action='version', version='TractSeg 1.7.1')
 args = parser.parse_args()
 
 #Private parameters
