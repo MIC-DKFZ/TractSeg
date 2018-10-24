@@ -82,10 +82,8 @@ parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
 parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
 parser.add_argument("--uncertainty", action="store_true", help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)", default=False)
 parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
-#Move input image to MNI space and
+#Move input image to MNI space
 parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
-parser.add_argument("--deactivate_peak_check", action="store_true",
-                    help="Deactivate automatically checking if the peaks have the right orientation and flipping them if needed", default=False)
 parser.add_argument("--nr_cpus", metavar="n", type=int, help="Number of CPUs to use during track compression. "
                                                              "-1 means all available cpus (default: -1)", default=-1)
 parser.add_argument('--version', action='version', version='TractSeg 1.7')
@@ -125,9 +123,11 @@ if args.raw_diffusion_input:
     Mrtrix.create_fods(input_path, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE)
 
 if args.raw_diffusion_input:
-    data_img = nib.load(join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz"))
+    peak_path = join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
+    data_img = nib.load(peak_path)
 else:
-    data_img = nib.load(input_path)
+    peak_path = input_path
+    data_img = nib.load(peak_path)
     data_img_shape = data_img.get_data().shape
     if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
         print("ERROR: Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
@@ -139,12 +139,15 @@ if args.super_resolution:
 data_affine = data_img.get_affine()
 
 if not args.only_track:
-    if not args.deactivate_peak_check:
-        data, flip_done = ImgUtils.flip_peaks_to_correct_orientation_if_needed(data_img)
-        if flip_done:
-            print("INFO: Detected that peaks have wrong orientation and automatically flipped them.")
-    else:
-        data = data_img.get_data()
+    flip_axis = ImgUtils.flip_peaks_to_correct_orientation_if_needed(data_img, do_flip=False)
+    if flip_axis is not None:
+        print("\nWARNING: Detected that peaks probably have wrong orientation. You should flip them along the " +
+              flip_axis + "-axis using the following command: \n" +
+              "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") + " -a " + flip_axis + "\"\n" +
+              "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
+              "Then rerun TractSeg using the flipped peaks.\n")
+
+    data = data_img.get_data()
     data_img = None     # free memory
 
     #Use Peaks + T1
