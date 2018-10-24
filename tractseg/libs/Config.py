@@ -72,7 +72,9 @@ class Config:
     else:
         NETWORK_DRIVE = None
 
-    if "weights_dir" in paths:
+    if os.environ.get("TRACTSEG_WEIGHTS_DIR") is not None:
+        WEIGHTS_DIR = os.environ.get("TRACTSEG_WEIGHTS_DIR")
+    elif "weights_dir" in paths:
         WEIGHTS_DIR = paths["weights_dir"]
     else:
         WEIGHTS_DIR = TRACT_SEG_HOME
