@@ -31,7 +31,7 @@ import sys
 from tqdm import tqdm
 
 from tractseg.libs.Config import get_config_name
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.Mrtrix import Mrtrix
 from tractseg.libs.PlotUtils import PlotUtils

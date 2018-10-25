@@ -24,7 +24,7 @@ from lasagne.layers.conv import conv_input_length, conv_output_length
 import theano.tensor.signal.pool
 from lasagne.layers.pool import pool_output_length
 from lasagne.layers import Layer
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 
 class Conv3DLayer(BaseConvLayer):
     def __init__(self, incoming, num_filters, filter_size, stride=(1, 1, 1),

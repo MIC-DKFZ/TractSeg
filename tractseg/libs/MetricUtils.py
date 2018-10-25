@@ -19,7 +19,7 @@
 
 import numpy as np
 from sklearn.metrics import f1_score
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 # from medpy import metric
 
 class MetricUtils:

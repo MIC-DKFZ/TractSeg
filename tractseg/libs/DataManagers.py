@@ -40,7 +40,7 @@ from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyIm
 from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorNpyImg_fusion
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.Config import Config as C
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 
 from tractseg.libs.DLDABG_Standalone import ReorderSegTransform
 

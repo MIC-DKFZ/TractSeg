@@ -20,7 +20,7 @@ import numpy as np
 from sklearn.utils import shuffle as sk_shuffle
 import scipy.ndimage
 from tractseg.libs.ImgUtils import ImgUtils
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.Config import Config as C
 from tractseg.libs.MetricUtils import MetricUtils
 import time

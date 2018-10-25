@@ -17,7 +17,7 @@
 
 from builtins import object
 import numpy as np
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.DLDABG_Standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 from tractseg.libs.DLDABG_Standalone import SingleThreadedAugmenter
 from tractseg.libs.DLDABG_Standalone import ReorderSegTransform

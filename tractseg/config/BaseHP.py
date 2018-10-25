@@ -1,6 +1,6 @@
 from os.path import join
 import numpy as np
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.Config import Config as C
 
 #Settings and Hyperparameters

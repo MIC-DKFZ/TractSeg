@@ -21,7 +21,7 @@ import argparse
 from scipy.ndimage.morphology import binary_dilation
 from nibabel import trackvis
 from tractseg.libs.FiberUtils import FiberUtils
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from dipy.tracking.utils import move_streamlines
 from os.path import join
 

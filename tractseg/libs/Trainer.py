@@ -21,7 +21,7 @@ import pickle
 from pprint import pprint
 import torch
 import numpy as np
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.MetricUtils import MetricUtils
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.PlotUtils import PlotUtils

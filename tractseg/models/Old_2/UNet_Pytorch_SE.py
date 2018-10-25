@@ -23,7 +23,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 from tractseg.libs.PytorchUtils import PytorchUtils
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.models.BaseModel import BaseModel
 
 # from torchvision.models import ResNet

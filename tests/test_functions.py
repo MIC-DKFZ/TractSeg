@@ -1,5 +1,5 @@
 import unittest
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 
 class test_functions(unittest.TestCase):
 

@@ -1,7 +1,7 @@
 import unittest
 import nibabel as nib
 import numpy as np
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 
 class test_end_to_end(unittest.TestCase):
 

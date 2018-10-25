@@ -33,7 +33,7 @@ import nibabel as nib
 import numpy as np
 
 from tractseg.libs.DirectionMerger import DirectionMerger
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.MetricUtils import MetricUtils
 from tractseg.libs.ClusterUtils import ClusterUtils

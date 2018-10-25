@@ -27,7 +27,7 @@ from os.path import join
 
 from tractseg.libs.Config import Config as C
 from tractseg.libs.Config import get_config_name
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.Utils import Utils
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.DirectionMerger import DirectionMerger
@@ -40,7 +40,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                  single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5,
                  bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
                  postprocess=False, peak_regression_part="All"):
-    '''
+    """
     Run TractSeg
 
     :param data: input peaks (4D numpy array with shape [x,y,z,9])
@@ -56,7 +56,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         for tract_segmentation:     [x,y,z,nr_of_bundles]
         for endings_segmentation:   [x,y,z,2*nr_of_bundles]
         for TOM:                    [x,y,z,3*nr_of_bundles]
-    '''
+    """
     start_time = time.time()
 
     config = get_config_name(input_type, output_type, dropout_sampling=dropout_sampling)

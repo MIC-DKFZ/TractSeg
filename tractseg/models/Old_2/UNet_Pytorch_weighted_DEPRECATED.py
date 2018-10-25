@@ -24,7 +24,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 from torch.autograd import Variable
 
 from tractseg.libs.PytorchUtils import PytorchUtils
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.models.BaseModel import BaseModel
 
 # nonlinearity = nn.ReLU()

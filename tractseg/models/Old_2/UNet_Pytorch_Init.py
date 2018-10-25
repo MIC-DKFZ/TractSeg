@@ -25,7 +25,7 @@ from torch.autograd import Variable
 import math
 
 from tractseg.libs.PytorchUtils import PytorchUtils
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.models.BaseModel import BaseModel
 
 # nonlinearity = nn.ReLU()

@@ -56,7 +56,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 import importlib
 
 from tractseg.libs.PytorchUtils import PytorchUtils
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.MetricUtils import MetricUtils
 from tractseg.libs.PytorchUtils import conv2d
 

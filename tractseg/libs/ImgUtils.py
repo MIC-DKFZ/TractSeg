@@ -20,7 +20,7 @@ import nibabel as nib
 from scipy import ndimage
 from os.path import join
 from tractseg.libs.Config import Config as C
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 from tractseg.libs.Utils import Utils
 from scipy.ndimage.morphology import binary_dilation
 from sklearn.externals import joblib

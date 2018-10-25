@@ -17,7 +17,7 @@
 
 
 from os.path import join
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 import numpy as np
 
 import matplotlib

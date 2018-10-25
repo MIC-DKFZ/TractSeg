@@ -19,7 +19,7 @@ import os
 from glob import glob
 from os.path import join
 from tractseg.libs.Config import Config as C
-from tractseg.libs.ExpUtils import ExpUtils
+from tractseg.libs import ExpUtils
 import string
 import random
 import shutil
