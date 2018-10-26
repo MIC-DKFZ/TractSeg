@@ -17,7 +17,7 @@ from os.path import join
 from tractseg.libs.FiberUtils import FiberUtils
 import nibabel as nib
 import tempfile
-from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs import img_utils
 import shutil
 from pkg_resources import resource_filename
 import numpy as np
@@ -32,7 +32,7 @@ class Mrtrix():
         os.system("calc_FA -i " + input_file + " -o " + output_dir + "/FA.nii.gz --bvals " + bvals +
                   " --bvecs " + bvecs + " --brain_mask " + brain_mask)
 
-        dwi_spacing = ImgUtils.get_image_spacing(input_file)
+        dwi_spacing = img_utils.get_image_spacing(input_file)
 
         template_path = resource_filename('resources', 'MNI_FA_template.nii.gz')
 
@@ -58,7 +58,7 @@ class Mrtrix():
 
         file_path_in = output_dir + "/bundle_segmentations.nii.gz"
         file_path_out = output_dir + "/bundle_segmentations_subjectSpace.nii.gz"
-        dwi_spacing = ImgUtils.get_image_spacing(file_path_in)
+        dwi_spacing = img_utils.get_image_spacing(file_path_in)
         os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
         os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
                   " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6")
@@ -173,12 +173,12 @@ class Mrtrix():
 
         if filter_by_endpoints and bundle_mask_ok and beginnings_mask_ok and endings_mask_ok:
             # dilation has to be quite high, because endings sometimes almost completely missing
-            ImgUtils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
-                                        tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
-            ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
-                                        tmp_dir + "/" + bundle + "_e.nii.gz", dilation=6)
-            ImgUtils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
-                                        tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
+            img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
+                                         tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
+            img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
+                                         tmp_dir + "/" + bundle + "_e.nii.gz", dilation=6)
+            img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
+                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
 
             subprocess.call("tckgen -algorithm FACT " +
                       output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
@@ -199,7 +199,7 @@ class Mrtrix():
             #           " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
             #           " -minlength 40 -seeds 200000 -select 2000 -force")
         else:
-            ImgUtils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
+            img_utils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
 
             subprocess.call("tckgen -algorithm FACT " +
                             output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +

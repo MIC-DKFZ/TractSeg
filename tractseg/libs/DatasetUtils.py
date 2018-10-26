@@ -17,7 +17,7 @@
 
 import numpy as np
 from scipy import ndimage
-from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs import img_utils
 
 class DatasetUtils():
 
@@ -38,21 +38,21 @@ class DatasetUtils():
                 return img4d[1:, 15:159, 1:]  # (144,144,144)
             elif dataset == "HCP_32g":  # (73,87,73)
                 # return img4d[1:, 15:159, 1:]  # (144,144,144) #OLD when HCP_32g was still 125mm
-                img4d = ImgUtils.resize_first_three_dims(img4d, zoom=2)  # (146,174,146,none)
+                img4d = img_utils.resize_first_three_dims(img4d, zoom=2)  # (146,174,146,none)
                 img4d = img4d[:-1,:,:-1]  #remove one voxel that came from upsampling   #(145,174,145)
                 return img4d[1:, 15:159, 1:]  # (144,144,144)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '1.25mm' not supported for dataset 'TRACED'")
             elif dataset == "Schizo":  # (91,109,91)
-                img4d = ImgUtils.resize_first_three_dims(img4d, zoom=1.60)  # (146,174,146)
+                img4d = img_utils.resize_first_three_dims(img4d, zoom=1.60)  # (146,174,146)
                 return img4d[1:145, 15:159, 1:145]                                # (144,144,144)
 
         elif resolution == "2mm":
             if dataset == "HCP":  # (145,174,145)
-                img4d = ImgUtils.resize_first_three_dims(img4d, zoom=0.62)  # (90,108,90)
+                img4d = img_utils.resize_first_three_dims(img4d, zoom=0.62)  # (90,108,90)
                 return img4d[5:85, 14:94, 5:85, :]  # (80,80,80)
             elif dataset == "HCP_32g":  # (145,174,145)
-                img4d = ImgUtils.resize_first_three_dims(img4d, zoom=0.62)  # (90,108,90)
+                img4d = img_utils.resize_first_three_dims(img4d, zoom=0.62)  # (90,108,90)
                 return img4d[5:85, 14:94, 5:85, :]  # (80,80,80)
             elif dataset == "HCP_2mm":  # (90,108,90)
                 # no resize needed
@@ -64,7 +64,7 @@ class DatasetUtils():
 
         elif resolution == "2.5mm":
             if dataset == "HCP":  # (145,174,145)
-                img4d = ImgUtils.resize_first_three_dims(img4d, zoom=0.5)  # (73,87,73,none)
+                img4d = img_utils.resize_first_three_dims(img4d, zoom=0.5)  # (73,87,73,none)
                 bg = np.zeros((80, 80, 80, img4d.shape[3])).astype(img4d.dtype)
                 bg = bg + img4d[0,0,0,:] #make bg have same value as bg from original img  (this adds last dim of img4d to last dim of bg)
                 bg[4:77, :, 4:77] = img4d[:, 4:84, :, :]
@@ -101,38 +101,38 @@ class DatasetUtils():
         if resolution == "1.25mm":
             if dataset == "HCP":  # (144,144,144)
                 # no resize needed
-                return ImgUtils.pad_4d_image_left(img4d, np.array([1,15,1,0]), [146,174,146,img4d.shape[3]], pad_value=0)  # (146, 174, 146, none)
+                return img_utils.pad_4d_image_left(img4d, np.array([1, 15, 1, 0]), [146, 174, 146, img4d.shape[3]], pad_value=0)  # (146, 174, 146, none)
             elif dataset == "HCP_32g":  # (144,144,144)
                 # no resize needed
-                return ImgUtils.pad_4d_image_left(img4d, np.array([1,15,1,0]), [146,174,146,img4d.shape[3]], pad_value=0)  # (146, 174, 146, none)
+                return img_utils.pad_4d_image_left(img4d, np.array([1, 15, 1, 0]), [146, 174, 146, img4d.shape[3]], pad_value=0)  # (146, 174, 146, none)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '1.25mm' not supported for dataset 'TRACED'")
             elif dataset == "Schizo":  # (144,144,144)
-                img4d = ImgUtils.pad_4d_image_left(img4d, np.array([1,15,1,0]), [145,174,145,img4d.shape[3]], pad_value=0)  # (145, 174, 145, none)
-                return ImgUtils.resize_first_three_dims(img4d, zoom=0.62)  # (91,109,91)
+                img4d = img_utils.pad_4d_image_left(img4d, np.array([1, 15, 1, 0]), [145, 174, 145, img4d.shape[3]], pad_value=0)  # (145, 174, 145, none)
+                return img_utils.resize_first_three_dims(img4d, zoom=0.62)  # (91,109,91)
 
         elif resolution == "2mm":
             if dataset == "HCP":  # (80,80,80)
-                return ImgUtils.pad_4d_image_left(img4d, np.array([5,14,5,0]), [90,108,90,img4d.shape[3]], pad_value=0)  # (90, 108, 90, none)
+                return img_utils.pad_4d_image_left(img4d, np.array([5, 14, 5, 0]), [90, 108, 90, img4d.shape[3]], pad_value=0)  # (90, 108, 90, none)
             elif dataset == "HCP_32g":  # (80,80,80)
-                return ImgUtils.pad_4d_image_left(img4d, np.array([5,14,5,0]), [90,108,90,img4d.shape[3]], pad_value=0)  # (90, 108, 90, none)
+                return img_utils.pad_4d_image_left(img4d, np.array([5, 14, 5, 0]), [90, 108, 90, img4d.shape[3]], pad_value=0)  # (90, 108, 90, none)
             elif dataset == "HCP_2mm":  # (80,80,80)
-                return ImgUtils.pad_4d_image_left(img4d, np.array([5,14,5,0]), [90,108,90,img4d.shape[3]], pad_value=0)  # (90, 108, 90, none)
+                return img_utils.pad_4d_image_left(img4d, np.array([5, 14, 5, 0]), [90, 108, 90, img4d.shape[3]], pad_value=0)  # (90, 108, 90, none)
             elif dataset == "TRACED":  # (78,93,75)
                 raise ValueError("resolution '2mm' not supported for dataset 'TRACED'")
 
         elif resolution == "2.5mm":
             if dataset == "HCP":  # (80,80,80)
-                img4d = ImgUtils.pad_4d_image_left(img4d, np.array([0,4,0,0]), [80,87,80,img4d.shape[3]], pad_value=0) # (80,87,80,none)
+                img4d = img_utils.pad_4d_image_left(img4d, np.array([0, 4, 0, 0]), [80, 87, 80, img4d.shape[3]], pad_value=0) # (80,87,80,none)
                 return img4d[4:77,:,4:77, :] # (73, 87, 73, none)
             elif dataset == "HCP_2.5mm":  # (80,80,80)
-                img4d = ImgUtils.pad_4d_image_left(img4d, np.array([0,4,0,0]), [80,87,80,img4d.shape[3]], pad_value=0)  # (80,87,80,none)
+                img4d = img_utils.pad_4d_image_left(img4d, np.array([0, 4, 0, 0]), [80, 87, 80, img4d.shape[3]], pad_value=0)  # (80,87,80,none)
                 return img4d[4:77,:,4:77,:]  # (73, 87, 73, none)
             elif dataset == "HCP_32g":  # ((80,80,80)
-                img4d = ImgUtils.pad_4d_image_left(img4d, np.array([0, 4, 0, 0]), [80, 87, 80, img4d.shape[3]], pad_value=0)  # (80,87,80,none)
+                img4d = img_utils.pad_4d_image_left(img4d, np.array([0, 4, 0, 0]), [80, 87, 80, img4d.shape[3]], pad_value=0)  # (80,87,80,none)
                 return img4d[4:77, :, 4:77, :]  # (73, 87, 73, none)
             elif dataset == "TRACED":  # (80,80,80)
-                img4d = ImgUtils.pad_4d_image_left(img4d, np.array([0,7,0,0]), [80,93,80,img4d.shape[3]],pad_value=0)  # (80,93,80,none)
+                img4d = img_utils.pad_4d_image_left(img4d, np.array([0, 7, 0, 0]), [80, 93, 80, img4d.shape[3]], pad_value=0)  # (80,93,80,none)
                 return img4d[1:79, :, 3:78, :]  # (78,93,75,none)
 
     @staticmethod
@@ -167,7 +167,7 @@ class DatasetUtils():
         zoom = float(target_size) / biggest_dim
         if nr_dims == 4:
             #use order=0, otherwise image values of a DWI will be quite different after downsampling and upsampling
-            new_img = ImgUtils.resize_first_three_dims(new_img, order=0, zoom=zoom)
+            new_img = img_utils.resize_first_three_dims(new_img, order=0, zoom=zoom)
         else:
             new_img = ndimage.zoom(new_img, zoom, order=0)
 
@@ -197,7 +197,7 @@ class DatasetUtils():
         if nr_dims == 3:
             new_data = ndimage.zoom(data, (1. / t["zoom"]), order=0)
         elif nr_dims == 4:
-            new_data = ImgUtils.resize_first_three_dims(data, order=0, zoom=(1. / t["zoom"]))
+            new_data = img_utils.resize_first_three_dims(data, order=0, zoom=(1. / t["zoom"]))
 
         x_residual = 0
         y_residual = 0

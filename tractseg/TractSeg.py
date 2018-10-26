@@ -31,7 +31,7 @@ from tractseg.libs import exp_utils
 from tractseg.libs.Utils import Utils
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.DirectionMerger import DirectionMerger
-from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs import img_utils
 from tractseg.libs.DataManagersInference import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
 from tractseg.models.BaseModel import BaseModel
@@ -173,23 +173,23 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
 
         #quite fast
         if bundle_specific_threshold:
-            seg = ImgUtils.remove_small_peaks_bundle_specific(seg, exp_utils.get_bundle_names(HP.CLASSES)[1:], len_thr=0.3)
+            seg = img_utils.remove_small_peaks_bundle_specific(seg, exp_utils.get_bundle_names(HP.CLASSES)[1:], len_thr=0.3)
         else:
-            seg = ImgUtils.remove_small_peaks(seg, len_thr=peak_threshold)
+            seg = img_utils.remove_small_peaks(seg, len_thr=peak_threshold)
 
         #3 dir for Peaks -> not working (?)
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
         # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
 
     if bundle_specific_threshold and HP.EXPERIMENT_TYPE == "tract_segmentation":
-        seg = ImgUtils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(HP.CLASSES)[1:])
+        seg = img_utils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(HP.CLASSES)[1:])
 
     #remove following two lines to keep super resolution
     seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)  #quite slow
     seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES) #quite slow
 
     if postprocess:
-        seg = ImgUtils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)
+        seg = img_utils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)
 
     exp_utils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
     return seg

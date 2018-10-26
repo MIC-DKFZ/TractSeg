@@ -31,7 +31,7 @@ from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanU
 from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 
-from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs import img_utils
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorPrecomputedBatches
 from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg_5slices

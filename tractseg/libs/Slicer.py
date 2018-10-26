@@ -19,7 +19,7 @@ import nibabel as nib
 import numpy as np
 from sklearn.utils import shuffle as sk_shuffle
 import scipy.ndimage
-from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs import img_utils
 from tractseg.libs import exp_utils
 from tractseg.libs.Config import Config as C
 from tractseg.libs.MetricUtils import MetricUtils
@@ -94,9 +94,9 @@ class Slicer:
         for s in subjects:
             print("processing seg subject {}".format(s))
 
-            mask_data = ImgUtils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
+            mask_data = img_utils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.RESOLUTION == "2.5mm":
-                mask_data = ImgUtils.resize_first_three_dims(mask_data, order=0, zoom=0.5)
+                mask_data = img_utils.resize_first_three_dims(mask_data, order=0, zoom=0.5)
             mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, HP.DATASET, HP.RESOLUTION)
 
             # if slice == "x":
@@ -161,7 +161,7 @@ class Slicer:
 
             # print("combined shape after", combined.shape)
 
-            mask_data = ImgUtils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
+            mask_data = img_utils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.DATASET == "HCP_2mm":
                 #use "HCP" because for mask we need downscaling
                 mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, "HCP", HP.RESOLUTION)
@@ -173,7 +173,7 @@ class Slicer:
                 mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, HP.DATASET, HP.RESOLUTION)
 
             # Save as Img
-            img = nib.Nifti1Image(combined, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
+            img = nib.Nifti1Image(combined, img_utils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
             nib.save(img, join(HP.EXP_PATH, "combined", s + "_combinded_probmap.nii.gz"))
 
 
@@ -223,9 +223,9 @@ class Slicer:
         print("\n\nProcessing Segs...")
         for s in get_all_subjects():
             print("processing seg subject {}".format(s))
-            seg = ImgUtils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
+            seg = img_utils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.RESOLUTION == "2.5mm":
-                seg = ImgUtils.resize_first_three_dims(seg, order=0, zoom=0.5)
+                seg = img_utils.resize_first_three_dims(seg, order=0, zoom=0.5)
             seg = DatasetUtils.scale_input_to_unet_shape(seg, HP.DATASET, HP.RESOLUTION)
         seg_all.append(np.array(seg))
         print("SEG TYPE: {}".format(seg_all.dtype))
@@ -274,7 +274,7 @@ class Slicer:
             # seg = ImgUtils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             seg = nib.load(join(C.NETWORK_DRIVE, "HCP_for_training_COPY", s, HP.LABELS_FILENAME + ".nii.gz")).get_data()
             if HP.RESOLUTION == "2.5mm":
-                seg = ImgUtils.resize_first_three_dims(seg, order=0, zoom=0.5)
+                seg = img_utils.resize_first_three_dims(seg, order=0, zoom=0.5)
             seg = DatasetUtils.scale_input_to_unet_shape(seg, HP.DATASET, HP.RESOLUTION)
             np.save(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s, "bundle_masks.npy"), seg)
             print("Took {}s".format(time.time() - start_time))
@@ -333,10 +333,10 @@ class Slicer:
                 DATASET_DIR = "HCP_batches/270g_125mm_bundle_peaks_XYZ"
                 exp_utils.make_dir(join(C.HOME, DATASET_DIR, type))
 
-                data = nib.Nifti1Image(batch["data"], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
+                data = nib.Nifti1Image(batch["data"], img_utils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
                 nib.save(data, join(C.HOME, DATASET_DIR, type, "batch_" + str(idx) + "_data.nii.gz"))
 
-                seg = nib.Nifti1Image(batch["seg"], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
+                seg = nib.Nifti1Image(batch["seg"], img_utils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
                 nib.save(seg, join(C.HOME, DATASET_DIR, type, "batch_" + str(idx) + "_seg.nii.gz"))
 
 

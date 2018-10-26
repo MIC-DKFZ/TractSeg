@@ -32,7 +32,7 @@ from tqdm import tqdm
 
 from tractseg.libs.Config import get_config_name
 from tractseg.libs import exp_utils
-from tractseg.libs.ImgUtils import ImgUtils
+from tractseg.libs import img_utils
 from tractseg.libs.Mrtrix import Mrtrix
 from tractseg.libs.PlotUtils import PlotUtils
 from tractseg.TractSeg import run_tractseg
@@ -135,11 +135,11 @@ else:
         sys.exit()
 
 if args.super_resolution:
-    data_img = ImgUtils.change_spacing_4D(data_img, new_spacing=1.25)
+    data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
 data_affine = data_img.get_affine()
 
 if not args.only_track:
-    flip_axis = ImgUtils.flip_peaks_to_correct_orientation_if_needed(data_img, do_flip=False)
+    flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img, do_flip=False)
     if flip_axis is not None:
         print("\nWARNING: Detected that peaks probably have wrong orientation. You should flip them along the " +
               flip_axis + "-axis using the following command: \n" +
@@ -194,15 +194,15 @@ if not args.only_track:
                 nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
         else:
             if HP.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
+                img_utils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
             elif HP.EXPERIMENT_TYPE == "tract_segmentation":
-                ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
+                img_utils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
             elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-                ImgUtils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
+                img_utils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
             elif HP.EXPERIMENT_TYPE == "peak_regression":
-                ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
+                img_utils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
             elif HP.EXPERIMENT_TYPE == "dm_regression":
-                ImgUtils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="dm_regression")
+                img_utils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="dm_regression")
 
         #Free memory
         seg = None
