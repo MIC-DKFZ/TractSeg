@@ -22,7 +22,7 @@ import scipy.ndimage
 from tractseg.libs import img_utils
 from tractseg.libs import exp_utils
 from tractseg.libs.Config import Config as C
-from tractseg.libs.MetricUtils import MetricUtils
+from tractseg.libs import metric_utils
 import time
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.Subjects import get_all_subjects

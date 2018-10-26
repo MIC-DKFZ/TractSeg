@@ -20,7 +20,7 @@ import time
 import pickle
 import numpy as np
 from tractseg.libs import exp_utils
-from tractseg.libs.MetricUtils import MetricUtils
+from tractseg.libs import metric_utils
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.PlotUtils import PlotUtils
 import socket
@@ -139,7 +139,7 @@ class Trainer:
 
                             #Pytorch
                             peak_f1_mean = np.array([s for s in list(f1.values())]).mean()  #if f1 for multiple bundles
-                            metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+                            metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
 
                             #Pytorch 2 F1
                             # peak_f1_mean_a = np.array([s for s in f1[0].values()]).mean()
@@ -152,10 +152,10 @@ class Trainer:
                             #                                         f1_per_bundle={"Thr1": f1["CST_right"][1], "Thr2": f1["CST_right"][2]})
                             # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"], type=type, threshold=HP.THRESHOLD)
                         else:
-                            metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD)
+                            metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=np.mean(f1), type=type, threshold=HP.THRESHOLD)
 
                     else:
-                        metrics = MetricUtils.calculate_metrics_onlyLoss(metrics, loss, type=type)
+                        metrics = metric_utils.calculate_metrics_onlyLoss(metrics, loss, type=type)
 
                     metrics_time += time.time() - start_time_metrics
 
@@ -184,9 +184,9 @@ class Trainer:
                 self.model.print_current_lr()
 
             # Average loss per batch over entire epoch
-            metrics = MetricUtils.normalize_last_element(metrics, batch_nr["train"], type="train")
-            metrics = MetricUtils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
-            metrics = MetricUtils.normalize_last_element(metrics, batch_nr["test"], type="test")
+            metrics = metric_utils.normalize_last_element(metrics, batch_nr["train"], type="train")
+            metrics = metric_utils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
+            metrics = metric_utils.normalize_last_element(metrics, batch_nr["test"], type="test")
 
             print("  Epoch {}, Average Epoch loss = {}".format(epoch_nr, metrics["loss_train"][-1]))
             print("  Epoch {}, nr_of_updates {}".format(epoch_nr, nr_of_updates))
@@ -215,7 +215,7 @@ class Trainer:
 
             # Adding next Epoch
             if epoch_nr < HP.NUM_EPOCHS-1:
-                metrics = MetricUtils.add_empty_element(metrics)
+                metrics = metric_utils.add_empty_element(metrics)
 
 
         ####################################

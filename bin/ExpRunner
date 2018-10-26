@@ -35,7 +35,7 @@ import numpy as np
 from tractseg.libs import direction_merger
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
-from tractseg.libs.MetricUtils import MetricUtils
+from tractseg.libs import metric_utils
 from tractseg.libs.Config import Config as C
 from tractseg.libs.Trainer import Trainer
 from tractseg.libs.DataManagers import DataManagerSingleSubjectById
@@ -147,18 +147,18 @@ def test_whole_subject(HP, model, subjects, type):
         print("Took {}s".format(round(time.time() - start_time, 2)))
 
         if HP.EXPERIMENT_TYPE == "peak_regression":
-            f1 = MetricUtils.calc_peak_length_dice(HP, img_probs, img_y, max_angle_error=HP.PEAK_DICE_THR, max_length_error=HP.PEAK_DICE_LEN_THR)
+            f1 = metric_utils.calc_peak_length_dice(HP, img_probs, img_y, max_angle_error=HP.PEAK_DICE_THR, max_length_error=HP.PEAK_DICE_LEN_THR)
             peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
-            metrics = MetricUtils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
-            metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, None, None, exp_utils.get_bundle_names(HP.CLASSES)[1:], f1, threshold=HP.THRESHOLD)
+            metrics = metric_utils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
+            metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, None, None, exp_utils.get_bundle_names(HP.CLASSES)[1:], f1, threshold=HP.THRESHOLD)
         else:
             img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
             img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
-            metrics = MetricUtils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=HP.THRESHOLD)
-            metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, exp_utils.get_bundle_names(HP.CLASSES)[1:], threshold=HP.THRESHOLD)
+            metrics = metric_utils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=HP.THRESHOLD)
+            metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, exp_utils.get_bundle_names(HP.CLASSES)[1:], threshold=HP.THRESHOLD)
 
-    metrics = MetricUtils.normalize_last_element(metrics, len(subjects), type=type)
-    metrics_bundles = MetricUtils.normalize_last_element_general(metrics_bundles, len(subjects))
+    metrics = metric_utils.normalize_last_element(metrics, len(subjects), type=type)
+    metrics_bundles = metric_utils.normalize_last_element_general(metrics_bundles, len(subjects))
 
     print("WHOLE SUBJECT:")
     pprint(metrics)

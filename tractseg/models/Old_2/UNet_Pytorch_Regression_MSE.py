@@ -26,7 +26,7 @@ from torch.autograd import Variable
 from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs import exp_utils
 from tractseg.models.BaseModel import BaseModel
-from tractseg.libs.MetricUtils import MetricUtils
+from tractseg.libs import metric_utils
 
 # nonlinearity = nn.ReLU()
 nonlinearity = nn.LeakyReLU()

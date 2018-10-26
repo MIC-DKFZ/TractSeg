@@ -57,7 +57,7 @@ import importlib
 
 from tractseg.libs.PytorchUtils import PytorchUtils
 from tractseg.libs import exp_utils
-from tractseg.libs.MetricUtils import MetricUtils
+from tractseg.libs import metric_utils
 from tractseg.libs.PytorchUtils import conv2d
 
 class BaseModel:
@@ -111,8 +111,8 @@ class BaseModel:
             if self.HP.EXPERIMENT_TYPE == "peak_regression":
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
                 # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
-                f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.detach(), y.detach(),
-                                                               max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
+                f1 = metric_utils.calc_peak_length_dice_pytorch(self.HP, outputs.detach(), y.detach(),
+                                                                max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
                 # f1 = (f1_a, f1_b)
             elif self.HP.EXPERIMENT_TYPE == "dm_regression":   #density map regression
                 f1 = PytorchUtils.f1_score_macro(y.detach()>0.5, outputs.detach(), per_class=True)
@@ -158,8 +158,8 @@ class BaseModel:
             if self.HP.EXPERIMENT_TYPE == "peak_regression":
                 # f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
                 # f1_a = MetricUtils.calc_peak_dice_pytorch(self.HP, outputs.data, y.data, max_angle_error=self.HP.PEAK_DICE_THR)
-                f1 = MetricUtils.calc_peak_length_dice_pytorch(self.HP, outputs.detach(), y.detach(),
-                                                               max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
+                f1 = metric_utils.calc_peak_length_dice_pytorch(self.HP, outputs.detach(), y.detach(),
+                                                                max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
                 # f1 = (f1_a, f1_b)
             elif self.HP.EXPERIMENT_TYPE == "dm_regression":   #density map regression
                 f1 = PytorchUtils.f1_score_macro(y.detach()>0.5, outputs.detach(), per_class=True)
