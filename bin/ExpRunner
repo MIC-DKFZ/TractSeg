@@ -32,7 +32,7 @@ from os.path import join
 import nibabel as nib
 import numpy as np
 
-from tractseg.libs.DirectionMerger import DirectionMerger
+from tractseg.libs import direction_merger
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs.MetricUtils import MetricUtils
@@ -215,8 +215,8 @@ if HP.SEGMENT:
             img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)  # only x or y or z
             img_seg = img_utils.peak_image_to_binary_mask(img_probs, len_thr=0.4)  # thr: 0.4 slightly better than 0.2
         else:
-            img_seg, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject)  #returns probs not binary seg
-            img_seg = DirectionMerger.mean_fusion(HP.THRESHOLD, img_seg, probs=False)
+            img_seg, img_y = direction_merger.get_seg_single_img_3_directions(HP, model, subject)  #returns probs not binary seg
+            img_seg = direction_merger.mean_fusion(HP.THRESHOLD, img_seg, probs=False)
 
         #TractSeg
         # ImgUtils.save_multilabel_img_as_multiple_files(HP, img_seg, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
@@ -249,8 +249,8 @@ if HP.GET_PROBS:
             img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True)
             img_probs = img_utils.remove_small_peaks(img_probs, len_thr=0.4)
         else:
-            img_probs, img_y = DirectionMerger.get_seg_single_img_3_directions(HP, model, subject=subject)
-            img_probs = DirectionMerger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
+            img_probs, img_y = direction_merger.get_seg_single_img_3_directions(HP, model, subject=subject)
+            img_probs = direction_merger.mean_fusion(HP.THRESHOLD, img_probs, probs=True)
 
         # ImgUtils.save_multilabel_img_as_multiple_files_peaks(HP, img_probs, ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION),
         #                                                      join(HP.EXP_PATH, "probmaps_" + subject))

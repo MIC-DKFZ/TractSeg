@@ -30,7 +30,7 @@ from tractseg.libs.Config import get_config_name
 from tractseg.libs import exp_utils
 from tractseg.libs.Utils import Utils
 from tractseg.libs.DatasetUtils import DatasetUtils
-from tractseg.libs.DirectionMerger import DirectionMerger
+from tractseg.libs import direction_merger
 from tractseg.libs import img_utils
 from tractseg.libs.DataManagersInference import DataManagerSingleSubjectByFile
 from tractseg.libs.Trainer import Trainer
@@ -130,11 +130,11 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             else:
                 seg, img_y = trainerSingle.get_seg_single_img(HP, probs=False, scale_to_world_shape=False, only_prediction=True)
         else:
-            seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
+            seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(HP, model, data=data, scale_to_world_shape=False, only_prediction=True)
             if HP.DROPOUT_SAMPLING or HP.EXPERIMENT_TYPE == "dm_regression" or HP.GET_PROBS:
-                seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
+                seg = direction_merger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
             else:
-                seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
+                seg = direction_merger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=False)
 
     elif HP.EXPERIMENT_TYPE == "peak_regression":
         weights = {
