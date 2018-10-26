@@ -34,7 +34,7 @@ from tractseg.libs.Config import get_config_name
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs.Mrtrix import Mrtrix
-from tractseg.libs.PlotUtils import PlotUtils
+from tractseg.libs import plot_utils
 from tractseg.TractSeg import run_tractseg
 
 
@@ -177,7 +177,7 @@ if not args.only_track:
         if args.preview and HP.EXPERIMENT_TYPE == "tract_segmentation":
             print("Saving preview...")
             # brain_mask = nib.load(brain_mask).get_data()
-            PlotUtils.plot_tracts(HP.CLASSES, seg, data_affine, HP.PREDICT_IMG_OUTPUT, brain_mask=None)
+            plot_utils.plot_tracts(HP.CLASSES, seg, data_affine, HP.PREDICT_IMG_OUTPUT, brain_mask=None)
 
         if HP.SINGLE_OUTPUT_FILE:
             img = nib.Nifti1Image(seg, data_affine)
