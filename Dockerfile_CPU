@@ -77,15 +77,6 @@ RUN easy_install pip \
     && pip install wheel numpy scipy nilearn matplotlib scikit-image nibabel \
     && pip install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp27-cp27mu-linux_x86_64.whl
 
-# This command does not get cached -> very slow each time when building container -> use prebuild mrtrix_RC3.tar.gz instead
-#RUN mkdir /code && cd /code \
-#    && git clone https://github.com/MRtrix3/mrtrix3.git \
-#    && cd mrtrix3/ \
-#    && git checkout 3.0_RC3 \
-#    && ./configure \
-#    && ./build \
-#    && ./set_path \
-
 RUN mkdir -p ~/.tractseg \
     && mkdir -p /code \
     && curl -SL -o /code/mrtrix3_RC3.tar.gz https://zenodo.org/record/1415322/files/mrtrix3_RC3.tar.gz?download=1
