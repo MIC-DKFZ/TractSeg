@@ -24,7 +24,7 @@ from pprint import pprint
 import glob
 from tractseg.libs.Config import Config as C
 from tractseg.libs.Subjects import get_all_subjects
-from tractseg.libs.Utils import Utils
+from tractseg.libs import utils
 
 
 def create_experiment_folder(experiment_name, multi_parent_path, train):
@@ -389,11 +389,11 @@ def get_cv_fold(fold, dataset="HCP"):
 
     if dataset.startswith("HCP"):
         # subjects = list(Utils.chunks(subjects[:100], 10))   #10 folds
-        subjects = list(Utils.chunks(subjects, 21))   #5 folds a 21 subjects
+        subjects = list(utils.chunks(subjects, 21))   #5 folds a 21 subjects
         # => 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
     elif dataset.startswith("Schizo"):
         # 410 subjects
-        subjects = list(Utils.chunks(subjects, 82))  # 5 folds a 82 subjects
+        subjects = list(utils.chunks(subjects, 82))  # 5 folds a 82 subjects
     else:
         raise ValueError("Invalid dataset name")
 

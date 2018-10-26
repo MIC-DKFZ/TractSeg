@@ -28,7 +28,7 @@ from os.path import join
 from tractseg.libs.Config import Config as C
 from tractseg.libs.Config import get_config_name
 from tractseg.libs import exp_utils
-from tractseg.libs.Utils import Utils
+from tractseg.libs import utils
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs import direction_merger
 from tractseg.libs import img_utils
@@ -120,7 +120,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation" or HP.EXPERIMENT_TYPE == "dm_regression":
         print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
         HP.NR_OF_CLASSES = len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
-        Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING)
+        utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING)
         model = BaseModel(HP)
         if single_orientation:     # mainly needed for testing because of less RAM requirements
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
@@ -157,7 +157,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
             HP.CLASSES = "All_" + part
             HP.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
-            Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING, part=part)
+            utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING, part=part)
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
             model = BaseModel(HP)
             trainerSingle = Trainer(model, dataManagerSingle)

@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
-from tractseg.libs.Utils import Utils
+from tractseg.libs import utils
 
 parser = argparse.ArgumentParser(description="Download all pretrained weights (instead of them being downloaded "
                                              "automatically on the fly when needed). Will download them to"
@@ -26,11 +26,11 @@ parser = argparse.ArgumentParser(description="Download all pretrained weights (i
 # parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti diffusion image)", required=True)
 args = parser.parse_args()
 
-Utils.download_pretrained_weights("tract_segmentation")
-Utils.download_pretrained_weights("tract_segmentation", dropout_sampling=True)
-Utils.download_pretrained_weights("endings_segmentation")
-Utils.download_pretrained_weights("dm_regression")
-Utils.download_pretrained_weights("peak_regression", part="Part1")
-Utils.download_pretrained_weights("peak_regression", part="Part2")
-Utils.download_pretrained_weights("peak_regression", part="Part3")
-Utils.download_pretrained_weights("peak_regression", part="Part4")
+utils.download_pretrained_weights("tract_segmentation")
+utils.download_pretrained_weights("tract_segmentation", dropout_sampling=True)
+utils.download_pretrained_weights("endings_segmentation")
+utils.download_pretrained_weights("dm_regression")
+utils.download_pretrained_weights("peak_regression", part="Part1")
+utils.download_pretrained_weights("peak_regression", part="Part2")
+utils.download_pretrained_weights("peak_regression", part="Part3")
+utils.download_pretrained_weights("peak_regression", part="Part4")

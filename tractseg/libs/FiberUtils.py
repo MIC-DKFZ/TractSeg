@@ -8,7 +8,7 @@ from os import getpid
 import logging
 import psutil
 from dipy.tracking.streamline import compress_streamlines
-from tractseg.libs.Utils import Utils
+from tractseg.libs import utils
 from dipy.segment.metric import ResampleFeature
 
 logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of output
@@ -49,7 +49,7 @@ class FiberUtils:
         if chunk_size < 1:
             # logging.warning("\nReturning early because chunk_size=0")
             return streamlines
-        fiber_batches = list(Utils.chunks(streamlines, chunk_size))
+        fiber_batches = list(utils.chunks(streamlines, chunk_size))
 
         global COMPRESSION_ERROR_THRESHOLD
         global FIBER_BATCHES
@@ -68,7 +68,7 @@ class FiberUtils:
         pool.close()
         pool.join()
 
-        streamlines_c = Utils.flatten(result)
+        streamlines_c = utils.flatten(result)
         return streamlines_c
 
     @staticmethod

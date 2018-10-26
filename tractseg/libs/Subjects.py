@@ -14,7 +14,7 @@
 
 import sys
 import math
-from tractseg.libs.Utils import Utils
+from tractseg.libs import utils
 
 #All FINAL  (for Training)
 # (bad subjects removed: 994273, 937160, 885975, 788876, 713239)
@@ -121,7 +121,7 @@ def get_subjects_chunk(nr_batches, batch_number):
     batch_number = int(batch_number)
 
     batch_size = int(math.ceil(len(all_subjects_RAW) / float(nr_batches)))
-    res = list(Utils.chunks(all_subjects_RAW, batch_size))
+    res = list(utils.chunks(all_subjects_RAW, batch_size))
     final_subjects = res[batch_number]
     return final_subjects
 
@@ -134,7 +134,7 @@ def main():
     batch_number = int(args[1])  # Which batch do we want     (idx starts at 0)
 
     batch_size = int(math.ceil(len(all_subjects_RAW) / float(nr_batches)))
-    res = list(Utils.chunks(all_subjects_RAW, batch_size))
+    res = list(utils.chunks(all_subjects_RAW, batch_size))
 
     #Note: can not print anyhting, because goes as parameter to script
     # print("Nr of Batches: {} (last batch might be smaller)".format(len(res)))
