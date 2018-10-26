@@ -81,45 +81,52 @@ class Mrtrix():
         return join(output_dir, "nodif_brain_mask.nii.gz")
 
     @staticmethod
-    def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type):
+    def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_cpus=-1):
         os.system("export PATH=/code/mrtrix3/bin:$PATH")
+
+        if nr_cpus > 0:
+            nthreads = " -nthreads " + str(nr_cpus)
+        else:
+            nthreads = ""
 
         if csd_type == "csd_msmt_5tt":
             # MSMT 5TT
             print("Creating peaks (1 of 4)...")
             t1_file = join(os.path.dirname(input_file), "T1w_acpc_dc_restore_brain.nii.gz")
-            os.system("5ttgen fsl " + t1_file + " " + output_dir + "/5TT.mif -premasked")
+            os.system("5ttgen fsl " + t1_file + " " + output_dir + "/5TT.mif -premasked" + nthreads)
             print("Creating peaks (2 of 4)...")
             os.system("dwi2response msmt_5tt " + input_file + " " + output_dir + "/5TT.mif " + output_dir + "/RF_WM.txt " +
                       output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -voxels " + output_dir + "/RF_voxels.mif -fslgrad " +
-                      bvecs + " " + bvals + " -mask " + brain_mask)         # multi-shell, multi-tissue
+                      bvecs + " " + bvals + " -mask " + brain_mask + nthreads)         # multi-shell, multi-tissue
             print("Creating peaks (3 of 4)...")
             os.system("dwi2fod msmt_csd " + input_file + " " + output_dir + "/RF_WM.txt " + output_dir +
                       "/WM_FODs.mif " + output_dir + "/RF_GM.txt " + output_dir + "/GM.mif " + output_dir +
-                      "/RF_CSF.txt " + output_dir + "/CSF.mif -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals)       # multi-shell, multi-tissue
+                      "/RF_CSF.txt " + output_dir + "/CSF.mif -mask " + brain_mask +
+                      " -fslgrad " + bvecs + " " + bvals + nthreads)       # multi-shell, multi-tissue
             print("Creating peaks (4 of 4)...")
-            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet")
+            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
         elif csd_type == "csd_msmt":
             # MSMT DHollander    (only works with msmt_csd, not with csd)
             # dhollander does not need a T1 image to estimate the response function (more recent (2016) than tournier (2013))
             print("Creating peaks (1 of 3)...")
             os.system("dwi2response dhollander -mask " + brain_mask + " " + input_file + " " + output_dir + "/RF_WM.txt " +
-                      output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask)
+                      output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -fslgrad " + bvecs + " " + bvals +
+                      " -mask " + brain_mask + nthreads)
             print("Creating peaks (2 of 3)...")
             os.system("dwi2fod msmt_csd " + input_file + " " + output_dir + "/RF_WM.txt " + output_dir +
-                      "/WM_FODs.mif -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask + "")
+                      "/WM_FODs.mif -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask + nthreads)
             print("Creating peaks (3 of 3)...")
-            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet")
+            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
         elif csd_type == "csd":
             # CSD Tournier
             print("Creating peaks (1 of 3)...")
             os.system("dwi2response tournier " + input_file + " " + output_dir + "/response.txt -mask " + brain_mask +
-                      " -fslgrad " + bvecs + " " + bvals + " -quiet")
+                      " -fslgrad " + bvecs + " " + bvals + " -quiet" + nthreads)
             print("Creating peaks (2 of 3)...")
             os.system("dwi2fod csd " + input_file + " " + output_dir + "/response.txt " + output_dir +
-                      "/WM_FODs.mif -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet")
+                      "/WM_FODs.mif -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet" + nthreads)
             print("Creating peaks (3 of 3)...")
-            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet")
+            os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
         else:
             raise ValueError("'csd_type' contains invalid String")
 
@@ -159,6 +166,11 @@ class Mrtrix():
             if not endings_mask_ok:
                 print("WARNING: tract endings mask of {} empty. Falling back to tracking without filtering by endpoints.".format(bundle))
 
+        if nr_cpus > 0:
+            nthreads = " -nthreads " + str(nr_cpus)
+        else:
+            nthreads = ""
+
         if filter_by_endpoints and bundle_mask_ok and beginnings_mask_ok and endings_mask_ok:
             # dilation has to be quite high, because endings sometimes almost completely missing
             ImgUtils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
@@ -175,7 +187,7 @@ class Mrtrix():
                       " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
                       " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                       " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                      " -minlength 40 -select " + str(nr_fibers) + " -force -quiet", shell=True)
+                      " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads, shell=True)
 
             # #Probabilistic Tracking without TOM
             # os.system("tckgen -algorithm iFOD2 " +
@@ -193,7 +205,7 @@ class Mrtrix():
                             output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                             output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                             " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
-                            " -minlength 40 -select " + str(nr_fibers) + " -force -quiet", shell=True)
+                            " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads, shell=True)
 
             # To avoid shell=True (which is system depended) pass all arguments as list (but Mrtrix in PATH then because does not read env vars ?)
             # subprocess.call(["tckgen", "-algorithm", "FACT",

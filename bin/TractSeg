@@ -84,8 +84,8 @@ parser.add_argument("--uncertainty", action="store_true", help="Create uncertain
 parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
 #Move input image to MNI space
 parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
-parser.add_argument("--nr_cpus", metavar="n", type=int, help="Number of CPUs to use during track compression. "
-                                                             "-1 means all available cpus (default: -1)", default=-1)
+parser.add_argument("--nr_cpus", metavar="n", type=int, help="Number of CPUs to use. "
+                                                             "-1 means all available CPUs (default: -1)", default=-1)
 parser.add_argument('--version', action='version', version='TractSeg 1.7.1')
 args = parser.parse_args()
 
@@ -120,7 +120,7 @@ if args.raw_diffusion_input:
     if args.preprocess:
         input_path, bvals, bvecs, brain_mask = Mrtrix.move_to_MNI_space(input_path, bvals, bvecs, brain_mask, HP.PREDICT_IMG_OUTPUT)
 
-    Mrtrix.create_fods(input_path, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE)
+    Mrtrix.create_fods(input_path, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE, nr_cpus=args.nr_cpus)
 
 if args.raw_diffusion_input:
     peak_path = join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
@@ -171,7 +171,8 @@ if not args.only_track:
                            dropout_sampling=dropout_sampling, threshold=threshold,
                            bundle_specific_threshold=args.bundle_specific_threshold,
                            get_probs=args.get_probabilities, peak_threshold=peak_threshold,
-                           postprocess=args.postprocess, peak_regression_part=part)
+                           postprocess=args.postprocess, peak_regression_part=part,
+                           nr_cpus=args.nr_cpus)
 
         if args.preview and HP.EXPERIMENT_TYPE == "tract_segmentation":
             print("Saving preview...")

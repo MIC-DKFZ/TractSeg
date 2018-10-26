@@ -39,7 +39,7 @@ from tractseg.models.BaseModel import BaseModel
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                  single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5,
                  bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
-                 postprocess=False, peak_regression_part="All"):
+                 postprocess=False, peak_regression_part="All", nr_cpus=-1):
     '''
     Run TractSeg
 
@@ -52,6 +52,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     :param bundle_specific_threshold: Threshold is lower for some bundles which need more sensitivity (CA, CST, FX)
     :param get_probs: Output raw probability map instead of binary map
     :param peak_threshold: all peaks shorter than peak_threshold will be set to zero
+    :param nr_cpus: Number of CPUs to use. -1 means all available CPUs.
     :return: 4D numpy array with the output of tractseg
         for tract_segmentation:     [x,y,z,nr_of_bundles]
         for endings_segmentation:   [x,y,z,2*nr_of_bundles]
@@ -69,6 +70,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     HP.LOAD_WEIGHTS = True
     HP.DROPOUT_SAMPLING = dropout_sampling
     HP.THRESHOLD = threshold
+    HP.NR_CPUS = nr_cpus
 
     if bundle_specific_threshold:
         HP.GET_PROBS = True

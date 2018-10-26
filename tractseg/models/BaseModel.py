@@ -77,7 +77,9 @@ class BaseModel:
 
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
-        # torch.set_num_threads(1)
+
+        if self.HP.NR_CPUS > 0:
+            torch.set_num_threads(self.HP.NR_CPUS)
 
         def train(X, y, weight_factor=10):
             X = torch.tensor(X, dtype=torch.float32).to(device)   # X: (bs, features, x, y)   y: (bs, classes, x, y)
