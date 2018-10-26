@@ -78,6 +78,7 @@ class HP:
     TRACTSEG_DIR = "tractseg_output"
     KEEP_INTERMEDIATE_FILES = False
     CSD_RESOLUTION = "LOW"  # HIGH / LOW
+    NR_CPUS = -1
 
     #Unimportant / rarly changed:
     LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32

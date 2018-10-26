@@ -36,14 +36,13 @@ pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.7.1.zip
 ```
 
 #### Docker
-You can also directly use TractSeg via Docker (contains all prerequisites). However, it 
-only supports CPU, not GPU. 
+You can also directly use TractSeg via Docker (contains all prerequisites).
 ```
 sudo docker run -v /absolute/path/to/my/data/directory:/data \
 -t wasserth/tractseg_container:master TractSeg -i /data/my_diffusion_file.nii.gz -o /data --preprocess
 ```
 On OSX you might have to increase the Docker memory limit from the default of 2GB to something
-like 7GB.
+like 7GB. For GPU support use the container `wasserth/tractseg_container_gpu:1.7.1` and run it with nvidia-docker.
 
 ## How to use
 
@@ -298,5 +297,5 @@ UNet input size of `144x144`. This is not very convenient. Contact the author if
 ## Docker
 To build a docker container with all dependencies run the following command in project root:
 ```
-sudo docker build -t tractseg_container .
+sudo docker build -t tractseg_container -f Dockerfile_CPU .
 ```
