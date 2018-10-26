@@ -22,7 +22,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 
-from tractseg.libs.PytorchUtils import PytorchUtils
+from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
 from tractseg.models.BaseModel import BaseModel
 
@@ -312,7 +312,7 @@ class UNet_Pytorch_SE(BaseModel):
             loss = criterion(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+            f1 = pytorch_utils.f1_score_macro(y.data, outputs.data, per_class=True)
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None    #faster
             return loss.data[0], probs, f1
@@ -327,7 +327,7 @@ class UNet_Pytorch_SE(BaseModel):
             net.train(False)
             outputs = net(X)  # forward
             loss = criterion(outputs, y)
-            f1 = PytorchUtils.f1_score_macro(y.data, outputs.data, per_class=True)
+            f1 = pytorch_utils.f1_score_macro(y.data, outputs.data, per_class=True)
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1
@@ -352,13 +352,13 @@ class UNet_Pytorch_SE(BaseModel):
                     os.remove(fl)
                 try:
                     #Actually is a pkl not a npz
-                    PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
+                    pytorch_utils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
                 except IOError:
                     print("\nERROR: Could not save weights because of IO Error\n")
                 self.HP.BEST_EPOCH = epoch_nr
 
         def load_model(path):
-            PytorchUtils.load_checkpoint(path, unet=net)
+            pytorch_utils.load_checkpoint(path, unet=net)
 
 
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":

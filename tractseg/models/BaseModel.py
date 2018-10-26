@@ -55,10 +55,10 @@ from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
 import importlib
 
-from tractseg.libs.PytorchUtils import PytorchUtils
+from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
-from tractseg.libs.PytorchUtils import conv2d
+from tractseg.libs.pytorch_utils import conv2d
 
 class BaseModel:
     def __init__(self, HP):
@@ -115,9 +115,9 @@ class BaseModel:
                                                                 max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
                 # f1 = (f1_a, f1_b)
             elif self.HP.EXPERIMENT_TYPE == "dm_regression":   #density map regression
-                f1 = PytorchUtils.f1_score_macro(y.detach()>0.5, outputs.detach(), per_class=True)
+                f1 = pytorch_utils.f1_score_macro(y.detach() > 0.5, outputs.detach(), per_class=True)
             else:
-                f1 = PytorchUtils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
+                f1 = pytorch_utils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
 
             if self.HP.USE_VISLOGGER:
                 # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
@@ -162,9 +162,9 @@ class BaseModel:
                                                                 max_angle_error=self.HP.PEAK_DICE_THR, max_length_error=self.HP.PEAK_DICE_LEN_THR)
                 # f1 = (f1_a, f1_b)
             elif self.HP.EXPERIMENT_TYPE == "dm_regression":   #density map regression
-                f1 = PytorchUtils.f1_score_macro(y.detach()>0.5, outputs.detach(), per_class=True)
+                f1 = pytorch_utils.f1_score_macro(y.detach() > 0.5, outputs.detach(), per_class=True)
             else:
-                f1 = PytorchUtils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
+                f1 = pytorch_utils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True, threshold=self.HP.THRESHOLD)
 
             if self.HP.USE_VISLOGGER:
                 # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
@@ -200,13 +200,13 @@ class BaseModel:
                     os.remove(fl)
                 try:
                     #Actually is a pkl not a npz
-                    PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
+                    pytorch_utils.save_checkpoint(join(self.HP.EXP_PATH, "best_weights_ep" + str(epoch_nr) + ".npz"), unet=net)
                 except IOError:
                     print("\nERROR: Could not save weights because of IO Error\n")
                 self.HP.BEST_EPOCH = epoch_nr
 
         def load_model(path):
-            PytorchUtils.load_checkpoint(path, unet=net)
+            pytorch_utils.load_checkpoint(path, unet=net)
 
         def print_current_lr():
             for param_group in optimizer.param_groups:
@@ -225,11 +225,11 @@ class BaseModel:
             self.HP.NR_OF_GRADIENTS = 33
 
         if self.HP.LOSS_FUNCTION == "soft_sample_dice":
-            criterion = PytorchUtils.soft_sample_dice
+            criterion = pytorch_utils.soft_sample_dice
         elif self.HP.LOSS_FUNCTION == "soft_batch_dice":
-            criterion = PytorchUtils.soft_batch_dice
+            criterion = pytorch_utils.soft_batch_dice
         elif self.HP.EXPERIMENT_TYPE == "peak_regression":
-            criterion = PytorchUtils.angle_length_loss
+            criterion = pytorch_utils.angle_length_loss
         else:
             # weights = torch.ones((self.HP.BATCH_SIZE, self.HP.NR_OF_CLASSES, self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[1])).cuda()
             # weights[:, 5, :, :] *= 10     #CA

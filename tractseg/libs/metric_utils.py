@@ -321,7 +321,7 @@ def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
     '''
     import torch
     from tractseg.libs.PytorchEinsum import einsum
-    from tractseg.libs.PytorchUtils import PytorchUtils
+    from tractseg.libs import pytorch_utils
 
     y_true = y_true.permute(0, 2, 3, 1)
     y_pred = y_pred.permute(0, 2, 3, 1)
@@ -353,7 +353,7 @@ def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
             angles_binary = angles > max_angle_error[0]
             angles_binary = angles_binary.view(-1)
 
-            f1 = PytorchUtils.f1_score_binary(gt_binary, angles_binary)
+            f1 = pytorch_utils.f1_score_binary(gt_binary, angles_binary)
             score_per_bundle[bundle] = f1
 
         return score_per_bundle
@@ -376,7 +376,7 @@ def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
                 angles_binary = angles > threshold
                 angles_binary = angles_binary.view(-1)
 
-                f1 = PytorchUtils.f1_score_binary(gt_binary, angles_binary)
+                f1 = pytorch_utils.f1_score_binary(gt_binary, angles_binary)
                 score_per_bundle[bundle].append(f1)
 
         return score_per_bundle
@@ -442,7 +442,7 @@ def calc_peak_length_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9], max
     '''
     import torch
     from tractseg.libs.PytorchEinsum import einsum
-    from tractseg.libs.PytorchUtils import PytorchUtils
+    from tractseg.libs import pytorch_utils
 
     y_true = y_true.permute(0, 2, 3, 1)
     y_pred = y_pred.permute(0, 2, 3, 1)
@@ -481,7 +481,7 @@ def calc_peak_length_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9], max
 
         combined = lengths_binary * angles_binary
 
-        f1 = PytorchUtils.f1_score_binary(gt_binary, combined)
+        f1 = pytorch_utils.f1_score_binary(gt_binary, combined)
         score_per_bundle[bundle] = f1
     return score_per_bundle
 

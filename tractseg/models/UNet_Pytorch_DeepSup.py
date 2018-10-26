@@ -24,11 +24,11 @@ from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.autograd import Variable
 
-from tractseg.libs.PytorchUtils import PytorchUtils
+from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
 from tractseg.models.BaseModel import BaseModel
-from tractseg.libs.PytorchUtils import conv2d
-from tractseg.libs.PytorchUtils import deconv2d
+from tractseg.libs.pytorch_utils import conv2d
+from tractseg.libs.pytorch_utils import deconv2d
 
 
 class UNet_Pytorch_DeepSup(torch.nn.Module):

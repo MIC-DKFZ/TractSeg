@@ -19,8 +19,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from tractseg.libs.PytorchUtils import conv2d
-from tractseg.libs.PytorchUtils import deconv2d
+from tractseg.libs.pytorch_utils import conv2d
+from tractseg.libs.pytorch_utils import deconv2d
 
 
 class UNet_Pytorch(torch.nn.Module):
