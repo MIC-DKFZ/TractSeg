@@ -26,7 +26,7 @@ import nibabel as nib
 from os.path import join
 from tractseg.libs.Config import Config as C
 from tractseg.libs.DatasetUtils import DatasetUtils
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.ImgUtils import ImgUtils
 
 '''
@@ -136,10 +136,10 @@ class SlicesBatchGeneratorRandomNiftiImg(SlimDataLoaderBase):
                 seg = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
                 break
             except IOError:
-                ExpUtils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
-            ExpUtils.print_and_save(self.HP, "Sleeping 20s")
+                exp_utils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
+            exp_utils.print_and_save(self.HP, "Sleeping 20s")
             sleep(20)
-        # ExpUtils.print_and_save(self.HP, "Successfully loaded input.")
+        # exp_utils.print_and_save(self.HP, "Successfully loaded input.")
 
         data = np.nan_to_num(data)    # Needed otherwise not working
         seg = np.nan_to_num(seg)
@@ -226,10 +226,10 @@ class SlicesBatchGeneratorRandomNiftiImg_5slices(SlimDataLoaderBase):
                 seg = nib.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
                 break
             except IOError:
-                ExpUtils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
-            ExpUtils.print_and_save(self.HP, "Sleeping 20s")
+                exp_utils.print_and_save(self.HP, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
+            exp_utils.print_and_save(self.HP, "Sleeping 20s")
             sleep(20)
-        # ExpUtils.print_and_save(self.HP, "Successfully loaded input.")
+        # exp_utils.print_and_save(self.HP, "Successfully loaded input.")
 
         data = np.nan_to_num(data)    # Needed otherwise not working
         seg = np.nan_to_num(seg)

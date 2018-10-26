@@ -1,5 +1,5 @@
 import unittest
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 
 class test_functions(unittest.TestCase):
 
@@ -7,7 +7,7 @@ class test_functions(unittest.TestCase):
         pass
 
     def test_bundle_names(self):
-        bundles = ExpUtils.get_bundle_names("CST_right")
+        bundles = exp_utils.get_bundle_names("CST_right")
         self.assertListEqual(bundles, ["BG", "CST_right"], "Error in list of bundle names")
 
 if __name__ == '__main__':

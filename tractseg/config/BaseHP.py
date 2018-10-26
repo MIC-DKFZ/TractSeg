@@ -1,6 +1,6 @@
 from os.path import join
 import numpy as np
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.Config import Config as C
 
 #Settings and Hyperparameters
@@ -28,8 +28,8 @@ class HP:
     OPTIMIZER = "Adamax"
     CLASSES = "All"             # All / 11 / 20 / CST_right
     NR_OF_GRADIENTS = 9
-    NR_OF_CLASSES = len(ExpUtils.get_bundle_names(CLASSES)[1:])
-    # NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(CLASSES)[1:])
+    NR_OF_CLASSES = len(exp_utils.get_bundle_names(CLASSES)[1:])
+    # NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(CLASSES)[1:])
 
     INPUT_DIM = (144, 144)      # (80, 80) / (144, 144)
     LOSS_WEIGHT = 1             # 1: no weighting

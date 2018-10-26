@@ -27,7 +27,7 @@ from os.path import join
 
 from tractseg.libs.Config import Config as C
 from tractseg.libs.Config import get_config_name
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.Utils import Utils
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.DirectionMerger import DirectionMerger
@@ -105,7 +105,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
 
     if HP.VERBOSE:
         print("Hyperparameters:")
-        ExpUtils.print_HPs(HP)
+        exp_utils.print_HPs(HP)
 
     data = np.nan_to_num(data)
     # brain_mask = ImgUtils.simple_brain_mask(data)
@@ -119,7 +119,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
 
     if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation" or HP.EXPERIMENT_TYPE == "dm_regression":
         print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
-        HP.NR_OF_CLASSES = len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+        HP.NR_OF_CLASSES = len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
         Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING)
         model = BaseModel(HP)
         if single_orientation:     # mainly needed for testing because of less RAM requirements
@@ -149,14 +149,14 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         else:
             parts = [peak_regression_part]
             HP.CLASSES = "All_" + peak_regression_part
-            HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+            HP.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
 
         for idx, part in enumerate(parts):
             # HP.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/" + weights[part])
             HP.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, weights[part])
             print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
             HP.CLASSES = "All_" + part
-            HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+            HP.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
             Utils.download_pretrained_weights(experiment_type=HP.EXPERIMENT_TYPE, dropout_sampling=HP.DROPOUT_SAMPLING, part=part)
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
             model = BaseModel(HP)
@@ -168,12 +168,12 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
 
         if peak_regression_part == "All":
             HP.CLASSES = "All"
-            HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+            HP.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
             seg = seg_all
 
         #quite fast
         if bundle_specific_threshold:
-            seg = ImgUtils.remove_small_peaks_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:], len_thr=0.3)
+            seg = ImgUtils.remove_small_peaks_bundle_specific(seg, exp_utils.get_bundle_names(HP.CLASSES)[1:], len_thr=0.3)
         else:
             seg = ImgUtils.remove_small_peaks(seg, len_thr=peak_threshold)
 
@@ -182,7 +182,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         # seg = DirectionMerger.mean_fusion(HP.THRESHOLD, seg_xyz, probs=True)
 
     if bundle_specific_threshold and HP.EXPERIMENT_TYPE == "tract_segmentation":
-        seg = ImgUtils.probs_to_binary_bundle_specific(seg, ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+        seg = ImgUtils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(HP.CLASSES)[1:])
 
     #remove following two lines to keep super resolution
     seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)  #quite slow
@@ -191,6 +191,6 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     if postprocess:
         seg = ImgUtils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)
 
-    ExpUtils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
+    exp_utils.print_verbose(HP, "Took {}s".format(round(time.time() - start_time, 2)))
     return seg
 

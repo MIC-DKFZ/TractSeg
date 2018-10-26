@@ -17,7 +17,7 @@
 
 
 from os.path import join
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 import numpy as np
 
 import matplotlib
@@ -87,7 +87,7 @@ class PlotUtils:
         for j, bundle in enumerate(bundles):
             i = 0  #only one method
 
-            bundle_idx = ExpUtils.get_bundle_names(classes)[1:].index(bundle)
+            bundle_idx = exp_utils.get_bundle_names(classes)[1:].index(bundle)
             mask_data = bundle_segmentations[:,:,:,bundle_idx]
 
             if bundle == "CST_right":

@@ -21,7 +21,7 @@ import argparse
 from scipy.ndimage.morphology import binary_dilation
 from nibabel import trackvis
 from tractseg.libs.FiberUtils import FiberUtils
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from dipy.tracking.utils import move_streamlines
 from os.path import join
 
@@ -85,7 +85,7 @@ parser.add_argument("--TOM", metavar="TOM_dir", dest="TOM_dir", help="Folder con
 parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
 args = parser.parse_args()
 
-bundles = ExpUtils.get_bundle_names("All")[1:]
+bundles = exp_utils.get_bundle_names("All")[1:]
 NR_POINTS = int(args.nr_points)
 DILATION = 5
 scalar_image = nib.load(args.scalar_img)

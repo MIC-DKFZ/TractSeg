@@ -20,7 +20,7 @@ import numpy as np
 from sklearn.utils import shuffle as sk_shuffle
 import scipy.ndimage
 from tractseg.libs.ImgUtils import ImgUtils
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.Config import Config as C
 from tractseg.libs.MetricUtils import MetricUtils
 import time
@@ -265,7 +265,7 @@ class Slicer:
             data = np.nan_to_num(data)
             data = DatasetUtils.scale_input_to_unet_shape(data, HP.DATASET, HP.RESOLUTION)
             data = data[:-1, :, :-1, :]  # cut one pixel at the end, because in scale_input_to_world_shape we ouputted 146 -> one too much at the end
-            ExpUtils.make_dir(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s))
+            exp_utils.make_dir(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s))
             np.save(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s, DIFFUSION_FOLDER + "_xyz.npy"), data)
             print("Took {}s".format(time.time() - start_time))
 
@@ -306,7 +306,7 @@ class Slicer:
             RESOLUTION = "1.25mm"
             LABELS_TYPE = np.float32
 
-        HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD)
+        HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = exp_utils.get_cv_fold(HP.CV_FOLD)
 
         num_batches_base = 5000
         num_batches = {
@@ -331,7 +331,7 @@ class Slicer:
                 # DATASET_DIR = "HCP_batches/270g_125mm_bundle_peaks_Y"
                 # DATASET_DIR = "HCP_batches/All_sizes_DAug_XYZ"
                 DATASET_DIR = "HCP_batches/270g_125mm_bundle_peaks_XYZ"
-                ExpUtils.make_dir(join(C.HOME, DATASET_DIR, type))
+                exp_utils.make_dir(join(C.HOME, DATASET_DIR, type))
 
                 data = nib.Nifti1Image(batch["data"], ImgUtils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
                 nib.save(data, join(C.HOME, DATASET_DIR, type, "batch_" + str(idx) + "_data.nii.gz"))

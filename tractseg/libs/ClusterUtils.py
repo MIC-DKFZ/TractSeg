@@ -19,7 +19,7 @@ import os
 from glob import glob
 from os.path import join
 from tractseg.libs.Config import Config as C
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 import string
 import random
 import shutil
@@ -36,7 +36,7 @@ class ClusterUtils:
             return ''.join(random.choice(chars) for _ in range(size))
 
         target_data_path = join("/ssd/", "tmp_" + id_generator(), HP.DATASET_FOLDER)
-        ExpUtils.make_dir(join(target_data_path))
+        exp_utils.make_dir(join(target_data_path))
 
         #get all folders in data_path directory
         subjects = [os.path.basename(os.path.normpath(d)) for d in glob(data_path + "/*/")]

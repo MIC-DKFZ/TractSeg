@@ -24,7 +24,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 from torch.autograd import Variable
 
 from tractseg.libs.PytorchUtils import PytorchUtils
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.models.BaseModel import BaseModel
 from tractseg.libs.Config import Config as C
 
@@ -250,7 +250,7 @@ class UNet_Pytorch_Vis(BaseModel):
 
         def print_current_lr():
             for param_group in optimizer.param_groups:
-                ExpUtils.print_and_save(self.HP, "current learning rate: {}".format(param_group['lr']))
+                exp_utils.print_and_save(self.HP, "current learning rate: {}".format(param_group['lr']))
 
 
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":
@@ -269,7 +269,7 @@ class UNet_Pytorch_Vis(BaseModel):
         # net = nn.DataParallel(net, device_ids=[0,1])
 
         if self.HP.TRAIN:
-            ExpUtils.print_and_save(self.HP, str(net), only_log=True)
+            exp_utils.print_and_save(self.HP, str(net), only_log=True)
 
         criterion = nn.BCEWithLogitsLoss()
         optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
@@ -278,7 +278,7 @@ class UNet_Pytorch_Vis(BaseModel):
         # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
 
         if self.HP.LOAD_WEIGHTS:
-            ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
+            exp_utils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
 
         #plot feature weights

@@ -1,7 +1,7 @@
 import unittest
 import nibabel as nib
 import numpy as np
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 
 class test_end_to_end(unittest.TestCase):
 
@@ -15,7 +15,7 @@ class test_end_to_end(unittest.TestCase):
     #     self.assertTrue(images_equal, "CSD peaks not correct")
 
     # def test_tractseg_output_docker(self):
-    #     bundles = ExpUtils.get_bundle_names("All")[1:]
+    #     bundles = exp_utils.get_bundle_names("All")[1:]
     #     for bundle in bundles:
     #         img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_data()
     #         img_new = nib.load("examples/docker_test/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
@@ -23,7 +23,7 @@ class test_end_to_end(unittest.TestCase):
     #         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
 
     def test_tractseg_output(self):
-        bundles = ExpUtils.get_bundle_names("All")[1:]
+        bundles = exp_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_data()
             img_new = nib.load("examples/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
@@ -31,7 +31,7 @@ class test_end_to_end(unittest.TestCase):
             self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
 
     def test_tractseg_output_SR_PP_BST(self):
-        bundles = ExpUtils.get_bundle_names("All")[1:]
+        bundles = exp_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/bundle_segmentations_SR_PP_BST/" + bundle + ".nii.gz").get_data()
             img_new = nib.load("examples/SR_PP_BST/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
@@ -39,7 +39,7 @@ class test_end_to_end(unittest.TestCase):
             self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
 
     def test_endingsseg_output(self):
-        bundles = ExpUtils.get_bundle_names("All")[1:]
+        bundles = exp_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
             img_new = nib.load("examples/tractseg_output/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
@@ -52,7 +52,7 @@ class test_end_to_end(unittest.TestCase):
             self.assertTrue(images_equal, "Bundle endings are not correct (bundle: " + bundle + "_e)")
 
     def test_peakreg_output(self):
-        bundles = ExpUtils.get_bundle_names("All")[1:]
+        bundles = exp_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/TOM/" + bundle + ".nii.gz").get_data()
             img_new = nib.load("examples/tractseg_output/TOM/" + bundle + ".nii.gz").get_data()

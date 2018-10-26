@@ -24,7 +24,7 @@ from lasagne.layers.conv import conv_input_length, conv_output_length
 import theano.tensor.signal.pool
 from lasagne.layers.pool import pool_output_length
 from lasagne.layers import Layer
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 
 class Conv3DLayer(BaseConvLayer):
     def __init__(self, incoming, num_filters, filter_size, stride=(1, 1, 1),
@@ -133,7 +133,7 @@ def soft_dice_fabian(y_pred, y_true):
     return dice_scores
 
 def soft_dice_paul(HP, idxs, marker, preds, ys):
-    n_classes = len(ExpUtils.get_bundle_names(HP.CLASSES))
+    n_classes = len(exp_utils.get_bundle_names(HP.CLASSES))
     dice = T.constant(0)
     for cl in range(n_classes):
         pred = preds[marker, cl, :, :]
@@ -147,7 +147,7 @@ def theano_f1_score_OLD(HP, idxs, marker, preds, ys):
     '''
     Von Paul
     '''
-    n_classes = len(ExpUtils.get_bundle_names(HP.CLASSES))
+    n_classes = len(exp_utils.get_bundle_names(HP.CLASSES))
     dice = T.constant(0)
     for cl in range(n_classes):
         pred = preds[marker, cl, :, :]

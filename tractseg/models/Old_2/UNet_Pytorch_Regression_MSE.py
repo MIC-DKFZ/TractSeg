@@ -24,7 +24,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 from torch.autograd import Variable
 
 from tractseg.libs.PytorchUtils import PytorchUtils
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.models.BaseModel import BaseModel
 from tractseg.libs.MetricUtils import MetricUtils
 
@@ -245,7 +245,7 @@ class UNet_Pytorch_Regression_MSE(BaseModel):
 
         def print_current_lr():
             for param_group in optimizer.param_groups:
-                ExpUtils.print_and_save(self.HP, "current learning rate: {}".format(param_group['lr']))
+                exp_utils.print_and_save(self.HP, "current learning rate: {}".format(param_group['lr']))
 
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":
             NR_OF_GRADIENTS = self.HP.NR_OF_GRADIENTS
@@ -260,14 +260,14 @@ class UNet_Pytorch_Regression_MSE(BaseModel):
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
 
         # if self.HP.TRAIN:
-        #     ExpUtils.print_and_save(self.HP, str(net), only_log=True)
+        #     exp_utils.print_and_save(self.HP, str(net), only_log=True)
 
         criterion = nn.MSELoss()
 
         optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
 
         if self.HP.LOAD_WEIGHTS:
-            ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
+            exp_utils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
 
         self.train = train

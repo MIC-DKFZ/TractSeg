@@ -19,7 +19,7 @@ from os.path import join
 import time
 import pickle
 import numpy as np
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.MetricUtils import MetricUtils
 from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.PlotUtils import PlotUtils
@@ -42,7 +42,7 @@ class Trainer:
                 pass
             trixi = PytorchVisdomLogger(port=8080, auto_start=True)
 
-        ExpUtils.print_and_save(HP, socket.gethostname())
+        exp_utils.print_and_save(HP, socket.gethostname())
 
         epoch_times = []
         nr_of_updates = 0
@@ -163,10 +163,10 @@ class Trainer:
                     if batch_nr[type] % HP.PRINT_FREQ == 0:
                         time_batch_part = time.time() - start_time_batch_part
                         start_time_batch_part = time.time()
-                        ExpUtils.print_and_save(HP, "{} Ep {}, Sp {}, loss {}, t print {}s, t batch {}s".format(type, epoch_nr,
-                                                                batch_nr[type] * HP.BATCH_SIZE,
-                                                                round(np.array(print_loss).mean(), 6), round(time_batch_part, 3),
-                                                                round(time_batch_part / HP.PRINT_FREQ, 3)))
+                        exp_utils.print_and_save(HP, "{} Ep {}, Sp {}, loss {}, t print {}s, t batch {}s".format(type, epoch_nr,
+                                                                                                                 batch_nr[type] * HP.BATCH_SIZE,
+                                                                                                                 round(np.array(print_loss).mean(), 6), round(time_batch_part, 3),
+                                                                                                                 round(time_batch_part / HP.PRINT_FREQ, 3)))
                         print_loss = []
 
                     if HP.USE_VISLOGGER:
@@ -207,11 +207,11 @@ class Trainer:
             epoch_time = time.time() - start_time
             epoch_times.append(epoch_time)
 
-            ExpUtils.print_and_save(HP, "  Epoch {}, time total {}s".format(epoch_nr, epoch_time))
-            ExpUtils.print_and_save(HP, "  Epoch {}, time UNet: {}s".format(epoch_nr, network_time))
-            ExpUtils.print_and_save(HP, "  Epoch {}, time metrics: {}s".format(epoch_nr, metrics_time))
-            ExpUtils.print_and_save(HP, "  Epoch {}, time saving files: {}s".format(epoch_nr, saving_time))
-            ExpUtils.print_and_save(HP, str(datetime.datetime.now()))
+            exp_utils.print_and_save(HP, "  Epoch {}, time total {}s".format(epoch_nr, epoch_time))
+            exp_utils.print_and_save(HP, "  Epoch {}, time UNet: {}s".format(epoch_nr, network_time))
+            exp_utils.print_and_save(HP, "  Epoch {}, time metrics: {}s".format(epoch_nr, metrics_time))
+            exp_utils.print_and_save(HP, "  Epoch {}, time saving files: {}s".format(epoch_nr, saving_time))
+            exp_utils.print_and_save(HP, str(datetime.datetime.now()))
 
             # Adding next Epoch
             if epoch_nr < HP.NUM_EPOCHS-1:

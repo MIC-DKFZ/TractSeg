@@ -31,7 +31,7 @@ import sys
 from tqdm import tqdm
 
 from tractseg.libs.Config import get_config_name
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.Mrtrix import Mrtrix
 from tractseg.libs.PlotUtils import PlotUtils
@@ -109,9 +109,9 @@ if args.output:
 elif HP.PREDICT_IMG:
     HP.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), HP.TRACTSEG_DIR)
 
-bvals, bvecs = ExpUtils.get_bvals_bvecs_path(args)
-brain_mask = ExpUtils.get_brain_mask_path(HP, args)
-ExpUtils.make_dir(HP.PREDICT_IMG_OUTPUT)
+bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
+brain_mask = exp_utils.get_brain_mask_path(HP, args)
+exp_utils.make_dir(HP.PREDICT_IMG_OUTPUT)
 
 if args.raw_diffusion_input:
     if args.brain_mask is None:
@@ -164,7 +164,7 @@ if not args.only_track:
     for part in parts:
         if part != "All":
             HP.CLASSES = "All_" + part
-            HP.NR_OF_CLASSES = 3 * len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+            HP.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
 
         seg = run_tractseg(data, args.output_type, input_type=input_type,
                            single_orientation=args.single_orientation, verbose=args.verbose,
@@ -219,7 +219,7 @@ if args.track or args.only_track:
         peaks_path = join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
     else:
         peaks_path = input_path
-    for bundle in tqdm(ExpUtils.get_bundle_names(HP.CLASSES)[1:]):
+    for bundle in tqdm(exp_utils.get_bundle_names(HP.CLASSES)[1:]):
         Mrtrix.track(bundle, peaks_path, HP.PREDICT_IMG_OUTPUT,
                      filter_by_endpoints=args.filter_tracking_by_endpoints,
                      output_format=args.tracking_format, nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus)

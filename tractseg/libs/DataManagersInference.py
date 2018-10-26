@@ -17,7 +17,7 @@
 
 from builtins import object
 import numpy as np
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.DLDABG_Standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 from tractseg.libs.DLDABG_Standalone import SingleThreadedAugmenter
 from tractseg.libs.DLDABG_Standalone import ReorderSegTransform
@@ -90,7 +90,7 @@ class DataManagerSingleSubjectByFile:
     def __init__(self, HP, data):
         self.data = data
         self.HP = HP
-        ExpUtils.print_verbose(self.HP, "Loading data from PREDICT_IMG input file")
+        exp_utils.print_verbose(self.HP, "Loading data from PREDICT_IMG input file")
 
     def get_batches(self, batch_size=1):
         data = np.nan_to_num(self.data)

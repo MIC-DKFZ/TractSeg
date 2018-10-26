@@ -20,7 +20,7 @@ import nibabel as nib
 from scipy import ndimage
 from os.path import join
 from tractseg.libs.Config import Config as C
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.Utils import Utils
 from scipy.ndimage.morphology import binary_dilation
 from sklearn.externals import joblib
@@ -200,7 +200,7 @@ class ImgUtils:
         :param subject:
         :return: image of shape (x, y, z, nr_of_bundles + 1)
         '''
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)
 
         #Masks sind immer HCP_highRes (später erst downsample)
         mask_ml = np.zeros((145, 174, 145, len(bundles)))
@@ -217,15 +217,15 @@ class ImgUtils:
 
     @staticmethod
     def save_multilabel_img_as_multiple_files(HP, img, affine, path, name="bundle_segmentations"):
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
-            ExpUtils.make_dir(join(path, name))
+            exp_utils.make_dir(join(path, name))
             nib.save(img_seg, join(path, name, bundle + ".nii.gz"))
 
     @staticmethod
     def save_multilabel_img_as_multiple_files_peaks(HP, img, affine, path):
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             data = img[:, :, :, (idx*3):(idx*3)+3]
 
@@ -236,15 +236,15 @@ class ImgUtils:
                 filename = bundle + ".nii.gz"
 
             img_seg = nib.Nifti1Image(data, affine)
-            ExpUtils.make_dir(join(path, "TOM"))
+            exp_utils.make_dir(join(path, "TOM"))
             nib.save(img_seg, join(path, "TOM", filename))
 
     @staticmethod
     def save_multilabel_img_as_multiple_files_endings(HP, img, affine, path):
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
-            ExpUtils.make_dir(join(path, "endings_segmentations"))
+            exp_utils.make_dir(join(path, "endings_segmentations"))
             nib.save(img_seg, join(path, "endings_segmentations", bundle + ".nii.gz"))
 
     @staticmethod
@@ -253,8 +253,8 @@ class ImgUtils:
         multilabel True:    save as 1 and 2 without fourth dimension
         multilabel False:   save with beginnings and endings combined
         '''
-        # bundles = ExpUtils.get_bundle_names("20")[1:]
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        # bundles = exp_utils.get_bundle_names("20")[1:]
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             data = img[:, :, :, (idx * 2):(idx * 2) + 2] > 0
 
@@ -268,7 +268,7 @@ class ImgUtils:
                 multilabel_img[data[:, :, :, 1]] = 1
 
             img_seg = nib.Nifti1Image(multilabel_img, affine)
-            ExpUtils.make_dir(join(path, "endings"))
+            exp_utils.make_dir(join(path, "endings"))
             nib.save(img_seg, join(path, "endings", bundle + ".nii.gz"))
 
     @staticmethod

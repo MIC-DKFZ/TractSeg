@@ -33,7 +33,7 @@ import nibabel as nib
 import numpy as np
 
 from tractseg.libs.DirectionMerger import DirectionMerger
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.libs.ImgUtils import ImgUtils
 from tractseg.libs.MetricUtils import MetricUtils
 from tractseg.libs.ClusterUtils import ClusterUtils
@@ -96,10 +96,10 @@ HP.VERBOSE = args.verbose
 
 HP.MULTI_PARENT_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME)
 HP.EXP_PATH = join(C.EXP_PATH, HP.EXP_MULTI_NAME, HP.EXP_NAME)
-HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = ExpUtils.get_cv_fold(HP.CV_FOLD, dataset=HP.DATASET)
+HP.TRAIN_SUBJECTS, HP.VALIDATE_SUBJECTS, HP.TEST_SUBJECTS = exp_utils.get_cv_fold(HP.CV_FOLD, dataset=HP.DATASET)
 
 if HP.WEIGHTS_PATH == "":
-    HP.WEIGHTS_PATH = ExpUtils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
+    HP.WEIGHTS_PATH = exp_utils.get_best_weights_path(HP.EXP_PATH, HP.LOAD_WEIGHTS)
 
 #Autoset some parameters based on settings
 if HP.RESOLUTION == "1.25mm":
@@ -108,19 +108,19 @@ elif HP.RESOLUTION == "2mm":
     HP.INPUT_DIM = (96, 96)
 elif HP.RESOLUTION == "2.5mm":
     HP.INPUT_DIM = (80, 80)
-HP = ExpUtils.get_labels_filename(HP)
+HP = exp_utils.get_labels_filename(HP)
 
 if HP.EXPERIMENT_TYPE == "peak_regression":
-    HP.NR_OF_CLASSES = 3*len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+    HP.NR_OF_CLASSES = 3*len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
 else:
-    HP.NR_OF_CLASSES = len(ExpUtils.get_bundle_names(HP.CLASSES)[1:])
+    HP.NR_OF_CLASSES = len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
 
 if HP.TRAIN:
-    HP.EXP_PATH = ExpUtils.create_experiment_folder(HP.EXP_NAME, HP.MULTI_PARENT_PATH, HP.TRAIN)
+    HP.EXP_PATH = exp_utils.create_experiment_folder(HP.EXP_NAME, HP.MULTI_PARENT_PATH, HP.TRAIN)
 
 if HP.VERBOSE:
     print("Hyperparameters:")
-    ExpUtils.print_HPs(HP)
+    exp_utils.print_HPs(HP)
 
 with open(join(HP.EXP_PATH, "Hyperparameters.txt"), "w") as f:
     HP_dict = {attr: getattr(HP, attr) for attr in dir(HP) if not callable(getattr(HP, attr)) and not attr.startswith("__")}
@@ -135,7 +135,7 @@ def test_whole_subject(HP, model, subjects, type):
 
     # Metrics per bundle
     metrics_bundles = {}
-    for bundle in ExpUtils.get_bundle_names(HP.CLASSES)[1:]:
+    for bundle in exp_utils.get_bundle_names(HP.CLASSES)[1:]:
         metrics_bundles[bundle] = [0]
 
     for subject in subjects:
@@ -154,12 +154,12 @@ def test_whole_subject(HP, model, subjects, type):
             f1 = MetricUtils.calc_peak_length_dice(HP, img_probs, img_y, max_angle_error=HP.PEAK_DICE_THR, max_length_error=HP.PEAK_DICE_LEN_THR)
             peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
             metrics = MetricUtils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean, type=type, threshold=HP.THRESHOLD)
-            metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, None, None, ExpUtils.get_bundle_names(HP.CLASSES)[1:], f1, threshold=HP.THRESHOLD)
+            metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, None, None, exp_utils.get_bundle_names(HP.CLASSES)[1:], f1, threshold=HP.THRESHOLD)
         else:
             img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
             img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
             metrics = MetricUtils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=HP.THRESHOLD)
-            metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, ExpUtils.get_bundle_names(HP.CLASSES)[1:], threshold=HP.THRESHOLD)
+            metrics_bundles = MetricUtils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, exp_utils.get_bundle_names(HP.CLASSES)[1:], threshold=HP.THRESHOLD)
 
     metrics = MetricUtils.normalize_last_element(metrics, len(subjects), type=type)
     metrics_bundles = MetricUtils.normalize_last_element_general(metrics_bundles, len(subjects))
@@ -202,7 +202,7 @@ else:
     model_test = trainer.model
 
 if HP.SEGMENT:
-    ExpUtils.make_dir(join(HP.EXP_PATH, "segmentations"))
+    exp_utils.make_dir(join(HP.EXP_PATH, "segmentations"))
     # all_subjects = HP.VALIDATE_SUBJECTS #+ HP.TEST_SUBJECTS
     all_subjects = ["599469"]
     for subject in all_subjects:
@@ -235,7 +235,7 @@ if HP.TEST:
     # test_whole_subject(HP, model_test, HP.TEST_SUBJECTS, "test")
 
 if HP.GET_PROBS:
-    ExpUtils.make_dir(join(HP.EXP_PATH, "probmaps"))
+    exp_utils.make_dir(join(HP.EXP_PATH, "probmaps"))
     # all_subjects = HP.TEST_SUBJECTS
     all_subjects = ["599469", "992774", "994273"]
     # all_subjects = HP.TRAIN_SUBJECTS + HP.VALIDATE_SUBJECTS + HP.TEST_SUBJECTS

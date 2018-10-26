@@ -23,7 +23,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 from tractseg.libs.PytorchUtils import PytorchUtils
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 from tractseg.models.BaseModel import BaseModel
 
 # from torchvision.models import ResNet
@@ -376,13 +376,13 @@ class UNet_Pytorch_SE(BaseModel):
             # net = UNet_Skip(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
 
         if self.HP.TRAIN:
-            ExpUtils.print_and_save(self.HP, str(net), only_log=True)
+            exp_utils.print_and_save(self.HP, str(net), only_log=True)
 
         criterion = nn.BCEWithLogitsLoss()
         optimizer = optim.Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
 
         if self.HP.LOAD_WEIGHTS:
-            ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
+            exp_utils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
 
         self.train = train

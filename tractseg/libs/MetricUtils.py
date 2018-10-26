@@ -19,7 +19,7 @@
 
 import numpy as np
 from sklearn.metrics import f1_score
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 # from medpy import metric
 
 class MetricUtils:
@@ -238,7 +238,7 @@ class MetricUtils:
         '''
 
         score_per_bundle = {}
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
             y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -286,7 +286,7 @@ class MetricUtils:
 
 
         score_per_bundle = {}
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
             y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -343,7 +343,7 @@ class MetricUtils:
         #Single threshold
         if len(max_angle_error) == 1:
             score_per_bundle = {}
-            bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+            bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
             for idx, bundle in enumerate(bundles):
                 # if bundle == "CST_right":
                 y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
@@ -364,7 +364,7 @@ class MetricUtils:
         #multiple thresholds
         else:
             score_per_bundle = {}
-            bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+            bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
             for idx, bundle in enumerate(bundles):
                 # if bundle == "CST_right":
                 y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
@@ -408,7 +408,7 @@ class MetricUtils:
 
 
         score_per_bundle = {}
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
             y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -463,7 +463,7 @@ class MetricUtils:
 
         #Single threshold
         score_per_bundle = {}
-        bundles = ExpUtils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             # if bundle == "CST_right":
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()

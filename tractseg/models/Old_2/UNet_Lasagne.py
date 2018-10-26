@@ -30,7 +30,7 @@ from tractseg.models.BaseModel import BaseModel
 from tractseg.libs.Layers import theano_f1_score
 # from libs.Layers import theano_f1_score_soft
 from tractseg.libs.Layers import theano_binary_dice_per_instance_and_class
-from tractseg.libs import ExpUtils
+from tractseg.libs import exp_utils
 
 class UNet_Lasagne(BaseModel):
 
@@ -117,7 +117,7 @@ class UNet_Lasagne(BaseModel):
                 self.HP.BEST_EPOCH = epoch_nr
 
         def load_model(path):
-            ExpUtils.print_verbose(self.HP, "Loading weights ... ({})".format(path))
+            exp_utils.print_verbose(self.HP, "Loading weights ... ({})".format(path))
             with np.load(path) as f: #if both pathes are absolute and beginning of pathes are the same, join will merge the beginning
                 param_values = [f['arr_%d' % i] for i in range(len(f.files))]
             L.layers.set_all_param_values(output_layer_for_loss, param_values)
