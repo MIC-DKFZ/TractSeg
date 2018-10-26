@@ -18,8 +18,6 @@
 from os.path import join
 import time
 import pickle
-from pprint import pprint
-import torch
 import numpy as np
 from tractseg.libs.ExpUtils import ExpUtils
 from tractseg.libs.MetricUtils import MetricUtils
