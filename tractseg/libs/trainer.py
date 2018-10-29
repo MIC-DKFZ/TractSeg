@@ -123,9 +123,9 @@ class Trainer:
                         loss, probs, f1 = self.model.train(x, y, weight_factor=weight_factor)    # probs: # (bs, x, y, nrClasses)
                         # loss, probs, f1, intermediate = self.model.train(x, y)
                     elif type == "validate":
-                        loss, probs, f1 = self.model.predict(x, y, weight_factor=weight_factor)
+                        loss, probs, f1 = self.model.test(x, y, weight_factor=weight_factor)
                     elif type == "test":
-                        loss, probs, f1 = self.model.predict(x, y, weight_factor=weight_factor)
+                        loss, probs, f1 = self.model.test(x, y, weight_factor=weight_factor)
                     network_time += time.time() - start_time_network
 
                     start_time_metrics = time.time()
@@ -281,7 +281,7 @@ class Trainer:
                     NR_SAMPLING = 30
                     samples = []
                     for i in range(NR_SAMPLING):
-                        layer_probs = self.model.get_probs(x)  # (bs, x, y, nrClasses)
+                        layer_probs = self.model.predict(x)  # (bs, x, y, nrClasses)
                         samples.append(layer_probs)
 
                     samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
@@ -290,7 +290,7 @@ class Trainer:
                     layer_probs = np.std(samples, axis=0)    # (x,y,nrClasses)
                 else:
                     # For normal prediction
-                    layer_probs = self.model.get_probs(x)  # (bs, x, y, nrClasses)
+                    layer_probs = self.model.predict(x)  # (bs, x, y, nrClasses)
                     layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
 
                 if probs:
