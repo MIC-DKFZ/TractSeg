@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import math
-from tractseg.libs import utils
-
 #All FINAL  (for Training)
 # (bad subjects removed: 994273, 937160, 885975, 788876, 713239)
 # (no CA: 885975, 788876, 713239)
@@ -103,51 +99,9 @@ all_subjects_Schizo = ['CH7912a', 'A00014804', 'A00020805', 'A00010684', 'CH8301
                        'A00000300', 'A00000456', 'A00014830', 'A00012767', 'A00014607']
 
 def get_all_subjects(dataset="HCP"):
-    '''
-    This can be imported in other parts of project to get subjects
-    '''
     if dataset.startswith("HCP"):
         return all_subjects_FINAL
     elif dataset.startswith("Schizo"):
         return all_subjects_Schizo
     else:
         raise ValueError("Invalid dataset name")
-
-def get_all_subjects_RAW():
-    return all_subjects_RAW
-
-def get_subjects_chunk(nr_batches, batch_number):
-    nr_batches = int(nr_batches)
-    batch_number = int(batch_number)
-
-    batch_size = int(math.ceil(len(all_subjects_RAW) / float(nr_batches)))
-    res = list(utils.chunks(all_subjects_RAW, batch_size))
-    final_subjects = res[batch_number]
-    return final_subjects
-
-def main():
-    '''
-    This can be used in Shell scripts to get subjects
-    '''
-    args = sys.argv[1:]
-    nr_batches = int(args[0])  # Number of batches
-    batch_number = int(args[1])  # Which batch do we want     (idx starts at 0)
-
-    batch_size = int(math.ceil(len(all_subjects_RAW) / float(nr_batches)))
-    res = list(utils.chunks(all_subjects_RAW, batch_size))
-
-    #Note: can not print anyhting, because goes as parameter to script
-    # print("Nr of Batches: {} (last batch might be smaller)".format(len(res)))
-    # print("Nr of subjects in batch: {}".format(batch_size))
-    final_subjects = res[batch_number]
-    # print("Subjects: {}".format(final_subjects))
-
-    #To String:
-    str = ""
-    for subject in final_subjects:
-        str += subject + " "
-    str = str[:-1]  #remove last space
-    print(str)
-
-if __name__ == "__main__":
-    main()
