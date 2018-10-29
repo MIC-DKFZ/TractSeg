@@ -15,19 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-import random
-# from batchgenerators.dataloading.data_loader import DataLoaderBase
-from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
-from time import sleep
-import os
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-import nibabel as nib
+import os
 from os.path import join
+import random
+from time import sleep
+
+import numpy as np
+import nibabel as nib
+
+from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
+
 from tractseg.libs.Config import Config as C
 from tractseg.libs import dataset_utils
 from tractseg.libs import exp_utils
-from tractseg.libs import img_utils
 
 '''
 Info:
