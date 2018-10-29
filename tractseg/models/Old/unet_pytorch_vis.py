@@ -25,8 +25,36 @@ from torch.autograd import Variable
 
 from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
-from tractseg.models.BaseModel import BaseModel
-from tractseg.libs import metric_utils
+from tractseg.models.base_model import BaseModel
+from tractseg.libs.Config import Config as C
+
+import matplotlib.pyplot as plt
+def plot_kernels(tensor, num_cols=6):
+    '''
+    Not so interesting as kernels have size 3x3 -> do not see much
+    (Alexnet had bigger kernels)
+    :param tensor: numpy array
+    :param num_cols:
+    :return:
+    '''
+    if not tensor.ndim==4:
+        raise Exception("assumes a 4D tensor")
+    if not tensor.shape[-1]==3:
+        raise Exception("last dim needs to be 3 to plot")
+    num_kernels = tensor.shape[0]
+    num_rows = 1+ num_kernels // num_cols
+    fig = plt.figure(figsize=(num_cols,num_rows))
+    for i in range(tensor.shape[0]):
+        ax1 = fig.add_subplot(num_rows,num_cols,i+1)
+        ax1.imshow(tensor[i])
+        ax1.axis('off')
+        ax1.set_xticklabels([])
+        ax1.set_yticklabels([])
+
+    plt.subplots_adjust(wspace=0.1, hspace=0.1)
+    #plt.show()
+    plt.savefig(join(C.NETWORK_DRIVE, "my_plot.png"), dpi=200)
+
 
 # nonlinearity = nn.ReLU()
 nonlinearity = nn.LeakyReLU()
@@ -53,11 +81,8 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
 
 
 class UNet(torch.nn.Module):
-    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, dropout=False):
+    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64):
         super(UNet, self).__init__()
-
-        self.dropout = dropout
-
         self.in_channel = n_input_channels
         self.n_classes = n_classes
 
@@ -121,8 +146,7 @@ class UNet(torch.nn.Module):
         contr_4_2 = self.contr_4_2(contr_4_1)
         pool_4 = self.pool_4(contr_4_2)
 
-        if self.dropout:
-            pool_4 = self.dropout(pool_4)
+        # pool_4 = self.dropout(pool_4)
 
         encode_1 = self.encode_1(pool_4)
         encode_2 = self.encode_2(encode_1)
@@ -148,14 +172,14 @@ class UNet(torch.nn.Module):
         expand_4_2 = self.expand_4_2(expand_4_1)
 
         conv_5 = self.conv_5(expand_4_2)
-        return conv_5
+        return conv_5, (deconv_2, contr_3_2, contr_1_2)
 
 
-class UNet_Pytorch_Regression_MSE(BaseModel):
+class UNet_Pytorch_Vis(BaseModel):
     def create_network(self):
         # torch.backends.cudnn.benchmark = True     #not faster
 
-        def train(X, y, weight_factor=10):
+        def train(X, y):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
             if torch.cuda.is_available():
@@ -164,26 +188,23 @@ class UNet_Pytorch_Regression_MSE(BaseModel):
                 X, y = Variable(X), Variable(y)
             optimizer.zero_grad()
             net.train()
-            outputs = net(X)  # forward     # outputs: (bs, classes, x, y)
-            loss = criterion(outputs, y)
 
+            outputs, intermediate = net(X)  # forward     # outputs: (bs, classes, x, y)
+
+            loss = criterion(outputs, y)
+            # loss = PytorchUtils.soft_dice(outputs, y)
             loss.backward()  # backward
             optimizer.step()  # optimise
-
-            if self.HP.CALC_F1:
-                f1 = pytorch_utils.f1_score_macro(y.data > self.HP.THRESHOLD, outputs.data, per_class=True, threshold=self.HP.THRESHOLD)
-            else:
-                f1 = np.ones(outputs.shape[3])
+            f1 = pytorch_utils.f1_score_macro(y.data, outputs.data, per_class=True)
 
             if self.HP.USE_VISLOGGER:
                 probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             else:
-                # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)  # (bs, x, y, classes)
                 probs = None    #faster
 
-            return loss.data[0], probs, f1
+            return loss.data[0], probs, f1, intermediate
 
-        def test(X, y, weight_factor=10):
+        def test(X, y):
             X = torch.from_numpy(X.astype(np.float32))
             y = torch.from_numpy(y.astype(np.float32))
             if torch.cuda.is_available():
@@ -193,12 +214,8 @@ class UNet_Pytorch_Regression_MSE(BaseModel):
             net.train(False)
             outputs = net(X)  # forward
             loss = criterion(outputs, y)
-
-            if self.HP.CALC_F1:
-                f1 = pytorch_utils.f1_score_macro(y.data > self.HP.THRESHOLD, outputs.data, per_class=True, threshold=self.HP.THRESHOLD)
-            else:
-                f1 = np.ones(outputs.shape[3])
-
+            # loss = PytorchUtils.soft_dice(outputs, y)
+            f1 = pytorch_utils.f1_score_macro(y.data, outputs.data, per_class=True)
             # probs = outputs.data.cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = None  # faster
             return loss.data[0], probs, f1
@@ -228,18 +245,6 @@ class UNet_Pytorch_Regression_MSE(BaseModel):
                     print("\nERROR: Could not save weights because of IO Error\n")
                 self.HP.BEST_EPOCH = epoch_nr
 
-            #Saving Last Epoch:
-            # print("  Saving weights last epoch...")
-            # for fl in glob.glob(join(self.HP.EXP_PATH, "weights_ep*")):  # remove weights from previous epochs
-            #     os.remove(fl)
-            # try:
-            #     # Actually is a pkl not a npz
-            #     PytorchUtils.save_checkpoint(join(self.HP.EXP_PATH, "weights_ep" + str(epoch_nr) + ".npz"), unet=net)
-            # except IOError:
-            #     print("\nERROR: Could not save weights because of IO Error\n")
-            # self.HP.BEST_EPOCH = epoch_nr
-
-
         def load_model(path):
             pytorch_utils.load_checkpoint(path, unet=net)
 
@@ -247,8 +252,10 @@ class UNet_Pytorch_Regression_MSE(BaseModel):
             for param_group in optimizer.param_groups:
                 exp_utils.print_and_save(self.HP, "current learning rate: {}".format(param_group['lr']))
 
+
         if self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "single_direction":
-            NR_OF_GRADIENTS = self.HP.NR_OF_GRADIENTS
+            NR_OF_GRADIENTS = 9
+            # NR_OF_GRADIENTS = 9 * 5
         elif self.HP.SEG_INPUT == "Peaks" and self.HP.TYPE == "combined":
             NR_OF_GRADIENTS = 3*self.HP.NR_OF_CLASSES
         else:
@@ -259,16 +266,26 @@ class UNet_Pytorch_Regression_MSE(BaseModel):
         else:
             net = UNet(n_input_channels=NR_OF_GRADIENTS, n_classes=self.HP.NR_OF_CLASSES, n_filt=self.HP.UNET_NR_FILT)
 
-        # if self.HP.TRAIN:
-        #     exp_utils.print_and_save(self.HP, str(net), only_log=True)
+        # net = nn.DataParallel(net, device_ids=[0,1])
 
-        criterion = nn.MSELoss()
+        if self.HP.TRAIN:
+            exp_utils.print_and_save(self.HP, str(net), only_log=True)
 
+        criterion = nn.BCEWithLogitsLoss()
         optimizer = Adamax(net.parameters(), lr=self.HP.LEARNING_RATE)
+        # optimizer = Adam(net.parameters(), lr=self.HP.LEARNING_RATE)  #very slow (half speed of Adamax) -> strange
+        # scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
+        # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
 
         if self.HP.LOAD_WEIGHTS:
             exp_utils.print_verbose(self.HP, "Loading weights ... ({})".format(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH)))
             load_model(join(self.HP.EXP_PATH, self.HP.WEIGHTS_PATH))
+
+        #plot feature weights
+        # weights = list(list(net.children())[0].children())[0].weight.cpu().data.numpy()   # sequential -> conv2d   # (64, 9, 3, 3)
+        # weights = weights[:, 0:1, :, :]  # select one input channel to plot       # (64, 1, 3, 3)
+        # weights = (weights*100).astype(np.uint8) # can not plot negative values (and if float only 0-1 allowed) -> not good: we remove negatives
+        # plot_kernels(weights)
 
         self.train = train
         self.predict = test

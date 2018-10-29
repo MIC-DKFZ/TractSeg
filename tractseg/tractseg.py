@@ -34,7 +34,7 @@ from tractseg.libs import direction_merger
 from tractseg.libs import img_utils
 from tractseg.libs.data_managers_inference import DataManagerSingleSubjectByFile
 from tractseg.libs.trainer import Trainer
-from tractseg.models.BaseModel import BaseModel
+from tractseg.models.base_model import BaseModel
 
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                  single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5,

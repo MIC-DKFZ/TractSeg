@@ -35,7 +35,7 @@ from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import mrtrix
 from tractseg.libs import plot_utils
-from tractseg.TractSeg import run_tractseg
+from tractseg.tractseg import run_tractseg
 
 
 '''

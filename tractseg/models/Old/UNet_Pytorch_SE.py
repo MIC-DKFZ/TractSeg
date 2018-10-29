@@ -24,7 +24,7 @@ from torch.autograd import Variable
 
 from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
-from tractseg.models.BaseModel import BaseModel
+from tractseg.models.base_model import BaseModel
 
 # from torchvision.models import ResNet
 

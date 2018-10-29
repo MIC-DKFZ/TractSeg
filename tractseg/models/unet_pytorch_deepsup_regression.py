@@ -25,7 +25,7 @@ from torch.autograd import Variable
 
 from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
-from tractseg.models.BaseModel import BaseModel
+from tractseg.models.base_model import BaseModel
 from tractseg.libs import metric_utils
 from tractseg.libs.pytorch_utils import conv2d
 from tractseg.libs.pytorch_utils import deconv2d
