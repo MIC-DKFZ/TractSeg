@@ -15,6 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Code to load data and to create batches of 2D slices from 3D images.
+
+Info:
+Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -31,15 +38,11 @@ from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
 from tractseg.libs import exp_utils
 
-'''
-Info:
-Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
-'''
 
-class SlicesBatchGenerator(SlimDataLoaderBase):
-    '''
-    Returns 2D slices in ordered way.
-    '''
+class DataLoader2D_data_ordered(SlimDataLoaderBase):
+    """
+    Takes data provided via self._data und returns 2D slices in ordered way.
+    """
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.Config = None
@@ -88,9 +91,9 @@ class SlicesBatchGenerator(SlimDataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNiftiImg(SlimDataLoaderBase):
+class DataLoader2D_Nifti(SlimDataLoaderBase):
     '''
-    Randomly sample 2D slices from a .nii.gz image.
+    Takes image ID provided via self._data, loads the nifti image and randomly samples 2D slices from it.
 
     About 2.5s per 54-batch 75 bundles 1.25mm. ?
     About 2s per 54-batch 45 bundles 1.25mm.
@@ -194,10 +197,10 @@ class SlicesBatchGeneratorRandomNiftiImg(SlimDataLoaderBase):
 # Backup
 ############################################################################################################
 
-class SlicesBatchGeneratorRandomNiftiImg_5slices(SlimDataLoaderBase):
+class DataLoader2D_Nifti_5slices(SlimDataLoaderBase):
     '''
-    Randomly sample 2D slices from a .nii.gz image.
-    Always 2 slices above and bellow.
+    Takes image ID provided via self._data, loads the nifti image and randomly samples 2D slices
+    from it. Always adds 2 slices above and bellow.
 
     About 2.5s per 54-batch 75 bundles 1.25mm. ?
     About 2s per 54-batch 45 bundles 1.25mm.
@@ -288,9 +291,9 @@ class SlicesBatchGeneratorRandomNiftiImg_5slices(SlimDataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNpyImg(SlimDataLoaderBase):
+class DataLoader2D_Npy(SlimDataLoaderBase):
     '''
-    Randomly sample 2D slices from a npy file for each subject.
+    Takes image ID provided via self._data, loads the Npy (numpy array) image and randomly samples 2D slices from it.
 
     About 4s per 54-batch 75 bundles 1.25mm.
     About 2s per 54-batch 45 bundles 1.25mm.
@@ -336,8 +339,9 @@ class SlicesBatchGeneratorRandomNpyImg(SlimDataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorPrecomputedBatches(SlimDataLoaderBase):
+class DataLoader2D_PrecomputedBatches(SlimDataLoaderBase):
     '''
+    Loads precomputed batches
     '''
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)

@@ -15,6 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Info:
+Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -26,15 +31,11 @@ import numpy as np
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 from tractseg.libs.system_config import SystemConfig as C
 
-"""
-Info:
-Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
-"""
 
-class SlicesBatchGeneratorNpyImg_fusion(SlimDataLoaderBase):
-    '''
+class DataLoader2D_Npy_ordered_fusion(SlimDataLoaderBase):
+    """
     Returns 2D slices ordered way. Takes data in form of a npy file for each image. Npy file is already cropped to right size.
-    '''
+    """
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.Config = None
@@ -109,7 +110,7 @@ class SlicesBatchGeneratorNpyImg_fusion(SlimDataLoaderBase):
         return data_dict
 
 
-class SlicesBatchGeneratorRandomNpyImg_fusion(SlimDataLoaderBase):
+class DataLoader2D_Npy_fusion(SlimDataLoaderBase):
     '''
     Randomly sample 2D slices from a npy file for each subject.
 
@@ -179,66 +180,6 @@ class SlicesBatchGeneratorRandomNpyImg_fusion(SlimDataLoaderBase):
         #Mixed Order
         # x = x[:, (0, 5, 75, 80, 150, 155), :, :]
         # y = y[:, (0, 5), :, :]
-
-        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
-                     "seg": y}      # (batch_size, channels, x, y, [z])
-        return data_dict
-
-
-class SlicesBatchGeneratorRandomNpyImg_fusionMean(SlimDataLoaderBase):
-    '''
-    take mean of xyz channel and return slices (x,y,nrBundles)
-    '''
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-        self.Config = None
-
-    def generate_train_batch(self):
-
-        subjects = self._data[0]
-        subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
-
-        data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
-        seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
-
-        # print("data 1: {}".format(data.shape))
-        # print("seg 1: {}".format(seg.shape))
-
-        slice_idxs = np.random.choice(data.shape[0], self.BATCH_SIZE, False, None)
-
-        # Randomly sample slice orientation
-        slice_direction = int(round(random.uniform(0,2)))
-
-        if slice_direction == 0:
-            x = data[slice_idxs, :, :].astype(np.float32)      # (batch_size, y, z, channels, xyz)
-            y = seg[slice_idxs, :, :].astype(self.Config.LABELS_TYPE)
-
-            x = x.mean(axis=4)
-
-            x = np.array(x).transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
-            y = np.array(y).transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-
-        elif slice_direction == 1:
-            x = data[:, slice_idxs, :].astype(np.float32)      # (x, batch_size, z, channels, xyz)
-            y = seg[:, slice_idxs, :].astype(self.Config.LABELS_TYPE)
-
-            x = x.mean(axis=4)
-
-            x = np.array(x).transpose(1, 3, 0, 2)
-            y = np.array(y).transpose(1, 3, 0, 2)
-
-        elif slice_direction == 2:
-            x = data[:, :, slice_idxs].astype(np.float32)      # (x, y, batch_size, channels, xyz)
-            y = seg[:, :, slice_idxs].astype(self.Config.LABELS_TYPE)
-
-            x = x.mean(axis=4)
-
-            x = np.array(x).transpose(2, 3, 0, 1)
-            y = np.array(y).transpose(2, 3, 0, 1)
-
-
-        x = np.nan_to_num(x)
-        y = np.nan_to_num(y)
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])

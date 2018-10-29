@@ -15,6 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Code to load data and to specify data augmentation.
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -36,18 +40,19 @@ from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 
 from tractseg.libs import img_utils
-from tractseg.libs.batch_generators import SlicesBatchGeneratorRandomNiftiImg
-from tractseg.libs.batch_generators import SlicesBatchGeneratorPrecomputedBatches
-from tractseg.libs.batch_generators import SlicesBatchGeneratorRandomNiftiImg_5slices
-from tractseg.libs.batch_generators import SlicesBatchGenerator
-from tractseg.libs.batch_generators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
-from tractseg.libs.batch_generators_fusion import SlicesBatchGeneratorNpyImg_fusion
+from tractseg.libs.data_loaders import DataLoader2D_Nifti
+from tractseg.libs.data_loaders import DataLoader2D_PrecomputedBatches
+from tractseg.libs.data_loaders import DataLoader2D_Nifti_5slices
+from tractseg.libs.data_loaders import DataLoader2D_data_ordered
+from tractseg.libs.data_loaders_fusion import DataLoader2D_Npy_fusion
+from tractseg.libs.data_loaders_fusion import DataLoader2D_Npy_ordered_fusion
 from tractseg.libs import dataset_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
 from tractseg.libs.DLDABG_standalone import ReorderSegTransform
 
 np.random.seed(1337)  # for reproducibility
+
 
 class DataManagerSingleSubjectById:
     def __init__(self, Config, subject=None, use_gt_mask=True):
@@ -72,7 +77,7 @@ class DataManagerSingleSubjectById:
             seg = []
             nr_of_samples = len([self.subject]) * self.Config.INPUT_DIM[0]
             num_batches = int(nr_of_samples / batch_size / num_processes)
-            batch_gen = SlicesBatchGeneratorNpyImg_fusion((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
+            batch_gen = DataLoader2D_Npy_ordered_fusion((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
         else:
             # Load Features
             if self.Config.FEATURES_FILENAME == "12g90g270g":
@@ -100,7 +105,7 @@ class DataManagerSingleSubjectById:
                 # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
                 seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.NR_OF_CLASSES)).astype(self.Config.LABELS_TYPE)
 
-            batch_gen = SlicesBatchGenerator((data, seg), batch_size=batch_size)
+            batch_gen = DataLoader2D_data_ordered((data, seg), batch_size=batch_size)
 
         batch_gen.Config = self.Config
         tfs = []  # transforms
@@ -158,9 +163,9 @@ class DataManagerTrainingNiftiImgs:
         if self.Config.TYPE == "combined":
             # Simple with .npy  -> just a little bit faster than Nifti (<10%) and f1 not better => use Nifti
             # batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), batch_size=batch_size)
-            batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), batch_size=batch_size)
+            batch_gen = DataLoader2D_Npy_fusion((data, seg), batch_size=batch_size)
         else:
-            batch_gen = SlicesBatchGeneratorRandomNiftiImg((data, seg), batch_size=batch_size)
+            batch_gen = DataLoader2D_Nifti((data, seg), batch_size=batch_size)
             # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), batch_size=batch_size)
 
         batch_gen.Config = self.Config
@@ -217,7 +222,7 @@ class DataManagerPrecomputedBatches:
 
         num_processes = 1  # 6 is a bit faster than 16
 
-        batch_gen = SlicesBatchGeneratorPrecomputedBatches((data, seg), batch_size=batch_size)
+        batch_gen = DataLoader2D_PrecomputedBatches((data, seg), batch_size=batch_size)
         batch_gen.Config = self.Config
 
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose([]), num_processes=num_processes, num_cached_per_queue=1, seeds=None)

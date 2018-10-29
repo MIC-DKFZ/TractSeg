@@ -30,7 +30,7 @@ from tractseg.libs.DLDABG_standalone import Compose
 
 np.random.seed(1337)  # for reproducibility
 
-class SlicesBatchGenerator_Standalone(object):
+class DataLoader2D_data_ordered_standalone(object):
     '''
     Same as tractseg.libs.BatchGenerators.SlicesBatchGenerator, but does not depend on DKFZ/BatchGenerators package.
     Therefore good for inference on windows where DKFZ/Batchgenerators do not work (because of MultiThreading problems)
@@ -103,7 +103,7 @@ class DataManagerSingleSubjectByFile:
         seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.NR_OF_CLASSES)).astype(self.Config.LABELS_TYPE)
 
         num_processes = 1  # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
-        batch_gen = SlicesBatchGenerator_Standalone((data, seg), batch_size=batch_size)
+        batch_gen = DataLoader2D_data_ordered_standalone((data, seg), batch_size=batch_size)
         batch_gen.Config = self.Config
         tfs = []  # transforms
 
