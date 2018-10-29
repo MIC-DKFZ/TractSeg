@@ -96,8 +96,8 @@ threshold = 0.5          #specificity (tract_segmentation and endings_segmentati
 peak_threshold = 0.3     #specificity (TOM)
 
 input_path = args.input
-config = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
-HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config), "HP")()
+config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
+HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config_file), "HP")()
 HP.CSD_TYPE = args.csd_type
 HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
 HP.VERBOSE = args.verbose
