@@ -97,7 +97,7 @@ peak_threshold = 0.3     #specificity (TOM)
 
 input_path = args.input
 config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
-Config = getattr(importlib.import_module("tractseg.config.pretrained_models." + config_file), "Config")()
+Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
 Config.CSD_TYPE = args.csd_type
 Config.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
 Config.VERBOSE = args.verbose

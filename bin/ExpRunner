@@ -70,9 +70,9 @@ parser.add_argument("--fold", metavar="N", help="Which fold to train when doing 
 parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)   #set default to False in future
 args = parser.parse_args()
 
-Config = getattr(importlib.import_module("tractseg.config.base"), "Config")()
+Config = getattr(importlib.import_module("tractseg.experiments.base"), "Config")()
 if args.config:
-    Config = getattr(importlib.import_module("tractseg.config.custom." + args.config), "Config")()    #Config.__dict__ does not work if ()
+    Config = getattr(importlib.import_module("tractseg.experiments.custom." + args.config), "Config")()    #Config.__dict__ does not work if ()
     # Config.EXP_NAME = args.config
 
 if args.en:

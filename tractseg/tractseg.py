@@ -61,7 +61,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     start_time = time.time()
 
     config = get_config_name(input_type, output_type, dropout_sampling=dropout_sampling)
-    Config = getattr(importlib.import_module("tractseg.config.pretrained_models." + config), "Config")()
+    Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config), "Config")()
     Config.VERBOSE = verbose
     Config.TRAIN = False
     Config.TEST = False
