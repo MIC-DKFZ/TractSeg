@@ -29,16 +29,16 @@ logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of ou
 logging.getLogger().setLevel(logging.INFO)
 
 #Global variables needed for shared memory of parallel fiber compression
-global COMPRESSION_ERROR_THRESHOLD
-COMPRESSION_ERROR_THRESHOLD = None
-global FIBER_BATCHES
-FIBER_BATCHES = None
+global _COMPRESSION_ERROR_THRESHOLD
+_COMPRESSION_ERROR_THRESHOLD = None
+global _FIBER_BATCHES
+_FIBER_BATCHES = None
 
 # Worker Functions for multithreaded compression
 def compress_fibers_worker_shared_mem(idx):
     # Function that runs in parallel must be on top level (not in class/function) otherwise it can not be pickled and then error
-    streamlines_chunk = FIBER_BATCHES[idx]  # shared memory; by using indices each worker accesses only his part
-    result = compress_streamlines(streamlines_chunk, tol_error=COMPRESSION_ERROR_THRESHOLD)
+    streamlines_chunk = _FIBER_BATCHES[idx]  # shared memory; by using indices each worker accesses only his part
+    result = compress_streamlines(streamlines_chunk, tol_error=_COMPRESSION_ERROR_THRESHOLD)
     logging.debug('PID {}, DONE'.format(getpid()))
     return result
 
@@ -62,10 +62,10 @@ def compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=-1):
         return streamlines
     fiber_batches = list(utils.chunks(streamlines, chunk_size))
 
-    global COMPRESSION_ERROR_THRESHOLD
-    global FIBER_BATCHES
-    COMPRESSION_ERROR_THRESHOLD = error_threshold
-    FIBER_BATCHES = fiber_batches
+    global _COMPRESSION_ERROR_THRESHOLD
+    global _FIBER_BATCHES
+    _COMPRESSION_ERROR_THRESHOLD = error_threshold
+    _FIBER_BATCHES = fiber_batches
 
     # logging.debug("Main program using: {} GB".format(round(Utils.mem_usage(print_usage=False), 3)))
     pool = multiprocessing.Pool(processes=nr_processes)
