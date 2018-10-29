@@ -42,7 +42,7 @@ from tractseg.libs.DatasetUtils import DatasetUtils
 from tractseg.libs.Config import Config as C
 from tractseg.libs import exp_utils
 
-from tractseg.libs.DLDABG_Standalone import ReorderSegTransform
+from tractseg.libs.DLDABG_standalone import ReorderSegTransform
 
 np.random.seed(1337)  # for reproducibility
 

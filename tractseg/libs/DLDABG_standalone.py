@@ -1,4 +1,4 @@
-# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
+ # Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ from builtins import object
 import abc
 from warnings import warn
 
-'''
+"""
 Copy part of code from https://github.com/MIC-DKFZ/batchgenerators needed for inference so we do not
 need this dependency during inference. This way we can become windows compatible.
-'''
+"""
 
 class SingleThreadedAugmenter(object):
     """

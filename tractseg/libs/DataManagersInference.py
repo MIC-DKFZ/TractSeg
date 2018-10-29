@@ -18,10 +18,10 @@
 from builtins import object
 import numpy as np
 from tractseg.libs import exp_utils
-from tractseg.libs.DLDABG_Standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
-from tractseg.libs.DLDABG_Standalone import SingleThreadedAugmenter
-from tractseg.libs.DLDABG_Standalone import ReorderSegTransform
-from tractseg.libs.DLDABG_Standalone import Compose
+from tractseg.libs.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
+from tractseg.libs.DLDABG_standalone import SingleThreadedAugmenter
+from tractseg.libs.DLDABG_standalone import ReorderSegTransform
+from tractseg.libs.DLDABG_standalone import Compose
 
 np.random.seed(1337)  # for reproducibility
 
