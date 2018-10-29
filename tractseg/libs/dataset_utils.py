@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import numpy as np
 from scipy import ndimage
+import random
 
 from tractseg.libs import img_utils
 
@@ -256,6 +257,31 @@ def add_original_zero_padding_again(data, bbox, original_shape, nr_of_classes):
     return data_new
 
 
+def sample_slices(data, seg, slice_idxs, training_slice_direction="y", labels_type=np.int16):
+
+    # Randomly sample slice orientation
+    if training_slice_direction == "xyz":
+        slice_direction = int(round(random.uniform(0, 2)))
+    else:
+        slice_direction = 1  # always use Y
+
+    if slice_direction == 0:
+        x = data[slice_idxs, :, :].astype(np.float32)  # (batch_size, y, z, channels)
+        y = seg[slice_idxs, :, :].astype(labels_type)
+        x = np.array(x).transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
+        y = np.array(y).transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
+    elif slice_direction == 1:
+        x = data[:, slice_idxs, :].astype(np.float32)  # (x, batch_size, z, channels)
+        y = seg[:, slice_idxs, :].astype(labels_type)
+        x = np.array(x).transpose(1, 3, 0, 2)
+        y = np.array(y).transpose(1, 3, 0, 2)
+    elif slice_direction == 2:
+        x = data[:, :, slice_idxs].astype(np.float32)  # (x, y, batch_size, channels)
+        y = seg[:, :, slice_idxs].astype(labels_type)
+        x = np.array(x).transpose(2, 3, 0, 1)
+        y = np.array(y).transpose(2, 3, 0, 1)
+
+    return x, y
 
 
 

@@ -38,18 +38,19 @@ from batchgenerators.transforms.crop_and_pad_transforms import PadToMultipleTran
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
+from batchgenerators.dataloading.single_threaded_augmenter import SingleThreadedAugmenter
 
 from tractseg.libs import img_utils
 from tractseg.libs.data_loaders import DataLoader2D_Nifti
+from tractseg.libs.data_loaders import DataLoader2D_Npy
 from tractseg.libs.data_loaders import DataLoader2D_PrecomputedBatches
 from tractseg.libs.data_loaders import DataLoader2D_Nifti_5slices
-from tractseg.libs.data_loaders import DataLoader2D_data_ordered
-from tractseg.libs.data_loaders_fusion import DataLoader2D_Npy_fusion
-from tractseg.libs.data_loaders_fusion import DataLoader2D_Npy_ordered_fusion
+from tractseg.libs.data_managers_inference import DataLoader2D_data_ordered_standalone
 from tractseg.libs import dataset_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
 from tractseg.libs.DLDABG_standalone import ReorderSegTransform
+from tractseg.libs.data_loaders import load_training_data
 
 np.random.seed(1337)  # for reproducibility
 
@@ -60,52 +61,19 @@ class DataManagerSingleSubjectById:
         self.Config = Config
         self.use_gt_mask = use_gt_mask
 
-        if self.Config.TYPE == "single_direction":
-            self.data_dir = join(C.HOME, self.Config.DATASET_FOLDER, subject)
-        elif self.Config.TYPE == "combined":
-            self.data_dir = join(C.HOME, self.Config.DATASET_FOLDER, subject, self.Config.FEATURES_FILENAME + ".npy") #data_dir not used when doing fusion
-
-        print("Loading data from: " + self.data_dir)
-
     def get_batches(self, batch_size=1):
-
-        num_processes = 1   # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
 
         if self.Config.TYPE == "combined":
             # Load from Npy file for Fusion
-            data = self.subject
-            seg = []
-            nr_of_samples = len([self.subject]) * self.Config.INPUT_DIM[0]
-            num_batches = int(nr_of_samples / batch_size / num_processes)
-            batch_gen = DataLoader2D_Npy_ordered_fusion((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
-        else:
-            # Load Features
-            if self.Config.FEATURES_FILENAME == "12g90g270g":
-                data_img = nib.load(join(self.data_dir, "270g_125mm_peaks.nii.gz"))
-            else:
-                data_img = nib.load(join(self.data_dir, self.Config.FEATURES_FILENAME + ".nii.gz"))
-            data = data_img.get_data()
+            data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, self.subject, self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, self.subject, self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
             data = np.nan_to_num(data)
-            data = dataset_utils.scale_input_to_unet_shape(data, self.Config.DATASET, self.Config.RESOLUTION)
-            # data = DatasetUtils.scale_input_to_unet_shape(data, "HCP_32g", "1.25mm")  #If we want to test HCP_32g on HighRes net
-
-            #Load Segmentation
-            if self.use_gt_mask:
-                seg = nib.load(join(self.data_dir, self.Config.LABELS_FILENAME + ".nii.gz")).get_data()
-
-                if self.Config.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
-                                                   "bundle_masks_20_808080", "bundle_masks_72_808080", "bundle_peaks_Part1_808080",
-                                           "bundle_peaks_Part2_808080", "bundle_peaks_Part3_808080", "bundle_peaks_Part4_808080"]:
-                    if self.Config.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
-                        # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask
-                        seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", self.Config.RESOLUTION)
-                    else:
-                        seg = dataset_utils.scale_input_to_unet_shape(seg, self.Config.DATASET, self.Config.RESOLUTION)
-            else:
-                # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
-                seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.NR_OF_CLASSES)).astype(self.Config.LABELS_TYPE)
-
-            batch_gen = DataLoader2D_data_ordered((data, seg), batch_size=batch_size)
+            seg = np.nan_to_num(seg)
+            data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], data.shape[3] * data.shape[4]))
+            batch_gen = DataLoader2D_data_ordered_standalone((data, seg), batch_size)
+        else:
+            data, seg = load_training_data(self.Config, self.subject, use_gt_mask=self.use_gt_mask)
+            batch_gen = DataLoader2D_data_ordered_standalone((data, seg), batch_size)
 
         batch_gen.Config = self.Config
         tfs = []  # transforms
@@ -131,7 +99,7 @@ class DataManagerSingleSubjectById:
 
 
         tfs.append(ReorderSegTransform())
-        batch_gen = MultiThreadedAugmenter(batch_gen, Compose(tfs), num_processes=num_processes, num_cached_per_queue=2, seeds=None) # Only use num_processes=1, otherwise global_idx of SlicesBatchGenerator not working
+        batch_gen = SingleThreadedAugmenter(batch_gen, Compose(tfs))
         return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)
 
 
@@ -154,16 +122,8 @@ class DataManagerTrainingNiftiImgs:
         else:
             num_processes = 6
 
-        nr_of_samples = len(subjects) * self.Config.INPUT_DIM[0]
-        if num_batches is None:
-            num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
-        else:
-            num_batches_multithr = int(num_batches / num_processes)
-
-        if self.Config.TYPE == "combined":
-            # Simple with .npy  -> just a little bit faster than Nifti (<10%) and f1 not better => use Nifti
-            # batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), batch_size=batch_size)
-            batch_gen = DataLoader2D_Npy_fusion((data, seg), batch_size=batch_size)
+        if self.HP.TYPE == "combined":
+            batch_gen = DataLoader2D_Npy((data, seg), batch_size=batch_size)
         else:
             batch_gen = DataLoader2D_Nifti((data, seg), batch_size=batch_size)
             # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), batch_size=batch_size)

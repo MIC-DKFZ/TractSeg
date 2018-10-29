@@ -23,17 +23,21 @@ from builtins import object
 import numpy as np
 
 from tractseg.libs import exp_utils
+from tractseg.libs import dataset_utils
 from tractseg.libs.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 from tractseg.libs.DLDABG_standalone import SingleThreadedAugmenter
 from tractseg.libs.DLDABG_standalone import ReorderSegTransform
 from tractseg.libs.DLDABG_standalone import Compose
 
+
 np.random.seed(1337)  # for reproducibility
 
 class DataLoader2D_data_ordered_standalone(object):
     '''
-    Same as tractseg.libs.BatchGenerators.SlicesBatchGenerator, but does not depend on DKFZ/BatchGenerators package.
-    Therefore good for inference on windows where DKFZ/Batchgenerators do not work (because of MultiThreading problems)
+    Creates batch of 2D slices from one subject.
+
+    Does not depend on DKFZ/BatchGenerators package. Therefore good for inference on windows
+    where DKFZ/Batchgenerators do not work (because of MultiThreading problems)
     '''
     def __init__(self, data, batch_size):
         # super(self.__class__, self).__init__(*args, **kwargs)
@@ -49,12 +53,15 @@ class DataLoader2D_data_ordered_standalone(object):
         return self.generate_train_batch()
 
     def generate_train_batch(self):
+        data = self._data[0]
+        seg = self._data[1]
+
         if self.Config.SLICE_DIRECTION == "x":
-            end = self._data[0].shape[0]
+            end = data.shape[0]
         elif self.Config.SLICE_DIRECTION == "y":
-            end = self._data[0].shape[1]
+            end = data.shape[1]
         elif self.Config.SLICE_DIRECTION == "z":
-            end = self._data[0].shape[2]
+            end = data.shape[2]
 
         # Stop iterating if we reached end of data
         if self.global_idx >= end:
@@ -68,28 +75,16 @@ class DataLoader2D_data_ordered_standalone(object):
         if new_global_idx >= end:
             new_global_idx = end  # not end-1, because this goes into range, and there automatically -1
 
-        idxs = list(range(self.global_idx, new_global_idx))
-
-        if self.Config.SLICE_DIRECTION == "x":
-            x = np.array(self._data[0][idxs,:,:,:]).astype(np.float32)
-            y = np.array(self._data[1][idxs,:,:,:]).astype(self.Config.LABELS_TYPE)
-            x = x.transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
-            y = y.transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif self.Config.SLICE_DIRECTION == "y":
-            x = np.array(self._data[0][:,idxs,:,:]).astype(np.float32)
-            y = np.array(self._data[1][:,idxs,:,:]).astype(self.Config.LABELS_TYPE)
-            x = x.transpose(1, 3, 0, 2)  # depth-channel has to be before width and height for Unet (but after batches)
-            y = y.transpose(1, 3, 0, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif self.Config.SLICE_DIRECTION == "z":
-            x = np.array(self._data[0][:,:,idxs,:]).astype(np.float32)
-            y = np.array(self._data[1][:,:,idxs,:]).astype(self.Config.LABELS_TYPE)
-            x = x.transpose(2, 3, 0, 1)  # depth-channel has to be before width and height for Unet (but after batches)
-            y = y.transpose(2, 3, 0, 1)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
+        slice_idxs = list(range(self.global_idx, new_global_idx))
+        x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
+                                           training_slice_direction=self.Config.TRAINING_SLICE_DIRECTION,
+                                           labels_type=self.Config.LABELS_TYPE)
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])
         self.global_idx = new_global_idx
         return data_dict
+
 
 class DataManagerSingleSubjectByFile:
     def __init__(self, Config, data):
