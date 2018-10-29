@@ -21,7 +21,7 @@ import pickle
 import numpy as np
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
-from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs import dataset_utils
 from tractseg.libs import plot_utils
 import socket
 from tqdm import tqdm
@@ -250,7 +250,7 @@ class Trainer:
                 layers = layers.transpose(1, 2, 0, 3)
 
             if scale_to_world_shape:
-                layers = DatasetUtils.scale_input_to_world_shape(layers, HP.DATASET, HP.RESOLUTION)
+                layers = dataset_utils.scale_input_to_world_shape(layers, HP.DATASET, HP.RESOLUTION)
 
             return layers.astype(np.float32)
 

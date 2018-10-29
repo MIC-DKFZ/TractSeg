@@ -25,7 +25,7 @@ import os
 import nibabel as nib
 from os.path import join
 from tractseg.libs.Config import Config as C
-from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs import dataset_utils
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 
@@ -144,16 +144,16 @@ class SlicesBatchGeneratorRandomNiftiImg(SlimDataLoaderBase):
         data = np.nan_to_num(data)    # Needed otherwise not working
         seg = np.nan_to_num(seg)
 
-        data = DatasetUtils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)    # (x, y, z, channels)
+        data = dataset_utils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)    # (x, y, z, channels)
 
         if self.HP.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
                                            "bundle_masks_20_808080", "bundle_masks_72_808080", "bundle_peaks_Part1_808080",
                                            "bundle_peaks_Part2_808080", "bundle_peaks_Part3_808080", "bundle_peaks_Part4_808080"]:
             if self.HP.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
                 # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
-                seg = DatasetUtils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
+                seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
             else:
-                seg = DatasetUtils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
+                seg = dataset_utils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
 
         slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
 
@@ -234,12 +234,12 @@ class SlicesBatchGeneratorRandomNiftiImg_5slices(SlimDataLoaderBase):
         data = np.nan_to_num(data)    # Needed otherwise not working
         seg = np.nan_to_num(seg)
 
-        data = DatasetUtils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)    # (x, y, z, channels)
+        data = dataset_utils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)    # (x, y, z, channels)
         if self.HP.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
             # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
-            seg = DatasetUtils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
+            seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
         else:
-            seg = DatasetUtils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
+            seg = dataset_utils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)  # (x, y, z, classes)
 
         slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
 

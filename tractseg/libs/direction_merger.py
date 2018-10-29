@@ -18,7 +18,7 @@
 import importlib
 import numpy as np
 
-from tractseg.libs.DataManagersInference import DataManagerSingleSubjectByFile
+from tractseg.libs.data_managers_inference import DataManagerSingleSubjectByFile
 
 
 def get_seg_single_img_3_directions(HP, model, subject=None, data=None, scale_to_world_shape=True, only_prediction=False):
@@ -32,7 +32,7 @@ def get_seg_single_img_3_directions(HP, model, subject=None, data=None, scale_to
     :param scale_to_world_shape:
     :return:
     '''
-    from tractseg.libs.Trainer import Trainer
+    from tractseg.libs.trainer import Trainer
 
     prob_slices = []
     directions = ["x", "y", "z"]
@@ -42,7 +42,7 @@ def get_seg_single_img_3_directions(HP, model, subject=None, data=None, scale_to
         # print("Processing direction " + HP.SLICE_DIRECTION)
 
         if subject:
-            from tractseg.libs.DataManagers import DataManagerSingleSubjectById
+            from tractseg.libs.data_managers import DataManagerSingleSubjectById
             dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject)
         else:
             dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)

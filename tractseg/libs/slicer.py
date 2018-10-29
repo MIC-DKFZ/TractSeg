@@ -24,9 +24,9 @@ from tractseg.libs import exp_utils
 from tractseg.libs.Config import Config as C
 from tractseg.libs import metric_utils
 import time
-from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs import dataset_utils
 from tractseg.libs.subjects import get_all_subjects
-from tractseg.libs.DataManagers import DataManagerTrainingNiftiImgs
+from tractseg.libs.data_managers import DataManagerTrainingNiftiImgs
 
 np.random.seed(1337)
 
@@ -58,7 +58,7 @@ class Slicer:
             dwi = nib.load(join(data_dir, s, HP.FEATURES_FILENAME + ".nii.gz"))
             dwi_data = dwi.get_data()
             dwi_data = np.nan_to_num(dwi_data)
-            dwi_data = DatasetUtils.scale_input_to_unet_shape(dwi_data, HP.DATASET, HP.RESOLUTION)
+            dwi_data = dataset_utils.scale_input_to_unet_shape(dwi_data, HP.DATASET, HP.RESOLUTION)
 
             # if slice == "x":
             #     for z in range(dwi_data.shape[0]):
@@ -97,7 +97,7 @@ class Slicer:
             mask_data = img_utils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.RESOLUTION == "2.5mm":
                 mask_data = img_utils.resize_first_three_dims(mask_data, order=0, zoom=0.5)
-            mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, HP.DATASET, HP.RESOLUTION)
+            mask_data = dataset_utils.scale_input_to_unet_shape(mask_data, HP.DATASET, HP.RESOLUTION)
 
             # if slice == "x":
             #     for z in range(dwi_data.shape[0]):
@@ -164,20 +164,20 @@ class Slicer:
             mask_data = img_utils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.DATASET == "HCP_2mm":
                 #use "HCP" because for mask we need downscaling
-                mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, "HCP", HP.RESOLUTION)
+                mask_data = dataset_utils.scale_input_to_unet_shape(mask_data, "HCP", HP.RESOLUTION)
             elif HP.DATASET == "HCP_2.5mm":
                 # use "HCP" because for mask we need downscaling
-                mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, "HCP", HP.RESOLUTION)
+                mask_data = dataset_utils.scale_input_to_unet_shape(mask_data, "HCP", HP.RESOLUTION)
             else:
                 # Mask has same resolution as probmaps -> we can use same resizing
-                mask_data = DatasetUtils.scale_input_to_unet_shape(mask_data, HP.DATASET, HP.RESOLUTION)
+                mask_data = dataset_utils.scale_input_to_unet_shape(mask_data, HP.DATASET, HP.RESOLUTION)
 
             # Save as Img
             img = nib.Nifti1Image(combined, img_utils.get_dwi_affine(HP.DATASET, HP.RESOLUTION))
             nib.save(img, join(HP.EXP_PATH, "combined", s + "_combinded_probmap.nii.gz"))
 
 
-            combined = DatasetUtils.scale_input_to_unet_shape(combined, HP.DATASET, HP.RESOLUTION)
+            combined = dataset_utils.scale_input_to_unet_shape(combined, HP.DATASET, HP.RESOLUTION)
             assert (combined.shape[2] == mask_data.shape[2])
 
             #Save as Slices
@@ -215,7 +215,7 @@ class Slicer:
             print("processing data subject {}".format(s))
             data = nib.load(join(C.HOME, HP.DATASET_FOLDER, s, HP.FEATURES_FILENAME + ".nii.gz")).get_data()
             data = np.nan_to_num(data)
-            data = DatasetUtils.scale_input_to_unet_shape(data, HP.DATASET, HP.RESOLUTION)
+            data = dataset_utils.scale_input_to_unet_shape(data, HP.DATASET, HP.RESOLUTION)
         data_all.append(np.array(data))
         np.save("data.npy", data_all)
         del data_all  # free memory
@@ -226,7 +226,7 @@ class Slicer:
             seg = img_utils.create_multilabel_mask(HP, s, labels_type=HP.LABELS_TYPE)
             if HP.RESOLUTION == "2.5mm":
                 seg = img_utils.resize_first_three_dims(seg, order=0, zoom=0.5)
-            seg = DatasetUtils.scale_input_to_unet_shape(seg, HP.DATASET, HP.RESOLUTION)
+            seg = dataset_utils.scale_input_to_unet_shape(seg, HP.DATASET, HP.RESOLUTION)
         seg_all.append(np.array(seg))
         print("SEG TYPE: {}".format(seg_all.dtype))
         np.save("seg.npy", seg_all)
@@ -263,7 +263,7 @@ class Slicer:
             data = nib.load(join(C.NETWORK_DRIVE, "HCP_fusion_" + DIFFUSION_FOLDER, s + "_probmap.nii.gz")).get_data()
             print("Done Loading")
             data = np.nan_to_num(data)
-            data = DatasetUtils.scale_input_to_unet_shape(data, HP.DATASET, HP.RESOLUTION)
+            data = dataset_utils.scale_input_to_unet_shape(data, HP.DATASET, HP.RESOLUTION)
             data = data[:-1, :, :-1, :]  # cut one pixel at the end, because in scale_input_to_world_shape we ouputted 146 -> one too much at the end
             exp_utils.make_dir(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s))
             np.save(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s, DIFFUSION_FOLDER + "_xyz.npy"), data)
@@ -275,7 +275,7 @@ class Slicer:
             seg = nib.load(join(C.NETWORK_DRIVE, "HCP_for_training_COPY", s, HP.LABELS_FILENAME + ".nii.gz")).get_data()
             if HP.RESOLUTION == "2.5mm":
                 seg = img_utils.resize_first_three_dims(seg, order=0, zoom=0.5)
-            seg = DatasetUtils.scale_input_to_unet_shape(seg, HP.DATASET, HP.RESOLUTION)
+            seg = dataset_utils.scale_input_to_unet_shape(seg, HP.DATASET, HP.RESOLUTION)
             np.save(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s, "bundle_masks.npy"), seg)
             print("Took {}s".format(time.time() - start_time))
 

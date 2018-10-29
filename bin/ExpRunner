@@ -37,11 +37,11 @@ from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import metric_utils
 from tractseg.libs.Config import Config as C
-from tractseg.libs.Trainer import Trainer
-from tractseg.libs.DataManagers import DataManagerSingleSubjectById
-from tractseg.libs.DataManagers import DataManagerTrainingNiftiImgs
-from tractseg.libs.DataManagers import DataManagerPrecomputedBatches
-from tractseg.libs.DataManagers import DataManagerPrecomputedBatches_noDLBG
+from tractseg.libs.trainer import Trainer
+from tractseg.libs.data_managers import DataManagerSingleSubjectById
+from tractseg.libs.data_managers import DataManagerTrainingNiftiImgs
+from tractseg.libs.data_managers import DataManagerPrecomputedBatches
+from tractseg.libs.data_managers import DataManagerPrecomputedBatches_noDLBG
 from tractseg.models.BaseModel import BaseModel
 
 '''

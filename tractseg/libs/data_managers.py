@@ -32,13 +32,13 @@ from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 
 from tractseg.libs import img_utils
-from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg
-from tractseg.libs.BatchGenerators import SlicesBatchGeneratorPrecomputedBatches
-from tractseg.libs.BatchGenerators import SlicesBatchGeneratorRandomNiftiImg_5slices
-from tractseg.libs.BatchGenerators import SlicesBatchGenerator
-from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
-from tractseg.libs.BatchGenerators_fusion import SlicesBatchGeneratorNpyImg_fusion
-from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs.batch_generators import SlicesBatchGeneratorRandomNiftiImg
+from tractseg.libs.batch_generators import SlicesBatchGeneratorPrecomputedBatches
+from tractseg.libs.batch_generators import SlicesBatchGeneratorRandomNiftiImg_5slices
+from tractseg.libs.batch_generators import SlicesBatchGenerator
+from tractseg.libs.batch_generators_fusion import SlicesBatchGeneratorRandomNpyImg_fusion
+from tractseg.libs.batch_generators_fusion import SlicesBatchGeneratorNpyImg_fusion
+from tractseg.libs import dataset_utils
 from tractseg.libs.Config import Config as C
 from tractseg.libs import exp_utils
 
@@ -78,7 +78,7 @@ class DataManagerSingleSubjectById:
                 data_img = nib.load(join(self.data_dir, self.HP.FEATURES_FILENAME + ".nii.gz"))
             data = data_img.get_data()
             data = np.nan_to_num(data)
-            data = DatasetUtils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)
+            data = dataset_utils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)
             # data = DatasetUtils.scale_input_to_unet_shape(data, "HCP_32g", "1.25mm")  #If we want to test HCP_32g on HighRes net
 
             #Load Segmentation
@@ -90,9 +90,9 @@ class DataManagerSingleSubjectById:
                                            "bundle_peaks_Part2_808080", "bundle_peaks_Part3_808080", "bundle_peaks_Part4_808080"]:
                     if self.HP.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
                         # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask
-                        seg = DatasetUtils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
+                        seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
                     else:
-                        seg = DatasetUtils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)
+                        seg = dataset_utils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)
             else:
                 # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
                 seg = np.zeros((self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.NR_OF_CLASSES)).astype(self.HP.LABELS_TYPE)

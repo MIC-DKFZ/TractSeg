@@ -29,11 +29,11 @@ from tractseg.libs.Config import Config as C
 from tractseg.libs.Config import get_config_name
 from tractseg.libs import exp_utils
 from tractseg.libs import utils
-from tractseg.libs.DatasetUtils import DatasetUtils
+from tractseg.libs import dataset_utils
 from tractseg.libs import direction_merger
 from tractseg.libs import img_utils
-from tractseg.libs.DataManagersInference import DataManagerSingleSubjectByFile
-from tractseg.libs.Trainer import Trainer
+from tractseg.libs.data_managers_inference import DataManagerSingleSubjectByFile
+from tractseg.libs.trainer import Trainer
 from tractseg.models.BaseModel import BaseModel
 
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
@@ -114,8 +114,8 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
 
     if input_type == "T1":
         data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], 1))
-    data, seg_None, bbox, original_shape = DatasetUtils.crop_to_nonzero(data)
-    data, transformation = DatasetUtils.pad_and_scale_img_to_square_img(data, target_size=HP.INPUT_DIM[0])
+    data, seg_None, bbox, original_shape = dataset_utils.crop_to_nonzero(data)
+    data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data, target_size=HP.INPUT_DIM[0])
 
     if HP.EXPERIMENT_TYPE == "tract_segmentation" or HP.EXPERIMENT_TYPE == "endings_segmentation" or HP.EXPERIMENT_TYPE == "dm_regression":
         print("Loading weights from: {}".format(HP.WEIGHTS_PATH))
@@ -185,8 +185,8 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         seg = img_utils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(HP.CLASSES)[1:])
 
     #remove following two lines to keep super resolution
-    seg = DatasetUtils.cut_and_scale_img_back_to_original_img(seg, transformation)  #quite slow
-    seg = DatasetUtils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES) #quite slow
+    seg = dataset_utils.cut_and_scale_img_back_to_original_img(seg, transformation)  #quite slow
+    seg = dataset_utils.add_original_zero_padding_again(seg, bbox, original_shape, HP.NR_OF_CLASSES) #quite slow
 
     if postprocess:
         seg = img_utils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)
