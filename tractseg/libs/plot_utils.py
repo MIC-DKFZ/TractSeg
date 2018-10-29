@@ -33,7 +33,7 @@ plt.ioff()
 
 def plot_mask(renderer, mask_data, affine, x_current, y_current,
               orientation="axial", smoothing=10, brain_mask=None):
-    from tractseg.libs.VtkUtils import VtkUtils
+    from tractseg.libs import vtk_utils
 
     if brain_mask is not None:
         brain_mask = brain_mask.transpose(0, 2, 1)
@@ -41,8 +41,8 @@ def plot_mask(renderer, mask_data, affine, x_current, y_current,
         if orientation == "sagittal":
             brain_mask = brain_mask.transpose(2, 1, 0)
             brain_mask = brain_mask[::-1, :, :]
-        cont_actor = VtkUtils.contour_from_roi_smooth(brain_mask, affine=affine,
-                                                      color=[.9, .9, .9], opacity=.1, smoothing=30)
+        cont_actor = vtk_utils.contour_from_roi_smooth(brain_mask, affine=affine,
+                                                       color=[.9, .9, .9], opacity=.1, smoothing=30)
         cont_actor.SetPosition(x_current, y_current, 0)
         renderer.add(cont_actor)
 
@@ -55,8 +55,8 @@ def plot_mask(renderer, mask_data, affine, x_current, y_current,
         mask = mask[::-1, :, :]
     color = [1, .27, .18]  # red
 
-    cont_actor = VtkUtils.contour_from_roi_smooth(mask, affine=affine,
-                                                  color=color, opacity=1, smoothing=smoothing)
+    cont_actor = vtk_utils.contour_from_roi_smooth(mask, affine=affine,
+                                                   color=color, opacity=1, smoothing=smoothing)
     cont_actor.SetPosition(x_current, y_current, 0)
     renderer.add(cont_actor)
 
@@ -70,7 +70,7 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
     (important: login needed, not just stay at login screen)
     '''
     from dipy.viz import window
-    from tractseg.libs.VtkUtils import VtkUtils
+    from tractseg.libs import vtk_utils
 
     SMOOTHING = 10
     WINDOW_SIZE = (800, 800)
@@ -112,7 +112,7 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
         text_offset_top = -50  # 60
         text_offset_side = -100 # -30
         position = (0 - int(X) + text_offset_side, y_current + text_offset_top, 50)
-        text_actor = VtkUtils.label(text=bundle, pos=position, scale=(6, 6, 6), color=(1, 1, 1))
+        text_actor = vtk_utils.label(text=bundle, pos=position, scale=(6, 6, 6), color=(1, 1, 1))
         renderer.add(text_actor)
 
     renderer.reset_camera()
