@@ -31,31 +31,36 @@ arg2: file out
 arg3: axis       (x, y or z)
 """
 
-parser = argparse.ArgumentParser(description="Flip Mrtrix peaks along specific axis.",
-                                    epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
-                                           "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
-parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti image)", required=True)
-parser.add_argument("-o", metavar="file_out", dest="file_out", help="output file (4D nifti image)", required=True)
-parser.add_argument("-a", metavar="axis", dest="axis", help="axis (x|y|z)", choices=["x", "y", "z"], required=True)
-args = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser(description="Flip Mrtrix peaks along specific axis.",
+                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
+                                               "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
+    parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti image)", required=True)
+    parser.add_argument("-o", metavar="file_out", dest="file_out", help="output file (4D nifti image)", required=True)
+    parser.add_argument("-a", metavar="axis", dest="axis", help="axis (x|y|z)", choices=["x", "y", "z"], required=True)
+    args = parser.parse_args()
 
-img = nib.load(args.file_in)
-data = img.get_data()
+    img = nib.load(args.file_in)
+    data = img.get_data()
 
-#We only flip data, not affine
-if args.axis == "x":
-    # flip x Axis  (9 channel image)  (3 peaks)
-    data[ :, :, :, 0] *= -1
-    data[ :, :, :, 3] *= -1
-    data[ :, :, :, 6] *= -1
-elif args.axis == "y":
-    data[ :, :, :, 1] *= -1
-    data[ :, :, :, 4] *= -1
-    data[ :, :, :, 7] *= -1
-elif args.axis == "z":
-    data[ :, :, :, 2] *= -1
-    data[ :, :, :, 5] *= -1
-    data[ :, :, :, 8] *= -1
+    #We only flip data, not affine
+    if args.axis == "x":
+        # flip x Axis  (9 channel image)  (3 peaks)
+        data[ :, :, :, 0] *= -1
+        data[ :, :, :, 3] *= -1
+        data[ :, :, :, 6] *= -1
+    elif args.axis == "y":
+        data[ :, :, :, 1] *= -1
+        data[ :, :, :, 4] *= -1
+        data[ :, :, :, 7] *= -1
+    elif args.axis == "z":
+        data[ :, :, :, 2] *= -1
+        data[ :, :, :, 5] *= -1
+        data[ :, :, :, 8] *= -1
 
-new_image = nib.Nifti1Image(data, img.get_affine())
-nib.save(new_image, args.file_out)
+    new_image = nib.Nifti1Image(data, img.get_affine())
+    nib.save(new_image, args.file_out)
+
+
+if __name__ == '__main__':
+    main()

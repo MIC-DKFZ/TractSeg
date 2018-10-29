@@ -23,21 +23,25 @@ import argparse
 
 from tractseg.libs import utils
 
+def main():
+    parser = argparse.ArgumentParser(description="Download all pretrained weights (instead of them being downloaded "
+                                                 "automatically on the fly when needed). Will download them to"
+                                                 "`~/.tractseg/` (default). If you want them to be downloaded to a "
+                                                 "different directory you can specify it by adding "
+                                                 "`weights_dir=absolute_path_to_where_you_want_it` to `~/.tractseg/config.txt`",
+                                        epilog="Written by Jakob Wasserthal")
+    # parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti diffusion image)", required=True)
+    args = parser.parse_args()
 
-parser = argparse.ArgumentParser(description="Download all pretrained weights (instead of them being downloaded "
-                                             "automatically on the fly when needed). Will download them to"
-                                             "`~/.tractseg/` (default). If you want them to be downloaded to a "
-                                             "different directory you can specify it by adding "
-                                             "`weights_dir=absolute_path_to_where_you_want_it` to `~/.tractseg/config.txt`",
-                                    epilog="Written by Jakob Wasserthal")
-# parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti diffusion image)", required=True)
-args = parser.parse_args()
+    utils.download_pretrained_weights("tract_segmentation")
+    utils.download_pretrained_weights("tract_segmentation", dropout_sampling=True)
+    utils.download_pretrained_weights("endings_segmentation")
+    utils.download_pretrained_weights("dm_regression")
+    utils.download_pretrained_weights("peak_regression", part="Part1")
+    utils.download_pretrained_weights("peak_regression", part="Part2")
+    utils.download_pretrained_weights("peak_regression", part="Part3")
+    utils.download_pretrained_weights("peak_regression", part="Part4")
 
-utils.download_pretrained_weights("tract_segmentation")
-utils.download_pretrained_weights("tract_segmentation", dropout_sampling=True)
-utils.download_pretrained_weights("endings_segmentation")
-utils.download_pretrained_weights("dm_regression")
-utils.download_pretrained_weights("peak_regression", part="Part1")
-utils.download_pretrained_weights("peak_regression", part="Part2")
-utils.download_pretrained_weights("peak_regression", part="Part3")
-utils.download_pretrained_weights("peak_regression", part="Part4")
+
+if __name__ == '__main__':
+    main()

@@ -40,191 +40,190 @@ from tractseg.libs import plot_utils
 from tractseg.python_api import run_tractseg
 
 
-"""
-Usage:
-TractSeg -i peaks.nii.gz
-"""
+def main():
+    parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
+                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
+                                               "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070'")
+    parser.add_argument("-i", metavar="filepath", dest="input", help="CSD peaks in MRtrix format (4D Nifti image with dimensions [x,y,z,9])", required=True)
+    parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
+    parser.add_argument("--single_output_file", action="store_true", help="Output all bundles in one file (4D image)", default=False)
+    parser.add_argument("--csd_type", metavar="csd|csd_msmt|csd_msmt_5tt", choices=["csd", "csd_msmt", "csd_msmt_5tt"],
+                        help="Which MRtrix constrained spherical deconvolution (CSD) is used for peak generation.\n" +
+                             "'csd' [DEFAULT]: Standard CSD. Very fast.\n" +
+                             "'csd_msmt': Multi-shell multi-tissue CSD DHollander algorithm. Medium fast. Needs more than one b-value shell.\n" +
+                             "'csd_msmt_5tt': Multi-shell multi-tissue CSD 5TT. Slow on large images. Needs more than one b-value shell." +
+                             "Needs a T1 image (a file 'T1w_acpc_dc_restore_brain.nii.gz' must be in the input directory).", default="csd")
+    parser.add_argument("--output_type", metavar="tract_segmentation|endings_segmentation|TOM|dm_regression", choices=["tract_segmentation", "endings_segmentation", "TOM", "dm_regression"],
+                        help="TractSeg can segment not only bundles, but also the end regions of bundles. Moreover it can create Tract Orientation Maps (TOM).\n" +
+                             "'tract_segmentation' [DEFAULT]: Segmentation of bundles (72 bundles).\n" +
+                             "'endings_segmentation': Segmentation of bundle end regions (72 bundles).\n" +
+                             "'TOM': Tract Orientation Maps (20 bundles).",
+                        default="tract_segmentation")
+    parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is '<name_of_input_file>.bvals' in same directory as input")
+    parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is '<name_of_input_file>.bvecs' in same directory as input")
+    parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
+    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
+    parser.add_argument("--raw_diffusion_input", action="store_true", help="Provide a Diffusion nifti image as argument to -i. Will calculate CSD and extract the mean peaks needed as input for TractSeg.", default=False)
+    parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
+    parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Requires VTK.", default=False)
+    parser.add_argument("--flip", action="store_true", help="Flip output peaks of TOM along z axis to make compatible with MITK.", default=False)
+    parser.add_argument("--single_orientation", action="store_true", help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.", default=False)
+    parser.add_argument("--bundle_specific_threshold", action="store_true", help="For converting probability maps to binary maps use lower threshold for difficult bundles like CA, FX and CST", default=False)
+    parser.add_argument("--get_probabilities", action="store_true", help="Output probability map instead of binary segmentation", default=False)
+    parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks (MRtrix FACT)", default=False)
+    parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create (default: 2000)", default=2000)
+    parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
+    parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
+    parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
+                        help="Only keep fibers starting and ending in endpoint regions (need to run TractSeg with '--output_type endings_segmentation' first) and " +
+                             "and not leaving the tract mask (need to run TractSeg with '--output_type tract_segmentation' (default) first). See documentation for more details.", default=False)
+    parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
+    parser.add_argument("--uncertainty", action="store_true", help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)", default=False)
+    parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
+    #Move input image to MNI space
+    parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
+    parser.add_argument("--nr_cpus", metavar="n", type=int, help="Number of CPUs to use. "
+                                                                 "-1 means all available CPUs (default: -1)", default=-1)
+    parser.add_argument('--version', action='version', version='TractSeg 1.7.1')
+    args = parser.parse_args()
 
-parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
-                                    epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
-                                           "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070'")
-parser.add_argument("-i", metavar="filepath", dest="input", help="CSD peaks in MRtrix format (4D Nifti image with dimensions [x,y,z,9])", required=True)
-parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
-parser.add_argument("--single_output_file", action="store_true", help="Output all bundles in one file (4D image)", default=False)
-parser.add_argument("--csd_type", metavar="csd|csd_msmt|csd_msmt_5tt", choices=["csd", "csd_msmt", "csd_msmt_5tt"],
-                    help="Which MRtrix constrained spherical deconvolution (CSD) is used for peak generation.\n" +
-                         "'csd' [DEFAULT]: Standard CSD. Very fast.\n" +
-                         "'csd_msmt': Multi-shell multi-tissue CSD DHollander algorithm. Medium fast. Needs more than one b-value shell.\n" +
-                         "'csd_msmt_5tt': Multi-shell multi-tissue CSD 5TT. Slow on large images. Needs more than one b-value shell." +
-                         "Needs a T1 image (a file 'T1w_acpc_dc_restore_brain.nii.gz' must be in the input directory).", default="csd")
-parser.add_argument("--output_type", metavar="tract_segmentation|endings_segmentation|TOM|dm_regression", choices=["tract_segmentation", "endings_segmentation", "TOM", "dm_regression"],
-                    help="TractSeg can segment not only bundles, but also the end regions of bundles. Moreover it can create Tract Orientation Maps (TOM).\n" +
-                         "'tract_segmentation' [DEFAULT]: Segmentation of bundles (72 bundles).\n" +
-                         "'endings_segmentation': Segmentation of bundle end regions (72 bundles).\n" +
-                         "'TOM': Tract Orientation Maps (20 bundles).",
-                    default="tract_segmentation")
-parser.add_argument("--bvals", metavar="filename", help="bvals file. Default is '<name_of_input_file>.bvals' in same directory as input")
-parser.add_argument("--bvecs", metavar="filename", help="bvecs file. Default is '<name_of_input_file>.bvecs' in same directory as input")
-parser.add_argument("--brain_mask", metavar="filename", help="brain mask file. If not specified will automatically be generated with fsl bet")
-parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
-parser.add_argument("--raw_diffusion_input", action="store_true", help="Provide a Diffusion nifti image as argument to -i. Will calculate CSD and extract the mean peaks needed as input for TractSeg.", default=False)
-parser.add_argument("--keep_intermediate_files", action="store_true", help="Do not remove intermediate files like CSD output and peaks", default=False)
-parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Requires VTK.", default=False)
-parser.add_argument("--flip", action="store_true", help="Flip output peaks of TOM along z axis to make compatible with MITK.", default=False)
-parser.add_argument("--single_orientation", action="store_true", help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.", default=False)
-parser.add_argument("--bundle_specific_threshold", action="store_true", help="For converting probability maps to binary maps use lower threshold for difficult bundles like CA, FX and CST", default=False)
-parser.add_argument("--get_probabilities", action="store_true", help="Output probability map instead of binary segmentation", default=False)
-parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks (MRtrix FACT)", default=False)
-parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create (default: 2000)", default=2000)
-parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
-parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
-parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
-                    help="Only keep fibers starting and ending in endpoint regions (need to run TractSeg with '--output_type endings_segmentation' first) and " +
-                         "and not leaving the tract mask (need to run TractSeg with '--output_type tract_segmentation' (default) first). See documentation for more details.", default=False)
-parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
-parser.add_argument("--uncertainty", action="store_true", help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)", default=False)
-parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
-#Move input image to MNI space
-parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
-parser.add_argument("--nr_cpus", metavar="n", type=int, help="Number of CPUs to use. "
-                                                             "-1 means all available CPUs (default: -1)", default=-1)
-parser.add_argument('--version', action='version', version='TractSeg 1.7.1')
-args = parser.parse_args()
+    #Private parameters
+    input_type = "peaks"  # peaks / T1
+    dropout_sampling = args.uncertainty
+    threshold = 0.5          #specificity (tract_segmentation and endings_segmentation)
+    peak_threshold = 0.3     #specificity (TOM)
 
-#Private parameters
-input_type = "peaks"  # peaks / T1
-dropout_sampling = args.uncertainty
-threshold = 0.5          #specificity (tract_segmentation and endings_segmentation)
-peak_threshold = 0.3     #specificity (TOM)
+    input_path = args.input
+    config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
+    Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
+    Config.CSD_TYPE = args.csd_type
+    Config.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
+    Config.VERBOSE = args.verbose
+    Config.SINGLE_OUTPUT_FILE = args.single_output_file
+    Config.FLIP_OUTPUT_PEAKS = args.flip
+    Config.PREDICT_IMG = input_path is not None
+    if args.output:
+        Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
+    elif Config.PREDICT_IMG:
+        Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
 
-input_path = args.input
-config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
-Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
-Config.CSD_TYPE = args.csd_type
-Config.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
-Config.VERBOSE = args.verbose
-Config.SINGLE_OUTPUT_FILE = args.single_output_file
-Config.FLIP_OUTPUT_PEAKS = args.flip
-Config.PREDICT_IMG = input_path is not None
-if args.output:
-    Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
-elif Config.PREDICT_IMG:
-    Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
+    bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
+    brain_mask = exp_utils.get_brain_mask_path(Config, args)
+    exp_utils.make_dir(Config.PREDICT_IMG_OUTPUT)
 
-bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
-brain_mask = exp_utils.get_brain_mask_path(Config, args)
-exp_utils.make_dir(Config.PREDICT_IMG_OUTPUT)
-
-if args.raw_diffusion_input:
-    if args.brain_mask is None:
-        brain_mask = mrtrix.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
-
-    if args.preprocess:
-        input_path, bvals, bvecs, brain_mask = mrtrix.move_to_MNI_space(input_path, bvals, bvecs, brain_mask, Config.PREDICT_IMG_OUTPUT)
-
-    mrtrix.create_fods(input_path, Config.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, Config.CSD_TYPE, nr_cpus=args.nr_cpus)
-
-if args.raw_diffusion_input:
-    peak_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
-    data_img = nib.load(peak_path)
-else:
-    peak_path = input_path
-    data_img = nib.load(peak_path)
-    data_img_shape = data_img.get_data().shape
-    if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
-        print("ERROR: Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
-                      "If you input a Diffusion image add the option '--raw_diffusion_input'.")
-        sys.exit()
-
-if args.super_resolution:
-    data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
-data_affine = data_img.get_affine()
-
-if not args.only_track:
-    flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img, do_flip=False)
-    if flip_axis is not None:
-        print("\nWARNING: Detected that peaks probably have wrong orientation. You should flip them along the " +
-              flip_axis + "-axis using the following command: \n" +
-              "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") + " -a " + flip_axis + "\"\n" +
-              "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
-              "Then rerun TractSeg using the flipped peaks.\n")
-
-    data = data_img.get_data()
-    data_img = None     # free memory
-
-    #Use Peaks + T1
-    # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
-    # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[:,:,:,None]
-    # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]  #needed if upsampling of peaks resulted in one pixel less (sometimes)
-    # data = np.concatenate((data, t1_data), axis=3)
-
-    if Config.EXPERIMENT_TYPE == "peak_regression":
-        parts = ["Part1", "Part2", "Part3", "Part4"]
-    else:
-        parts = ["All"]
-
-    for part in parts:
-        if part != "All":
-            Config.CLASSES = "All_" + part
-            Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
-
-        seg = run_tractseg(data, args.output_type, input_type=input_type,
-                           single_orientation=args.single_orientation, verbose=args.verbose,
-                           dropout_sampling=dropout_sampling, threshold=threshold,
-                           bundle_specific_threshold=args.bundle_specific_threshold,
-                           get_probs=args.get_probabilities, peak_threshold=peak_threshold,
-                           postprocess=args.postprocess, peak_regression_part=part,
-                           nr_cpus=args.nr_cpus)
-
-        if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
-            print("Saving preview...")
-            # brain_mask = nib.load(brain_mask).get_data()
-            plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
-
-        if Config.SINGLE_OUTPUT_FILE:
-            img = nib.Nifti1Image(seg, data_affine)
-            seg = None
-            if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
-            elif Config.EXPERIMENT_TYPE == "tract_segmentation":
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
-            elif Config.EXPERIMENT_TYPE == "endings_segmentation":
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_endings.nii.gz"))
-            elif Config.EXPERIMENT_TYPE == "peak_regression":
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
-            elif Config.EXPERIMENT_TYPE == "dm_regression":
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
-        else:
-            if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
-            elif Config.EXPERIMENT_TYPE == "tract_segmentation":
-                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
-            elif Config.EXPERIMENT_TYPE == "endings_segmentation":
-                img_utils.save_multilabel_img_as_multiple_files_endings(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
-            elif Config.EXPERIMENT_TYPE == "peak_regression":
-                img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
-            elif Config.EXPERIMENT_TYPE == "dm_regression":
-                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT, name="dm_regression")
-
-        #Free memory
-        seg = None
-        img = None
-
-        if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
-            mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
-
-    Config.CLASSES = "All"
-
-if args.track or args.only_track:
-    print("Tracking...")
     if args.raw_diffusion_input:
-        peaks_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
+        if args.brain_mask is None:
+            brain_mask = mrtrix.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
+
+        if args.preprocess:
+            input_path, bvals, bvecs, brain_mask = mrtrix.move_to_MNI_space(input_path, bvals, bvecs, brain_mask, Config.PREDICT_IMG_OUTPUT)
+
+        mrtrix.create_fods(input_path, Config.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, Config.CSD_TYPE, nr_cpus=args.nr_cpus)
+
+    if args.raw_diffusion_input:
+        peak_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
+        data_img = nib.load(peak_path)
     else:
-        peaks_path = input_path
-    for bundle in tqdm(exp_utils.get_bundle_names(Config.CLASSES)[1:]):
-        mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
-                     filter_by_endpoints=args.filter_tracking_by_endpoints,
-                     output_format=args.tracking_format, nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus)
+        peak_path = input_path
+        data_img = nib.load(peak_path)
+        data_img_shape = data_img.get_data().shape
+        if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
+            print("ERROR: Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
+                          "If you input a Diffusion image add the option '--raw_diffusion_input'.")
+            sys.exit()
 
-mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
+    if args.super_resolution:
+        data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
+    data_affine = data_img.get_affine()
 
+    if not args.only_track:
+        flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img, do_flip=False)
+        if flip_axis is not None:
+            print("\nWARNING: Detected that peaks probably have wrong orientation. You should flip them along the " +
+                  flip_axis + "-axis using the following command: \n" +
+                  "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") + " -a " + flip_axis + "\"\n" +
+                  "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
+                  "Then rerun TractSeg using the flipped peaks.\n")
+
+        data = data_img.get_data()
+        data_img = None     # free memory
+
+        #Use Peaks + T1
+        # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
+        # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[:,:,:,None]
+        # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]  #needed if upsampling of peaks resulted in one pixel less (sometimes)
+        # data = np.concatenate((data, t1_data), axis=3)
+
+        if Config.EXPERIMENT_TYPE == "peak_regression":
+            parts = ["Part1", "Part2", "Part3", "Part4"]
+        else:
+            parts = ["All"]
+
+        for part in parts:
+            if part != "All":
+                Config.CLASSES = "All_" + part
+                Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+
+            seg = run_tractseg(data, args.output_type, input_type=input_type,
+                               single_orientation=args.single_orientation, verbose=args.verbose,
+                               dropout_sampling=dropout_sampling, threshold=threshold,
+                               bundle_specific_threshold=args.bundle_specific_threshold,
+                               get_probs=args.get_probabilities, peak_threshold=peak_threshold,
+                               postprocess=args.postprocess, peak_regression_part=part,
+                               nr_cpus=args.nr_cpus)
+
+            if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
+                print("Saving preview...")
+                # brain_mask = nib.load(brain_mask).get_data()
+                plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
+
+            if Config.SINGLE_OUTPUT_FILE:
+                img = nib.Nifti1Image(seg, data_affine)
+                seg = None
+                if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
+                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
+                elif Config.EXPERIMENT_TYPE == "tract_segmentation":
+                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
+                elif Config.EXPERIMENT_TYPE == "endings_segmentation":
+                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_endings.nii.gz"))
+                elif Config.EXPERIMENT_TYPE == "peak_regression":
+                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
+                elif Config.EXPERIMENT_TYPE == "dm_regression":
+                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
+            else:
+                if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
+                    img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
+                elif Config.EXPERIMENT_TYPE == "tract_segmentation":
+                    img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
+                elif Config.EXPERIMENT_TYPE == "endings_segmentation":
+                    img_utils.save_multilabel_img_as_multiple_files_endings(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
+                elif Config.EXPERIMENT_TYPE == "peak_regression":
+                    img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
+                elif Config.EXPERIMENT_TYPE == "dm_regression":
+                    img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT, name="dm_regression")
+
+            #Free memory
+            seg = None
+            img = None
+
+            if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
+                mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
+
+        Config.CLASSES = "All"
+
+    if args.track or args.only_track:
+        print("Tracking...")
+        if args.raw_diffusion_input:
+            peaks_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
+        else:
+            peaks_path = input_path
+        for bundle in tqdm(exp_utils.get_bundle_names(Config.CLASSES)[1:]):
+            mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
+                         filter_by_endpoints=args.filter_tracking_by_endpoints,
+                         output_format=args.tracking_format, nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus)
+
+    mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
+
+
+if __name__ == '__main__':
+    main()

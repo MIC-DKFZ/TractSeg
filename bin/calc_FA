@@ -28,34 +28,39 @@ from dipy.core.gradients import gradient_table
 from dipy.reconst.dti import fractional_anisotropy
 
 
-parser = argparse.ArgumentParser(description="Generate FA image.",
-                                    epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
-                                           "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
-parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti diffusion image)", required=True)
-parser.add_argument("-o", metavar="file_out", dest="file_out", help="FA image", required=True)
-parser.add_argument("--bvals", metavar="bvals", dest="bvals", help="bvals file", required=True)
-parser.add_argument("--bvecs", metavar="bvecs", dest="bvecs", help="bvecs file", required=True)
-parser.add_argument("--brain_mask", metavar="brain_mask", dest="brain_mask", help="a brain mask", required=True)
-args = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser(description="Generate FA image.",
+                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
+                                               "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
+    parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti diffusion image)", required=True)
+    parser.add_argument("-o", metavar="file_out", dest="file_out", help="FA image", required=True)
+    parser.add_argument("--bvals", metavar="bvals", dest="bvals", help="bvals file", required=True)
+    parser.add_argument("--bvecs", metavar="bvecs", dest="bvecs", help="bvecs file", required=True)
+    parser.add_argument("--brain_mask", metavar="brain_mask", dest="brain_mask", help="a brain mask", required=True)
+    args = parser.parse_args()
 
-img = nib.load(args.file_in)
-data = img.get_data()
+    img = nib.load(args.file_in)
+    data = img.get_data()
 
-bvals, bvecs = read_bvals_bvecs(args.bvals, args.bvecs)
-gtab = gradient_table(bvals, bvecs)
+    bvals, bvecs = read_bvals_bvecs(args.bvals, args.bvecs)
+    gtab = gradient_table(bvals, bvecs)
 
-mask = nib.load(args.brain_mask).get_data()
-masked_brain = data
-masked_brain[mask < 0.5] = 0
+    mask = nib.load(args.brain_mask).get_data()
+    masked_brain = data
+    masked_brain[mask < 0.5] = 0
 
-# logging.info("Fit Tensor Model...")
-tenmodel = dti.TensorModel(gtab)
-tenfit = tenmodel.fit(masked_brain)
+    # logging.info("Fit Tensor Model...")
+    tenmodel = dti.TensorModel(gtab)
+    tenfit = tenmodel.fit(masked_brain)
 
-# logging.info('Computing FA...')
-FA = fractional_anisotropy(tenfit.evals)
-FA[np.isnan(FA)] = 0
+    # logging.info('Computing FA...')
+    FA = fractional_anisotropy(tenfit.evals)
+    FA[np.isnan(FA)] = 0
 
-# logging.info('Saving FA...')
-fa_img = nib.Nifti1Image(FA.astype(np.float32), img.get_affine())
-nib.save(fa_img, args.file_out)
+    # logging.info('Saving FA...')
+    fa_img = nib.Nifti1Image(FA.astype(np.float32), img.get_affine())
+    nib.save(fa_img, args.file_out)
+
+
+if __name__ == '__main__':
+    main()
