@@ -320,7 +320,7 @@ def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
     :return:
     '''
     import torch
-    from tractseg.libs.PytorchEinsum import einsum
+    from tractseg.libs.pytorch_einsum import einsum
     from tractseg.libs import pytorch_utils
 
     y_true = y_true.permute(0, 2, 3, 1)
@@ -441,7 +441,7 @@ def calc_peak_length_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9], max
     :return:
     '''
     import torch
-    from tractseg.libs.PytorchEinsum import einsum
+    from tractseg.libs.pytorch_einsum import einsum
     from tractseg.libs import pytorch_utils
 
     y_true = y_true.permute(0, 2, 3, 1)

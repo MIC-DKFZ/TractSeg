@@ -133,7 +133,7 @@ def angle_last_dim(a, b):
 
     return: one dimension less then input
     '''
-    from tractseg.libs.PytorchEinsum import einsum
+    from tractseg.libs.pytorch_einsum import einsum
 
     return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
@@ -150,7 +150,7 @@ def angle_second_dim(a, b):
 
     return: one dimension less then input
     '''
-    from tractseg.libs.PytorchEinsum import einsum
+    from tractseg.libs.pytorch_einsum import einsum
 
     return torch.abs(einsum('abcd,abcd->acd', a, b) / (torch.norm(a, 2., 1) * torch.norm(b, 2, 1) + 1e-7))
 
