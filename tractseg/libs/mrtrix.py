@@ -223,7 +223,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     shutil.rmtree(tmp_dir)
 
 
-def clean_up(HP):
+def clean_up(HP, preprocessing_done=False):
     if not HP.KEEP_INTERMEDIATE_FILES:
         os.chdir(HP.PREDICT_IMG_OUTPUT)
 
@@ -241,3 +241,8 @@ def clean_up(HP):
             os.system("rm -f GM.mif")
         else:
             os.system("rm -f response.txt")
+
+    if preprocessing_done:
+        os.system("rm -f FA.nii.gz")
+        os.system("rm -f FA_MNI.nii.gz")
+        os.system("rm -f FA_2_MNI.mat")

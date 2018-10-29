@@ -224,5 +224,5 @@ if args.track or args.only_track:
                      filter_by_endpoints=args.filter_tracking_by_endpoints,
                      output_format=args.tracking_format, nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus)
 
-mrtrix.clean_up(HP)
+mrtrix.clean_up(HP, preprocessing_done=args.preprocess)
 
