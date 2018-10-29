@@ -24,15 +24,15 @@ import numpy as np
 
 from tractseg.libs import exp_utils
 from tractseg.libs import dataset_utils
-from tractseg.libs.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
-from tractseg.libs.DLDABG_standalone import SingleThreadedAugmenter
-from tractseg.libs.DLDABG_standalone import ReorderSegTransform
-from tractseg.libs.DLDABG_standalone import Compose
-
+from tractseg.data.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
+from tractseg.data.DLDABG_standalone import SingleThreadedAugmenter
+from tractseg.data.DLDABG_standalone import ReorderSegTransform
+from tractseg.data.DLDABG_standalone import Compose
 
 np.random.seed(1337)  # for reproducibility
 
-class DataLoader2D_data_ordered_standalone(object):
+
+class BatchGenerator2D_data_ordered_standalone(object):
     '''
     Creates batch of 2D slices from one subject.
 
@@ -86,24 +86,31 @@ class DataLoader2D_data_ordered_standalone(object):
         return data_dict
 
 
-class DataManagerSingleSubjectByFile:
+class DataLoaderInference():
+
     def __init__(self, Config, data):
-        self.data = data
         self.Config = Config
-        exp_utils.print_verbose(self.Config, "Loading data from PREDICT_IMG input file")
+        self.data = data
 
-    def get_batches(self, batch_size=1):
-        data = np.nan_to_num(self.data)
-        # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
-        seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.NR_OF_CLASSES)).astype(self.Config.LABELS_TYPE)
-
-        num_processes = 1  # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
-        batch_gen = DataLoader2D_data_ordered_standalone((data, seg), batch_size=batch_size)
-        batch_gen.Config = self.Config
+    def _augment_data(self, batch_generator, type=None):
         tfs = []  # transforms
-
         if self.Config.NORMALIZE_DATA:
             tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
         tfs.append(ReorderSegTransform())
-        batch_gen = SingleThreadedAugmenter(batch_gen, Compose(tfs))
-        return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)
+        batch_gen = SingleThreadedAugmenter(batch_generator, Compose(tfs))
+        return batch_gen
+
+    def get_batch_generator(self, batch_size=1):
+        exp_utils.print_verbose(self.Config, "Loading data from PREDICT_IMG input file")
+
+        data = np.nan_to_num(self.data)
+        # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
+        seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0],
+                        self.Config.INPUT_DIM[0], self.Config.NR_OF_CLASSES)).astype(self.Config.LABELS_TYPE)
+
+        batch_gen = BatchGenerator2D_data_ordered_standalone((data, seg), batch_size=batch_size)
+        batch_gen.Config = self.Config
+
+        batch_gen = self._augment_data(batch_gen, type=type)
+        return batch_gen
+

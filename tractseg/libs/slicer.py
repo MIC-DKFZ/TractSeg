@@ -23,15 +23,13 @@ import time
 import nibabel as nib
 import numpy as np
 from sklearn.utils import shuffle as sk_shuffle
-import scipy.ndimage
 
 from tractseg.libs import img_utils
 from tractseg.libs import exp_utils
 from tractseg.libs.system_config import SystemConfig as C
-from tractseg.libs import metric_utils
 from tractseg.libs import dataset_utils
 from tractseg.libs.subjects import get_all_subjects
-from tractseg.libs.data_managers import DataManagerTrainingNiftiImgs
+from tractseg.data.data_loader_training_single import DataManagerTrainingNiftiImgs
 
 
 np.random.seed(1337)

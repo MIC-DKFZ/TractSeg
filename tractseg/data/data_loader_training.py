@@ -33,13 +33,24 @@ from time import sleep
 import numpy as np
 import nibabel as nib
 
+from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
+from batchgenerators.transforms.resample_transforms import ResampleTransform
+from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
+from batchgenerators.transforms.spatial_transforms import SpatialTransform, FlipVectorAxisTransform
+from batchgenerators.transforms.spatial_transforms import MirrorTransform
+from batchgenerators.transforms.crop_and_pad_transforms import PadToMultipleTransform
+from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
+from batchgenerators.transforms.abstract_transforms import Compose
+from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
+from batchgenerators.dataloading.single_threaded_augmenter import SingleThreadedAugmenter
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
+
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
 from tractseg.libs import exp_utils
 
 
-def load_training_data(Config, subject, use_gt_mask=True):
+def load_training_data(Config, subject):
     """
     Load data and labels for one subject from the training set. Cut and scale to make them have
     correct size.
@@ -89,25 +100,21 @@ def load_training_data(Config, subject, use_gt_mask=True):
     data = np.nan_to_num(data)  # Needed otherwise not working
     data = dataset_utils.scale_input_to_unet_shape(data, Config.DATASET, Config.RESOLUTION)  # (x, y, z, channels)
 
-    if use_gt_mask:
-        seg = nib.load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.LABELS_FILENAME + ".nii.gz")).get_data()
-        seg = np.nan_to_num(seg)
-        if Config.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
-                                               "bundle_masks_20_808080", "bundle_masks_72_808080", "bundle_peaks_Part1_808080",
-                                               "bundle_peaks_Part2_808080", "bundle_peaks_Part3_808080", "bundle_peaks_Part4_808080"]:
-            if Config.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
-                # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
-                seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", Config.RESOLUTION)
-            else:
-                seg = dataset_utils.scale_input_to_unet_shape(seg, Config.DATASET, Config.RESOLUTION)  # (x, y, z, classes)
-    else:
-        # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
-        seg = np.zeros((Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.NR_OF_CLASSES)).astype(Config.LABELS_TYPE)
+    seg = nib.load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.LABELS_FILENAME + ".nii.gz")).get_data()
+    seg = np.nan_to_num(seg)
+    if Config.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
+                                           "bundle_masks_20_808080", "bundle_masks_72_808080", "bundle_peaks_Part1_808080",
+                                           "bundle_peaks_Part2_808080", "bundle_peaks_Part3_808080", "bundle_peaks_Part4_808080"]:
+        if Config.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
+            # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
+            seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", Config.RESOLUTION)
+        else:
+            seg = dataset_utils.scale_input_to_unet_shape(seg, Config.DATASET, Config.RESOLUTION)  # (x, y, z, classes)
 
     return data, seg
 
 
-class DataLoader2D_Nifti(SlimDataLoaderBase):
+class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
     '''
     Randomly selects subjects and slices and creates batch of 2D slices.
 
@@ -138,12 +145,127 @@ class DataLoader2D_Nifti(SlimDataLoaderBase):
         return data_dict
 
 
+class BatchGenerator2D_Npy_random(SlimDataLoaderBase):
+    '''
+    Takes image ID provided via self._data, loads the Npy (numpy array) image and randomly samples 2D slices from it.
+
+    Needed for fusion training.
+
+    Timing:
+    About 4s per 54-batch 75 bundles 1.25mm.
+    About 2s per 54-batch 45 bundles 1.25mm.
+    '''
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.Config = None
+
+    def generate_train_batch(self):
+
+        subjects = self._data[0]
+        subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
+
+        if self.Config.TYPE == "combined":
+            if np.random.random() < 0.5:
+                data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_270g_125mm", subjects[subject_idx], "270g_125mm_xyz.npy"), mmap_mode="r")
+            else:
+                data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_32g_25mm", subjects[subject_idx], "32g_25mm_xyz.npy"), mmap_mode="r")
+            data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], data.shape[3] * data.shape[4]))
+            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
+        else:
+            data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
+
+        data = np.nan_to_num(data)
+        seg = np.nan_to_num(seg)
+
+        slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
+        x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
+                                           training_slice_direction=self.Config.TRAINING_SLICE_DIRECTION,
+                                           labels_type=self.Config.LABELS_TYPE)
+
+        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
+                     "seg": y}      # (batch_size, channels, x, y, [z])
+        return data_dict
+
+
+class DataLoaderTraining:
+
+    def __init__(self, Config):
+        self.Config = Config
+
+    def _augment_data(self, batch_generator, type=None):
+
+        if self.Config.DATA_AUGMENTATION:
+            num_processes = 8  # 6 is a bit faster than 16
+        else:
+            num_processes = 6
+
+        tfs = []  #transforms
+
+        if self.Config.NORMALIZE_DATA:
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
+
+        if self.Config.DATASET == "Schizo" and self.Config.RESOLUTION == "2mm":
+            tfs.append(PadToMultipleTransform(16))
+
+        if self.Config.DATA_AUGMENTATION:
+            if type == "train":
+                # scale: inverted: 0.5 -> bigger; 2 -> smaller
+                # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
+
+                if self.Config.DAUG_SCALE:
+                    center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
+                    tfs.append(SpatialTransform(self.Config.INPUT_DIM,
+                                                        patch_center_dist_from_border=center_dist_from_border,
+                                                        do_elastic_deform=self.Config.DAUG_ELASTIC_DEFORM, alpha=(90., 120.), sigma=(9., 11.),
+                                                        do_rotation=self.Config.DAUG_ROTATE, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
+                                                        angle_z=(-0.8, 0.8),
+                                                        do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
+                                                        border_cval_data=0,
+                                                        order_data=3,
+                                                        border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
+
+                if self.Config.DAUG_RESAMPLE:
+                    tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
+
+                if self.Config.DAUG_NOISE:
+                    tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
+
+                if self.Config.DAUG_MIRROR:
+                    tfs.append(MirrorTransform())
+
+                if self.Config.DAUG_FLIP_PEAKS:
+                    tfs.append(FlipVectorAxisTransform())
+
+        #num_cached_per_queue 1 or 2 does not really make a difference
+        batch_gen = MultiThreadedAugmenter(batch_generator, Compose(tfs), num_processes=num_processes,
+                                           num_cached_per_queue=1, seeds=None)
+        return batch_gen    # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)
+
+
+    def get_batch_generator(self, batch_size=128, type=None, subjects=None):
+        data = subjects
+        seg = []
+
+        if self.Config.TYPE == "combined":
+            batch_gen = BatchGenerator2D_Npy_random((data, seg), batch_size=batch_size)
+        else:
+            batch_gen = BatchGenerator2D_Nifti_random((data, seg), batch_size=batch_size)
+            # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), batch_size=batch_size)
+
+        batch_gen.Config = self.Config
+
+        batch_gen = self._augment_data(batch_gen, type=type)
+
+        return batch_gen
+
+
 
 ############################################################################################################
 # Backup
 ############################################################################################################
 
-class DataLoader2D_Nifti_5slices(SlimDataLoaderBase):
+class BatchGenerator2D_Nifti_random_5slices(SlimDataLoaderBase):
     '''
     Randomly selects subjects and slices and creates batch of 2D slices (+2 slices above and below).
 
@@ -209,64 +331,3 @@ class DataLoader2D_Nifti_5slices(SlimDataLoaderBase):
         return data_dict
 
 
-class DataLoader2D_Npy(SlimDataLoaderBase):
-    '''
-    Takes image ID provided via self._data, loads the Npy (numpy array) image and randomly samples 2D slices from it.
-
-    Timing:
-    About 4s per 54-batch 75 bundles 1.25mm.
-    About 2s per 54-batch 45 bundles 1.25mm.
-    '''
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-        self.Config = None
-
-    def generate_train_batch(self):
-
-        subjects = self._data[0]
-        subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
-
-        if self.Config.TYPE == "combined":
-            if np.random.random() < 0.5:
-                data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_270g_125mm", subjects[subject_idx], "270g_125mm_xyz.npy"), mmap_mode="r")
-            else:
-                data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_32g_25mm", subjects[subject_idx], "32g_25mm_xyz.npy"), mmap_mode="r")
-            data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], data.shape[3] * data.shape[4]))
-            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
-        else:
-            data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
-            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
-
-        data = np.nan_to_num(data)
-        seg = np.nan_to_num(seg)
-
-        slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
-        x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
-                                           training_slice_direction=self.Config.TRAINING_SLICE_DIRECTION,
-                                           labels_type=self.Config.LABELS_TYPE)
-
-        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
-                     "seg": y}      # (batch_size, channels, x, y, [z])
-        return data_dict
-
-
-class DataLoader2D_PrecomputedBatches(SlimDataLoaderBase):
-    '''
-    Loads precomputed batches
-    '''
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-        self.Config = None
-
-    def generate_train_batch(self):
-
-        type = self._data[0]
-        path = join(C.DATA_PATH, self.Config.DATASET_FOLDER, type)
-        # do not use last batch, because might be corrupted if aborted batch precompution early
-        nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 1
-        idx = int(random.uniform(0, int(nr_of_files / 2.)))
-
-        data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()
-        seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()
-
-        return {"data": data, "seg": seg}

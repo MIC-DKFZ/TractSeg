@@ -34,7 +34,7 @@ from tractseg.libs import utils
 from tractseg.libs import dataset_utils
 from tractseg.libs import direction_merger
 from tractseg.libs import img_utils
-from tractseg.libs.data_managers_inference import DataManagerSingleSubjectByFile
+from tractseg.data.data_loader_inference import DataManagerSingleSubjectByFile
 from tractseg.libs.trainer import Trainer
 from tractseg.models.base_model import BaseModel
 
@@ -129,9 +129,9 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             dataManagerSingle = DataManagerSingleSubjectByFile(Config, data=data)
             trainerSingle = Trainer(model, dataManagerSingle)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
-                seg, img_y = trainerSingle.get_seg_single_img(Config, probs=True, scale_to_world_shape=False, only_prediction=True)
+                seg, img_y = trainerSingle.predict_img(Config, probs=True, scale_to_world_shape=False, only_prediction=True)
             else:
-                seg, img_y = trainerSingle.get_seg_single_img(Config, probs=False, scale_to_world_shape=False, only_prediction=True)
+                seg, img_y = trainerSingle.predict_img(Config, probs=False, scale_to_world_shape=False, only_prediction=True)
         else:
             seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data, scale_to_world_shape=False, only_prediction=True)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
@@ -164,7 +164,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             dataManagerSingle = DataManagerSingleSubjectByFile(Config, data=data)
             model = BaseModel(Config)
             trainerSingle = Trainer(model, dataManagerSingle)
-            seg, img_y = trainerSingle.get_seg_single_img(Config, probs=True, scale_to_world_shape=False, only_prediction=True)
+            seg, img_y = trainerSingle.predict_img(Config, probs=True, scale_to_world_shape=False, only_prediction=True)
 
             if peak_regression_part == "All":
                 seg_all[:, :, :, (idx*Config.NR_OF_CLASSES) : (idx*Config.NR_OF_CLASSES+Config.NR_OF_CLASSES)] = seg

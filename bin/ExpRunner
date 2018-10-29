@@ -39,11 +39,9 @@ from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import metric_utils
 from tractseg.libs.system_config import SystemConfig as C
-from tractseg.libs.trainer import Trainer
-from tractseg.libs.data_managers import DataManagerSingleSubjectById
-from tractseg.libs.data_managers import DataManagerTrainingNiftiImgs
-from tractseg.libs.data_managers import DataManagerPrecomputedBatches
-from tractseg.libs.data_managers import DataManagerPrecomputedBatches_noDLBG
+from tractseg.libs import trainer
+from tractseg.data.data_loader_training_single import DataLoaderTrainingSingle
+from tractseg.data.data_loader_training import DataLoaderTraining
 from tractseg.models.base_model import BaseModel
 
 
@@ -141,9 +139,8 @@ def main():
             print("{} subject {}".format(type, subject))
             start_time = time.time()
 
-            dataManagerSingle = DataManagerSingleSubjectById(Config, subject=subject)
-            trainerSingle = Trainer(model, dataManagerSingle)
-            img_probs, img_y = trainerSingle.get_seg_single_img(Config, probs=True)
+            data_loader = DataLoaderTrainingSingle(Config, subject=subject)
+            img_probs, img_y = trainer.predict_img(Config, model, data_loader, probs=True)
             # img_probs_xyz, img_y = DirectionMerger.get_seg_single_img_3_directions(Config, model, subject=subject)
             # img_probs = DirectionMerger.mean_fusion(Config.THRESHOLD, img_probs_xyz, probs=True)
 
@@ -180,13 +177,12 @@ def main():
         return metrics
 
 
-    dataManager = DataManagerTrainingNiftiImgs(Config)
     model = BaseModel(Config)
-    trainer = Trainer(model, dataManager)
+    data_loader = DataLoaderTraining(Config)
 
     if Config.TRAIN:
         print("Training...")
-        metrics = trainer.train(Config)
+        model = trainer.train_model(Config, model, data_loader)
 
     #After Training
     if Config.TRAIN:
@@ -194,11 +190,11 @@ def main():
         print("Loading best epoch: {}".format(Config.BEST_EPOCH))
         Config.WEIGHTS_PATH = Config.EXP_PATH + "/best_weights_ep" + str(Config.BEST_EPOCH) + ".npz"
         Config.LOAD_WEIGHTS = True
-        trainer.model.load_model(join(Config.EXP_PATH, Config.WEIGHTS_PATH))
-        model_test = trainer.model
+        model.load_model(join(Config.EXP_PATH, Config.WEIGHTS_PATH))
+        model_test = model
     else:
         # Weight_path already set to best model (wenn reading program parameters) -> will be loaded automatically
-        model_test = trainer.model
+        model_test = model
 
     if Config.SEGMENT:
         exp_utils.make_dir(join(Config.EXP_PATH, "segmentations"))
@@ -209,9 +205,8 @@ def main():
             start_time = time.time()
 
             if Config.EXPERIMENT_TYPE == "peak_regression":
-                dataManagerSingle = DataManagerSingleSubjectById(Config, subject=subject, use_gt_mask=False)
-                trainerSingle = Trainer(model_test, dataManagerSingle)
-                img_probs, img_y = trainerSingle.get_seg_single_img(Config, probs=True)  # only x or y or z
+                data_loader = DataLoaderTrainingSingle(Config, subject=subject)
+                img_probs, img_y = trainer.predict_img(Config, model_test, data_loader, probs=True)  # only x or y or z
                 img_seg = img_utils.peak_image_to_binary_mask(img_probs, len_thr=0.4)  # thr: 0.4 slightly better than 0.2
             else:
                 img_seg, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject)  #returns probs not binary seg
@@ -241,11 +236,11 @@ def main():
         for subject in all_subjects:
             print("Get_probs subject {}".format(subject))
 
-            dataManagerSingle = DataManagerSingleSubjectById(Config, subject=subject, use_gt_mask=False)
+            data_loader = DataLoaderTrainingSingle(Config, subject=subject)
 
             if Config.EXPERIMENT_TYPE == "peak_regression":
-                trainerSingle = Trainer(model_test, dataManagerSingle)
-                img_probs, img_y = trainerSingle.get_seg_single_img(Config, probs=True)
+                # trainerSingle = Trainer(model_test, dataManagerSingle)
+                img_probs, img_y = trainer.predict_img(Config, model_test, data_loader, probs=True)
                 img_probs = img_utils.remove_small_peaks(img_probs, len_thr=0.4)
             else:
                 img_probs, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject=subject)
