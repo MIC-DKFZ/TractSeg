@@ -14,7 +14,7 @@
 
 import os
 from os.path import join
-from tractseg.libs.FiberUtils import FiberUtils
+from tractseg.libs import fiber_utils
 import nibabel as nib
 import tempfile
 from tractseg.libs import img_utils
@@ -215,10 +215,10 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         ref_img = nib.load(peaks)
         reference_affine = ref_img.get_affine()
         reference_shape = ref_img.get_data().shape[:3]
-        FiberUtils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
-                                      output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
-                                      reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth,
-                                      nr_cpus=nr_cpus)
+        fiber_utils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
+                                       output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
+                                       reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth,
+                                       nr_cpus=nr_cpus)
         subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
     shutil.rmtree(tmp_dir)
 
