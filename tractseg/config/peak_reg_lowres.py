@@ -1,6 +1,6 @@
-from tractseg.config.EndingsSegHP import HP as EndingsSegHP
+from tractseg.config.peak_reg import HP as PeakRegHP
 
-class HP(EndingsSegHP):
+class HP(PeakRegHP):
 
     DATASET = "HCP_32g"
     RESOLUTION = "2.5mm"

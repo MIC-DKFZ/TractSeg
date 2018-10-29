@@ -1,4 +1,4 @@
-from tractseg.config.BaseHP import HP as BaseHP
+from tractseg.config.base import HP as BaseHP
 import numpy as np
 
 class HP(BaseHP):

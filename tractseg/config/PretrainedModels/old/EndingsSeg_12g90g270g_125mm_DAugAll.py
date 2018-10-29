@@ -1,5 +1,5 @@
 import os
-from tractseg.config.EndingsSegHP import HP as EndingsSegHP
+from tractseg.config.endings_seg import HP as EndingsSegHP
 
 
 class HP(EndingsSegHP):

@@ -1,5 +1,5 @@
 import os
-from tractseg.config.TractSegHP_LowRes import HP as TractSegHP_LowRes
+from tractseg.config.tract_seg_lowres import HP as TractSegHP_LowRes
 
 class HP(TractSegHP_LowRes):
     EXP_NAME = os.path.basename(__file__).split(".")[0]

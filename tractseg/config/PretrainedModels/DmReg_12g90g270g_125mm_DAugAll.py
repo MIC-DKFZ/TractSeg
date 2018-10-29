@@ -1,5 +1,5 @@
 import os
-from tractseg.config.DmRegHP import HP as DmRegHP
+from tractseg.config.dm_reg import HP as DmRegHP
 
 
 class HP(DmRegHP):

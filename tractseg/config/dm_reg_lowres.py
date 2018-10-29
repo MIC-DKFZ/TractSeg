@@ -1,4 +1,4 @@
-from tractseg.config.DmRegHP import HP as DmRegHP
+from tractseg.config.dm_reg import HP as DmRegHP
 import numpy as np
 
 class HP(DmRegHP):

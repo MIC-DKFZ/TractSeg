@@ -1,5 +1,5 @@
 import os
-from tractseg.config.PeakRegHP import HP as PeakRegHP
+from tractseg.config.peak_reg import HP as PeakRegHP
 
 
 class HP(PeakRegHP):

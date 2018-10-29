@@ -1,5 +1,5 @@
 import os
-from tractseg.config.PeakRegHP import HP as PeakRegHP
+from tractseg.config.peak_reg import HP as PeakRegHP
 
 #Name of original exp: Peaks20_12g90g270g_ALLoss
 

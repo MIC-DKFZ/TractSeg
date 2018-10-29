@@ -1,4 +1,4 @@
-from tractseg.config.TractSegHP import HP as TractSegHP
+from tractseg.config.tract_seg import HP as TractSegHP
 
 class HP(TractSegHP):
 
