@@ -25,7 +25,7 @@ from tractseg.libs.Config import Config as C
 from tractseg.libs import metric_utils
 import time
 from tractseg.libs.DatasetUtils import DatasetUtils
-from tractseg.libs.Subjects import get_all_subjects
+from tractseg.libs.subjects import get_all_subjects
 from tractseg.libs.DataManagers import DataManagerTrainingNiftiImgs
 
 np.random.seed(1337)

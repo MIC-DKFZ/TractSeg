@@ -23,7 +23,7 @@ import numpy as np
 from pprint import pprint
 import glob
 from tractseg.libs.Config import Config as C
-from tractseg.libs.Subjects import get_all_subjects
+from tractseg.libs.subjects import get_all_subjects
 from tractseg.libs import utils
 
 
