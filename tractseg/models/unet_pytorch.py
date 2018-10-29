@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import glob
-from os.path import join
-import numpy as np
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from tractseg.libs.pytorch_utils import conv2d
 from tractseg.libs.pytorch_utils import deconv2d
 

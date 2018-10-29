@@ -12,21 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import glob
-from os.path import join
-import numpy as np
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adamax
 import torch.optim.lr_scheduler as lr_scheduler
-from torch.autograd import Variable
 
-from tractseg.libs import pytorch_utils
-from tractseg.libs import exp_utils
-from tractseg.models.base_model import BaseModel
-from tractseg.libs import metric_utils
 from tractseg.libs.pytorch_utils import conv2d
 from tractseg.libs.pytorch_utils import deconv2d
 

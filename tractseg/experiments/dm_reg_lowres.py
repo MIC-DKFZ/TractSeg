@@ -17,6 +17,7 @@
 
 from tractseg.experiments.dm_reg import Config as DmRegConfig
 
+
 class Config(DmRegConfig):
 
     DATASET = "HCP_32g"

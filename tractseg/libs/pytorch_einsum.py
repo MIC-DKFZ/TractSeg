@@ -1,7 +1,7 @@
 #Code from: https://gist.github.com/rockt/15ee013889d65342088e9260a377dc8f
 
-import torch
 import re
+import torch
 import numpy as np
 
 def einsum(equation, *inputs):

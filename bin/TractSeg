@@ -15,20 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import warnings
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
 warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
-
 import argparse
 import importlib
 import os
-import nibabel as nib
 from os.path import join
-import numpy as np
 import sys
 from tqdm import tqdm
+import nibabel as nib
 
 from tractseg.libs.system_config import get_config_name
 from tractseg.libs import exp_utils
@@ -38,10 +40,10 @@ from tractseg.libs import plot_utils
 from tractseg.python_api import run_tractseg
 
 
-'''
+"""
 Usage:
 TractSeg -i peaks.nii.gz
-'''
+"""
 
 parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +

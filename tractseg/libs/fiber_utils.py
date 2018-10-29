@@ -15,18 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-import nibabel as nib
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import multiprocessing
 from os import getpid
 import logging
 import psutil
+import numpy as np
+import nibabel as nib
 from dipy.tracking.streamline import compress_streamlines
-from tractseg.libs import utils
 from dipy.segment.metric import ResampleFeature
+
+from tractseg.libs import utils
 
 logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of output
 logging.getLogger().setLevel(logging.INFO)
+
 
 #Global variables needed for shared memory of parallel fiber compression
 global _COMPRESSION_ERROR_THRESHOLD

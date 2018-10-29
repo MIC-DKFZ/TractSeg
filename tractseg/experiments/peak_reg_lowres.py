@@ -17,6 +17,7 @@
 
 from tractseg.experiments.peak_reg import Config as PeakRegConfig
 
+
 class Config(PeakRegConfig):
 
     DATASET = "HCP_32g"

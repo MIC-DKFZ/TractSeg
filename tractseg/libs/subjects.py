@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+
 #All FINAL  (for Training)
 # (bad subjects removed: 994273, 937160, 885975, 788876, 713239)
 # (no CA: 885975, 788876, 713239)

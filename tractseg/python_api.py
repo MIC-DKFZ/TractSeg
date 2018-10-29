@@ -15,15 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import warnings
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
-
 import importlib
-import numpy as np
 import time
-import nibabel as nib
 from os.path import join
+import numpy as np
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs.system_config import get_config_name
@@ -35,6 +37,7 @@ from tractseg.libs import img_utils
 from tractseg.libs.data_managers_inference import DataManagerSingleSubjectByFile
 from tractseg.libs.trainer import Trainer
 from tractseg.models.base_model import BaseModel
+
 
 def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
                  single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5,

@@ -15,10 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from os.path import join
-from tractseg.libs import exp_utils
 import numpy as np
+
+from tractseg.libs import exp_utils
 
 import matplotlib
 matplotlib.use('Agg') #Solves error with ssh and plotting

@@ -17,6 +17,7 @@
 
 from tractseg.experiments.tract_seg import Config as TractSegConfig
 
+
 class Config(TractSegConfig):
 
     DATASET = "HCP_32g"

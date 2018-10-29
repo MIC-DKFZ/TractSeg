@@ -14,13 +14,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import argparse
 import nibabel as nib
 import numpy as np
 import dipy.reconst.dti as dti
 from dipy.io import read_bvals_bvecs
 from dipy.core.gradients import gradient_table
 from dipy.reconst.dti import fractional_anisotropy
-import argparse
+
 
 parser = argparse.ArgumentParser(description="Generate FA image.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +

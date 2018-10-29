@@ -43,22 +43,25 @@
 #         return None
 #
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
 import glob
 from os.path import join
+import importlib
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.optim import Adamax
 from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
-import importlib
 
 from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
-from tractseg.libs.pytorch_utils import conv2d
+
 
 class BaseModel:
     def __init__(self, Config):

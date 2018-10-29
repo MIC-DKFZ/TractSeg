@@ -15,15 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import argparse
+import nibabel as nib
+
+
+"""
 Flip Mrtrix peaks (https://mrtrix.readthedocs.io/en/latest/reference/commands/sh2peaks.html) along specific axis.
 
 arg1: file in    (Mrtrix peaks file with 3 peaks: 4D nifti file with dimensions [x,y,z,9])
 arg2: file out
 arg3: axis       (x, y or z)
-'''
-import nibabel as nib
-import argparse
+"""
 
 parser = argparse.ArgumentParser(description="Flip Mrtrix peaks along specific axis.",
                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +

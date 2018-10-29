@@ -15,17 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from os.path import join
 import time
 import pickle
+import socket
+import datetime
+from tqdm import tqdm
 import numpy as np
+
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 from tractseg.libs import dataset_utils
 from tractseg.libs import plot_utils
-import socket
-from tqdm import tqdm
-import datetime
+
 
 class Trainer:
 

@@ -23,12 +23,10 @@ import os
 from os.path import join
 import random
 from time import sleep
-
 import numpy as np
 import nibabel as nib
 
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
-
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
 from tractseg.libs import exp_utils

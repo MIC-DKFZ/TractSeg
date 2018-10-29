@@ -15,13 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import warnings
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
 warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
-
-import os
 import importlib
 import argparse
 import pickle
@@ -43,6 +45,7 @@ from tractseg.libs.data_managers import DataManagerTrainingNiftiImgs
 from tractseg.libs.data_managers import DataManagerPrecomputedBatches
 from tractseg.libs.data_managers import DataManagerPrecomputedBatches_noDLBG
 from tractseg.models.base_model import BaseModel
+
 
 '''
 #Run ubuntu:

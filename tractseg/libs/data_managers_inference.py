@@ -15,8 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from builtins import object
 import numpy as np
+
 from tractseg.libs import exp_utils
 from tractseg.libs.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 from tractseg.libs.DLDABG_standalone import SingleThreadedAugmenter

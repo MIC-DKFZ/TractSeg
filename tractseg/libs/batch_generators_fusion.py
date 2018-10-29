@@ -15,16 +15,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-import random
-from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from os.path import join
+import random
+import numpy as np
+
+from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 from tractseg.libs.system_config import SystemConfig as C
 
-'''
+"""
 Info:
 Dimensions order for DeepLearningBatchGenerator: (batch_size, channels, x, y, [z])
-'''
+"""
 
 class SlicesBatchGeneratorNpyImg_fusion(SlimDataLoaderBase):
     '''

@@ -15,6 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from os.path import join
 import nibabel as nib
 import numpy as np
@@ -41,7 +45,6 @@ from tractseg.libs.batch_generators_fusion import SlicesBatchGeneratorNpyImg_fus
 from tractseg.libs import dataset_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
-
 from tractseg.libs.DLDABG_standalone import ReorderSegTransform
 
 np.random.seed(1337)  # for reproducibility

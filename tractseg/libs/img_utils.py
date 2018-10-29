@@ -15,17 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+from os.path import join
+from pkg_resources import resource_filename
 import numpy as np
 import nibabel as nib
 from scipy import ndimage
-from os.path import join
-from tractseg.libs.system_config import SystemConfig as C
-from tractseg.libs import exp_utils
-from tractseg.libs import utils
 from scipy.ndimage.morphology import binary_dilation
 from sklearn.externals import joblib
-import os
-from pkg_resources import resource_filename
+
+from tractseg.libs.system_config import SystemConfig as C
+from tractseg.libs import exp_utils
 
 
 def pad_3d_image(image, pad_size, pad_value=None):

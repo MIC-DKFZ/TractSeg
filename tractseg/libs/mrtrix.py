@@ -12,15 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
 from os.path import join
-from tractseg.libs import fiber_utils
-import nibabel as nib
 import tempfile
-from tractseg.libs import img_utils
 import shutil
 from pkg_resources import resource_filename
 import subprocess
+import nibabel as nib
+
+from tractseg.libs import fiber_utils
+from tractseg.libs import img_utils
 
 
 def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):

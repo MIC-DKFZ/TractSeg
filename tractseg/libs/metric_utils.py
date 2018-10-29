@@ -15,12 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy as np
 from sklearn.metrics import f1_score
-from tractseg.libs import exp_utils
 # from medpy import metric
+
+from tractseg.libs import exp_utils
 
 
 def my_f1_score(y_true, y_pred):

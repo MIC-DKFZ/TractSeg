@@ -15,13 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import glob
 import os
 import re
 from os.path import join
-import numpy as np
 from pprint import pprint
-import glob
+import sys
+import numpy as np
+
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs.subjects import get_all_subjects
 from tractseg.libs import utils

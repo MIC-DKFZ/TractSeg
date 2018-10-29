@@ -12,25 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import sys
 import warnings
 from os.path import join
+import time
 import nibabel as nib
 import numpy as np
 from sklearn.utils import shuffle as sk_shuffle
 import scipy.ndimage
+
 from tractseg.libs import img_utils
 from tractseg.libs import exp_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import metric_utils
-import time
 from tractseg.libs import dataset_utils
 from tractseg.libs.subjects import get_all_subjects
 from tractseg.libs.data_managers import DataManagerTrainingNiftiImgs
 
-np.random.seed(1337)
 
+np.random.seed(1337)
 warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
+
 
 class Slicer:
 
