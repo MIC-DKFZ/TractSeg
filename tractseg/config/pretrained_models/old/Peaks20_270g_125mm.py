@@ -1,8 +1,8 @@
 import os
-from tractseg.config.peak_reg import HP as PeakRegHP
+from tractseg.config.peak_reg import Config as PeakRegConfig
 
 
-class HP(PeakRegHP):
+class Config(PeakRegConfig):
     EXP_NAME = os.path.basename(__file__).split(".")[0]
 
     FEATURES_FILENAME = "270g_125mm_peaks"

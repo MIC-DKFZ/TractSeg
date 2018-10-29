@@ -1,6 +1,6 @@
-from tractseg.config.base import HP as BaseHP
+from tractseg.config.base import Config as BaseConfig
 
-class HP(BaseHP):
+class Config(BaseConfig):
 
     EXPERIMENT_TYPE = "endings_segmentation"
 

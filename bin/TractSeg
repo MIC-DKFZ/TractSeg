@@ -97,33 +97,33 @@ peak_threshold = 0.3     #specificity (TOM)
 
 input_path = args.input
 config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
-HP = getattr(importlib.import_module("tractseg.config.PretrainedModels." + config_file), "HP")()
-HP.CSD_TYPE = args.csd_type
-HP.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
-HP.VERBOSE = args.verbose
-HP.SINGLE_OUTPUT_FILE = args.single_output_file
-HP.FLIP_OUTPUT_PEAKS = args.flip
-HP.PREDICT_IMG = input_path is not None
+Config = getattr(importlib.import_module("tractseg.config.pretrained_models." + config_file), "Config")()
+Config.CSD_TYPE = args.csd_type
+Config.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
+Config.VERBOSE = args.verbose
+Config.SINGLE_OUTPUT_FILE = args.single_output_file
+Config.FLIP_OUTPUT_PEAKS = args.flip
+Config.PREDICT_IMG = input_path is not None
 if args.output:
-    HP.PREDICT_IMG_OUTPUT = join(args.output, HP.TRACTSEG_DIR)
-elif HP.PREDICT_IMG:
-    HP.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), HP.TRACTSEG_DIR)
+    Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
+elif Config.PREDICT_IMG:
+    Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
 
 bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
-brain_mask = exp_utils.get_brain_mask_path(HP, args)
-exp_utils.make_dir(HP.PREDICT_IMG_OUTPUT)
+brain_mask = exp_utils.get_brain_mask_path(Config, args)
+exp_utils.make_dir(Config.PREDICT_IMG_OUTPUT)
 
 if args.raw_diffusion_input:
     if args.brain_mask is None:
-        brain_mask = mrtrix.create_brain_mask(input_path, HP.PREDICT_IMG_OUTPUT)
+        brain_mask = mrtrix.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
 
     if args.preprocess:
-        input_path, bvals, bvecs, brain_mask = mrtrix.move_to_MNI_space(input_path, bvals, bvecs, brain_mask, HP.PREDICT_IMG_OUTPUT)
+        input_path, bvals, bvecs, brain_mask = mrtrix.move_to_MNI_space(input_path, bvals, bvecs, brain_mask, Config.PREDICT_IMG_OUTPUT)
 
-    mrtrix.create_fods(input_path, HP.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, HP.CSD_TYPE, nr_cpus=args.nr_cpus)
+    mrtrix.create_fods(input_path, Config.PREDICT_IMG_OUTPUT, bvals, bvecs, brain_mask, Config.CSD_TYPE, nr_cpus=args.nr_cpus)
 
 if args.raw_diffusion_input:
-    peak_path = join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
+    peak_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
     data_img = nib.load(peak_path)
 else:
     peak_path = input_path
@@ -156,15 +156,15 @@ if not args.only_track:
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]  #needed if upsampling of peaks resulted in one pixel less (sometimes)
     # data = np.concatenate((data, t1_data), axis=3)
 
-    if HP.EXPERIMENT_TYPE == "peak_regression":
+    if Config.EXPERIMENT_TYPE == "peak_regression":
         parts = ["Part1", "Part2", "Part3", "Part4"]
     else:
         parts = ["All"]
 
     for part in parts:
         if part != "All":
-            HP.CLASSES = "All_" + part
-            HP.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(HP.CLASSES)[1:])
+            Config.CLASSES = "All_" + part
+            Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
         seg = run_tractseg(data, args.output_type, input_type=input_type,
                            single_orientation=args.single_orientation, verbose=args.verbose,
@@ -174,55 +174,55 @@ if not args.only_track:
                            postprocess=args.postprocess, peak_regression_part=part,
                            nr_cpus=args.nr_cpus)
 
-        if args.preview and HP.EXPERIMENT_TYPE == "tract_segmentation":
+        if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
             print("Saving preview...")
             # brain_mask = nib.load(brain_mask).get_data()
-            plot_utils.plot_tracts(HP.CLASSES, seg, data_affine, HP.PREDICT_IMG_OUTPUT, brain_mask=None)
+            plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
 
-        if HP.SINGLE_OUTPUT_FILE:
+        if Config.SINGLE_OUTPUT_FILE:
             img = nib.Nifti1Image(seg, data_affine)
             seg = None
-            if HP.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
-            elif HP.EXPERIMENT_TYPE == "tract_segmentation":
-                nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
-            elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-                nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_endings.nii.gz"))
-            elif HP.EXPERIMENT_TYPE == "peak_regression":
-                nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
-            elif HP.EXPERIMENT_TYPE == "dm_regression":
-                nib.save(img, join(HP.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
+            if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
+            elif Config.EXPERIMENT_TYPE == "tract_segmentation":
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
+            elif Config.EXPERIMENT_TYPE == "endings_segmentation":
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_endings.nii.gz"))
+            elif Config.EXPERIMENT_TYPE == "peak_regression":
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
+            elif Config.EXPERIMENT_TYPE == "dm_regression":
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
         else:
-            if HP.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                img_utils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
-            elif HP.EXPERIMENT_TYPE == "tract_segmentation":
-                img_utils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
-            elif HP.EXPERIMENT_TYPE == "endings_segmentation":
-                img_utils.save_multilabel_img_as_multiple_files_endings(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
-            elif HP.EXPERIMENT_TYPE == "peak_regression":
-                img_utils.save_multilabel_img_as_multiple_files_peaks(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT)
-            elif HP.EXPERIMENT_TYPE == "dm_regression":
-                img_utils.save_multilabel_img_as_multiple_files(HP, seg, data_affine, HP.PREDICT_IMG_OUTPUT, name="dm_regression")
+            if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
+                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
+            elif Config.EXPERIMENT_TYPE == "tract_segmentation":
+                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
+            elif Config.EXPERIMENT_TYPE == "endings_segmentation":
+                img_utils.save_multilabel_img_as_multiple_files_endings(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
+            elif Config.EXPERIMENT_TYPE == "peak_regression":
+                img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
+            elif Config.EXPERIMENT_TYPE == "dm_regression":
+                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT, name="dm_regression")
 
         #Free memory
         seg = None
         img = None
 
-        if args.preprocess and HP.EXPERIMENT_TYPE == "tract_segmentation" and HP.SINGLE_OUTPUT_FILE:
-            mrtrix.move_to_subject_space(HP.PREDICT_IMG_OUTPUT)
+        if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
+            mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
 
-    HP.CLASSES = "All"
+    Config.CLASSES = "All"
 
 if args.track or args.only_track:
     print("Tracking...")
     if args.raw_diffusion_input:
-        peaks_path = join(HP.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
+        peaks_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
     else:
         peaks_path = input_path
-    for bundle in tqdm(exp_utils.get_bundle_names(HP.CLASSES)[1:]):
-        mrtrix.track(bundle, peaks_path, HP.PREDICT_IMG_OUTPUT,
+    for bundle in tqdm(exp_utils.get_bundle_names(Config.CLASSES)[1:]):
+        mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
                      filter_by_endpoints=args.filter_tracking_by_endpoints,
                      output_format=args.tracking_format, nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus)
 
-mrtrix.clean_up(HP, preprocessing_done=args.preprocess)
+mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 

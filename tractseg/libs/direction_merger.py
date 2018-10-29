@@ -21,11 +21,11 @@ import numpy as np
 from tractseg.libs.data_managers_inference import DataManagerSingleSubjectByFile
 
 
-def get_seg_single_img_3_directions(HP, model, subject=None, data=None, scale_to_world_shape=True, only_prediction=False):
+def get_seg_single_img_3_directions(Config, model, subject=None, data=None, scale_to_world_shape=True, only_prediction=False):
     '''
     Returns probs
 
-    :param HP:
+    :param Config:
     :param model:
     :param subject:
     :param data:
@@ -37,18 +37,18 @@ def get_seg_single_img_3_directions(HP, model, subject=None, data=None, scale_to
     prob_slices = []
     directions = ["x", "y", "z"]
     for idx, direction in enumerate(directions):
-        HP.SLICE_DIRECTION = direction
+        Config.SLICE_DIRECTION = direction
         print("Processing direction ({} of 3)".format(idx+1))
-        # print("Processing direction " + HP.SLICE_DIRECTION)
+        # print("Processing direction " + Config.SLICE_DIRECTION)
 
         if subject:
             from tractseg.libs.data_managers import DataManagerSingleSubjectById
-            dataManagerSingle = DataManagerSingleSubjectById(HP, subject=subject)
+            dataManagerSingle = DataManagerSingleSubjectById(Config, subject=subject)
         else:
-            dataManagerSingle = DataManagerSingleSubjectByFile(HP, data=data)
+            dataManagerSingle = DataManagerSingleSubjectByFile(Config, data=data)
 
         trainerSingle = Trainer(model, dataManagerSingle)
-        img_probs, img_y = trainerSingle.get_seg_single_img(HP, probs=True, scale_to_world_shape=scale_to_world_shape, only_prediction=only_prediction)    # (x, y, z, nrClasses)
+        img_probs, img_y = trainerSingle.get_seg_single_img(Config, probs=True, scale_to_world_shape=scale_to_world_shape, only_prediction=only_prediction)    # (x, y, z, nrClasses)
         prob_slices.append(img_probs)
 
     probs_x, probs_y, probs_z = prob_slices

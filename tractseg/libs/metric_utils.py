@@ -226,7 +226,7 @@ def average_metric_all_bundles(metrics_all):
     return metrics_avg
 
 
-def calc_peak_dice_onlySeg(HP, y_pred, y_true):
+def calc_peak_dice_onlySeg(Config, y_pred, y_true):
     '''
     Create binary mask of peaks by simple thresholding. Then calculate Dice.
 
@@ -236,7 +236,7 @@ def calc_peak_dice_onlySeg(HP, y_pred, y_true):
     '''
 
     score_per_bundle = {}
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
         y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -252,7 +252,7 @@ def calc_peak_dice_onlySeg(HP, y_pred, y_true):
     return score_per_bundle
 
 
-def calc_peak_dice(HP, y_pred, y_true, max_angle_error=[0.9]):
+def calc_peak_dice(Config, y_pred, y_true, max_angle_error=[0.9]):
     '''
 
     :param y_pred:
@@ -284,7 +284,7 @@ def calc_peak_dice(HP, y_pred, y_true, max_angle_error=[0.9]):
 
 
     score_per_bundle = {}
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
         y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -300,7 +300,7 @@ def calc_peak_dice(HP, y_pred, y_true, max_angle_error=[0.9]):
     return score_per_bundle
 
 
-def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
+def calc_peak_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9]):
     '''
     Calculate angle between groundtruth and prediction and keep the voxels where
     angle is smaller than MAX_ANGLE_ERROR.
@@ -340,7 +340,7 @@ def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
     #Single threshold
     if len(max_angle_error) == 1:
         score_per_bundle = {}
-        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             # if bundle == "CST_right":
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
@@ -361,7 +361,7 @@ def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
     #multiple thresholds
     else:
         score_per_bundle = {}
-        bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+        bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             # if bundle == "CST_right":
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
@@ -382,7 +382,7 @@ def calc_peak_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9]):
         return score_per_bundle
 
 
-def calc_peak_length_dice(HP, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):
+def calc_peak_length_dice(Config, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):
     '''
 
     :param y_pred:
@@ -405,7 +405,7 @@ def calc_peak_length_dice(HP, y_pred, y_true, max_angle_error=[0.9], max_length_
 
 
     score_per_bundle = {}
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
         y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -430,7 +430,7 @@ def calc_peak_length_dice(HP, y_pred, y_true, max_angle_error=[0.9], max_length_
     return score_per_bundle
 
 
-def calc_peak_length_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):
+def calc_peak_length_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):
     '''
     Ca
 
@@ -460,7 +460,7 @@ def calc_peak_length_dice_pytorch(HP, y_pred, y_true, max_angle_error=[0.9], max
 
     #Single threshold
     score_per_bundle = {}
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         # if bundle == "CST_right":
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()

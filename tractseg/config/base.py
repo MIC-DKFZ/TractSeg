@@ -4,7 +4,7 @@ from tractseg.libs import exp_utils
 from tractseg.libs.Config import Config as C
 
 #Settings and Hyperparameters
-class HP:
+class Config:
     EXP_MULTI_NAME = ""             #CV Parent Dir name # leave empty for Single Bundle Experiment
     EXP_NAME = "HCP_TEST"           # HCP_TEST
     MODEL = "UNet_Pytorch"          # UNet_Lasagne / UNet_Pytorch

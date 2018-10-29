@@ -32,7 +32,7 @@ class SlicesBatchGenerator_Standalone(object):
     '''
     def __init__(self, data, batch_size):
         # super(self.__class__, self).__init__(*args, **kwargs)
-        self.HP = None
+        self.Config = None
         self.batch_size = batch_size
         self.global_idx = 0
         self._data = data
@@ -44,11 +44,11 @@ class SlicesBatchGenerator_Standalone(object):
         return self.generate_train_batch()
 
     def generate_train_batch(self):
-        if self.HP.SLICE_DIRECTION == "x":
+        if self.Config.SLICE_DIRECTION == "x":
             end = self._data[0].shape[0]
-        elif self.HP.SLICE_DIRECTION == "y":
+        elif self.Config.SLICE_DIRECTION == "y":
             end = self._data[0].shape[1]
-        elif self.HP.SLICE_DIRECTION == "z":
+        elif self.Config.SLICE_DIRECTION == "z":
             end = self._data[0].shape[2]
 
         # Stop iterating if we reached end of data
@@ -65,19 +65,19 @@ class SlicesBatchGenerator_Standalone(object):
 
         idxs = list(range(self.global_idx, new_global_idx))
 
-        if self.HP.SLICE_DIRECTION == "x":
+        if self.Config.SLICE_DIRECTION == "x":
             x = np.array(self._data[0][idxs,:,:,:]).astype(np.float32)
-            y = np.array(self._data[1][idxs,:,:,:]).astype(self.HP.LABELS_TYPE)
+            y = np.array(self._data[1][idxs,:,:,:]).astype(self.Config.LABELS_TYPE)
             x = x.transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
             y = y.transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif self.HP.SLICE_DIRECTION == "y":
+        elif self.Config.SLICE_DIRECTION == "y":
             x = np.array(self._data[0][:,idxs,:,:]).astype(np.float32)
-            y = np.array(self._data[1][:,idxs,:,:]).astype(self.HP.LABELS_TYPE)
+            y = np.array(self._data[1][:,idxs,:,:]).astype(self.Config.LABELS_TYPE)
             x = x.transpose(1, 3, 0, 2)  # depth-channel has to be before width and height for Unet (but after batches)
             y = y.transpose(1, 3, 0, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif self.HP.SLICE_DIRECTION == "z":
+        elif self.Config.SLICE_DIRECTION == "z":
             x = np.array(self._data[0][:,:,idxs,:]).astype(np.float32)
-            y = np.array(self._data[1][:,:,idxs,:]).astype(self.HP.LABELS_TYPE)
+            y = np.array(self._data[1][:,:,idxs,:]).astype(self.Config.LABELS_TYPE)
             x = x.transpose(2, 3, 0, 1)  # depth-channel has to be before width and height for Unet (but after batches)
             y = y.transpose(2, 3, 0, 1)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
 
@@ -87,23 +87,23 @@ class SlicesBatchGenerator_Standalone(object):
         return data_dict
 
 class DataManagerSingleSubjectByFile:
-    def __init__(self, HP, data):
+    def __init__(self, Config, data):
         self.data = data
-        self.HP = HP
-        exp_utils.print_verbose(self.HP, "Loading data from PREDICT_IMG input file")
+        self.Config = Config
+        exp_utils.print_verbose(self.Config, "Loading data from PREDICT_IMG input file")
 
     def get_batches(self, batch_size=1):
         data = np.nan_to_num(self.data)
         # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
-        seg = np.zeros((self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.NR_OF_CLASSES)).astype(self.HP.LABELS_TYPE)
+        seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.NR_OF_CLASSES)).astype(self.Config.LABELS_TYPE)
 
         num_processes = 1  # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
         batch_gen = SlicesBatchGenerator_Standalone((data, seg), batch_size=batch_size)
-        batch_gen.HP = self.HP
+        batch_gen.Config = self.Config
         tfs = []  # transforms
 
-        if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=self.HP.NORMALIZE_PER_CHANNEL))
+        if self.Config.NORMALIZE_DATA:
+            tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
         tfs.append(ReorderSegTransform())
         batch_gen = SingleThreadedAugmenter(batch_gen, Compose(tfs))
         return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, x, y, channels)

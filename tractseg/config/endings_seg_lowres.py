@@ -1,6 +1,6 @@
-from tractseg.config.endings_seg import HP as EndingsSegHP
+from tractseg.config.endings_seg import Config as EndingsSegConfig
 
-class HP(EndingsSegHP):
+class Config(EndingsSegConfig):
 
     DATASET = "HCP_32g"
     RESOLUTION = "2.5mm"

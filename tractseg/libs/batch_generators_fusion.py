@@ -32,20 +32,20 @@ class SlicesBatchGeneratorNpyImg_fusion(SlimDataLoaderBase):
     '''
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
-        self.HP = None
+        self.Config = None
         self.global_idx = 0
 
     def generate_train_batch(self):
 
         subject = self._data[0]
-        data = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subject, self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
-        seg = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subject, self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
+        data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subject, self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+        seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subject, self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
-        if self.HP.SLICE_DIRECTION == "x":
+        if self.Config.SLICE_DIRECTION == "x":
             end = data.shape[0]
-        elif self.HP.SLICE_DIRECTION == "y":
+        elif self.Config.SLICE_DIRECTION == "y":
             end = data.shape[1]
-        elif self.HP.SLICE_DIRECTION == "z":
+        elif self.Config.SLICE_DIRECTION == "z":
             end = data.shape[2]
 
         # Stop iterating if we reached end of data
@@ -62,25 +62,25 @@ class SlicesBatchGeneratorNpyImg_fusion(SlimDataLoaderBase):
 
         idxs = list(range(self.global_idx, new_global_idx))
 
-        if self.HP.SLICE_DIRECTION == "x":
+        if self.Config.SLICE_DIRECTION == "x":
             x = data[idxs,:,:].astype(np.float32)
-            y = seg[idxs,:,:].astype(self.HP.LABELS_TYPE)
+            y = seg[idxs,:,:].astype(self.Config.LABELS_TYPE)
 
             x = np.reshape(x, (x.shape[0], x.shape[1], x.shape[2], x.shape[3] * x.shape[4]))
 
             x = x.transpose(0, 3, 1, 2)  # depth-channel has to be before width and height for Unet (but after batches)
             y = y.transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif self.HP.SLICE_DIRECTION == "y":
+        elif self.Config.SLICE_DIRECTION == "y":
             x = data[:,idxs,:].astype(np.float32)
-            y = seg[:,idxs,:].astype(self.HP.LABELS_TYPE)
+            y = seg[:,idxs,:].astype(self.Config.LABELS_TYPE)
 
             x = np.reshape(x, (x.shape[0], x.shape[1], x.shape[2], x.shape[3] * x.shape[4]))
 
             x = x.transpose(1, 3, 0, 2)  # depth-channel has to be before width and height for Unet (but after batches)
             y = y.transpose(1, 3, 0, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif self.HP.SLICE_DIRECTION == "z":
+        elif self.Config.SLICE_DIRECTION == "z":
             x = data[:,:,idxs].astype(np.float32)
-            y = seg[:,:,idxs].astype(self.HP.LABELS_TYPE)
+            y = seg[:,:,idxs].astype(self.Config.LABELS_TYPE)
 
             x = np.reshape(x, (x.shape[0], x.shape[1], x.shape[2], x.shape[3] * x.shape[4]))
 
@@ -113,20 +113,20 @@ class SlicesBatchGeneratorRandomNpyImg_fusion(SlimDataLoaderBase):
     '''
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
-        self.HP = None
+        self.Config = None
 
     def generate_train_batch(self):
 
         subjects = self._data[0]
         subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
 
-        # data = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+        # data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
         if np.random.random() < 0.5:
             data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_270g_125mm", subjects[subject_idx], "270g_125mm_xyz.npy"), mmap_mode="r")
         else:
             data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_32g_25mm", subjects[subject_idx], "32g_25mm_xyz.npy"), mmap_mode="r")
 
-        seg = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
+        seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
         # print("data 1: {}".format(data.shape))
         # print("seg 1: {}".format(seg.shape))
@@ -138,7 +138,7 @@ class SlicesBatchGeneratorRandomNpyImg_fusion(SlimDataLoaderBase):
 
         if slice_direction == 0:
             x = data[slice_idxs, :, :].astype(np.float32)      # (batch_size, y, z, channels, xyz)
-            y = seg[slice_idxs, :, :].astype(self.HP.LABELS_TYPE)
+            y = seg[slice_idxs, :, :].astype(self.Config.LABELS_TYPE)
 
             x = np.reshape(x, (x.shape[0], x.shape[1], x.shape[2], x.shape[3] * x.shape[4]))
 
@@ -147,7 +147,7 @@ class SlicesBatchGeneratorRandomNpyImg_fusion(SlimDataLoaderBase):
 
         elif slice_direction == 1:
             x = data[:, slice_idxs, :].astype(np.float32)      # (x, batch_size, z, channels, xyz)
-            y = seg[:, slice_idxs, :].astype(self.HP.LABELS_TYPE)
+            y = seg[:, slice_idxs, :].astype(self.Config.LABELS_TYPE)
 
             x = np.reshape(x, (x.shape[0], x.shape[1], x.shape[2], x.shape[3] * x.shape[4]))
 
@@ -156,7 +156,7 @@ class SlicesBatchGeneratorRandomNpyImg_fusion(SlimDataLoaderBase):
 
         elif slice_direction == 2:
             x = data[:, :, slice_idxs].astype(np.float32)      # (x, y, batch_size, channels, xyz)
-            y = seg[:, :, slice_idxs].astype(self.HP.LABELS_TYPE)
+            y = seg[:, :, slice_idxs].astype(self.Config.LABELS_TYPE)
 
             x = np.reshape(x, (x.shape[0], x.shape[1], x.shape[2], x.shape[3] * x.shape[4]))
 
@@ -186,15 +186,15 @@ class SlicesBatchGeneratorRandomNpyImg_fusionMean(SlimDataLoaderBase):
     '''
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
-        self.HP = None
+        self.Config = None
 
     def generate_train_batch(self):
 
         subjects = self._data[0]
         subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
 
-        data = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.FEATURES_FILENAME + ".npy"), mmap_mode="r")
-        seg = np.load(join(C.DATA_PATH, self.HP.DATASET_FOLDER, subjects[subject_idx], self.HP.LABELS_FILENAME + ".npy"), mmap_mode="r")
+        data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+        seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
         # print("data 1: {}".format(data.shape))
         # print("seg 1: {}".format(seg.shape))
@@ -206,7 +206,7 @@ class SlicesBatchGeneratorRandomNpyImg_fusionMean(SlimDataLoaderBase):
 
         if slice_direction == 0:
             x = data[slice_idxs, :, :].astype(np.float32)      # (batch_size, y, z, channels, xyz)
-            y = seg[slice_idxs, :, :].astype(self.HP.LABELS_TYPE)
+            y = seg[slice_idxs, :, :].astype(self.Config.LABELS_TYPE)
 
             x = x.mean(axis=4)
 
@@ -215,7 +215,7 @@ class SlicesBatchGeneratorRandomNpyImg_fusionMean(SlimDataLoaderBase):
 
         elif slice_direction == 1:
             x = data[:, slice_idxs, :].astype(np.float32)      # (x, batch_size, z, channels, xyz)
-            y = seg[:, slice_idxs, :].astype(self.HP.LABELS_TYPE)
+            y = seg[:, slice_idxs, :].astype(self.Config.LABELS_TYPE)
 
             x = x.mean(axis=4)
 
@@ -224,7 +224,7 @@ class SlicesBatchGeneratorRandomNpyImg_fusionMean(SlimDataLoaderBase):
 
         elif slice_direction == 2:
             x = data[:, :, slice_idxs].astype(np.float32)      # (x, y, batch_size, channels, xyz)
-            y = seg[:, :, slice_idxs].astype(self.HP.LABELS_TYPE)
+            y = seg[:, :, slice_idxs].astype(self.Config.LABELS_TYPE)
 
             x = x.mean(axis=4)
 

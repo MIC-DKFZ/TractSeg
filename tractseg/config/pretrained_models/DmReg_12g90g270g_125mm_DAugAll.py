@@ -1,8 +1,8 @@
 import os
-from tractseg.config.dm_reg import HP as DmRegHP
+from tractseg.config.dm_reg import Config as DmRegConfig
 
 
-class HP(DmRegHP):
+class Config(DmRegConfig):
 
     EXP_NAME = os.path.basename(__file__).split(".")[0]
 

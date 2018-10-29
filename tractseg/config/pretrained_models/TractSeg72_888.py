@@ -1,10 +1,11 @@
 import os
-from tractseg.config.tract_seg import HP as TractSegHP
+from tractseg.config.tract_seg_lowres import Config as TractSegConfig_LowRes
 
-
-class HP(TractSegHP):
+class Config(TractSegConfig_LowRes):
     EXP_NAME = os.path.basename(__file__).split(".")[0]
 
     NUM_EPOCHS = 250
     DATA_AUGMENTATION = True
     MODEL = "UNet_Pytorch_DeepSup"
+
+    INPUT_DIM = (80, 80)

@@ -223,15 +223,15 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     shutil.rmtree(tmp_dir)
 
 
-def clean_up(HP, preprocessing_done=False):
-    if not HP.KEEP_INTERMEDIATE_FILES:
-        os.chdir(HP.PREDICT_IMG_OUTPUT)
+def clean_up(Config, preprocessing_done=False):
+    if not Config.KEEP_INTERMEDIATE_FILES:
+        os.chdir(Config.PREDICT_IMG_OUTPUT)
 
         # os.system("rm -f nodif_brain_mask.nii.gz")
         # os.system("rm -f peaks.nii.gz")
         os.system("rm -f WM_FODs.mif")
 
-        if HP.CSD_TYPE == "csd_msmt" or HP.CSD_TYPE == "csd_msmt_5tt":
+        if Config.CSD_TYPE == "csd_msmt" or Config.CSD_TYPE == "csd_msmt_5tt":
             os.system("rm -f 5TT.mif")
             os.system("rm -f RF_WM.txt")
             os.system("rm -f RF_GM.txt")

@@ -1,7 +1,7 @@
-from tractseg.config.dm_reg import HP as DmRegHP
+from tractseg.config.dm_reg import Config as DmRegConfig
 import numpy as np
 
-class HP(DmRegHP):
+class Config(DmRegConfig):
 
     DATASET = "HCP_32g"
     RESOLUTION = "2.5mm"

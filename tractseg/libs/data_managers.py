@@ -47,15 +47,15 @@ from tractseg.libs.DLDABG_standalone import ReorderSegTransform
 np.random.seed(1337)  # for reproducibility
 
 class DataManagerSingleSubjectById:
-    def __init__(self, HP, subject=None, use_gt_mask=True):
+    def __init__(self, Config, subject=None, use_gt_mask=True):
         self.subject = subject
-        self.HP = HP
+        self.Config = Config
         self.use_gt_mask = use_gt_mask
 
-        if self.HP.TYPE == "single_direction":
-            self.data_dir = join(C.HOME, self.HP.DATASET_FOLDER, subject)
-        elif self.HP.TYPE == "combined":
-            self.data_dir = join(C.HOME, self.HP.DATASET_FOLDER, subject, self.HP.FEATURES_FILENAME + ".npy") #data_dir not used when doing fusion
+        if self.Config.TYPE == "single_direction":
+            self.data_dir = join(C.HOME, self.Config.DATASET_FOLDER, subject)
+        elif self.Config.TYPE == "combined":
+            self.data_dir = join(C.HOME, self.Config.DATASET_FOLDER, subject, self.Config.FEATURES_FILENAME + ".npy") #data_dir not used when doing fusion
 
         print("Loading data from: " + self.data_dir)
 
@@ -63,51 +63,51 @@ class DataManagerSingleSubjectById:
 
         num_processes = 1   # not not use more than 1 if you want to keep original slice order (Threads do return in random order)
 
-        if self.HP.TYPE == "combined":
+        if self.Config.TYPE == "combined":
             # Load from Npy file for Fusion
             data = self.subject
             seg = []
-            nr_of_samples = len([self.subject]) * self.HP.INPUT_DIM[0]
+            nr_of_samples = len([self.subject]) * self.Config.INPUT_DIM[0]
             num_batches = int(nr_of_samples / batch_size / num_processes)
             batch_gen = SlicesBatchGeneratorNpyImg_fusion((data, seg), BATCH_SIZE=batch_size, num_batches=num_batches, seed=None)
         else:
             # Load Features
-            if self.HP.FEATURES_FILENAME == "12g90g270g":
+            if self.Config.FEATURES_FILENAME == "12g90g270g":
                 data_img = nib.load(join(self.data_dir, "270g_125mm_peaks.nii.gz"))
             else:
-                data_img = nib.load(join(self.data_dir, self.HP.FEATURES_FILENAME + ".nii.gz"))
+                data_img = nib.load(join(self.data_dir, self.Config.FEATURES_FILENAME + ".nii.gz"))
             data = data_img.get_data()
             data = np.nan_to_num(data)
-            data = dataset_utils.scale_input_to_unet_shape(data, self.HP.DATASET, self.HP.RESOLUTION)
+            data = dataset_utils.scale_input_to_unet_shape(data, self.Config.DATASET, self.Config.RESOLUTION)
             # data = DatasetUtils.scale_input_to_unet_shape(data, "HCP_32g", "1.25mm")  #If we want to test HCP_32g on HighRes net
 
             #Load Segmentation
             if self.use_gt_mask:
-                seg = nib.load(join(self.data_dir, self.HP.LABELS_FILENAME + ".nii.gz")).get_data()
+                seg = nib.load(join(self.data_dir, self.Config.LABELS_FILENAME + ".nii.gz")).get_data()
 
-                if self.HP.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
+                if self.Config.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
                                                    "bundle_masks_20_808080", "bundle_masks_72_808080", "bundle_peaks_Part1_808080",
                                            "bundle_peaks_Part2_808080", "bundle_peaks_Part3_808080", "bundle_peaks_Part4_808080"]:
-                    if self.HP.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
+                    if self.Config.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
                         # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask
-                        seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", self.HP.RESOLUTION)
+                        seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", self.Config.RESOLUTION)
                     else:
-                        seg = dataset_utils.scale_input_to_unet_shape(seg, self.HP.DATASET, self.HP.RESOLUTION)
+                        seg = dataset_utils.scale_input_to_unet_shape(seg, self.Config.DATASET, self.Config.RESOLUTION)
             else:
                 # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
-                seg = np.zeros((self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.INPUT_DIM[0], self.HP.NR_OF_CLASSES)).astype(self.HP.LABELS_TYPE)
+                seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0], self.Config.NR_OF_CLASSES)).astype(self.Config.LABELS_TYPE)
 
             batch_gen = SlicesBatchGenerator((data, seg), batch_size=batch_size)
 
-        batch_gen.HP = self.HP
+        batch_gen.Config = self.Config
         tfs = []  # transforms
 
-        if self.HP.NORMALIZE_DATA:
+        if self.Config.NORMALIZE_DATA:
             tfs.append(ZeroMeanUnitVarianceTransform(per_channel=False))
 
-        if self.HP.TEST_TIME_DAUG:
-            center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-            tfs.append(SpatialTransform(self.HP.INPUT_DIM,
+        if self.Config.TEST_TIME_DAUG:
+            center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
+            tfs.append(SpatialTransform(self.Config.INPUT_DIM,
                                         patch_center_dist_from_border=center_dist_from_border,
                                         do_elastic_deform=True, alpha=(90., 120.), sigma=(9., 11.),
                                         do_rotation=True, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
@@ -132,27 +132,27 @@ class DataManagerTrainingNiftiImgs:
     This is the DataManager used during training
     '''
 
-    def __init__(self, HP):
-        self.HP = HP
-        print("Loading data from: " + join(C.DATA_PATH, self.HP.DATASET_FOLDER))
+    def __init__(self, Config):
+        self.Config = Config
+        print("Loading data from: " + join(C.DATA_PATH, self.Config.DATASET_FOLDER))
 
     def get_batches(self, batch_size=128, type=None, subjects=None, num_batches=None):
         data = subjects
         seg = []
 
         #6 -> >30GB RAM
-        if self.HP.DATA_AUGMENTATION:
+        if self.Config.DATA_AUGMENTATION:
             num_processes = 8  # 6 is a bit faster than 16
         else:
             num_processes = 6
 
-        nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
+        nr_of_samples = len(subjects) * self.Config.INPUT_DIM[0]
         if num_batches is None:
             num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
         else:
             num_batches_multithr = int(num_batches / num_processes)
 
-        if self.HP.TYPE == "combined":
+        if self.Config.TYPE == "combined":
             # Simple with .npy  -> just a little bit faster than Nifti (<10%) and f1 not better => use Nifti
             # batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), batch_size=batch_size)
             batch_gen = SlicesBatchGeneratorRandomNpyImg_fusion((data, seg), batch_size=batch_size)
@@ -160,42 +160,42 @@ class DataManagerTrainingNiftiImgs:
             batch_gen = SlicesBatchGeneratorRandomNiftiImg((data, seg), batch_size=batch_size)
             # batch_gen = SlicesBatchGeneratorRandomNiftiImg_5slices((data, seg), batch_size=batch_size)
 
-        batch_gen.HP = self.HP
+        batch_gen.Config = self.Config
         tfs = []  #transforms
 
-        if self.HP.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.HP.NORMALIZE_PER_CHANNEL))
+        if self.Config.NORMALIZE_DATA:
+            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
 
-        if self.HP.DATASET == "Schizo" and self.HP.RESOLUTION == "2mm":
+        if self.Config.DATASET == "Schizo" and self.Config.RESOLUTION == "2mm":
             tfs.append(PadToMultipleTransform(16))
 
-        if self.HP.DATA_AUGMENTATION:
+        if self.Config.DATA_AUGMENTATION:
             if type == "train":
                 # scale: inverted: 0.5 -> bigger; 2 -> smaller
                 # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
 
-                if self.HP.DAUG_SCALE:
-                    center_dist_from_border = int(self.HP.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-                    tfs.append(SpatialTransform(self.HP.INPUT_DIM,
+                if self.Config.DAUG_SCALE:
+                    center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
+                    tfs.append(SpatialTransform(self.Config.INPUT_DIM,
                                                         patch_center_dist_from_border=center_dist_from_border,
-                                                        do_elastic_deform=self.HP.DAUG_ELASTIC_DEFORM, alpha=(90., 120.), sigma=(9., 11.),
-                                                        do_rotation=self.HP.DAUG_ROTATE, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
+                                                        do_elastic_deform=self.Config.DAUG_ELASTIC_DEFORM, alpha=(90., 120.), sigma=(9., 11.),
+                                                        do_rotation=self.Config.DAUG_ROTATE, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
                                                         angle_z=(-0.8, 0.8),
                                                         do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
                                                         border_cval_data=0,
                                                         order_data=3,
                                                         border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
 
-                if self.HP.DAUG_RESAMPLE:
+                if self.Config.DAUG_RESAMPLE:
                     tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
 
-                if self.HP.DAUG_NOISE:
+                if self.Config.DAUG_NOISE:
                     tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
 
-                if self.HP.DAUG_MIRROR:
+                if self.Config.DAUG_MIRROR:
                     tfs.append(MirrorTransform())
 
-                if self.HP.DAUG_FLIP_PEAKS:
+                if self.Config.DAUG_FLIP_PEAKS:
                     tfs.append(FlipVectorAxisTransform())
 
         #num_cached_per_queue 1 or 2 does not really make a difference
@@ -204,9 +204,9 @@ class DataManagerTrainingNiftiImgs:
 
 
 class DataManagerPrecomputedBatches:
-    def __init__(self, HP):
-        self.HP = HP
-        print("Loading data from: " + join(C.DATA_PATH, self.HP.DATASET_FOLDER))
+    def __init__(self, Config):
+        self.Config = Config
+        print("Loading data from: " + join(C.DATA_PATH, self.Config.DATASET_FOLDER))
 
     def get_batches(self, batch_size=128, type=None, subjects=None, num_batches=None):
         data = type
@@ -215,7 +215,7 @@ class DataManagerPrecomputedBatches:
         num_processes = 1  # 6 is a bit faster than 16
 
         batch_gen = SlicesBatchGeneratorPrecomputedBatches((data, seg), batch_size=batch_size)
-        batch_gen.HP = self.HP
+        batch_gen.Config = self.Config
 
         batch_gen = MultiThreadedAugmenter(batch_gen, Compose([]), num_processes=num_processes, num_cached_per_queue=1, seeds=None)
         return batch_gen
@@ -226,26 +226,26 @@ class DataManagerPrecomputedBatches_noDLBG:
     Somehow MultiThreadedAugmenter (with num_processes=1 and num_cached_per_queue=1) in ep1 fast (7s) but after
     that slower (10s). With this manual Iterator time is always the same (7.5s).
     '''
-    def __init__(self, HP):
-        self.HP = HP
-        print("Loading data from: " + join(C.DATA_PATH, self.HP.DATASET_FOLDER))
+    def __init__(self, Config):
+        self.Config = Config
+        print("Loading data from: " + join(C.DATA_PATH, self.Config.DATASET_FOLDER))
 
     def get_batches(self, batch_size=None, type=None, subjects=None, num_batches=None):
         num_processes = 1
 
-        nr_of_samples = len(subjects) * self.HP.INPUT_DIM[0]
+        nr_of_samples = len(subjects) * self.Config.INPUT_DIM[0]
         if num_batches is None:
             num_batches_multithr = int(nr_of_samples / batch_size / num_processes)   #number of batches for exactly one epoch
         else:
             num_batches_multithr = int(num_batches / num_processes)
 
         for i in range(num_batches_multithr):
-            path = join(C.DATA_PATH, self.HP.DATASET_FOLDER, type)
+            path = join(C.DATA_PATH, self.Config.DATASET_FOLDER, type)
             nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 2
             idx = int(random.uniform(0, int(nr_of_files / 2.)))
 
             # data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()
             # seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()
-            data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()[:self.HP.BATCH_SIZE]
-            seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()[:self.HP.BATCH_SIZE]
+            data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()[:self.Config.BATCH_SIZE]
+            seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()[:self.Config.BATCH_SIZE]
             yield {"data": data, "seg": seg}

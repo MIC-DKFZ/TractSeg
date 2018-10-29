@@ -189,13 +189,13 @@ def resize_first_three_dims(img, order=0, zoom=0.62):
     return img_sm.transpose(1, 2, 3, 0)  # grads channel was in front -> put to back
 
 
-def create_multilabel_mask(HP, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
+def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
     '''
     One-hot encoding of all bundles in one big image
     :param subject:
     :return: image of shape (x, y, z, nr_of_bundles + 1)
     '''
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)
 
     #Masks sind immer HCP_highRes (später erst downsample)
     mask_ml = np.zeros((145, 174, 145, len(bundles)))
@@ -211,20 +211,20 @@ def create_multilabel_mask(HP, subject, labels_type=np.int16, dataset_folder="HC
     return mask_ml.astype(labels_type)
 
 
-def save_multilabel_img_as_multiple_files(HP, img, affine, path, name="bundle_segmentations"):
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files(Config, img, affine, path, name="bundle_segmentations"):
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
         exp_utils.make_dir(join(path, name))
         nib.save(img_seg, join(path, name, bundle + ".nii.gz"))
 
 
-def save_multilabel_img_as_multiple_files_peaks(HP, img, affine, path):
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path):
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         data = img[:, :, :, (idx*3):(idx*3)+3]
 
-        if HP.FLIP_OUTPUT_PEAKS:
+        if Config.FLIP_OUTPUT_PEAKS:
             data[:, :, :, 2] *= -1  # flip z Axis for correct view in MITK
             filename = bundle + "_f.nii.gz"
         else:
@@ -235,21 +235,21 @@ def save_multilabel_img_as_multiple_files_peaks(HP, img, affine, path):
         nib.save(img_seg, join(path, "TOM", filename))
 
 
-def save_multilabel_img_as_multiple_files_endings(HP, img, affine, path):
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files_endings(Config, img, affine, path):
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
         exp_utils.make_dir(join(path, "endings_segmentations"))
         nib.save(img_seg, join(path, "endings_segmentations", bundle + ".nii.gz"))
 
 
-def save_multilabel_img_as_multiple_files_endings_OLD(HP, img, affine, path, multilabel=True):
+def save_multilabel_img_as_multiple_files_endings_OLD(Config, img, affine, path, multilabel=True):
     '''
     multilabel True:    save as 1 and 2 without fourth dimension
     multilabel False:   save with beginnings and endings combined
     '''
     # bundles = exp_utils.get_bundle_names("20")[1:]
-    bundles = exp_utils.get_bundle_names(HP.CLASSES)[1:]
+    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         data = img[:, :, :, (idx * 2):(idx * 2) + 2] > 0
 

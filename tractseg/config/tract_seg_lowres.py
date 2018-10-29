@@ -1,6 +1,6 @@
-from tractseg.config.tract_seg import HP as TractSegHP
+from tractseg.config.tract_seg import Config as TractSegConfig
 
-class HP(TractSegHP):
+class Config(TractSegConfig):
 
     DATASET = "HCP_32g"
     RESOLUTION = "2.5mm"

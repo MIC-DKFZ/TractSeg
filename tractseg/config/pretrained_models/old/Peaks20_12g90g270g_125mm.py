@@ -1,9 +1,9 @@
 import os
-from tractseg.config.peak_reg import HP as PeakRegHP
+from tractseg.config.peak_reg import Config as PeakRegConfig
 
 #Name of original exp: Peaks20_12g90g270g_ALLoss
 
-class HP(PeakRegHP):
+class Config(PeakRegConfig):
     EXP_NAME = os.path.basename(__file__).split(".")[0]
 
     LOSS_WEIGHT = 10

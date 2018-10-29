@@ -1,7 +1,7 @@
-from tractseg.config.base import HP as BaseHP
+from tractseg.config.base import Config as BaseConfig
 import numpy as np
 
-class HP(BaseHP):
+class Config(BaseConfig):
 
     EXPERIMENT_TYPE = "peak_regression"
 

@@ -1,8 +1,8 @@
 import os
-from tractseg.config.endings_seg import HP as EndingsSegHP
+from tractseg.config.endings_seg import Config as EndingsSegConfig
 
 
-class HP(EndingsSegHP):
+class Config(EndingsSegConfig):
     EXP_NAME = os.path.basename(__file__).split(".")[0]
 
     NUM_EPOCHS = 500

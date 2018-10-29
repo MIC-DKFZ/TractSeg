@@ -1,7 +1,7 @@
 import os
-from tractseg.config.tract_seg import HP as TractSegHP
+from tractseg.config.tract_seg import Config as TractSegConfig
 
-class HP(TractSegHP):
+class Config(TractSegConfig):
     EXP_NAME = os.path.basename(__file__).split(".")[0]
 
     DATASET_FOLDER = "HCP"              # name of folder that contains all the subjects (each subject has its own folder with the name of the subjectID)

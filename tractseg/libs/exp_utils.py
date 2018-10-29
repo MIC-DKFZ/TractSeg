@@ -74,9 +74,9 @@ def make_dir(directory):
         os.makedirs(directory)
 
 
-def print_HPs(HP):
-    # dict = copy.deepcopy(HP.__dict__)
-    dict = {attr: getattr(HP, attr) for attr in dir(HP) if not callable(getattr(HP, attr)) and not attr.startswith("__")}
+def print_Configs(Config):
+    # dict = copy.deepcopy(Config.__dict__)
+    dict = {attr: getattr(Config, attr) for attr in dir(Config) if not callable(getattr(Config, attr)) and not attr.startswith("__")}
     dict.pop("TRAIN_SUBJECTS", None)
     dict.pop("TEST_SUBJECTS", None)
     dict.pop("VALIDATE_SUBJECTS", None)
@@ -103,11 +103,11 @@ def get_bvals_bvecs_path(args):
     return bvals, bvecs
 
 
-def get_brain_mask_path(HP, args):
+def get_brain_mask_path(Config, args):
     if args.brain_mask:
         return args.brain_mask
 
-    brain_mask_path = join(HP.PREDICT_IMG_OUTPUT, "nodif_brain_mask.nii.gz")
+    brain_mask_path = join(Config.PREDICT_IMG_OUTPUT, "nodif_brain_mask.nii.gz")
     if os.path.isfile(brain_mask_path):
         return brain_mask_path
 
@@ -250,98 +250,98 @@ def get_ACT_noACT_bundle_names():
     return ACT, noACT
 
 
-def get_labels_filename(HP):
+def get_labels_filename(Config):
 
-    if HP.CLASSES == "All" and HP.EXPERIMENT_TYPE == "peak_regression":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_peaks"
+    if Config.CLASSES == "All" and Config.EXPERIMENT_TYPE == "peak_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_peaks"
         else:
-            HP.LABELS_FILENAME = "bundle_peaks_808080"
+            Config.LABELS_FILENAME = "bundle_peaks_808080"
 
-    elif HP.CLASSES == "11" and HP.EXPERIMENT_TYPE == "peak_regression":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_peaks_11"
+    elif Config.CLASSES == "11" and Config.EXPERIMENT_TYPE == "peak_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_peaks_11"
         else:
-            HP.LABELS_FILENAME = "bundle_peaks_11_808080"
+            Config.LABELS_FILENAME = "bundle_peaks_11_808080"
 
-    elif HP.CLASSES == "20" and HP.EXPERIMENT_TYPE == "peak_regression":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_peaks_20"
+    elif Config.CLASSES == "20" and Config.EXPERIMENT_TYPE == "peak_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_peaks_20"
         else:
-            HP.LABELS_FILENAME = "bundle_peaks_20_808080"
+            Config.LABELS_FILENAME = "bundle_peaks_20_808080"
 
-    elif HP.CLASSES == "All_Part1" and HP.EXPERIMENT_TYPE == "peak_regression":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_peaks_Part1"
+    elif Config.CLASSES == "All_Part1" and Config.EXPERIMENT_TYPE == "peak_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_peaks_Part1"
         else:
-            HP.LABELS_FILENAME = "bundle_peaks_Part1_808080"
+            Config.LABELS_FILENAME = "bundle_peaks_Part1_808080"
 
-    elif HP.CLASSES == "All_Part2" and HP.EXPERIMENT_TYPE == "peak_regression":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_peaks_Part2"
+    elif Config.CLASSES == "All_Part2" and Config.EXPERIMENT_TYPE == "peak_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_peaks_Part2"
         else:
-            HP.LABELS_FILENAME = "bundle_peaks_Part2_808080"
+            Config.LABELS_FILENAME = "bundle_peaks_Part2_808080"
 
-    elif HP.CLASSES == "All_Part3" and HP.EXPERIMENT_TYPE == "peak_regression":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_peaks_Part3"
+    elif Config.CLASSES == "All_Part3" and Config.EXPERIMENT_TYPE == "peak_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_peaks_Part3"
         else:
-            HP.LABELS_FILENAME = "bundle_peaks_Part3_808080"
+            Config.LABELS_FILENAME = "bundle_peaks_Part3_808080"
 
-    elif HP.CLASSES == "All_Part4" and HP.EXPERIMENT_TYPE == "peak_regression":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_peaks_Part4"
+    elif Config.CLASSES == "All_Part4" and Config.EXPERIMENT_TYPE == "peak_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_peaks_Part4"
         else:
-            HP.LABELS_FILENAME = "bundle_peaks_Part5_808080"
+            Config.LABELS_FILENAME = "bundle_peaks_Part5_808080"
 
-    elif HP.CLASSES == "All_endpoints" and HP.EXPERIMENT_TYPE == "endings_segmentation":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "endpoints_72_ordered"
+    elif Config.CLASSES == "All_endpoints" and Config.EXPERIMENT_TYPE == "endings_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "endpoints_72_ordered"
         else:
-            HP.LABELS_FILENAME = "endpoints_72_ordered"
+            Config.LABELS_FILENAME = "endpoints_72_ordered"
 
-    elif HP.CLASSES == "20_endpoints" and HP.EXPERIMENT_TYPE == "endings_segmentation":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "endpoints_20_ordered"
+    elif Config.CLASSES == "20_endpoints" and Config.EXPERIMENT_TYPE == "endings_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "endpoints_20_ordered"
         else:
-            HP.LABELS_FILENAME = "endpoints_20_ordered"
+            Config.LABELS_FILENAME = "endpoints_20_ordered"
 
-    elif HP.CLASSES == "20_endpoints_combined" and HP.EXPERIMENT_TYPE == "endings_segmentation":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "endpoints_20_combined"
+    elif Config.CLASSES == "20_endpoints_combined" and Config.EXPERIMENT_TYPE == "endings_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "endpoints_20_combined"
         else:
-            HP.LABELS_FILENAME = "endpoints_20_combined"
+            Config.LABELS_FILENAME = "endpoints_20_combined"
 
-    elif HP.CLASSES == "20_bundles_endpoints" and HP.EXPERIMENT_TYPE == "endings_segmentation":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_endpoints_20"
+    elif Config.CLASSES == "20_bundles_endpoints" and Config.EXPERIMENT_TYPE == "endings_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_endpoints_20"
         else:
-            HP.LABELS_FILENAME = "bundle_endpoints_20"
+            Config.LABELS_FILENAME = "bundle_endpoints_20"
 
-    elif HP.CLASSES == "All" and HP.EXPERIMENT_TYPE == "tract_segmentation":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_masks_72"
-        elif HP.RESOLUTION == "2mm" and HP.DATASET == "Schizo":
-            HP.LABELS_FILENAME = "bundle_masks_72"
+    elif Config.CLASSES == "All" and Config.EXPERIMENT_TYPE == "tract_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_masks_72"
+        elif Config.RESOLUTION == "2mm" and Config.DATASET == "Schizo":
+            Config.LABELS_FILENAME = "bundle_masks_72"
         else:
-            HP.LABELS_FILENAME = "bundle_masks_72_808080"
+            Config.LABELS_FILENAME = "bundle_masks_72_808080"
 
-    elif HP.CLASSES == "20" and HP.EXPERIMENT_TYPE == "tract_segmentation":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_masks_20"
+    elif Config.CLASSES == "20" and Config.EXPERIMENT_TYPE == "tract_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_masks_20"
         else:
-            HP.LABELS_FILENAME = "bundle_masks_20_808080"
+            Config.LABELS_FILENAME = "bundle_masks_20_808080"
 
-    elif HP.CLASSES == "All" and HP.EXPERIMENT_TYPE == "dm_regression":
-        if HP.RESOLUTION == "1.25mm":
-            HP.LABELS_FILENAME = "bundle_masks_dm"
+    elif Config.CLASSES == "All" and Config.EXPERIMENT_TYPE == "dm_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_masks_dm"
         else:
-            HP.LABELS_FILENAME = "NOT_AVAILABLE"
+            Config.LABELS_FILENAME = "NOT_AVAILABLE"
 
     else:
-        HP.LABELS_FILENAME = "bundle_peaks/" + HP.CLASSES
+        Config.LABELS_FILENAME = "bundle_peaks/" + Config.CLASSES
 
-    return HP
+    return Config
 
 
 
@@ -401,17 +401,17 @@ def get_cv_fold(fold, dataset="HCP"):
     return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
 
 
-def print_and_save(HP, text, only_log=False):
+def print_and_save(Config, text, only_log=False):
     if not only_log:
         print(text)
     try:
-        with open(join(HP.EXP_PATH, "Log.txt"), "a") as f:  # a for append
+        with open(join(Config.EXP_PATH, "Log.txt"), "a") as f:  # a for append
             f.write(text)
             f.write("\n")
     except IOError:
         print("WARNING: Could not write to Log.txt file")
 
 
-def print_verbose(HP, text):
-    if HP.VERBOSE:
+def print_verbose(Config, text):
+    if Config.VERBOSE:
         print(text)
