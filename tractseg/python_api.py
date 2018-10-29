@@ -25,8 +25,8 @@ import time
 import nibabel as nib
 from os.path import join
 
-from tractseg.libs.Config import Config as C
-from tractseg.libs.Config import get_config_name
+from tractseg.libs.system_config import SystemConfig as C
+from tractseg.libs.system_config import get_config_name
 from tractseg.libs import exp_utils
 from tractseg.libs import utils
 from tractseg.libs import dataset_utils

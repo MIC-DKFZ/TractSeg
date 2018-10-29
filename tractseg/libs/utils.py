@@ -19,7 +19,7 @@ import os, sys
 import numpy as np
 import pickle
 import bz2
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 
 try:
     from urllib.request import urlopen     # For Python 3.0 and later

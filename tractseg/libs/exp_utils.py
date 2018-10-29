@@ -22,7 +22,7 @@ from os.path import join
 import numpy as np
 from pprint import pprint
 import glob
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs.subjects import get_all_subjects
 from tractseg.libs import utils
 

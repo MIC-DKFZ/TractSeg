@@ -1,7 +1,7 @@
 from os.path import join
 import numpy as np
 from tractseg.libs import exp_utils
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 
 #Settings and Hyperparameters
 class Config:

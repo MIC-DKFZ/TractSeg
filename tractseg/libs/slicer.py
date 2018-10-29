@@ -21,7 +21,7 @@ from sklearn.utils import shuffle as sk_shuffle
 import scipy.ndimage
 from tractseg.libs import img_utils
 from tractseg.libs import exp_utils
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import metric_utils
 import time
 from tractseg.libs import dataset_utils

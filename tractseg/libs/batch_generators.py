@@ -29,7 +29,7 @@ import nibabel as nib
 
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
 from tractseg.libs import exp_utils
 

@@ -30,12 +30,12 @@ import numpy as np
 import sys
 from tqdm import tqdm
 
-from tractseg.libs.Config import get_config_name
+from tractseg.libs.system_config import get_config_name
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import mrtrix
 from tractseg.libs import plot_utils
-from tractseg.tractseg import run_tractseg
+from tractseg.python_api import run_tractseg
 
 
 '''

@@ -1,6 +1,6 @@
 import os
 from tractseg.experiments.tract_seg_lowres import Config as TractSegConfig_LowRes
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 
 class Config(TractSegConfig_LowRes):
     EXP_NAME = os.path.basename(__file__).split(".")[0]

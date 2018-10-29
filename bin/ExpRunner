@@ -36,7 +36,7 @@ from tractseg.libs import direction_merger
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import metric_utils
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs.trainer import Trainer
 from tractseg.libs.data_managers import DataManagerSingleSubjectById
 from tractseg.libs.data_managers import DataManagerTrainingNiftiImgs

@@ -1,6 +1,6 @@
 import os
 from tractseg.experiments.tract_seg import Config as TractSegConfig
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 
 #This is TractSeg_12g90g270g_125mm_DAugAll
 class Config(TractSegConfig):

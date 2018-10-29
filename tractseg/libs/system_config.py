@@ -57,7 +57,7 @@ def get_config_file():
     else:
         return {}
 
-class Config:
+class SystemConfig:
     TRACT_SEG_HOME = os.path.join(os.path.expanduser('~'), '.tractseg')
 
     paths = get_config_file()

@@ -196,7 +196,7 @@ The following list shows the index of each extracted bundle in the output file (
 ```python
 import nibabel as nib
 import numpy as np
-from tractseg.TractSeg import run_tractseg
+from tractseg.python_api import run_tractseg
 peaks = nib.load("tests/reference_files/peaks.nii.gz").get_data()
 peaks = np.nan_to_num(peaks)
 segmentation = run_tractseg(peaks)

@@ -19,7 +19,7 @@ import numpy as np
 import random
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 from os.path import join
-from tractseg.libs.Config import Config as C
+from tractseg.libs.system_config import SystemConfig as C
 
 '''
 Info:
