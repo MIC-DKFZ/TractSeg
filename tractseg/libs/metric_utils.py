@@ -168,7 +168,7 @@ def calculate_metrics(metrics, y, class_probs, loss, f1=None, f1_per_bundle=None
     else:
         metrics["f1_macro_"+type][-1] += f1
         if f1_per_bundle is not None:
-            for key in list(f1_per_bundle.keys()):
+            for key in f1_per_bundle:
                 if "f1_"+key+"_"+type not in metrics:
                     metrics["f1_" + key + "_" + type] = [0]
                 metrics["f1_" + key + "_" + type][-1] += f1_per_bundle[key]
@@ -216,9 +216,8 @@ def average_metric_all_bundles(metrics_all):
     '''
 
     metrics_avg = {}
-    metric_keys = list(metrics_all[0].keys())
 
-    for metric_key in metric_keys:
+    for metric_key in metrics_all[0]:
 
         elems = []
         for experiment in metrics_all:

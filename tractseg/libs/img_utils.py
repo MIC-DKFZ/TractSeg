@@ -302,7 +302,7 @@ def remove_small_peaks_bundle_specific(img, bundles, len_thr=0.1):
     peaks_len = np.linalg.norm(peaks, axis=-1)
 
     for idx, bundle in enumerate(bundles):
-        if bundle in bundles_thresholds.keys():
+        if bundle in bundles_thresholds:
             thr = bundles_thresholds[bundle]
         else:
             thr = len_thr
@@ -344,7 +344,7 @@ def probs_to_binary_bundle_specific(seg, bundles):
 
     segs_binary = []
     for idx, bundle in enumerate(bundles):
-        if bundle in bundles_thresholds.keys():
+        if bundle in bundles_thresholds:
             thr = bundles_thresholds[bundle]
         else:
             thr = 0.5
