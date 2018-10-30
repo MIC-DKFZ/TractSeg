@@ -76,7 +76,8 @@ def create_brain_mask(input_file, output_dir):
 
     input_dir = os.path.dirname(input_file)
     input_file_without_ending = os.path.basename(input_file).split(".")[0]
-    os.system("bet " + join(input_dir, input_file_without_ending) + " " + output_dir + "/nodif_brain_mask.nii.gz  -f 0.3 -g 0 -m")
+    os.system("bet " + join(input_dir, input_file_without_ending) + " " +
+              output_dir + "/nodif_brain_mask.nii.gz  -f 0.3 -g 0 -m")
     os.system("rm " + output_dir + "/nodif_brain_mask.nii.gz")           #masked brain
     os.system("mv " + output_dir + "/nodif_brain_mask_mask.nii.gz " + output_dir + "/nodif_brain_mask.nii.gz")
     return join(output_dir, "nodif_brain_mask.nii.gz")
@@ -138,7 +139,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     :param bundle:   Bundle name
     :param peaks:
     :param output_dir:
-    :param filter_by_endpoints:     use results of endings_segmentation to filter out all fibers not endings in those regions
+    :param filter_by_endpoints:  use results of endings_segmentation to filter out
+                                 all fibers not endings in those regions
     :param output_format:
     :param nr_fibers:
     :param nr_cpus:
@@ -159,13 +161,16 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         endings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data().max() > 0
 
         if not bundle_mask_ok:
-            print("WARNING: tract mask of {} empty. Falling back to tracking without filtering by endpoints.".format(bundle))
+            print("WARNING: tract mask of {} empty. Falling back to "
+                  "tracking without filtering by endpoints.".format(bundle))
 
         if not beginnings_mask_ok:
-            print("WARNING: tract beginnings mask of {} empty. Falling back to tracking without filtering by endpoints.".format(bundle))
+            print("WARNING: tract beginnings mask of {} empty. Falling "
+                  "back to tracking without filtering by endpoints.".format(bundle))
 
         if not endings_mask_ok:
-            print("WARNING: tract endings mask of {} empty. Falling back to tracking without filtering by endpoints.".format(bundle))
+            print("WARNING: tract endings mask of {} empty. Falling back "
+                  "to tracking without filtering by endpoints.".format(bundle))
 
     if nr_cpus > 0:
         nthreads = " -nthreads " + str(nr_cpus)
@@ -208,7 +213,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
                         " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
                         " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads, shell=True)
 
-        # To avoid shell=True (which is system depended) pass all arguments as list (but Mrtrix in PATH then because does not read env vars ?)
+        # To avoid shell=True (which is system depended) pass all arguments as list
+        #   (but Mrtrix in PATH then because does not read env vars ?)
         # subprocess.call(["tckgen", "-algorithm", "FACT",
         #                  output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz",
         #                  output_dir + "/" + tracking_folder + "/" + bundle + ".tck",

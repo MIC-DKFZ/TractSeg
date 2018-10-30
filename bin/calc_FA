@@ -30,9 +30,11 @@ from dipy.reconst.dti import fractional_anisotropy
 
 def main():
     parser = argparse.ArgumentParser(description="Generate FA image.",
-                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
-                                               "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
-    parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti diffusion image)", required=True)
+                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. "
+                                               "TractSeg - Fast and accurate white matter tract segmentation. "
+                                               "https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
+    parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti diffusion image)",
+                        required=True)
     parser.add_argument("-o", metavar="file_out", dest="file_out", help="FA image", required=True)
     parser.add_argument("--bvals", metavar="bvals", dest="bvals", help="bvals file", required=True)
     parser.add_argument("--bvecs", metavar="bvecs", dest="bvecs", help="bvecs file", required=True)

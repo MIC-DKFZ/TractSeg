@@ -53,7 +53,7 @@ class UNet_Pytorch_DeepSup_Regression(torch.nn.Module):
         self.encode_1 = conv2d(n_filt * 8, n_filt * 16)
         self.encode_2 = conv2d(n_filt * 16, n_filt * 16)
         self.deconv_1 = deconv2d(n_filt * 16, n_filt * 16, kernel_size=2, stride=2)
-        # self.deconv_1 = nn.Upsample(scale_factor=2)     #does only upscale width and height  #Similar results to deconv2d
+        # self.deconv_1 = nn.Upsample(scale_factor=2)  #does only upscale width and height; Similar results to deconv2d
 
         self.expand_1_1 = conv2d(n_filt * 8 + n_filt * 16, n_filt * 8)
         self.expand_1_2 = conv2d(n_filt * 8, n_filt * 8)
@@ -66,7 +66,7 @@ class UNet_Pytorch_DeepSup_Regression(torch.nn.Module):
         # self.deconv_3 = nn.Upsample(scale_factor=2)
 
         self.output_2 = nn.Conv2d(n_filt * 4 + n_filt * 8, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
-        self.output_2_up = nn.Upsample(scale_factor=2, mode='nearest')  # nearest/bilinear # does only upscale width and height
+        self.output_2_up = nn.Upsample(scale_factor=2, mode='nearest')  # nearest/bilinear; does only upscale width and height
 
         self.expand_3_1 = conv2d(n_filt * 2 + n_filt * 4, n_filt * 2, stride=1)
         self.expand_3_2 = conv2d(n_filt * 2, n_filt * 2, stride=1)
@@ -79,7 +79,8 @@ class UNet_Pytorch_DeepSup_Regression(torch.nn.Module):
         self.expand_4_1 = conv2d(n_filt + n_filt * 2, n_filt, stride=1)
         self.expand_4_2 = conv2d(n_filt, n_filt, stride=1)
 
-        self.conv_5 = nn.Conv2d(n_filt, n_classes, kernel_size=1, stride=1, padding=0, bias=True)  # no activation function, because is in LossFunction (...WithLogits)
+        # no activation function, because is in LossFunction (...WithLogits)
+        self.conv_5 = nn.Conv2d(n_filt, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
 
     def forward(self, inpt):
         contr_1_1 = self.contr_1_1(inpt)

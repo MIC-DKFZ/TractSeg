@@ -42,7 +42,8 @@ _FIBER_BATCHES = None
 
 # Worker Functions for multithreaded compression
 def compress_fibers_worker_shared_mem(idx):
-    # Function that runs in parallel must be on top level (not in class/function) otherwise it can not be pickled and then error
+    # Function that runs in parallel must be on top level (not in class/function) otherwise it can
+    #   not be pickled and then error
     streamlines_chunk = _FIBER_BATCHES[idx]  # shared memory; by using indices each worker accesses only his part
     result = compress_streamlines(streamlines_chunk, tol_error=_COMPRESSION_ERROR_THRESHOLD)
     logging.debug('PID {}, DONE'.format(getpid()))
@@ -76,10 +77,10 @@ def compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=-1):
     # logging.debug("Main program using: {} GB".format(round(Utils.mem_usage(print_usage=False), 3)))
     pool = multiprocessing.Pool(processes=nr_processes)
 
-    #Do not pass data in (doubles amount of memory needed), but only idx of shared memory (needs only as much memory as single
-    # thread version (only main thread needs memory, others almost 0).
-    # Shared memory version also faster (around 20-30%?).
-    # Needed otherwise memory problems when processing the raw tracking output (on disk >10GB and in memory >20GB)
+    #Do not pass data in (doubles amount of memory needed), but only idx of shared memory
+    #  (needs only as much memory as single thread version (only main thread needs memory, others almost 0).
+    #  Shared memory version also faster (around 20-30%?).
+    #  Needed otherwise memory problems when processing the raw tracking output (on disk >10GB and in memory >20GB)
     result = pool.map(compress_fibers_worker_shared_mem, range(0, len(fiber_batches)))
 
     pool.close()

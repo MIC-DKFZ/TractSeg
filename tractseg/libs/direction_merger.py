@@ -24,7 +24,8 @@ import numpy as np
 from tractseg.data.data_loader_inference import DataLoaderInference
 
 
-def get_seg_single_img_3_directions(Config, model, subject=None, data=None, scale_to_world_shape=True, only_prediction=False):
+def get_seg_single_img_3_directions(Config, model, subject=None, data=None,
+                                    scale_to_world_shape=True, only_prediction=False):
     '''
     Returns probs
 
@@ -49,7 +50,9 @@ def get_seg_single_img_3_directions(Config, model, subject=None, data=None, scal
         else:
             dataManagerSingle = DataLoaderInference(Config, data=data)
 
-        img_probs, img_y = trainer.predict_img(Config, model, dataManagerSingle, probs=True, scale_to_world_shape=scale_to_world_shape, only_prediction=only_prediction)    # (x, y, z, nrClasses)
+        img_probs, img_y = trainer.predict_img(Config, model, dataManagerSingle, probs=True,
+                                               scale_to_world_shape=scale_to_world_shape,
+                                               only_prediction=only_prediction)    # (x, y, z, nrClasses)
         prob_slices.append(img_probs)
 
     probs_x, probs_y, probs_z = prob_slices

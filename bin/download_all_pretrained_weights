@@ -28,9 +28,9 @@ def main():
                                                  "automatically on the fly when needed). Will download them to"
                                                  "`~/.tractseg/` (default). If you want them to be downloaded to a "
                                                  "different directory you can specify it by adding "
-                                                 "`weights_dir=absolute_path_to_where_you_want_it` to `~/.tractseg/config.txt`",
+                                                 "`weights_dir=absolute_path_to_where_you_want_it` "
+                                                 "to `~/.tractseg/config.txt`",
                                         epilog="Written by Jakob Wasserthal")
-    # parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti diffusion image)", required=True)
     args = parser.parse_args()
 
     utils.download_pretrained_weights("tract_segmentation")

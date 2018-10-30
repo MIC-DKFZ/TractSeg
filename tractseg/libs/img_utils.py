@@ -133,7 +133,8 @@ def remove_small_blobs(img, threshold=1, debug=True):
     :param threshold:
     :return:
     '''
-    # mask, number_of_blobs = ndimage.label(img, structure=np.ones((3, 3, 3)))  #Also considers diagonal elements for determining if a element belongs to a blob
+    # Also considers diagonal elements for determining if a element belongs to a blob
+    # mask, number_of_blobs = ndimage.label(img, structure=np.ones((3, 3, 3)))
     mask, number_of_blobs = ndimage.label(img)
     if debug:
         print('Number of blobs before: ' + str(number_of_blobs))
@@ -172,7 +173,8 @@ def postprocess_segmentations(data, blob_thr=50, hole_closing=2):
         #Fill holes
         if hole_closing is not None:
             size = hole_closing  # Working as expected (size 2-3 good value)
-            data_single = ndimage.binary_closing(data_single, structure=np.ones((size, size, size))).astype(data_single.dtype)
+            data_single = ndimage.binary_closing(data_single,
+                                                 structure=np.ones((size, size, size))).astype(data_single.dtype)
 
         # Remove small blobs
         if blob_thr is not None:
@@ -190,7 +192,8 @@ def resize_first_three_dims(img, order=0, zoom=0.62):
     img_sm = []
     for grad in range(img.shape[3]):
         #order: The order of the spline interpolation
-        img_sm.append(ndimage.zoom(img[:, :, :, grad], zoom, order=order))  # order=0 -> nearest interpolation; order=1 -> linear or bilinear interpolation?
+        #  order=0 -> nearest interpolation; order=1 -> linear or bilinear interpolation?
+        img_sm.append(ndimage.zoom(img[:, :, :, grad], zoom, order=order))
     img_sm = np.array(img_sm)
     return img_sm.transpose(1, 2, 3, 0)  # grads channel was in front -> put to back
 
@@ -203,7 +206,8 @@ def resize_first_three_dims_NUMPY(img, order=0, zoom=0.62):
     img_sm = None
     for grad in range(img.shape[3]):
         #order: The order of the spline interpolation
-        grad_sm = ndimage.zoom(img[:, :, :, grad], zoom, order=order) # order=0 -> nearest interpolation; order=1 -> linear or bilinear interpolation?
+        #  order=0 -> nearest interpolation; order=1 -> linear or bilinear interpolation?
+        grad_sm = ndimage.zoom(img[:, :, :, grad], zoom, order=order)
         if grad == 0:
             img_sm = np.zeros((grad_sm.shape[0], grad_sm.shape[1], grad_sm.shape[2], img.shape[3]))
         img_sm[:, :, :, grad] = grad_sm
@@ -221,7 +225,8 @@ def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder
     mask_ml = np.zeros((145, 174, 145, len(bundles)))
     background = np.ones((145, 174, 145))   # everything that contains no bundle
 
-    for idx, bundle in enumerate(bundles[1:]):   #first bundle is background -> already considered by setting np.ones in the beginning
+    # first bundle is background -> already considered by setting np.ones in the beginning
+    for idx, bundle in enumerate(bundles[1:]):
         mask = nib.load(join(C.HOME, dataset_folder, subject, labels_folder, bundle + ".nii.gz"))
         mask_data = mask.get_data()     # dtype: uint8
         mask_ml[:, :, :, idx+1] = mask_data
@@ -434,7 +439,8 @@ def change_spacing_4D(img_in, new_spacing=1.25):
     old_shape = data.shape
     img_spacing = abs(img_in.get_affine()[0, 0])
 
-    new_affine = np.copy(img_in.get_affine())  # copy very important; otherwise new_affine changes will also be in old affine
+    # copy very important; otherwise new_affine changes will also be in old affine
+    new_affine = np.copy(img_in.get_affine())
     new_affine[0, 0] = new_spacing if img_in.get_affine()[0, 0] > 0 else -new_spacing
     new_affine[1, 1] = new_spacing if img_in.get_affine()[1, 1] > 0 else -new_spacing
     new_affine[2, 2] = new_spacing if img_in.get_affine()[2, 2] > 0 else -new_spacing

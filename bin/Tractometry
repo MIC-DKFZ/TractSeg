@@ -62,7 +62,8 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         for jdx in range(sl.shape[0]):   #iterate over nr_points
             point = sl[jdx]
             if predicted_peaks is not None:
-                scalar_value = get_length_best_orig_peak(predicted_peaks, scalar_img, int(point[0]), int(point[1]), int(point[2]))
+                scalar_value = get_length_best_orig_peak(predicted_peaks, scalar_img,
+                                                         int(point[0]), int(point[1]), int(point[2]))
             else:
                 scalar_value = scalar_img[int(point[0]), int(point[1]), int(point[2])]
             values[jdx].append(scalar_value)
@@ -74,21 +75,33 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate image (e.g. FA) along fiber bundles.",
-                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
-                                            "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
-    parser.add_argument("-i", metavar="tracking_dir", dest="tracking_dir", help="Folder containing the TractSeg tractograms (normally '.../tractseg_output/TOM_tracking')", required=True)
-    parser.add_argument("-o", metavar="csv_output", dest="csv_file_out", help="CSV output file containing the results", required=True)
-    parser.add_argument("-e", metavar="endings_dir", dest="endings_dir", help="Folder containing the TractSeg bundle endings segmentations " +
-                                                                              "(normally '.../tractseg_output/endings_segmentations'). " +
-                                                                              "Needed to ensure that all fibers are starting from the same side.", required=True)
-    parser.add_argument("-s", metavar="scalar_img", dest="scalar_img", help="Scalar image (e.g. FA) or peak image (MRtrix peaks) if using '--peak_length'", required=True)
-    parser.add_argument("--nr_points", metavar="n", dest="nr_points", help="Number of points along streamline to evaluate (default: 20)", default="20")
+                                     epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. "
+                                            "TractSeg - Fast and accurate white matter tract segmentation. "
+                                            "https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
+    parser.add_argument("-i", metavar="tracking_dir", dest="tracking_dir",
+                        help="Folder containing the TractSeg tractograms (normally '.../tractseg_output/TOM_tracking')",
+                        required=True)
+    parser.add_argument("-o", metavar="csv_output", dest="csv_file_out",
+                        help="CSV output file containing the results", required=True)
+    parser.add_argument("-e", metavar="endings_dir", dest="endings_dir",
+                        help="Folder containing the TractSeg bundle endings segmentations "
+                             "(normally '.../tractseg_output/endings_segmentations'). "
+                             "Needed to ensure that all fibers are starting from the same side.", required=True)
+    parser.add_argument("-s", metavar="scalar_img", dest="scalar_img",
+                        help="Scalar image (e.g. FA) or peak image (MRtrix peaks) if using '--peak_length'",
+                        required=True)
+    parser.add_argument("--nr_points", metavar="n", dest="nr_points",
+                        help="Number of points along streamline to evaluate (default: 20)", default="20")
     parser.add_argument("--peak_length", action="store_true",
-                        help="Instead of taking values of scalar image along streamlines (e.g. FA) take the length of the " +
-                             "peak pointing in the same direction as the respective bundle. Gives better results in areas of crossing fibers than FA.",
+                        help="Instead of taking values of scalar image along streamlines (e.g. FA) take the length "
+                             "of the peak pointing in the same direction as the respective bundle. Gives better "
+                             "results in areas of crossing fibers than FA.",
                         default=False)
-    parser.add_argument("--TOM", metavar="TOM_dir", dest="TOM_dir", help="Folder containing Tract Orientation Maps (TOMs) (normally '.../tractseg_output/TOM'). Needed if using the '--peak_length' option.")
-    parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"], help="Set output format of tracking (default: trk)", default="trk")
+    parser.add_argument("--TOM", metavar="TOM_dir", dest="TOM_dir",
+                        help="Folder containing Tract Orientation Maps (TOMs) (normally '.../tractseg_output/TOM'). "
+                             "Needed if using the '--peak_length' option.")
+    parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"],
+                        help="Set output format of tracking (default: trk)", default="trk")
     args = parser.parse_args()
 
     bundles = exp_utils.get_bundle_names("All")[1:]
@@ -114,8 +127,9 @@ def main():
         if len(streamlines) > 0:
             streamlines = fiber_utils.resample_fibers(streamlines, nb_points=NR_POINTS)    #mean over bundles
             streamlines = list(move_streamlines(streamlines, np.linalg.inv(scalar_image.get_affine())))
-            mean, std = evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines, beginnings.get_data(),
-                                                   NR_POINTS, dilate=DILATION, predicted_peaks=predicted_peaks)
+            mean, std = evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines,
+                                                   beginnings.get_data(), NR_POINTS, dilate=DILATION,
+                                                   predicted_peaks=predicted_peaks)
         else:
             mean = np.zeros(NR_POINTS)
             std = np.zeros(NR_POINTS)

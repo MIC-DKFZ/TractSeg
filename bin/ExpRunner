@@ -63,11 +63,14 @@ from tractseg.models.base_model import BaseModel
 
 def main():
     parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
-                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
-                                               "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
+                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. "
+                                               "TractSeg - Fast and accurate white matter tract segmentation. "
+                                               "https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
     parser.add_argument("--config", metavar="name", help="Name of configuration to use")
-    parser.add_argument("--train", metavar="True/False", help="Train network", type=distutils.util.strtobool, default=True)
-    parser.add_argument("--test", metavar="True/False", help="Test network", type=distutils.util.strtobool, default=False)
+    parser.add_argument("--train", metavar="True/False", help="Train network",
+                        type=distutils.util.strtobool, default=True)
+    parser.add_argument("--test", metavar="True/False", help="Test network",
+                        type=distutils.util.strtobool, default=False)
     parser.add_argument("--seg", action="store_true", help="Create binary segmentation")
     parser.add_argument("--probs", action="store_true", help="Create probmap segmentation")
     parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net")
@@ -78,7 +81,8 @@ def main():
 
     Config = getattr(importlib.import_module("tractseg.experiments.base"), "Config")()
     if args.config:
-        Config = getattr(importlib.import_module("tractseg.experiments.custom." + args.config), "Config")()    #Config.__dict__ does not work properly
+        # Config.__dict__ does not work properly
+        Config = getattr(importlib.import_module("tractseg.experiments.custom." + args.config), "Config")()
 
     if args.en:
         Config.EXP_NAME = args.en
@@ -97,7 +101,8 @@ def main():
 
     Config.MULTI_PARENT_PATH = join(C.EXP_PATH, Config.EXP_MULTI_NAME)
     Config.EXP_PATH = join(C.EXP_PATH, Config.EXP_MULTI_NAME, Config.EXP_NAME)
-    Config.TRAIN_SUBJECTS, Config.VALIDATE_SUBJECTS, Config.TEST_SUBJECTS = exp_utils.get_cv_fold(Config.CV_FOLD, dataset=Config.DATASET)
+    Config.TRAIN_SUBJECTS, Config.VALIDATE_SUBJECTS, Config.TEST_SUBJECTS = exp_utils.get_cv_fold(Config.CV_FOLD,
+                                                                                                  dataset=Config.DATASET)
 
     if Config.WEIGHTS_PATH == "":
         Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(Config.EXP_PATH, Config.LOAD_WEIGHTS)
@@ -124,7 +129,8 @@ def main():
         exp_utils.print_Configs(Config)
 
     with open(join(Config.EXP_PATH, "Hyperparameters.txt"), "w") as f:
-        Config_dict = {attr: getattr(Config, attr) for attr in dir(Config) if not callable(getattr(Config, attr)) and not attr.startswith("__")}
+        Config_dict = {attr: getattr(Config, attr) for attr in dir(Config)
+                       if not callable(getattr(Config, attr)) and not attr.startswith("__")}
         pprint(Config_dict, f)
 
     def test_whole_subject(Config, model, subjects, type):
@@ -151,15 +157,23 @@ def main():
             print("Took {}s".format(round(time.time() - start_time, 2)))
 
             if Config.EXPERIMENT_TYPE == "peak_regression":
-                f1 = metric_utils.calc_peak_length_dice(Config, img_probs, img_y, max_angle_error=Config.PEAK_DICE_THR, max_length_error=Config.PEAK_DICE_LEN_THR)
+                f1 = metric_utils.calc_peak_length_dice(Config, img_probs, img_y,
+                                                        max_angle_error=Config.PEAK_DICE_THR,
+                                                        max_length_error=Config.PEAK_DICE_LEN_THR)
                 peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
-                metrics = metric_utils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean, type=type, threshold=Config.THRESHOLD)
-                metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, None, None, exp_utils.get_bundle_names(Config.CLASSES)[1:], f1, threshold=Config.THRESHOLD)
+                metrics = metric_utils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean,
+                                                         type=type, threshold=Config.THRESHOLD)
+                metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, None, None,
+                                                                             exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                                             f1, threshold=Config.THRESHOLD)
             else:
                 img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
                 img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
-                metrics = metric_utils.calculate_metrics(metrics, img_y, img_probs, 0, type=type, threshold=Config.THRESHOLD)
-                metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs, exp_utils.get_bundle_names(Config.CLASSES)[1:], threshold=Config.THRESHOLD)
+                metrics = metric_utils.calculate_metrics(metrics, img_y, img_probs, 0,
+                                                         type=type, threshold=Config.THRESHOLD)
+                metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs,
+                                                                             exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                                             threshold=Config.THRESHOLD)
 
         metrics = metric_utils.normalize_last_element(metrics, len(subjects), type=type)
         metrics_bundles = metric_utils.normalize_last_element_general(metrics_bundles, len(subjects))
@@ -206,19 +220,24 @@ def main():
 
             if Config.EXPERIMENT_TYPE == "peak_regression":
                 data_loader = DataLoaderInference(Config, subject=subject)
-                img_probs, img_y = trainer.predict_img(Config, model_test, data_loader, probs=True)  # only x or y or z
-                img_seg = img_utils.peak_image_to_binary_mask(img_probs, len_thr=0.4)  # thr: 0.4 slightly better than 0.2
+                img_probs, img_y = trainer.predict_img(Config, model_test, data_loader,
+                                                       probs=True)  # only x or y or z
+                img_seg = img_utils.peak_image_to_binary_mask(img_probs,
+                                                              len_thr=0.4)  # thr: 0.4 slightly better than 0.2
             else:
-                img_seg, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject)  #returns probs not binary seg
+                # returns probs not binary seg
+                img_seg, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject)
                 img_seg = direction_merger.mean_fusion(Config.THRESHOLD, img_seg, probs=False)
 
             #TractSeg
-            # ImgUtils.save_multilabel_img_as_multiple_files(Config, img_seg, ImgUtils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
-            #                                                      join(Config.EXP_PATH, "segmentations_" + subject))
+            # img_utils.save_multilabel_img_as_multiple_files(Config, img_seg,
+            #                                              img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
+            #                                              join(Config.EXP_PATH, "segmentations_" + subject))
 
             #Tract Beginnings and Endings
-            # ImgUtils.save_multilabel_img_as_multiple_files_endings(Config, img_seg, ImgUtils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
-            #                                                        join(Config.EXP_PATH, "segmentations_" + subject))
+            # img_utils.save_multilabel_img_as_multiple_files_endings(Config, img_seg,
+            #                                               img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
+            #                                               join(Config.EXP_PATH, "segmentations_" + subject))
 
             img = nib.Nifti1Image(img_seg.astype(np.uint8), img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
             nib.save(img, join(Config.EXP_PATH, "segmentations", subject + "_segmentation.nii.gz"))
@@ -244,11 +263,13 @@ def main():
                 img_probs, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject=subject)
                 img_probs = direction_merger.mean_fusion(Config.THRESHOLD, img_probs, probs=True)
 
-            # ImgUtils.save_multilabel_img_as_multiple_files_peaks(Config, img_probs, ImgUtils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
-            #                                                      join(Config.EXP_PATH, "probmaps_" + subject))
+            # img_utils.save_multilabel_img_as_multiple_files_peaks(Config, img_probs,
+            #                                               img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
+            #                                               join(Config.EXP_PATH, "probmaps_" + subject))
 
-            # ImgUtils.save_multilabel_img_as_multiple_files(Config, img_probs, ImgUtils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
-            #                                                      join(Config.EXP_PATH, "probmaps_" + subject))
+            # img_utils.save_multilabel_img_as_multiple_files(Config, img_probs,
+            #                                             img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
+            #                                             join(Config.EXP_PATH, "probmaps_" + subject))
 
             img = nib.Nifti1Image(img_probs, img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
             nib.save(img, join(Config.EXP_PATH, "probmaps", subject + "_peak.nii.gz"))

@@ -103,7 +103,8 @@ def run_tractseg(data, output_type="tract_segmentation",
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_dm_regression_v1.npz")
     elif input_type == "T1":
         if Config.EXPERIMENT_TYPE == "tract_segmentation":
-            Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes/x_Pretrained_TractSeg_Models", "TractSeg_T1_125mm_DAugAll", "best_weights_ep142.npz")
+            Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes/x_Pretrained_TractSeg_Models",
+                                       "TractSeg_T1_125mm_DAugAll", "best_weights_ep142.npz")
         elif Config.EXPERIMENT_TYPE == "endings_segmentation":
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_endings_segmentation_v1.npz")
         elif Config.EXPERIMENT_TYPE == "peak_regression":
@@ -123,19 +124,25 @@ def run_tractseg(data, output_type="tract_segmentation",
     data, seg_None, bbox, original_shape = dataset_utils.crop_to_nonzero(data)
     data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data, target_size=Config.INPUT_DIM[0])
 
-    if Config.EXPERIMENT_TYPE == "tract_segmentation" or Config.EXPERIMENT_TYPE == "endings_segmentation" or Config.EXPERIMENT_TYPE == "dm_regression":
+    if Config.EXPERIMENT_TYPE == "tract_segmentation" or Config.EXPERIMENT_TYPE == "endings_segmentation" or \
+            Config.EXPERIMENT_TYPE == "dm_regression":
         print("Loading weights from: {}".format(Config.WEIGHTS_PATH))
         Config.NR_OF_CLASSES = len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
-        utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE, dropout_sampling=Config.DROPOUT_SAMPLING)
+        utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
+                                          dropout_sampling=Config.DROPOUT_SAMPLING)
         model = BaseModel(Config)
         if single_orientation:  # mainly needed for testing because of less RAM requirements
             data_loder_inference = DataLoaderInference(Config, data=data)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
-                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True, scale_to_world_shape=False, only_prediction=True)
+                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
+                                                 scale_to_world_shape=False, only_prediction=True)
             else:
-                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=False, scale_to_world_shape=False, only_prediction=True)
+                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=False,
+                                                 scale_to_world_shape=False, only_prediction=True)
         else:
-            seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data, scale_to_world_shape=False, only_prediction=True)
+            seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
+                                                                           scale_to_world_shape=False,
+                                                                           only_prediction=True)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
                 seg = direction_merger.mean_fusion(Config.THRESHOLD, seg_xyz, probs=True)
             else:
@@ -161,10 +168,12 @@ def run_tractseg(data, output_type="tract_segmentation",
             print("Loading weights from: {}".format(Config.WEIGHTS_PATH))
             Config.CLASSES = "All_" + part
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
-            utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE, dropout_sampling=Config.DROPOUT_SAMPLING, part=part)
+            utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
+                                              dropout_sampling=Config.DROPOUT_SAMPLING, part=part)
             data_loder_inference = DataLoaderInference(Config, data=data)
             model = BaseModel(Config)
-            seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True, scale_to_world_shape=False, only_prediction=True)
+            seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
+                                             scale_to_world_shape=False, only_prediction=True)
 
             if peak_regression_part == "All":
                 seg_all[:, :, :, (idx*Config.NR_OF_CLASSES) : (idx*Config.NR_OF_CLASSES+Config.NR_OF_CLASSES)] = seg
@@ -176,13 +185,16 @@ def run_tractseg(data, output_type="tract_segmentation",
 
         #quite fast
         if bundle_specific_threshold:
-            seg = img_utils.remove_small_peaks_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:], len_thr=0.3)
+            seg = img_utils.remove_small_peaks_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                               len_thr=0.3)
         else:
             seg = img_utils.remove_small_peaks(seg, len_thr=peak_threshold)
 
         #3 dir for Peaks -> bad results
-        # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(Config, model, data=data, scale_to_world_shape=False, only_prediction=True)
-        # seg = DirectionMerger.mean_fusion(Config.THRESHOLD, seg_xyz, probs=True)
+        # seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
+        #                                                                scale_to_world_shape=False,
+        #                                                                only_prediction=True)
+        # seg = direction_merger.mean_fusion(Config.THRESHOLD, seg_xyz, probs=True)
 
     if bundle_specific_threshold and Config.EXPERIMENT_TYPE == "tract_segmentation":
         seg = img_utils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])

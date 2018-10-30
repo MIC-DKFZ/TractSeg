@@ -123,13 +123,17 @@ def _create_prob_slices_file(Config, subjects, filename, bundle, shuffle=True):
     for s in subjects:
         print("processing subject {}".format(s))
 
-        probs_x = nib.load(join(input_dir, "UNet_x_" + str(Config.CV_FOLD), "probmaps", s + "_probmap.nii.gz")).get_data()
-        probs_y = nib.load(join(input_dir, "UNet_y_" + str(Config.CV_FOLD), "probmaps", s + "_probmap.nii.gz")).get_data()
-        probs_z = nib.load(join(input_dir, "UNet_z_" + str(Config.CV_FOLD), "probmaps", s + "_probmap.nii.gz")).get_data()
+        probs_x = nib.load(join(input_dir, "UNet_x_" + str(Config.CV_FOLD),
+                                "probmaps", s + "_probmap.nii.gz")).get_data()
+        probs_y = nib.load(join(input_dir, "UNet_y_" + str(Config.CV_FOLD),
+                                "probmaps", s + "_probmap.nii.gz")).get_data()
+        probs_z = nib.load(join(input_dir, "UNet_z_" + str(Config.CV_FOLD),
+                                "probmaps", s + "_probmap.nii.gz")).get_data()
         # probs_x = DatasetUtils.scale_input_to_unet_shape(probs_x, Config.DATASET, Config.RESOLUTION)
         # probs_y = DatasetUtils.scale_input_to_unet_shape(probs_y, Config.DATASET, Config.RESOLUTION)
         # probs_z = DatasetUtils.scale_input_to_unet_shape(probs_z, Config.DATASET, Config.RESOLUTION)
-        combined = np.stack((probs_x, probs_y, probs_z), axis=4)  # (73, 87, 73, 18, 3); not working alone: one dim too much for UNet -> reshape
+        # (73, 87, 73, 18, 3); not working alone: one dim too much for UNet -> reshape
+        combined = np.stack((probs_x, probs_y, probs_z), axis=4)
         combined = np.reshape(combined, (combined.shape[0], combined.shape[1], combined.shape[2],
                                          combined.shape[3] * combined.shape[4]))    # (73, 87, 73, 3*18)
 
@@ -224,7 +228,8 @@ def save_fusion_nifti_as_npy():
         print("Done Loading")
         data = np.nan_to_num(data)
         data = dataset_utils.scale_input_to_unet_shape(data, Config.DATASET, Config.RESOLUTION)
-        data = data[:-1, :, :-1, :]  # cut one pixel at the end, because in scale_input_to_world_shape we ouputted 146 -> one too much at the end
+        # cut one pixel at the end, because in scale_input_to_world_shape we ouputted 146 -> one too much at the end
+        data = data[:-1, :, :-1, :]
         exp_utils.make_dir(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s))
         np.save(join(C.NETWORK_DRIVE, "HCP_fusion_npy_" + DIFFUSION_FOLDER, s, DIFFUSION_FOLDER + "_xyz.npy"), data)
         print("Took {}s".format(time.time() - start_time))

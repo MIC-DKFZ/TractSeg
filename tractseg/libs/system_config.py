@@ -67,9 +67,9 @@ class SystemConfig:
 
     paths = get_config_file()
 
-    if "working_dir" in paths:                                # check if config file
+    if "working_dir" in paths:  # check if config file
         HOME = paths["working_dir"]
-    else:                                                       # fallback
+    else:  # fallback
         HOME = join(expanduser("~/TractSeg"))
 
     if "network_dir" in paths:
@@ -84,7 +84,7 @@ class SystemConfig:
     else:
         WEIGHTS_DIR = TRACT_SEG_HOME
 
-    if os.environ.get("TRACTSEG_DATA_DIR") is not None:      # check if environment variable
+    if os.environ.get("TRACTSEG_DATA_DIR") is not None:  # check if environment variable
         DATA_PATH = os.environ.get("TRACTSEG_DATA_DIR")
     else:
         DATA_PATH = HOME

@@ -67,8 +67,7 @@ def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
     for i in range(y_true.size()[1]):
         intersect = torch.sum(y_true[:, i] * y_pred[:, i])  # works because all multiplied by 0 gets 0
         denominator = torch.sum(y_true[:, i]) + torch.sum(y_pred[:, i])  # works because all multiplied by 0 gets 0
-        #maybe have to cast to float here (for python3 ??) otherwise always 0
-        # f1 = (2 * intersect) / (denominator + 1e-6)
+        #Have to cast to float here (for python3 (?)) otherwise always 0
         f1 = (2 * intersect.float()) / (denominator.float() + 1e-6)
         f1s.append(f1)
     if per_class:
@@ -161,19 +160,14 @@ def angle_second_dim(a, b):
 
 def angle_loss(y_pred, y_true, weights):
     '''
+    Not working! Have to replace np.mean by torch.mean (?)
 
     :param y_pred:
     :param y_true:
     :param weights:  [bs, classes, x, y, z]
     :return:
-
     '''
-    #todo:
-    # - ok that we use abs()? -> should be good
-    # - ok to just add minus to make max to min problem?
-    # - better/faster if not per class? All in one makes no sense?? (dot product over all dims -> senseless?)
-    # - faster if no permute?
-
+    # faster if no permute?
     y_true = y_true.permute(0, 2, 3, 1)
     y_pred = y_pred.permute(0, 2, 3, 1)
     weights = weights.permute(0, 2, 3, 1)
@@ -220,9 +214,11 @@ def angle_length_loss(y_pred, y_true, weights):
         lenghts_weighted = lengths * weights_bund
 
         # Divide by weights.max otherwise lens would be way bigger
-        # Would also work: just divide by inverted weights_bund -> keeps foreground the same and penalizes the background less
-        # (weights.max just simple way of getting the current weight factor (because weights_bund is tensor, but we want scalar))
-        # Flip angles to make it a minimization problem
+        #   Would also work: just divide by inverted weights_bund
+        #   -> keeps foreground the same and penalizes the background less
+        #   (weights.max just simple way of getting the current weight factor
+        #   (because weights_bund is tensor, but we want scalar))
+        #   Flip angles to make it a minimization problem
         combined = -angles_weighted + lenghts_weighted / weights_bund.max()
 
         #Would this work? (mathematically not the same (!), but correct concept?)

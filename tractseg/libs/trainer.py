@@ -77,12 +77,10 @@ def train_model(Config, model, data_loader):
             weight_factor = float(Config.LOSS_WEIGHT)
         else:
             if epoch_nr < Config.LOSS_WEIGHT_LEN:
-                # weight_factor = -(9./100.) * epoch_nr + 10.   #ep0: 10 -> linear decrease -> ep100: 1
-                weight_factor = -((Config.LOSS_WEIGHT-1)/float(Config.LOSS_WEIGHT_LEN)) * epoch_nr + float(Config.LOSS_WEIGHT)
-                # weight_factor = -((Config.LOSS_WEIGHT-5)/float(Config.LOSS_WEIGHT_LEN)) * epoch_nr + float(Config.LOSS_WEIGHT)
+                weight_factor = -((Config.LOSS_WEIGHT-1) /
+                                  float(Config.LOSS_WEIGHT_LEN)) * epoch_nr + float(Config.LOSS_WEIGHT)
             else:
                 weight_factor = 1.
-                # weight_factor = 5.
 
         for type in ["train", "test", "validate"]:
             print_loss = []
@@ -104,17 +102,14 @@ def train_model(Config, model, data_loader):
                 start_time_data_preparation = time.time()
                 batch_nr[type] += 1
 
-                x = batch["data"] # (bs, nr_of_channels, x, y)
+                x = batch["data"]  # (bs, nr_of_channels, x, y)
                 y = batch["seg"]  # (bs, nr_of_classes, x, y)
-                # since using new BatchGenerator y is not int anymore but float -> would be good for Pytorch but not Lasagne
-                # y = y.astype(Config.LABELS_TYPE)  #for bundle_peaks regression: is already float -> saves 0.2s/batch if left out
 
                 data_preparation_time += time.time() - start_time_data_preparation
-                # model.learning_rate.set_value(np.float32(current_lr))
                 start_time_network = time.time()
                 if type == "train":
                     nr_of_updates += 1
-                    loss, probs, f1 = model.train(x, y, weight_factor=weight_factor)    # probs: # (bs, x, y, nrClasses)
+                    loss, probs, f1 = model.train(x, y, weight_factor=weight_factor)  # probs: # (bs, x, y, nrClasses)
                     # loss, probs, f1, intermediate = model.train(x, y)
                 elif type == "validate":
                     loss, probs, f1 = model.test(x, y, weight_factor=weight_factor)
@@ -126,33 +121,42 @@ def train_model(Config, model, data_loader):
 
                 if Config.CALC_F1:
                     if Config.EXPERIMENT_TYPE == "peak_regression":
-                        #Following two lines increase metrics_time by 30s (without < 1s); time per batch increases by 1.5s by these lines
+                        #Following two lines increase metrics_time by 30s (without < 1s);
+                        #  time per batch increases by 1.5s by these lines
                         # y_flat = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
                         # y_flat = np.reshape(y_flat, (-1, y_flat.shape[-1]))  # (bs*x*y, nr_of_classes)
-                        # metrics = MetricUtils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1), type=type, threshold=Config.THRESHOLD,
-                        #                                         f1_per_bundle={"CA": f1[5], "FX_left": f1[23], "FX_right": f1[24]})
+                        # metrics = metric_utils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1),
+                        #                                          type=type, threshold=Config.THRESHOLD,
+                        #                                          f1_per_bundle={"CA": f1[5], "FX_left": f1[23],
+                        #                                                         "FX_right": f1[24]})
 
                         #Numpy
                         # y_right_order = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-                        # peak_f1 = MetricUtils.calc_peak_dice(Config, probs, y_right_order)
+                        # peak_f1 = metric_utils.calc_peak_dice(Config, probs, y_right_order)
                         # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
 
                         #Pytorch
                         peak_f1_mean = np.array([s for s in list(f1.values())]).mean()  #if f1 for multiple bundles
-                        metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type, threshold=Config.THRESHOLD)
+                        metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type,
+                                                                 threshold=Config.THRESHOLD)
 
                         #Pytorch 2 F1
                         # peak_f1_mean_a = np.array([s for s in f1[0].values()]).mean()
                         # peak_f1_mean_b = np.array([s for s in f1[1].values()]).mean()
-                        # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean_a, type=type, threshold=Config.THRESHOLD,
+                        # metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean_a,
+                        #                                         type=type, threshold=Config.THRESHOLD,
                         #                                         f1_per_bundle={"LenF1": peak_f1_mean_b})
 
                         #Single Bundle
-                        # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"][0], type=type, threshold=Config.THRESHOLD,
-                        #                                         f1_per_bundle={"Thr1": f1["CST_right"][1], "Thr2": f1["CST_right"][2]})
-                        # metrics = MetricUtils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"], type=type, threshold=Config.THRESHOLD)
+                        # metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"][0],
+                        #                                          type=type, threshold=Config.THRESHOLD,
+                        #                                          f1_per_bundle={"Thr1": f1["CST_right"][1],
+                        #                                                         "Thr2": f1["CST_right"][2]})
+                        # metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"],
+                        #                                          type=type, threshold=Config.THRESHOLD)
                     else:
-                        metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=np.mean(f1), type=type, threshold=Config.THRESHOLD)
+                        metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=np.mean(f1), type=type,
+                                                                 threshold=Config.THRESHOLD)
 
                 else:
                     metrics = metric_utils.calculate_metrics_onlyLoss(metrics, loss, type=type)
@@ -163,10 +167,13 @@ def train_model(Config, model, data_loader):
                 if batch_nr[type] % Config.PRINT_FREQ == 0:
                     time_batch_part = time.time() - start_time_batch_part
                     start_time_batch_part = time.time()
-                    exp_utils.print_and_save(Config, "{} Ep {}, Sp {}, loss {}, t print {}s, t batch {}s".format(type, epoch_nr,
-                                                                                                             batch_nr[type] * Config.BATCH_SIZE,
-                                                                                                             round(np.array(print_loss).mean(), 6), round(time_batch_part, 3),
-                                                                                                             round(time_batch_part / Config.PRINT_FREQ, 3)))
+                    exp_utils.print_and_save(Config,
+                                             "{} Ep {}, Sp {}, loss {}, t print {}s, "
+                                             "t batch {}s".format(type, epoch_nr,
+                                                                  batch_nr[type] * Config.BATCH_SIZE,
+                                                                  round(np.array(print_loss).mean(), 6),
+                                                                  round(time_batch_part, 3),
+                                                                  round( time_batch_part / Config.PRINT_FREQ, 3)))
                     print_loss = []
 
                 if Config.USE_VISLOGGER:
@@ -199,7 +206,7 @@ def train_model(Config, model, data_loader):
 
         # Create Plots
         start_time_plotting = time.time()
-        pickle.dump(metrics, open(join(Config.EXP_PATH, "metrics.pkl"), "wb")) # wb -> write (override) and binary (binary only needed on windows, on unix also works without) # for loading: pickle.load(open("metrics.pkl", "rb"))
+        pickle.dump(metrics, open(join(Config.EXP_PATH, "metrics.pkl"), "wb"))
         plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME)
         plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME, without_first_epochs=True)
         plotting_time += time.time() - start_time_plotting
@@ -229,12 +236,6 @@ def train_model(Config, model, data_loader):
 
 
 def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=True, only_prediction=False):
-    '''
-    Returns layers for one image (batch manager is only allowed to return batches for one image)
-
-    :param Config:
-    :return: ([146, 174, 146, nrClasses], [146, 174, 146, nrClasses])    (Prediction, Groundtruth)
-    '''
 
     def finalize_data(layers):
         layers = np.array(layers)
@@ -253,7 +254,6 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
             layers = dataset_utils.scale_input_to_world_shape(layers, Config.DATASET, Config.RESOLUTION)
 
         return layers.astype(np.float32)
-
 
     #Test Time DAug
     for i in range(1):

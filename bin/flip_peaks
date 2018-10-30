@@ -33,8 +33,9 @@ arg3: axis       (x, y or z)
 
 def main():
     parser = argparse.ArgumentParser(description="Flip Mrtrix peaks along specific axis.",
-                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
-                                               "TractSeg - Fast and accurate white matter tract segmentation. https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
+                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. "
+                                               "TractSeg - Fast and accurate white matter tract segmentation. "
+                                               "https://doi.org/10.1016/j.neuroimage.2018.07.070)'")
     parser.add_argument("-i", metavar="file_in", dest="file_in", help="input file (4D nifti image)", required=True)
     parser.add_argument("-o", metavar="file_out", dest="file_out", help="output file (4D nifti image)", required=True)
     parser.add_argument("-a", metavar="axis", dest="axis", help="axis (x|y|z)", choices=["x", "y", "z"], required=True)

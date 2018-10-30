@@ -81,7 +81,8 @@ def make_dir(directory):
 
 def print_Configs(Config):
     # dict = copy.deepcopy(Config.__dict__)
-    dict = {attr: getattr(Config, attr) for attr in dir(Config) if not callable(getattr(Config, attr)) and not attr.startswith("__")}
+    dict = {attr: getattr(Config, attr) for attr in dir(Config)
+            if not callable(getattr(Config, attr)) and not attr.startswith("__")}
     dict.pop("TRAIN_SUBJECTS", None)
     dict.pop("TEST_SUBJECTS", None)
     dict.pop("VALIDATE_SUBJECTS", None)
@@ -129,29 +130,36 @@ def get_bundle_names(CLASSES):
 
     if CLASSES == "All":
         # 72 Tracts
-        bundles = ["AF_left", "AF_right", "ATR_left", "ATR_right", "CA", "CC_1", "CC_2", "CC_3", "CC_4", "CC_5", "CC_6", "CC_7",
-                   "CG_left", "CG_right", "CST_left", "CST_right", "MLF_left", "MLF_right",
-                   "FPT_left", "FPT_right", "FX_left", "FX_right",
-                   "ICP_left", "ICP_right", "IFO_left", "IFO_right", "ILF_left", "ILF_right", "MCP", "OR_left", "OR_right",
-                   "POPT_left", "POPT_right", "SCP_left", "SCP_right", "SLF_I_left", "SLF_I_right", "SLF_II_left", "SLF_II_right",
-                   "SLF_III_left", "SLF_III_right", "STR_left", "STR_right", "UF_left", "UF_right", "CC",
-                   "T_PREF_left", "T_PREF_right", "T_PREM_left", "T_PREM_right", "T_PREC_left", "T_PREC_right", "T_POSTC_left",
-                   "T_POSTC_right", "T_PAR_left", "T_PAR_right", "T_OCC_left", "T_OCC_right", "ST_FO_left", "ST_FO_right", "ST_PREF_left",
-                   "ST_PREF_right", "ST_PREM_left", "ST_PREM_right", "ST_PREC_left", "ST_PREC_right", "ST_POSTC_left", "ST_POSTC_right",
-                   "ST_PAR_left", "ST_PAR_right", "ST_OCC_left", "ST_OCC_right"]
+        bundles = ['AF_left', 'AF_right', 'ATR_left', 'ATR_right', 'CA', 'CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6',
+                   'CC_7', 'CG_left', 'CG_right', 'CST_left', 'CST_right', 'MLF_left', 'MLF_right', 'FPT_left',
+                   'FPT_right', 'FX_left', 'FX_right', 'ICP_left', 'ICP_right', 'IFO_left', 'IFO_right', 'ILF_left',
+                   'ILF_right', 'MCP', 'OR_left', 'OR_right', 'POPT_left', 'POPT_right', 'SCP_left', 'SCP_right',
+                   'SLF_I_left', 'SLF_I_right', 'SLF_II_left', 'SLF_II_right', 'SLF_III_left', 'SLF_III_right',
+                   'STR_left', 'STR_right', 'UF_left', 'UF_right', 'CC', 'T_PREF_left', 'T_PREF_right', 'T_PREM_left',
+                   'T_PREM_right', 'T_PREC_left', 'T_PREC_right', 'T_POSTC_left', 'T_POSTC_right', 'T_PAR_left',
+                   'T_PAR_right', 'T_OCC_left', 'T_OCC_right', 'ST_FO_left', 'ST_FO_right', 'ST_PREF_left',
+                   'ST_PREF_right', 'ST_PREM_left', 'ST_PREM_right', 'ST_PREC_left', 'ST_PREC_right', 'ST_POSTC_left',
+                   'ST_POSTC_right', 'ST_PAR_left', 'ST_PAR_right', 'ST_OCC_left', 'ST_OCC_right']
 
     elif CLASSES == "All_Part1":
         # 18 Tracts
-        bundles = ['AF_left', 'AF_right', 'ATR_left', 'ATR_right', 'CA', 'CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6', 'CC_7', 'CG_left', 'CG_right', 'CST_left', 'CST_right', 'MLF_left', 'MLF_right']
+        bundles = ['AF_left', 'AF_right', 'ATR_left', 'ATR_right', 'CA', 'CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6',
+                   'CC_7', 'CG_left', 'CG_right', 'CST_left', 'CST_right', 'MLF_left', 'MLF_right']
     elif CLASSES == "All_Part2":
         # 18 Tracts
-        bundles = ['FPT_left', 'FPT_right', 'FX_left', 'FX_right', 'ICP_left', 'ICP_right', 'IFO_left', 'IFO_right', 'ILF_left', 'ILF_right', 'MCP', 'OR_left', 'OR_right', 'POPT_left', 'POPT_right', 'SCP_left', 'SCP_right', 'SLF_I_left']
+        bundles = ['FPT_left', 'FPT_right', 'FX_left', 'FX_right', 'ICP_left', 'ICP_right', 'IFO_left', 'IFO_right',
+                   'ILF_left', 'ILF_right', 'MCP', 'OR_left', 'OR_right', 'POPT_left', 'POPT_right', 'SCP_left',
+                   'SCP_right', 'SLF_I_left']
     elif CLASSES == "All_Part3":
         # 18 Tracts
-        bundles = ['SLF_I_right', 'SLF_II_left', 'SLF_II_right', 'SLF_III_left', 'SLF_III_right', 'STR_left', 'STR_right', 'UF_left', 'UF_right', 'CC', 'T_PREF_left', 'T_PREF_right', 'T_PREM_left', 'T_PREM_right', 'T_PREC_left', 'T_PREC_right', 'T_POSTC_left', 'T_POSTC_right']
+        bundles = ['SLF_I_right', 'SLF_II_left', 'SLF_II_right', 'SLF_III_left', 'SLF_III_right', 'STR_left',
+                   'STR_right', 'UF_left', 'UF_right', 'CC', 'T_PREF_left', 'T_PREF_right', 'T_PREM_left',
+                   'T_PREM_right', 'T_PREC_left', 'T_PREC_right', 'T_POSTC_left', 'T_POSTC_right']
     elif CLASSES == "All_Part4":
         # 18 Tracts
-        bundles = ['T_PAR_left', 'T_PAR_right', 'T_OCC_left', 'T_OCC_right', 'ST_FO_left', 'ST_FO_right', 'ST_PREF_left', 'ST_PREF_right', 'ST_PREM_left', 'ST_PREM_right', 'ST_PREC_left', 'ST_PREC_right', 'ST_POSTC_left', 'ST_POSTC_right', 'ST_PAR_left', 'ST_PAR_right', 'ST_OCC_left', 'ST_OCC_right']
+        bundles = ['T_PAR_left', 'T_PAR_right', 'T_OCC_left', 'T_OCC_right', 'ST_FO_left', 'ST_FO_right',
+                   'ST_PREF_left', 'ST_PREF_right', 'ST_PREM_left', 'ST_PREM_right', 'ST_PREC_left', 'ST_PREC_right',
+                   'ST_POSTC_left', 'ST_POSTC_right', 'ST_PAR_left', 'ST_PAR_right', 'ST_OCC_left', 'ST_OCC_right']
 
     elif CLASSES == "11":
         # 11 Major tracts
@@ -228,27 +236,15 @@ def get_bundle_names(CLASSES):
 
 
 def get_ACT_noACT_bundle_names():
-    # ACT = ["AF_left", "AF_right", "ATR_left", "ATR_right", "CC_1", "CC_2", "CC_3", "CC_4", "CC_5", "CC_6", "CC_7",
-    #        "CG_left", "CG_right", "CST_left", "CST_right", "EMC_left", "EMC_right", "MLF_left", "MLF_right",
-    #        "FPT_left", "FPT_right", "FX_left", "FX_right",
-    #        "ICP_left", "ICP_right", "ILF_left", "ILF_right", "MCP", "OR_left", "OR_right",
-    #        "POPT_left", "POPT_right", "SCP_left", "SCP_right", "SLF_I_left", "SLF_I_right", "SLF_II_left", "SLF_II_right",
-    #        "SLF_III_left", "SLF_III_right", "STR_left", "STR_right", "CC",
-    #        "T_PREF_left", "T_PREF_right", "T_PREM_left", "T_PREM_right", "T_PREC_left", "T_PREC_right", "T_POSTC_left",
-    #        "T_POSTC_right", "T_PAR_left", "T_PAR_right", "T_OCC_left", "T_OCC_right", "ST_FO_left", "ST_FO_right", "ST_PREF_left",
-    #        "ST_PREF_right", "ST_PREM_left", "ST_PREM_right", "ST_PREC_left", "ST_PREC_right", "ST_POSTC_left", "ST_POSTC_right",
-    #        "ST_PAR_left", "ST_PAR_right", "ST_OCC_left", "ST_OCC_right"]
-
-    ACT = ["AF_left", "AF_right", "ATR_left", "ATR_right", "CC_1", "CC_2", "CC_3", "CC_4", "CC_5", "CC_6", "CC_7",
-           "CG_left", "CG_right", "CST_left", "CST_right", "MLF_left", "MLF_right",
-           "FPT_left", "FPT_right", "FX_left", "FX_right",
-           "ICP_left", "ICP_right", "ILF_left", "ILF_right", "MCP", "OR_left", "OR_right",
-           "POPT_left", "POPT_right", "SCP_left", "SCP_right", "SLF_I_left", "SLF_I_right", "SLF_II_left", "SLF_II_right",
-           "SLF_III_left", "SLF_III_right", "STR_left", "STR_right", "CC",
-           "T_PREF_left", "T_PREF_right", "T_PREM_left", "T_PREM_right", "T_PREC_left", "T_PREC_right", "T_POSTC_left",
-           "T_POSTC_right", "T_PAR_left", "T_PAR_right", "T_OCC_left", "T_OCC_right", "ST_FO_left", "ST_FO_right", "ST_PREF_left",
-           "ST_PREF_right", "ST_PREM_left", "ST_PREM_right", "ST_PREC_left", "ST_PREC_right", "ST_POSTC_left", "ST_POSTC_right",
-           "ST_PAR_left", "ST_PAR_right", "ST_OCC_left", "ST_OCC_right"]
+    ACT = ['AF_left', 'AF_right', 'ATR_left', 'ATR_right', 'CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6', 'CC_7',
+           'CG_left', 'CG_right', 'CST_left', 'CST_right', 'MLF_left', 'MLF_right', 'FPT_left', 'FPT_right', 'FX_left',
+           'FX_right', 'ICP_left', 'ICP_right', 'ILF_left', 'ILF_right', 'MCP', 'OR_left', 'OR_right', 'POPT_left',
+           'POPT_right', 'SCP_left', 'SCP_right', 'SLF_I_left', 'SLF_I_right', 'SLF_II_left', 'SLF_II_right',
+           'SLF_III_left', 'SLF_III_right', 'STR_left', 'STR_right', 'CC', 'T_PREF_left', 'T_PREF_right', 'T_PREM_left',
+           'T_PREM_right', 'T_PREC_left', 'T_PREC_right', 'T_POSTC_left', 'T_POSTC_right', 'T_PAR_left', 'T_PAR_right',
+           'T_OCC_left', 'T_OCC_right', 'ST_FO_left', 'ST_FO_right', 'ST_PREF_left', 'ST_PREF_right', 'ST_PREM_left',
+           'ST_PREM_right', 'ST_PREC_left', 'ST_PREC_right', 'ST_POSTC_left', 'ST_POSTC_right', 'ST_PAR_left',
+           'ST_PAR_right', 'ST_OCC_left', 'ST_OCC_right']
 
     noACT = ["CA", "IFO_left", "IFO_right", "UF_left", "UF_right"]
 

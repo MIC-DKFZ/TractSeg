@@ -68,7 +68,8 @@ def plot_mask(renderer, mask_data, affine, x_current, y_current,
 def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None):
     '''
     By default this does not work on a remote server connection (ssh -X) because -X does not support OpenGL.
-    On the remote Server you can do 'export DISPLAY=":0"' (you should set the value you get if you do 'echo $DISPLAY' if you
+    On the remote Server you can do 'export DISPLAY=":0"' .
+    (you should set the value you get if you do 'echo $DISPLAY' if you
     login locally on the remote server). Then all graphics will get rendered locally and not via -X.
     (important: graphical session needs to be running on remote server (e.g. via login locally))
     (important: login needed, not just stay at login screen)
@@ -155,13 +156,19 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
     ax2.set_position([box2.x0, box2.y0, box2.width * 0.95, box2.height])
 
     if without_first_epochs:
-        plt1, = ax.plot(list(range(5, len(metrics["loss_train"]))), metrics["loss_train"][5:], "r:", label='loss train')
-        plt2, = ax.plot(list(range(5, len(metrics["loss_validate"]))), metrics["loss_validate"][5:], "r", label='loss val')
-        plt3, = ax.plot(list(range(5, len(metrics["loss_test"]))), metrics["loss_test"][5:], "r--", label='loss test')
+        plt1, = ax.plot(list(range(5, len(metrics["loss_train"]))),
+                        metrics["loss_train"][5:], "r:", label='loss train')
+        plt2, = ax.plot(list(range(5, len(metrics["loss_validate"]))),
+                        metrics["loss_validate"][5:], "r", label='loss val')
+        plt3, = ax.plot(list(range(5, len(metrics["loss_test"]))),
+                        metrics["loss_test"][5:], "r--", label='loss test')
 
-        plt4, = ax2.plot(list(range(5, len(metrics["f1_macro_train"]))), metrics["f1_macro_train"][5:], "g:", label='f1_macro_train')
-        plt5, = ax2.plot(list(range(5, len(metrics["f1_macro_validate"]))), metrics["f1_macro_validate"][5:], "g", label='f1_macro_val')
-        plt6, = ax2.plot(list(range(5, len(metrics["f1_macro_test"]))), metrics["f1_macro_test"][5:], "g--", label='f1_macro_test')
+        plt4, = ax2.plot(list(range(5, len(metrics["f1_macro_train"]))),
+                         metrics["f1_macro_train"][5:], "g:", label='f1_macro_train')
+        plt5, = ax2.plot(list(range(5, len(metrics["f1_macro_validate"]))),
+                         metrics["f1_macro_validate"][5:], "g", label='f1_macro_val')
+        plt6, = ax2.plot(list(range(5, len(metrics["f1_macro_test"]))),
+                         metrics["f1_macro_test"][5:], "g--", label='f1_macro_test')
 
         plt.legend(handles=[plt1, plt2, plt3, plt4, plt5, plt6],
                    loc=2,
