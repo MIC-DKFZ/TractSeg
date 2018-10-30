@@ -284,7 +284,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                 layer_probs = np.std(samples, axis=0)    # (x,y,nrClasses)
             else:
                 # For normal prediction
-                layer_probs = model.get_probs(x)  # (bs, x, y, nrClasses)
+                layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
                 layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
 
             if probs:

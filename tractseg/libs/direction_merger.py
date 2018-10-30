@@ -21,7 +21,7 @@ from __future__ import print_function
 
 import numpy as np
 
-from tractseg.data.data_loader_inference import DataManagerSingleSubjectByFile
+from tractseg.data.data_loader_inference import DataLoaderInference
 
 
 def get_seg_single_img_3_directions(Config, model, subject=None, data=None, scale_to_world_shape=True, only_prediction=False):
@@ -35,7 +35,7 @@ def get_seg_single_img_3_directions(Config, model, subject=None, data=None, scal
     :param scale_to_world_shape:
     :return:
     '''
-    from tractseg.libs.trainer import Trainer
+    from tractseg.libs import trainer
 
     prob_slices = []
     directions = ["x", "y", "z"]
@@ -45,13 +45,12 @@ def get_seg_single_img_3_directions(Config, model, subject=None, data=None, scal
         # print("Processing direction " + Config.SLICE_DIRECTION)
 
         if subject:
-            from tractseg.data.data_loader_training_single import DataManagerSingleSubjectById
-            dataManagerSingle = DataManagerSingleSubjectById(Config, subject=subject)
+            from tractseg.data.data_loader_training_single import DataLoaderTrainingSingle
+            dataManagerSingle = DataLoaderTrainingSingle(Config, subject=subject)
         else:
-            dataManagerSingle = DataManagerSingleSubjectByFile(Config, data=data)
+            dataManagerSingle = DataLoaderInference(Config, data=data)
 
-        trainerSingle = Trainer(model, dataManagerSingle)
-        img_probs, img_y = trainerSingle.predict_img(Config, probs=True, scale_to_world_shape=scale_to_world_shape, only_prediction=only_prediction)    # (x, y, z, nrClasses)
+        img_probs, img_y = trainer.predict_img(Config, model, dataManagerSingle, probs=True, scale_to_world_shape=scale_to_world_shape, only_prediction=only_prediction)    # (x, y, z, nrClasses)
         prob_slices.append(img_probs)
 
     probs_x, probs_y, probs_z = prob_slices

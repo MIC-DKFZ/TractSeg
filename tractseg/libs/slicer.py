@@ -29,7 +29,7 @@ from tractseg.libs import exp_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
 from tractseg.libs.subjects import get_all_subjects
-from tractseg.data.data_loader_training_single import DataManagerTrainingNiftiImgs
+from tractseg.data.data_loader_training import DataLoaderTraining
 
 
 np.random.seed(1337)
@@ -275,12 +275,14 @@ def precompute_batches(custom_type=None):
         types = [custom_type]
 
     for type in types:
-        dataManager = DataManagerTrainingNiftiImgs(Config)
-        batch_gen = dataManager.get_batches(batch_size=Config.BATCH_SIZE, type=type,
-                                            subjects=getattr(Config, type.upper() + "_SUBJECTS"), num_batches=num_batches[type])
+        data_loader = DataLoaderTraining(Config)
+        batch_gen = data_loader.get_batch_generator(batch_size=Config.BATCH_SIZE, type=type,
+                                            subjects=getattr(Config, type.upper() + "_SUBJECTS"))
 
-        for idx, batch in enumerate(batch_gen):
+        num_batches = num_batches[type]
+        for idx in range(num_batches):
             print("Processing: {}".format(idx))
+            batch = next(batch_gen)
 
             DATASET_DIR = "HCP_batches/270g_125mm_bundle_peaks_XYZ"
             exp_utils.make_dir(join(C.HOME, DATASET_DIR, type))

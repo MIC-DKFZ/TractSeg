@@ -34,8 +34,8 @@ from tractseg.libs import utils
 from tractseg.libs import dataset_utils
 from tractseg.libs import direction_merger
 from tractseg.libs import img_utils
-from tractseg.data.data_loader_inference import DataManagerSingleSubjectByFile
-from tractseg.libs.trainer import Trainer
+from tractseg.data.data_loader_inference import DataLoaderInference
+from tractseg.libs import trainer
 from tractseg.models.base_model import BaseModel
 
 
@@ -126,12 +126,11 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE, dropout_sampling=Config.DROPOUT_SAMPLING)
         model = BaseModel(Config)
         if single_orientation:     # mainly needed for testing because of less RAM requirements
-            dataManagerSingle = DataManagerSingleSubjectByFile(Config, data=data)
-            trainerSingle = Trainer(model, dataManagerSingle)
+            data_loder_inference = DataLoaderInference(Config, data=data)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
-                seg, img_y = trainerSingle.predict_img(Config, probs=True, scale_to_world_shape=False, only_prediction=True)
+                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True, scale_to_world_shape=False, only_prediction=True)
             else:
-                seg, img_y = trainerSingle.predict_img(Config, probs=False, scale_to_world_shape=False, only_prediction=True)
+                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=False, scale_to_world_shape=False, only_prediction=True)
         else:
             seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data, scale_to_world_shape=False, only_prediction=True)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
@@ -161,10 +160,9 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             Config.CLASSES = "All_" + part
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
             utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE, dropout_sampling=Config.DROPOUT_SAMPLING, part=part)
-            dataManagerSingle = DataManagerSingleSubjectByFile(Config, data=data)
+            data_loder_inference = DataLoaderInference(Config, data=data)
             model = BaseModel(Config)
-            trainerSingle = Trainer(model, dataManagerSingle)
-            seg, img_y = trainerSingle.predict_img(Config, probs=True, scale_to_world_shape=False, only_prediction=True)
+            seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True, scale_to_world_shape=False, only_prediction=True)
 
             if peak_regression_part == "All":
                 seg_all[:, :, :, (idx*Config.NR_OF_CLASSES) : (idx*Config.NR_OF_CLASSES+Config.NR_OF_CLASSES)] = seg
