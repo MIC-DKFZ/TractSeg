@@ -94,9 +94,9 @@ def run_tractseg(data, output_type="tract_segmentation",
     if input_type == "peaks":
         if Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.DROPOUT_SAMPLING:
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_dropout_v2.npz")
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg72_888", "best_weights_ep247.npz")
         elif Config.EXPERIMENT_TYPE == "tract_segmentation":
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_v2.npz")
+            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_12g90g270g_125mm_DS_DAugAll_RotMirFlip", "best_weights_ep247.npz")
         elif Config.EXPERIMENT_TYPE == "endings_segmentation":
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_endings_segmentation_v3.npz")
         elif Config.EXPERIMENT_TYPE == "dm_regression":

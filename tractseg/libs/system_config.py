@@ -29,7 +29,7 @@ def get_config_name(input_type, output_type, dropout_sampling=False):
         elif output_type == "tract_segmentation":
             config = "TractSeg_12g90g270g_125mm_DS_DAugAll"
             # config = "TractSeg_T1_12g90g270g_125mm_DAugAll"
-            # config = "TractSeg72_888"
+            # config = "TractSeg_12g90g270g_125mm_DS_DAugAll_RotMirFlip"
         elif output_type == "endings_segmentation":
             config = "EndingsSeg_12g90g270g_125mm_DS_DAugAll"
         elif output_type == "TOM":
