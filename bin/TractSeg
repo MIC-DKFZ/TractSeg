@@ -122,6 +122,7 @@ def main():
     dropout_sampling = args.uncertainty
     threshold = 0.5          #specificity (tract_segmentation and endings_segmentation)
     peak_threshold = 0.3     #specificity (TOM)
+    automatically_flip_peaks = False
 
     input_path = args.input
     config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
@@ -169,7 +170,8 @@ def main():
     data_affine = data_img.get_affine()
 
     if not args.only_track:
-        flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img, do_flip=False)
+        data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
+                                                                                do_flip=automatically_flip_peaks)
         if flip_axis is not None:
             print("\nWARNING: Detected that peaks probably have wrong orientation. You should flip them along the " +
                   flip_axis + "-axis using the following command: \n" +
@@ -178,7 +180,6 @@ def main():
                   "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
                   "Then rerun TractSeg using the flipped peaks.\n")
 
-        data = data_img.get_data()
         data_img = None     # free memory
 
         #Use Peaks + T1

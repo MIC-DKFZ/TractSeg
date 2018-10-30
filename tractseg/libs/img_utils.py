@@ -490,9 +490,8 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
     predicted_label = clf.predict(X)[0]
     # labels:
     #  ok: 0, x:1, y:2, z:3
-
+    peaks_input_data = peaks_input.get_data()
     if do_flip:
-        peaks_input_data = peaks_input.get_data()
         if predicted_label == 0:
             return peaks_input_data, None
         elif predicted_label == 1:
@@ -503,13 +502,13 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
             return flip_peaks(peaks_input_data, axis="z"), "z"
     else:
         if predicted_label == 0:
-            return None
+            return peaks_input_data, None
         elif predicted_label == 1:
-            return "x"
+            return peaks_input_data, "x"
         elif predicted_label == 2:
-            return "y"
+            return peaks_input_data, "y"
         elif predicted_label == 3:
-            return "z"
+            return peaks_input_data, "z"
 
 
 def get_image_spacing(img_path):
