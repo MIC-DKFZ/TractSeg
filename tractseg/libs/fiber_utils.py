@@ -25,7 +25,7 @@ import logging
 import psutil
 import numpy as np
 import nibabel as nib
-from dipy.tracking.streamline import compress_streamlines
+from dipy.tracking.streamline import compress_streamlines as compress_streamlines_dipy
 from dipy.segment.metric import ResampleFeature
 
 from tractseg.libs import utils
@@ -45,7 +45,7 @@ def compress_fibers_worker_shared_mem(idx):
     # Function that runs in parallel must be on top level (not in class/function) otherwise it can
     #   not be pickled and then error
     streamlines_chunk = _FIBER_BATCHES[idx]  # shared memory; by using indices each worker accesses only his part
-    result = compress_streamlines(streamlines_chunk, tol_error=_COMPRESSION_ERROR_THRESHOLD)
+    result = compress_streamlines_dipy(streamlines_chunk, tol_error=_COMPRESSION_ERROR_THRESHOLD)
     logging.debug('PID {}, DONE'.format(getpid()))
     return result
 
