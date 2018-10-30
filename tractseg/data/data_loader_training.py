@@ -42,7 +42,6 @@ from batchgenerators.transforms.crop_and_pad_transforms import PadToMultipleTran
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
-from batchgenerators.dataloading.single_threaded_augmenter import SingleThreadedAugmenter
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 
 from tractseg.libs.system_config import SystemConfig as C

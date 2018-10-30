@@ -45,8 +45,7 @@ def get_seg_single_img_3_directions(Config, model, subject=None, data=None, scal
         # print("Processing direction " + Config.SLICE_DIRECTION)
 
         if subject:
-            from tractseg.data.data_loader_training_single import DataLoaderTrainingSingle
-            dataManagerSingle = DataLoaderTrainingSingle(Config, subject=subject)
+            dataManagerSingle = DataLoaderInference(Config, subject=subject)
         else:
             dataManagerSingle = DataLoaderInference(Config, data=data)
 
