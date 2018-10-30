@@ -39,27 +39,40 @@ from tractseg.libs import trainer
 from tractseg.models.base_model import BaseModel
 
 
-def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
-                 single_orientation=False, verbose=False, dropout_sampling=False, threshold=0.5,
+def run_tractseg(data, output_type="tract_segmentation",
+                 single_orientation=False, dropout_sampling=False, threshold=0.5,
                  bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
-                 postprocess=False, peak_regression_part="All", nr_cpus=-1):
+                 postprocess=False, peak_regression_part="All", input_type="peaks",
+                 nr_cpus=-1, verbose=False):
     """
     Run TractSeg
 
-    :param data: input peaks (4D numpy array with shape [x,y,z,9])
-    :param output_type: "tract_segmentation" | "endings_segmentation" | "TOM" | "dm_regression"
-    :param input_type: "peaks"
-    :param verbose: show debugging infos
-    :param dropout_sampling: create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)
-    :param threshold: Threshold for converting probability map to binary map
-    :param bundle_specific_threshold: Threshold is lower for some bundles which need more sensitivity (CA, CST, FX)
-    :param get_probs: Output raw probability map instead of binary map
-    :param peak_threshold: all peaks shorter than peak_threshold will be set to zero
-    :param nr_cpus: Number of CPUs to use. -1 means all available CPUs.
-    :return: 4D numpy array with the output of tractseg
-        for tract_segmentation:     [x,y,z,nr_of_bundles]
-        for endings_segmentation:   [x,y,z,2*nr_of_bundles]
-        for TOM:                    [x,y,z,3*nr_of_bundles]
+    Args:
+        data: input peaks (4D numpy array with shape [x,y,z,9])
+        output_type: TractSeg can segment not only bundles, but also the end regions of bundles.
+            Moreover it can create Tract Orientation Maps (TOM).
+            'tract_segmentation' [DEFAULT]: Segmentation of bundles (72 bundles).
+            'endings_segmentation': Segmentation of bundle end regions (72 bundles).
+            'TOM': Tract Orientation Maps (20 bundles).
+        single_orientation: Do not run model 3 times along x/y/z orientation with subsequent mean fusion.
+        dropout_sampling: Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)
+        threshold: Threshold for converting probability map to binary map
+        bundle_specific_threshold: Set threshold to lower for some bundles which need more sensitivity (CA, CST, FX)
+        get_probs: Output raw probability map instead of binary map
+        peak_threshold: All peaks shorter than peak_threshold will be set to zero
+        postprocess: Simple postprocessing of segmentations: Remove small blobs and fill holes
+        peak_regression_part: Only relevant for output type 'TOM'. If set to 'All' (default) it will return all
+            72 bundles. If set to 'Part1'-'Part4' it will only run for a subset of the bundles to reduce memory
+            load.
+        input_type: Always set to "peaks"
+        nr_cpus: Number of CPUs to use. -1 means all available CPUs.
+        verbose: Show debugging infos
+
+    Returns:
+        4D numpy array with the output of tractseg
+        for tract_segmentation:     [x, y, z, nr_of_bundles]
+        for endings_segmentation:   [x, y, z, 2*nr_of_bundles]
+        for TOM:                    [x, y, z, 3*nr_of_bundles]
     """
     start_time = time.time()
 
@@ -81,25 +94,15 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
     if input_type == "peaks":
         if Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.DROPOUT_SAMPLING:
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_dropout_v2.npz")
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/TractSeg_12g90g270g_125mm_DS_DAugAll_Dropout", "best_weights_ep407.npz")
+            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg72_888", "best_weights_ep247.npz")
         elif Config.EXPERIMENT_TYPE == "tract_segmentation":
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_v2.npz")
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/TractSeg_T1_12g90g270g_125mm_DAugAll", "best_weights_ep392.npz")
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg72_888", "best_weights_ep247.npz")
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg72_888_SchizoFineT_lr001", "best_weights_ep186.npz")
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "TractSeg_12g90g270g_125mm_DS_DAugAll_RotMir", "best_weights_ep200.npz")
         elif Config.EXPERIMENT_TYPE == "endings_segmentation":
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_endings_segmentation_v3.npz")
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "EndingsSeg_12g90g270g_125mm_DS_DAugAll", "best_weights_ep234.npz")
-        # elif Config.EXPERIMENT_TYPE == "peak_regression":
-        #     Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_peak_regression_v1.npz")
-        #     # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/Peaks20_12g90g270g_125mm_DAugSimp_constW5", "best_weights_ep441.npz")  #more oversegmentation with DAug
         elif Config.EXPERIMENT_TYPE == "dm_regression":
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_dm_regression_v1.npz")
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "DmReg_12g90g270g_125mm_DAugAll_Ubuntu", "best_weights_ep80.npz")
     elif input_type == "T1":
         if Config.EXPERIMENT_TYPE == "tract_segmentation":
-            # Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_v1.npz")
             Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes/x_Pretrained_TractSeg_Models", "TractSeg_T1_125mm_DAugAll", "best_weights_ep142.npz")
         elif Config.EXPERIMENT_TYPE == "endings_segmentation":
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_endings_segmentation_v1.npz")
@@ -111,7 +114,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         exp_utils.print_Configs(Config)
 
     data = np.nan_to_num(data)
-    # brain_mask = ImgUtils.simple_brain_mask(data)
+    # brain_mask = img_utils.simple_brain_mask(data)
     # if Config.VERBOSE:
     #     nib.save(nib.Nifti1Image(brain_mask, np.eye(4)), "otsu_brain_mask_DEBUG.nii.gz")
 
@@ -125,7 +128,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         Config.NR_OF_CLASSES = len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
         utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE, dropout_sampling=Config.DROPOUT_SAMPLING)
         model = BaseModel(Config)
-        if single_orientation:     # mainly needed for testing because of less RAM requirements
+        if single_orientation:  # mainly needed for testing because of less RAM requirements
             data_loder_inference = DataLoaderInference(Config, data=data)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
                 seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True, scale_to_world_shape=False, only_prediction=True)
@@ -154,7 +157,6 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
         for idx, part in enumerate(parts):
-            # Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes", "x_Pretrained_TractSeg_Models/" + weights[part])
             Config.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, weights[part])
             print("Loading weights from: {}".format(Config.WEIGHTS_PATH))
             Config.CLASSES = "All_" + part
@@ -178,7 +180,7 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         else:
             seg = img_utils.remove_small_peaks(seg, len_thr=peak_threshold)
 
-        #3 dir for Peaks -> not working (?)
+        #3 dir for Peaks -> bad results
         # seg_xyz, gt = DirectionMerger.get_seg_single_img_3_directions(Config, model, data=data, scale_to_world_shape=False, only_prediction=True)
         # seg = DirectionMerger.mean_fusion(Config.THRESHOLD, seg_xyz, probs=True)
 
@@ -186,8 +188,8 @@ def run_tractseg(data, output_type="tract_segmentation", input_type="peaks",
         seg = img_utils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
     #remove following two lines to keep super resolution
-    seg = dataset_utils.cut_and_scale_img_back_to_original_img(seg, transformation)  #quite slow
-    seg = dataset_utils.add_original_zero_padding_again(seg, bbox, original_shape, Config.NR_OF_CLASSES) #quite slow
+    seg = dataset_utils.cut_and_scale_img_back_to_original_img(seg, transformation)  # quite slow
+    seg = dataset_utils.add_original_zero_padding_again(seg, bbox, original_shape, Config.NR_OF_CLASSES)  # quite slow
 
     if postprocess:
         seg = img_utils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)

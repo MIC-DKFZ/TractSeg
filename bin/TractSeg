@@ -80,8 +80,7 @@ def main():
     parser.add_argument("--super_resolution", action="store_true", help="Keep 1.25mm resolution of model instead of downsampling back to original resolution", default=False)
     parser.add_argument("--uncertainty", action="store_true", help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)", default=False)
     parser.add_argument("--postprocess", action="store_true", help="Simple postprocessing of segmentations: Remove small blobs and fill holes", default=False)
-    #Move input image to MNI space
-    parser.add_argument("--preprocess", action="store_true", help="Ensure correct orientation of peaks", default=False)
+    parser.add_argument("--preprocess", action="store_true", help="Move input image to MNI space.", default=False)
     parser.add_argument("--nr_cpus", metavar="n", type=int, help="Number of CPUs to use. "
                                                                  "-1 means all available CPUs (default: -1)", default=-1)
     parser.add_argument('--version', action='version', version='TractSeg 1.7.1')
@@ -164,13 +163,13 @@ def main():
                 Config.CLASSES = "All_" + part
                 Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
-            seg = run_tractseg(data, args.output_type, input_type=input_type,
-                               single_orientation=args.single_orientation, verbose=args.verbose,
+            seg = run_tractseg(data, args.output_type,
+                               single_orientation=args.single_orientation,
                                dropout_sampling=dropout_sampling, threshold=threshold,
                                bundle_specific_threshold=args.bundle_specific_threshold,
                                get_probs=args.get_probabilities, peak_threshold=peak_threshold,
                                postprocess=args.postprocess, peak_regression_part=part,
-                               nr_cpus=args.nr_cpus)
+                               input_type=input_type, nr_cpus=args.nr_cpus, verbose=args.verbose)
 
             if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
                 print("Saving preview...")
@@ -190,6 +189,7 @@ def main():
                     nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
                 elif Config.EXPERIMENT_TYPE == "dm_regression":
                     nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
+                img = None  # Free memory (before we run tracking)
             else:
                 if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
                     img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT, name="bundle_uncertainties")
@@ -201,10 +201,7 @@ def main():
                     img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT)
                 elif Config.EXPERIMENT_TYPE == "dm_regression":
                     img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine, Config.PREDICT_IMG_OUTPUT, name="dm_regression")
-
-            #Free memory
-            seg = None
-            img = None
+                seg = None  # Free memory (before we run tracking)
 
             if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
                 mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)

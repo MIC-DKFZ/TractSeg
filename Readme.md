@@ -198,7 +198,6 @@ import nibabel as nib
 import numpy as np
 from tractseg.python_api import run_tractseg
 peaks = nib.load("tests/reference_files/peaks.nii.gz").get_data()
-peaks = np.nan_to_num(peaks)
 segmentation = run_tractseg(peaks)
 ```
 

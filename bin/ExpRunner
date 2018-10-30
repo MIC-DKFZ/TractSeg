@@ -15,6 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This module is for training the model. See Readme.md for more details about training your own model.
+
+How to use this module:
+
+#Run local:
+ExpRunner --config=XXX
+
+#Run slurm cluster:
+sbatch --job-name=XXX ~/runner.sh   (runner.sh not provided)
+
+#Predicting with new config setup:
+ExpRunner --train=False --seg --lw --config=XXX
+ExpRunner --train=False --test=True --lw --config=XXX
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -45,17 +61,6 @@ from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.models.base_model import BaseModel
 
 
-'''
-#Run ubuntu:
-ExpRunner --config=XXX
-
-#Run cluster:
-sbatch --job-name=XXX ~/runner.sh
-
-#Predicting with new config setup:
-ExpRunner --train=False --seg --lw --config=XXX
-ExpRunner --train=False --test=True --lw --config=XXX
-'''
 def main():
     parser = argparse.ArgumentParser(description="Train a network on your own data to segment white matter bundles.",
                                         epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. " +
@@ -68,13 +73,12 @@ def main():
     parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net")
     parser.add_argument("--en", metavar="name", help="Experiment name")
     parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int)
-    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)   #set default to False in future
+    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)
     args = parser.parse_args()
 
     Config = getattr(importlib.import_module("tractseg.experiments.base"), "Config")()
     if args.config:
-        Config = getattr(importlib.import_module("tractseg.experiments.custom." + args.config), "Config")()    #Config.__dict__ does not work if ()
-        # Config.EXP_NAME = args.config
+        Config = getattr(importlib.import_module("tractseg.experiments.custom." + args.config), "Config")()    #Config.__dict__ does not work properly
 
     if args.en:
         Config.EXP_NAME = args.en
@@ -98,7 +102,7 @@ def main():
     if Config.WEIGHTS_PATH == "":
         Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(Config.EXP_PATH, Config.LOAD_WEIGHTS)
 
-    #Autoset some parameters based on settings
+    #Autoset input dimensinos based on settings
     if Config.RESOLUTION == "1.25mm":
         Config.INPUT_DIM = (144, 144)
     elif Config.RESOLUTION == "2mm":
@@ -165,15 +169,12 @@ def main():
         print("WHOLE SUBJECT BUNDLES:")
         pprint(metrics_bundles)
 
-
         with open(join(Config.EXP_PATH, "score_" + type + "-set.txt"), "w") as f:
             pprint(metrics, f)
             f.write("\n\nWeights: {}\n".format(Config.WEIGHTS_PATH))
             f.write("type: {}\n\n".format(type))
             pprint(metrics_bundles, f)
-
         pickle.dump(metrics, open(join(Config.EXP_PATH, "score_" + type + ".pkl"), "wb"))
-
         return metrics
 
 
@@ -184,25 +185,24 @@ def main():
         print("Training...")
         model = trainer.train_model(Config, model, data_loader)
 
-    #After Training
+    # After Training
     if Config.TRAIN:
-        # have to load other weights, because after training it has the weights of the last epoch
+        # Have to load other weights, because after training it has the weights of the last epoch
         print("Loading best epoch: {}".format(Config.BEST_EPOCH))
         Config.WEIGHTS_PATH = Config.EXP_PATH + "/best_weights_ep" + str(Config.BEST_EPOCH) + ".npz"
         Config.LOAD_WEIGHTS = True
         model.load_model(join(Config.EXP_PATH, Config.WEIGHTS_PATH))
         model_test = model
     else:
-        # Weight_path already set to best model (wenn reading program parameters) -> will be loaded automatically
+        # Weight_path already set to best model (when reading program parameters) -> will be loaded automatically
         model_test = model
 
     if Config.SEGMENT:
         exp_utils.make_dir(join(Config.EXP_PATH, "segmentations"))
-        # all_subjects = Config.VALIDATE_SUBJECTS #+ Config.TEST_SUBJECTS
+        # all_subjects = Config.VALIDATE_SUBJECTS + Config.TEST_SUBJECTS
         all_subjects = ["599469"]
         for subject in all_subjects:
             print("Get_segmentation subject {}".format(subject))
-            start_time = time.time()
 
             if Config.EXPERIMENT_TYPE == "peak_regression":
                 data_loader = DataLoaderInference(Config, subject=subject)
@@ -222,7 +222,6 @@ def main():
 
             img = nib.Nifti1Image(img_seg.astype(np.uint8), img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
             nib.save(img, join(Config.EXP_PATH, "segmentations", subject + "_segmentation.nii.gz"))
-            # print("took {}s".format(time.time() - start_time))
 
     if Config.TEST:
         test_whole_subject(Config, model_test, Config.VALIDATE_SUBJECTS, "validate")
@@ -230,9 +229,8 @@ def main():
 
     if Config.GET_PROBS:
         exp_utils.make_dir(join(Config.EXP_PATH, "probmaps"))
-        # all_subjects = Config.TEST_SUBJECTS
-        all_subjects = ["599469", "992774", "994273"]
         # all_subjects = Config.TRAIN_SUBJECTS + Config.VALIDATE_SUBJECTS + Config.TEST_SUBJECTS
+        all_subjects = ["599469", "992774", "994273"]
         for subject in all_subjects:
             print("Get_probs subject {}".format(subject))
 
