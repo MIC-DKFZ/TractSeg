@@ -275,8 +275,14 @@ def sample_slices(data, seg, slice_idxs, training_slice_direction="y", labels_ty
     # Randomly sample slice orientation
     if training_slice_direction == "xyz":
         slice_direction = int(round(random.uniform(0, 2)))
+    elif training_slice_direction == "x":
+        slice_direction = 0
+    elif training_slice_direction == "y":
+        slice_direction = 1
+    elif training_slice_direction == "z":
+        slice_direction = 2
     else:
-        slice_direction = 1  # always use Y
+        raise ValueError("Invalid value for 'training_slice_direction'.")
 
     if slice_direction == 0:
         x = data[slice_idxs, :, :].astype(np.float32)  # (batch_size, y, z, channels)
