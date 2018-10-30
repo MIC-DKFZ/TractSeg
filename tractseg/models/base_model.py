@@ -82,7 +82,7 @@ class BaseModel:
 
         if self.Config.LR_SCHEDULE:
             self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
-            # self.scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="max")
+            # self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="max")
 
         if self.Config.LOAD_WEIGHTS:
             exp_utils.print_verbose(self.Config, "Loading weights ... ({})".format(join(self.Config.EXP_PATH, self.Config.WEIGHTS_PATH)))

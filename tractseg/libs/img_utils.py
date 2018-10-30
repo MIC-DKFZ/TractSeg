@@ -184,6 +184,9 @@ def postprocess_segmentations(data, blob_thr=50, hole_closing=2):
 
 
 def resize_first_three_dims(img, order=0, zoom=0.62):
+    """
+    Runtime 35ms
+    """
     img_sm = []
     for grad in range(img.shape[3]):
         #order: The order of the spline interpolation
@@ -191,6 +194,20 @@ def resize_first_three_dims(img, order=0, zoom=0.62):
     img_sm = np.array(img_sm)
     return img_sm.transpose(1, 2, 3, 0)  # grads channel was in front -> put to back
 
+def resize_first_three_dims_NUMPY(img, order=0, zoom=0.62):
+    """
+    Version of resize_first_three_dims using direct numpy indexing for storing results to test
+    if it is faster. But it is not.
+    Runtime 47ms
+    """
+    img_sm = None
+    for grad in range(img.shape[3]):
+        #order: The order of the spline interpolation
+        grad_sm = ndimage.zoom(img[:, :, :, grad], zoom, order=order) # order=0 -> nearest interpolation; order=1 -> linear or bilinear interpolation?
+        if grad == 0:
+            img_sm = np.zeros((grad_sm.shape[0], grad_sm.shape[1], grad_sm.shape[2], img.shape[3]))
+        img_sm[:, :, :, grad] = grad_sm
+    return img_sm
 
 def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
     '''
