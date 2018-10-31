@@ -123,6 +123,7 @@ def main():
     threshold = 0.5          #specificity (tract_segmentation and endings_segmentation)
     peak_threshold = 0.3     #specificity (TOM)
     automatically_flip_peaks = False
+    prob_tracking_on_FODs = False
 
     input_path = args.input
     config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
@@ -259,7 +260,8 @@ def main():
         for bundle in tqdm(exp_utils.get_bundle_names(Config.CLASSES)[1:]):
             mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
                          filter_by_endpoints=args.filter_tracking_by_endpoints,
-                         output_format=args.tracking_format, nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus)
+                         output_format=args.tracking_format, nr_fibers=args.nr_fibers,
+                         nr_cpus=args.nr_cpus, prob_tracking_on_FODs=prob_tracking_on_FODs)
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 

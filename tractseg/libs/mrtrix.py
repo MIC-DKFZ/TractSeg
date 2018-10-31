@@ -133,7 +133,8 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
         raise ValueError("'csd_type' contains invalid String")
 
 
-def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1):
+def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
+          prob_tracking_on_FODs=False):
     '''
 
     :param bundle:   Bundle name
@@ -144,12 +145,16 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     :param output_format:
     :param nr_fibers:
     :param nr_cpus:
+    :param prob_tracking_on_FODs: Runs iFOD2 tracking on original FODs (have to be provided to -i) instead of running
+        FACT tracking on TOMs.
     :return:
     '''
-    tracking_folder = "TOM_trackings"
-    # tracking_folder = "TOM_trackings_FiltEP6_FiltMask3"
+    if prob_tracking_on_FODs:
+        tracking_folder = "FOD_trackings"
+    else:
+        tracking_folder = "TOM_trackings"
     smooth = None       # None / 10
-    TOM_folder = "TOM"      # TOM / TOM_thr1
+    TOM_folder = "TOM"
 
     tmp_dir = tempfile.mkdtemp()
     subprocess.call("export PATH=/code/mrtrix3/bin:$PATH", shell=True)
@@ -178,32 +183,34 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         nthreads = ""
 
     if filter_by_endpoints and bundle_mask_ok and beginnings_mask_ok and endings_mask_ok:
-        # dilation has to be quite high, because endings sometimes almost completely missing
-        img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
-                                     tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
-        img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
-                                     tmp_dir + "/" + bundle + "_e.nii.gz", dilation=6)
-        img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
-                                     tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
+        if prob_tracking_on_FODs:
+            #Probabilistic Tracking without TOM (instead using original FODs: have to be provided to -i)
+            os.system("tckgen -algorithm iFOD2 " +
+                      peaks + " " +
+                      output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+                      " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+                      " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+                      " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+                      " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+                      " -minlength 40 -seeds 200000 -select 2000 -force")
+        else:
+            # dilation has to be quite high, because endings sometimes almost completely missing
+            img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
+                                         tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
+            img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
+                                         tmp_dir + "/" + bundle + "_e.nii.gz", dilation=6)
+            img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
+                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
 
-        subprocess.call("tckgen -algorithm FACT " +
-                  output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
-                  output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                  " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
-                  " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
-                  " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
-                  " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                  " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads, shell=True)
+            subprocess.call("tckgen -algorithm FACT " +
+                      output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
+                      output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+                      " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+                      " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+                      " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+                      " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+                      " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads, shell=True)
 
-        # #Probabilistic Tracking without TOM
-        # os.system("tckgen -algorithm iFOD2 " +
-        #           peaks + " " +
-        #           output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-        #           " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
-        #           " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
-        #           " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
-        #           " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-        #           " -minlength 40 -seeds 200000 -select 2000 -force")
     else:
         img_utils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
 
