@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 from tractseg.experiments.tract_seg import Config as TractSegConfig
 

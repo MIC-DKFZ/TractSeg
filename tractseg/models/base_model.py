@@ -204,7 +204,7 @@ class BaseModel:
         return probs
 
 
-    def save_models(self, metrics, epoch_nr):
+    def save_model(self, metrics, epoch_nr):
         max_f1_idx = np.argmax(metrics["f1_macro_validate"])
         max_f1 = np.max(metrics["f1_macro_validate"])
         # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
