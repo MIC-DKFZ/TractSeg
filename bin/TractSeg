@@ -102,10 +102,10 @@ def main():
                              "'--output_type endings_segmentation' first) and not leaving the tract mask (need to "
                              "run TractSeg with '--output_type tract_segmentation' (default) first). See "
                              "documentation for more details.", default=False)
-    parser.add_argument("--track_FODs", action="store_true",
+    parser.add_argument("--track_FODs", metavar="False|FACT|iFOD2", choices=["False", "FACT", "iFOD2"],
                         help="Running tracking on FODs (provided as argument to '-i') instead of tracking on TOMs. "
                              "Only works in combination with '--filter_tracking_by_endpoints'",
-                        default=False)
+                        default="False")
     parser.add_argument("--super_resolution", action="store_true",
                         help="Keep 1.25mm resolution of model instead of downsampling back to original resolution",
                         default=False)
@@ -164,7 +164,7 @@ def main():
         peak_path = input_path
         data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
-        if not args.track_FODs and not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
+        if args.track_FODs == "False" and not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
             print("ERROR: Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
                           "If you input a Diffusion image add the option '--raw_diffusion_input'.")
             sys.exit()
@@ -264,7 +264,7 @@ def main():
             mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
                          filter_by_endpoints=args.filter_tracking_by_endpoints,
                          output_format=args.tracking_format, nr_fibers=args.nr_fibers,
-                         nr_cpus=args.nr_cpus, prob_tracking_on_FODs=args.track_FODs)
+                         nr_cpus=args.nr_cpus, tracking_on_FODs=args.track_FODs)
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 

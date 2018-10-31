@@ -134,7 +134,7 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
-          prob_tracking_on_FODs=False):
+          tracking_on_FODs=None):
     '''
 
     :param bundle:   Bundle name
@@ -147,10 +147,13 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     :param nr_cpus:
     :param prob_tracking_on_FODs: Runs iFOD2 tracking on original FODs (have to be provided to -i without
         setting --raw_diffusion_input) instead of running FACT tracking on TOMs.
+        options: False | FACT | iFOD2
     :return:
     '''
-    if prob_tracking_on_FODs:
-        tracking_folder = "FOD_trackings"
+    if tracking_on_FODs == "FACT":
+        tracking_folder = "FOD_FACT_trackings"
+    elif tracking_on_FODs == "iFOD2":
+        tracking_folder = "FOD_iFOD2_trackings"
     else:
         tracking_folder = "TOM_trackings"
     smooth = None       # None / 10
@@ -192,15 +195,21 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
                                      tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
 
         # Probabilistic Tracking without TOM (instead using original FODs: have to be provided to -i)
-        if prob_tracking_on_FODs:
-            subprocess.call("tckgen -algorithm iFOD2 " +
+        if tracking_on_FODs != "False":
+            algorithm = tracking_on_FODs
+            if algorithm == "FACT":
+                seeds = 20000000
+            else:
+                seeds = 200000
+            subprocess.call("tckgen -algorithm " + algorithm + " " +
                             peaks + " " +
                             output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                             " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
                             " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
                             " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                             " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                            " -minlength 40 -seeds 200000 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
+                            " -minlength 40 -seeds " + str(seeds) + " -select " +
+                            str(nr_fibers) + " -force" + nthreads,
                             shell=True)
         else:
             subprocess.call("tckgen -algorithm FACT " +
