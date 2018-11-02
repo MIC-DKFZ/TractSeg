@@ -117,15 +117,15 @@ def main():
             predicted_peaks = None
         beginnings = nib.load(join(args.endings_dir, bundle + "_b.nii.gz"))
 
-        #TODO: remove
-        # if args.tracking_format == "trk":
-        #     streams, hdr = trackvis.read(join(args.tracking_dir, bundle + ".trk"))
-        #     streamlines = [s[0] for s in streams]
-        # else:
-        #     tck = nib.streamlines.load(join(args.tracking_dir, bundle + ".tck"))
-        #     streamlines = tck.streamlines
-        sl_file = nib.streamlines.load(join(args.tracking_dir, bundle + "." + args.tracking_format))
-        streamlines = sl_file.streamlines
+        if args.tracking_format == "trk_legacy":
+            streams, hdr = trackvis.read(join(args.tracking_dir, bundle + ".trk"))
+            streamlines = [s[0] for s in streams]
+        else:
+            # TODO: remove
+            # tck = nib.streamlines.load(join(args.tracking_dir, bundle + ".tck"))
+            # streamlines = tck.streamlines
+            sl_file = nib.streamlines.load(join(args.tracking_dir, bundle + "." + args.tracking_format))
+            streamlines = sl_file.streamlines
 
         if len(streamlines) > 0:
             streamlines = fiber_utils.resample_fibers(streamlines, nb_points=NR_POINTS)    #mean over bundles
