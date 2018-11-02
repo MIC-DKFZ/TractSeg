@@ -100,8 +100,11 @@ def main():
     parser.add_argument("--TOM", metavar="TOM_dir", dest="TOM_dir",
                         help="Folder containing Tract Orientation Maps (TOMs) (normally '.../tractseg_output/TOM'). "
                              "Needed if using the '--peak_length' option.")
-    parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"],
-                        help="Set output format of tracking (default: trk)", default="trk")
+    parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
+                        help="Set output format of tracking. For trk also the option trk_legacy is available. This "
+                             "uses the older trk convention (streamlines are stored in coordinate space and affine is "
+                             "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
+                        default="trk_legacy")
     args = parser.parse_args()
 
     bundles = exp_utils.get_bundle_names("All")[1:]
