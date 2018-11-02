@@ -45,11 +45,16 @@ def main():
                                         epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. "
                                                "TractSeg - Fast and accurate white matter tract segmentation. "
                                                "https://doi.org/10.1016/j.neuroimage.2018.07.070'")
+
     parser.add_argument("-i", metavar="filepath", dest="input",
                         help="CSD peaks in MRtrix format (4D Nifti image with dimensions [x,y,z,9])", required=True)
+
     parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
+
     parser.add_argument("--single_output_file", action="store_true",
-                        help="Output all bundles in one file (4D image)", default=False)
+                        help="Output all bundles in one file (4D image)",
+                        default=False)
+
     parser.add_argument("--csd_type", metavar="csd|csd_msmt|csd_msmt_5tt", choices=["csd", "csd_msmt", "csd_msmt_5tt"],
                         help="Which MRtrix constrained spherical deconvolution (CSD) is used for peak generation.\n"
                              "'csd' [DEFAULT]: Standard CSD. Very fast.\n"
@@ -58,7 +63,9 @@ def main():
                              "'csd_msmt_5tt': Multi-shell multi-tissue CSD 5TT. Slow on large images. Needs more "
                              "than one b-value shell."
                              "Needs a T1 image (a file 'T1w_acpc_dc_restore_brain.nii.gz' must be in the input "
-                             "directory).", default="csd")
+                             "directory).",
+                        default="csd")
+
     parser.add_argument("--output_type", metavar="tract_segmentation|endings_segmentation|TOM|dm_regression",
                         choices=["tract_segmentation", "endings_segmentation", "TOM", "dm_regression"],
                         help="TractSeg can segment not only bundles, but also the end regions of bundles. "
@@ -67,59 +74,98 @@ def main():
                              "'endings_segmentation': Segmentation of bundle end regions (72 bundles).\n"
                              "'TOM': Tract Orientation Maps (20 bundles).",
                         default="tract_segmentation")
+
     parser.add_argument("--bvals", metavar="filename",
                         help="bvals file. Default is '<name_of_input_file>.bvals' in same directory as input")
+
     parser.add_argument("--bvecs", metavar="filename",
                         help="bvecs file. Default is '<name_of_input_file>.bvecs' in same directory as input")
+
     parser.add_argument("--brain_mask", metavar="filename",
                         help="brain mask file. If not specified will automatically be generated with fsl bet")
-    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=False)
+
+    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
+                        default=False)
+
     parser.add_argument("--raw_diffusion_input", action="store_true",
                         help="Provide a Diffusion nifti image as argument to -i. "
                              "Will calculate CSD and extract the mean peaks needed as input for TractSeg.",
                         default=False)
+
     parser.add_argument("--keep_intermediate_files", action="store_true",
-                        help="Do not remove intermediate files like CSD output and peaks", default=False)
+                        help="Do not remove intermediate files like CSD output and peaks",
+                        default=False)
+
     parser.add_argument("--preview", action="store_true", help="Save preview of some tracts as png. Requires VTK.",
                         default=False)
+
     parser.add_argument("--flip", action="store_true",
-                        help="Flip output peaks of TOM along z axis to make compatible with MITK.", default=False)
+                        help="Flip output peaks of TOM along z axis to make compatible with MITK.",
+                        default=False)
+
     parser.add_argument("--single_orientation", action="store_true",
-                        help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.", default=False)
+                        help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.",
+                        default=False)
+
     parser.add_argument("--bundle_specific_threshold", action="store_true",
                         help="For converting probability maps to binary maps use lower threshold for difficult "
-                             "bundles like CA, FX and CST", default=False)
+                             "bundles like CA, FX and CST",
+                        default=False)
+
     parser.add_argument("--get_probabilities", action="store_true",
-                        help="Output probability map instead of binary segmentation", default=False)
-    parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks (MRtrix FACT)", default=False)
+                        help="Output probability map instead of binary segmentation",
+                        default=False)
+
+    parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks (MRtrix FACT)",
+                        default=False)
+
     parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create (default: 2000)",
                         default=2000)
-    parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else", default=False)
-    parser.add_argument("--tracking_format", metavar="tck|trk", choices=["tck", "trk"],
-                        help="Set output format of tracking (default: trk)", default="trk")
+
+    parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else",
+                        default=False)
+
+    parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
+                        help="Set output format of tracking. For trk also the option trk_legacy is available. This "
+                             "uses the older trk convention (streamlines are stored in coordinate space and affine is "
+                             "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
+                        default="trk_legacy")
+
     parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
                         help="Only keep fibers starting and ending in endpoint regions (need to run TractSeg with "
                              "'--output_type endings_segmentation' first) and not leaving the tract mask (need to "
                              "run TractSeg with '--output_type tract_segmentation' (default) first). See "
-                             "documentation for more details.", default=False)
+                             "documentation for more details.",
+                        default=False)
+
     parser.add_argument("--track_FODs", metavar="False|FACT|iFOD2", choices=["False", "FACT", "iFOD2"],
                         help="Running tracking on FODs (provided as argument to '-i') instead of tracking on TOMs. "
                              "Only works in combination with '--filter_tracking_by_endpoints'",
                         default="False")
+
     parser.add_argument("--super_resolution", action="store_true",
                         help="Keep 1.25mm resolution of model instead of downsampling back to original resolution",
                         default=False)
+
     parser.add_argument("--uncertainty", action="store_true",
                         help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)",
                         default=False)
+
     parser.add_argument("--postprocess", action="store_true",
                         help="Simple postprocessing of segmentations: Remove small blobs and fill holes",
                         default=False)
-    parser.add_argument("--preprocess", action="store_true", help="Move input image to MNI space.", default=False)
+
+    parser.add_argument("--preprocess", action="store_true", help="Move input image to MNI space.",
+                        default=False)
+
     parser.add_argument("--nr_cpus", metavar="n", type=int,
-                        help="Number of CPUs to use. -1 means all available CPUs (default: -1)", default=-1)
+                        help="Number of CPUs to use. -1 means all available CPUs (default: -1)",
+                        default=-1)
+
     parser.add_argument('--version', action='version', version='TractSeg 1.7.1')
+
     args = parser.parse_args()
+
 
     #Private parameters
     input_type = "peaks"  # peaks / T1

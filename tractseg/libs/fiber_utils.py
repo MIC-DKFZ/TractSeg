@@ -34,16 +34,19 @@ logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of ou
 logging.getLogger().setLevel(logging.INFO)
 
 
-#Global variables needed for shared memory of parallel fiber compression
+# Global variables needed for shared memory of parallel fiber compression
 global _COMPRESSION_ERROR_THRESHOLD
 _COMPRESSION_ERROR_THRESHOLD = None
 global _FIBER_BATCHES
 _FIBER_BATCHES = None
 
-# Worker Functions for multithreaded compression
 def compress_fibers_worker_shared_mem(idx):
-    # Function that runs in parallel must be on top level (not in class/function) otherwise it can
-    #   not be pickled and then error
+    """
+    Worker Functions for multithreaded compression.
+
+    Function that runs in parallel must be on top level (not in class/function) otherwise it can
+    not be pickled and then error.
+    """
     streamlines_chunk = _FIBER_BATCHES[idx]  # shared memory; by using indices each worker accesses only his part
     result = compress_streamlines_dipy(streamlines_chunk, tol_error=_COMPRESSION_ERROR_THRESHOLD)
     logging.debug('PID {}, DONE'.format(getpid()))
@@ -90,11 +93,20 @@ def compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=-1):
     return streamlines_c
 
 
-def save_streamlines_as_trk(filename, streamlines, affine, shape):
-    '''
-    streamlines: list of 2D ndarrays   list(ndarray(N,3))
-    affine: affine of reference img (e.g. brainmask)
-    '''
+def save_streamlines_as_trk_legacy(out_file, streamlines, affine, shape):
+    """
+    This function saves tracts in Trackvis '.trk' format.
+    Uses the old nib.trackvis API (streamlines are saved in coordinate space. Affine is not applied.)
+
+    Args:
+        out_file: string with filepath of the output file
+        streamlines: sequence of streamlines in RASmm coordinate (list of 2D numpy arrays)
+        affine: 4d array with voxel to RASmm transformation
+        shape: 1d array with dimensions of the brain volume, default [145, 174, 145]
+
+    Returns:
+        void
+    """
     affine = np.abs(affine) #have to positive
     #offset not needed (already part of streamline coordinates?)
     affine[0, 3] = 0
@@ -106,11 +118,61 @@ def save_streamlines_as_trk(filename, streamlines, affine, shape):
     trackvis_header['dim'] = shape
     nib.trackvis.aff_to_hdr(affine, trackvis_header, pos_vox=False, set_order=False)
     streamlines_trk_format = [(sl, None, None) for sl in streamlines]
-    nib.trackvis.write(filename, streamlines_trk_format, trackvis_header, points_space="rasmm")
+    nib.trackvis.write(out_file, streamlines_trk_format, trackvis_header, points_space="rasmm")
+
+
+def save_streamlines_as_trk(out_file, streamlines, affine=None, shape=None, vox_sizes=None, vox_order='RAS'):
+    """
+    This function saves tracts in Trackvis '.trk' format.
+    The default values for the parameters are the values for the HCP data.
+    The HCP default affine is: array([[  -1.25,    0.  ,    0.  ,   90.  ],
+                                      [   0.  ,    1.25,    0.  , -126.  ],
+                                      [   0.  ,    0.  ,    1.25,  -72.  ],
+                                      [   0.  ,    0.  ,    0.  ,    1.  ]],
+                                     dtype=float32)
+    Uses the new nib.streamlines API (streamlines are saved in voxel space and affine is applied to transform them to
+    coordinate space).
+
+    Args:
+        out_file: string with filepath of the output file
+        streamlines: sequence of streamlines in RASmm coordinate
+        affine: 4d array with voxel to RASmm transformation
+        shape: 1d array with dimensions of the brain volume, default [145, 174, 145]
+        vox_sizes: 1d array with the voxels sizes, if None takes the absolute values of the diagonal of the affine
+        vox_order: orientation convention, default to 'LAS'
+
+    Returns:
+        void
+    """
+    if affine is None:
+        affine = np.array([[-1.25, 0., 0., 90.],
+                           [0., 1.25, 0., -126.],
+                           [0., 0., 1.25, -72.],
+                           [0., 0., 0., 1.]],
+                          dtype=np.float32)
+
+    if shape is None:
+        shape = np.array([145, 174, 145], dtype=np.int16)
+
+    if vox_sizes is None:
+        vox_sizes = np.array([abs(affine[0,0]), abs(affine[1,1]), abs(affine[2,2])], dtype=np.float32)
+
+    if out_file.split('.')[-1] != 'trk':
+        out_file = out_file + '.trk'
+
+    # Create a new header with the correct affine and # of streamlines
+    hdr = nib.streamlines.trk.TrkFile.create_empty_header()
+    hdr['voxel_sizes'] = vox_sizes
+    hdr['voxel_order'] = vox_order
+    hdr['dimensions'] = shape
+    hdr['voxel_to_rasmm'] = affine
+    hdr['nb_streamlines'] = len(streamlines)
+
+    nib.streamlines.save(nib.streamlines.Tractogram(streamlines, affine_to_rasmm=np.eye(4)), out_file, header=hdr)
 
 
 def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_shape,
-                       compress_err_thr=0.1, smooth=None, nr_cpus=-1):
+                       compress_err_thr=0.1, smooth=None, nr_cpus=-1, tracking_format="trk_legacy"):
     '''
     Convert tck file to trk file and compress
 
@@ -135,7 +197,11 @@ def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_sh
     #Compressing also good to remove checkerboard artefacts from tracking on peaks
     if compress_err_thr is not None:
         streamlines = compress_streamlines(streamlines, compress_err_thr, nr_cpus=nr_cpus)
-    save_streamlines_as_trk(filename_out, streamlines, reference_affine, reference_shape)
+
+    if tracking_format == "trk_legacy":
+        save_streamlines_as_trk_legacy(filename_out, streamlines, reference_affine, reference_shape)
+    else:
+        save_streamlines_as_trk(filename_out, streamlines, reference_affine, reference_shape)
 
 
 def resample_fibers(streamlines, nb_points=12):

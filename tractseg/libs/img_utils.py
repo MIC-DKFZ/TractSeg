@@ -299,6 +299,7 @@ def peak_image_to_binary_mask(img, len_thr=0.1):
     :param len_thr:
     :return:
     '''
+    img = np.nan_to_num(img)    # can contains nan because directly called on original peaks sometimes
     peaks = np.reshape(img, (img.shape[0], img.shape[1], img.shape[2], int(img.shape[3] / 3.), 3))
     peaks_len = np.linalg.norm(peaks, axis=-1)
     return peaks_len > len_thr

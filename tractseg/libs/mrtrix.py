@@ -240,14 +240,14 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         #                  "-minlength", "40", "-select", str(nr_fibers), "-force", "-quiet"], shell=False)
 
 
-    if output_format == "trk":
+    if output_format == "trk" or output_format == "trk_legacy":
         ref_img = nib.load(peaks)
         reference_affine = ref_img.get_affine()
         reference_shape = ref_img.get_data().shape[:3]
         fiber_utils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
                                        output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
                                        reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth,
-                                       nr_cpus=nr_cpus)
+                                       nr_cpus=nr_cpus, tracking_format=output_format)
         subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
     shutil.rmtree(tmp_dir)
 
