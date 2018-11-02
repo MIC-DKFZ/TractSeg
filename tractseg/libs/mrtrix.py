@@ -134,7 +134,7 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
-          tracking_on_FODs=None):
+          tracking_on_FODs="False"):
     '''
 
     :param bundle:   Bundle name
@@ -151,7 +151,9 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     :return:
     '''
     if tracking_on_FODs == "FACT":
-        tracking_folder = "FOD_FACT_trackings"
+        tracking_folder = "Peaks_FACT_trackings"
+    elif tracking_on_FODs == "SD_STREAM":
+        tracking_folder = "FOD_SD_STREAM_trackings"
     elif tracking_on_FODs == "iFOD2":
         tracking_folder = "FOD_iFOD2_trackings"
     else:
@@ -197,8 +199,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         # Probabilistic Tracking without TOM (instead using original FODs: have to be provided to -i)
         if tracking_on_FODs != "False":
             algorithm = tracking_on_FODs
-            if algorithm == "FACT":
-                seeds = 20000000
+            if algorithm == "FACT" or algorithm == "SD_STREAM":
+                seeds = 1000000
             else:
                 seeds = 200000
             subprocess.call("tckgen -algorithm " + algorithm + " " +

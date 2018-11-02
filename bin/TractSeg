@@ -138,9 +138,11 @@ def main():
                              "documentation for more details.",
                         default=False)
 
-    parser.add_argument("--track_FODs", metavar="False|FACT|iFOD2", choices=["False", "FACT", "iFOD2"],
+    parser.add_argument("--track_FODs", metavar="False|FACT|SD_STREAM|iFOD2",
+                        choices=["False", "FACT", "SD_STREAM", "iFOD2"],
                         help="Running tracking on FODs (provided as argument to '-i') instead of tracking on TOMs. "
-                             "Only works in combination with '--filter_tracking_by_endpoints'",
+                             "Only works in combination with '--filter_tracking_by_endpoints'. If you choose 'FACT' "
+                             "you have to pass a peak image instead of FODs to -i.",
                         default="False")
 
     parser.add_argument("--super_resolution", action="store_true",
