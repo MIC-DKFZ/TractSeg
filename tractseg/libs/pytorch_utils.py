@@ -57,11 +57,18 @@ def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
     y_true = y_true.byte()
     y_pred = y_pred > threshold
 
-    y_true = y_true.permute(0, 2, 3, 1)
-    y_pred = y_pred.permute(0, 2, 3, 1)
+    if len(y_true.size()) == 4:  # 2D
+        y_true = y_true.permute(0, 2, 3, 1)
+        y_pred = y_pred.permute(0, 2, 3, 1)
 
-    y_true = y_true.contiguous().view(-1, y_true.size()[3])  # [bs*x*y, classes]
-    y_pred = y_pred.contiguous().view(-1, y_pred.size()[3])
+        y_true = y_true.contiguous().view(-1, y_true.size()[3])  # [bs*x*y, classes]
+        y_pred = y_pred.contiguous().view(-1, y_pred.size()[3])
+    else:  # 3D
+        y_true = y_true.permute(0, 2, 3, 4, 1)
+        y_pred = y_pred.permute(0, 2, 3, 4, 1)
+
+        y_true = y_true.contiguous().view(-1, y_true.size()[4])  # [bs*x*y, classes]
+        y_pred = y_pred.contiguous().view(-1, y_pred.size()[4])
 
     f1s = []
     for i in range(y_true.size()[1]):
@@ -282,3 +289,29 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
         nonlinearity)
     return layer
 
+
+def conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
+    # nonlinearity = nn.ReLU()
+    nonlinearity = nn.LeakyReLU()
+
+    if batchnorm:
+        layer = nn.Sequential(
+            nn.Conv3d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=bias),
+            nn.BatchNorm3d(out_channels),
+            nonlinearity)
+    else:
+        layer = nn.Sequential(
+            nn.Conv3d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=bias),
+            nonlinearity)
+    return layer
+
+
+def deconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, output_padding=0, bias=True):
+    # nonlinearity = nn.ReLU()
+    nonlinearity = nn.LeakyReLU()
+
+    layer = nn.Sequential(
+        nn.ConvTranspose3d(in_channels, out_channels, kernel_size, stride=stride,
+                           padding=padding, output_padding=output_padding, bias=bias),
+        nonlinearity)
+    return layer
