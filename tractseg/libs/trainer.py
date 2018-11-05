@@ -105,6 +105,9 @@ def train_model(Config, model, data_loader):
                 x = batch["data"]  # (bs, nr_of_channels, x, y)
                 y = batch["seg"]  # (bs, nr_of_classes, x, y)
 
+                # print("x shape: {}".format(x.shape))
+                # print("y shape: {}".format(y.shape))
+
                 data_preparation_time += time.time() - start_time_data_preparation
                 start_time_network = time.time()
                 if type == "train":

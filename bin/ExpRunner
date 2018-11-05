@@ -56,7 +56,8 @@ from tractseg.libs import img_utils
 from tractseg.libs import metric_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import trainer
-from tractseg.data.data_loader_training import DataLoaderTraining
+# from tractseg.data.data_loader_training import DataLoaderTraining
+from tractseg.data.data_loader_training_3D import DataLoaderTraining
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.models.base_model import BaseModel
 
