@@ -94,8 +94,8 @@ def train_model(Config, model, data_loader):
             # nr_of_samples = len(getattr(Config, type.upper() + "_SUBJECTS")) * Config.INPUT_DIM[0]
             nr_of_samples = len(getattr(Config, type.upper() + "_SUBJECTS"))
 
-            # *12 needed to have roughly same number of updates/batches as with 2D U-Net
-            nr_batches = int(nr_of_samples / Config.BATCH_SIZE) * 12
+            # *Config.EPOCH_MULTIPLIER needed to have roughly same number of updates/batches as with 2D U-Net
+            nr_batches = int(nr_of_samples / Config.BATCH_SIZE) * Config.EPOCH_MULTIPLIER
 
             print("Start looping batches...")
             start_time_batch_part = time.time()

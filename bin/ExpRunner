@@ -110,11 +110,11 @@ def main():
 
     #Autoset input dimensinos based on settings
     if Config.RESOLUTION == "1.25mm":
-        Config.INPUT_DIM = (144, 144)
+        Config.INPUT_DIM = (144, 144, 144)
     elif Config.RESOLUTION == "2mm":
-        Config.INPUT_DIM = (96, 96)
+        Config.INPUT_DIM = (96, 96, 96)
     elif Config.RESOLUTION == "2.5mm":
-        Config.INPUT_DIM = (80, 80)
+        Config.INPUT_DIM = (80, 80, 80)
     Config = exp_utils.get_labels_filename(Config)
 
     if Config.EXPERIMENT_TYPE == "peak_regression":

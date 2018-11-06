@@ -291,8 +291,8 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
 
 
 def conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
-    # nonlinearity = nn.ReLU()
-    nonlinearity = nn.LeakyReLU()
+    # nonlinearity = nn.ReLU(inplace=True)
+    nonlinearity = nn.LeakyReLU(inplace=True)
 
     if batchnorm:
         layer = nn.Sequential(
@@ -307,8 +307,8 @@ def conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=T
 
 
 def deconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, output_padding=0, bias=True):
-    # nonlinearity = nn.ReLU()
-    nonlinearity = nn.LeakyReLU()
+    # nonlinearity = nn.ReLU(inplace=True)
+    nonlinearity = nn.LeakyReLU(inplace=True)
 
     layer = nn.Sequential(
         nn.ConvTranspose3d(in_channels, out_channels, kernel_size, stride=stride,

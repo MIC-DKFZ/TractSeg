@@ -113,14 +113,16 @@ class DataLoaderTraining:
                 if self.Config.DAUG_SCALE:
                     center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
                     tfs.append(SpatialTransform(self.Config.INPUT_DIM,
-                                                        patch_center_dist_from_border=center_dist_from_border,
-                                                        do_elastic_deform=self.Config.DAUG_ELASTIC_DEFORM, alpha=(90., 120.), sigma=(9., 11.),
-                                                        do_rotation=self.Config.DAUG_ROTATE, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
-                                                        angle_z=(-0.8, 0.8),
-                                                        do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
-                                                        border_cval_data=0,
-                                                        order_data=3,
-                                                        border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
+                                                patch_center_dist_from_border=center_dist_from_border,
+                                                do_elastic_deform=self.Config.DAUG_ELASTIC_DEFORM,
+                                                alpha=(90., 120.), sigma=(9., 11.),
+                                                do_rotation=self.Config.DAUG_ROTATE,
+                                                angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8), angle_z=(-0.8, 0.8),
+                                                do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
+                                                border_cval_data=0,
+                                                order_data=3,
+                                                border_mode_seg='constant', border_cval_seg=0,
+                                                order_seg=0, random_crop=True))
 
                 if self.Config.DAUG_RESAMPLE:
                     tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
