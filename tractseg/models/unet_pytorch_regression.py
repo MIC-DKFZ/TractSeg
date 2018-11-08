@@ -119,4 +119,4 @@ class UNet_Pytorch_Regression(torch.nn.Module):
         expand_4_2 = self.expand_4_2(expand_4_1)
 
         conv_5 = self.conv_5(expand_4_2)
-        return conv_5, None
+        return conv_5

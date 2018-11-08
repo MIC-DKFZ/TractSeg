@@ -30,11 +30,9 @@ from tractseg.libs.pytorch_utils import deconv3d
 class UNet3D_Pytorch_DeepSup_sm(torch.nn.Module):
     def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False):
         super(UNet3D_Pytorch_DeepSup_sm, self).__init__()
-
-        self.dropout = dropout
-
         self.in_channel = n_input_channels
         self.n_classes = n_classes
+        self.dropout = dropout
 
         # Down 1
         self.contr_1_1 = conv3d(n_input_channels, n_filt)
@@ -125,4 +123,4 @@ class UNet3D_Pytorch_DeepSup_sm(torch.nn.Module):
 
         final = output_3_up + conv_5
 
-        return final, F.sigmoid(final)
+        return final

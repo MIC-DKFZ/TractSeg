@@ -26,6 +26,7 @@ import torch.nn as nn
 from torch.optim import Adamax
 from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
+import torch.nn.functional as F
 
 from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
@@ -104,7 +105,7 @@ class BaseModel:
 
         self.optimizer.zero_grad()
         self.net.train()
-        outputs, outputs_sigmoid = self.net(X)  # forward; outputs: (bs, classes, x, y)
+        outputs = self.net(X)  # forward; outputs: (bs, classes, x, y)
 
         if weight_factor > 1:
             weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES, y.shape[2], y.shape[3])).cuda()
@@ -116,8 +117,8 @@ class BaseModel:
                 loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
         else:
             if self.Config.LOSS_FUNCTION == "soft_sample_dice" or self.Config.LOSS_FUNCTION == "soft_batch_dice":
-                loss = self.criterion(outputs_sigmoid, y)
-                # loss = criterion(outputs_sigmoid, y) + nn.BCEWithLogitsLoss()(outputs, y)
+                loss = self.criterion(F.sigmoid(outputs), y)
+                # loss = criterion(F.sigmoid(outputs), y) + nn.BCEWithLogitsLoss()(outputs, y)
             else:
                 loss = self.criterion(outputs, y)
 
@@ -131,12 +132,12 @@ class BaseModel:
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
             f1 = pytorch_utils.f1_score_macro(y.detach() > 0.5, outputs.detach(), per_class=True)
         else:
-            f1 = pytorch_utils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True,
+            f1 = pytorch_utils.f1_score_macro(y.detach(), F.sigmoid(outputs).detach(), per_class=True,
                                               threshold=self.Config.THRESHOLD)
 
         if self.Config.USE_VISLOGGER:
-            # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
-            probs = outputs_sigmoid
+            # probs = F.sigmoid(outputs).detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            probs = F.sigmoid(outputs)
         else:
             probs = None    #faster
 
@@ -152,7 +153,7 @@ class BaseModel:
             self.net.train()
         else:
             self.net.train(False)
-        outputs, outputs_sigmoid = self.net(X)  # forward
+        outputs = self.net(X)  # forward
 
         if weight_factor > 1:
             weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES, y.shape[2], y.shape[3])).cuda()
@@ -164,8 +165,8 @@ class BaseModel:
                 loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
         else:
             if self.Config.LOSS_FUNCTION == "soft_sample_dice" or self.Config.LOSS_FUNCTION == "soft_batch_dice":
-                loss = self.criterion(outputs_sigmoid, y)
-                # loss = criterion(outputs_sigmoid, y) + nn.BCEWithLogitsLoss()(outputs, y)
+                loss = self.criterion(F.sigmoid(outputs), y)
+                # loss = criterion(F.sigmoid(outputs), y) + nn.BCEWithLogitsLoss()(outputs, y)
             else:
                 loss = self.criterion(outputs, y)
 
@@ -176,12 +177,12 @@ class BaseModel:
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
             f1 = pytorch_utils.f1_score_macro(y.detach() > 0.5, outputs.detach(), per_class=True)
         else:
-            f1 = pytorch_utils.f1_score_macro(y.detach(), outputs_sigmoid.detach(), per_class=True,
+            f1 = pytorch_utils.f1_score_macro(y.detach(), F.sigmoid(outputs).detach(), per_class=True,
                                               threshold=self.Config.THRESHOLD)
 
         if self.Config.USE_VISLOGGER:
-            # probs = outputs_sigmoid.detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
-            probs = outputs_sigmoid
+            # probs = F.sigmoid(outputs).detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
+            probs = F.sigmoid(outputs)
         else:
             probs = None  # faster
 
@@ -196,11 +197,11 @@ class BaseModel:
             self.net.train()
         else:
             self.net.train(False)
-        outputs, outputs_sigmoid = self.net(X)  # forward
+        outputs = self.net(X)  # forward
         if self.Config.EXPERIMENT_TYPE == "peak_regression" or self.Config.EXPERIMENT_TYPE == "dm_regression":
             probs = outputs.detach().cpu().numpy().transpose(0,2,3,1)  # (bs, x, y, classes)
         else:
-            probs = outputs_sigmoid.detach().cpu().numpy().transpose(0, 2, 3, 1)  # (bs, x, y, classes)
+            probs = F.sigmoid(outputs).detach().cpu().numpy().transpose(0, 2, 3, 1)  # (bs, x, y, classes)
         return probs
 
 

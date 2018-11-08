@@ -31,6 +31,7 @@ class UNet_Pytorch_DeepSup_Regression(torch.nn.Module):
         super(UNet_Pytorch_DeepSup_Regression, self).__init__()
         self.in_channel = n_input_channels
         self.n_classes = n_classes
+        self.dropout = dropout
 
         self.contr_1_1 = conv2d(n_input_channels, n_filt)
         self.contr_1_2 = conv2d(n_filt, n_filt)
@@ -99,7 +100,8 @@ class UNet_Pytorch_DeepSup_Regression(torch.nn.Module):
         contr_4_2 = self.contr_4_2(contr_4_1)
         pool_4 = self.pool_4(contr_4_2)
 
-        # pool_4 = self.dropout(pool_4)
+        if self.dropout:
+            pool_4 = self.dropout(pool_4)
 
         encode_1 = self.encode_1(pool_4)
         encode_2 = self.encode_2(encode_1)
@@ -134,5 +136,4 @@ class UNet_Pytorch_DeepSup_Regression(torch.nn.Module):
 
         final = output_3_up + conv_5
 
-        # return conv_5
-        return final, None
+        return final

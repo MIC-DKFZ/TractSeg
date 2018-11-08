@@ -122,4 +122,4 @@ class UNet_Pytorch(torch.nn.Module):
 
         conv_5 = self.conv_5(expand_4_2)
 
-        return conv_5, F.sigmoid(conv_5)
+        return conv_5

@@ -137,6 +137,4 @@ class UNet3D_Pytorch_DeepSup(torch.nn.Module):
 
         final = output_3_up + conv_5
 
-        # return conv_51
-        # return final
-        return final, F.sigmoid(final)
+        return final
