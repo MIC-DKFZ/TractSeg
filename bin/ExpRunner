@@ -56,8 +56,8 @@ from tractseg.libs import img_utils
 from tractseg.libs import metric_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import trainer
-# from tractseg.data.data_loader_training import DataLoaderTraining
-from tractseg.data.data_loader_training_3D import DataLoaderTraining
+from tractseg.data.data_loader_training import DataLoaderTraining as DataLoaderTraining2D
+from tractseg.data.data_loader_training_3D import DataLoaderTraining as DataLoaderTraining3D
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.models.base_model import BaseModel
 
@@ -108,13 +108,21 @@ def main():
     if Config.WEIGHTS_PATH == "":
         Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(Config.EXP_PATH, Config.LOAD_WEIGHTS)
 
-    #Autoset input dimensinos based on settings
-    if Config.RESOLUTION == "1.25mm":
-        Config.INPUT_DIM = (144, 144, 144)
-    elif Config.RESOLUTION == "2mm":
-        Config.INPUT_DIM = (96, 96, 96)
-    elif Config.RESOLUTION == "2.5mm":
-        Config.INPUT_DIM = (80, 80, 80)
+    #Autoset input dimensions based on settings
+    if Config.DIM == "2D":
+        if Config.RESOLUTION == "1.25mm":
+            Config.INPUT_DIM = (144, 144)
+        elif Config.RESOLUTION == "2mm":
+            Config.INPUT_DIM = (96, 96)
+        elif Config.RESOLUTION == "2.5mm":
+            Config.INPUT_DIM = (80, 80)
+    else:  # 3D
+        if Config.RESOLUTION == "1.25mm":
+            Config.INPUT_DIM = (144, 144, 144)
+        elif Config.RESOLUTION == "2mm":
+            Config.INPUT_DIM = (96, 96, 96)
+        elif Config.RESOLUTION == "2.5mm":
+            Config.INPUT_DIM = (80, 80, 80)
     Config = exp_utils.get_labels_filename(Config)
 
     if Config.EXPERIMENT_TYPE == "peak_regression":
@@ -124,6 +132,11 @@ def main():
 
     if Config.TRAIN:
         Config.EXP_PATH = exp_utils.create_experiment_folder(Config.EXP_NAME, Config.MULTI_PARENT_PATH, Config.TRAIN)
+
+    if Config.DIM == "2D":
+        Config.EPOCH_MULTIPLIER = 1
+    else:
+        Config.EPOCH_MULTIPLIER = 3
 
     if Config.VERBOSE:
         print("Hyperparameters:")
@@ -194,7 +207,10 @@ def main():
 
 
     model = BaseModel(Config)
-    data_loader = DataLoaderTraining(Config)
+    if Config.DIM == "2D":
+        data_loader = DataLoaderTraining2D(Config)
+    else:
+        data_loader = DataLoaderTraining3D(Config)
 
     if Config.TRAIN:
         print("Training...")

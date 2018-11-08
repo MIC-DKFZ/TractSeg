@@ -34,8 +34,9 @@ class Config:
     # tract_segmentation / endings_segmentation / dm_regression / peak_regression
     EXPERIMENT_TYPE = "tract_segmentation"
 
+    DIM = "2D"  # 2D / 3D
     NUM_EPOCHS = 250
-    EPOCH_MULTIPLIER = 3 #12 for lowRes, 3 for highRes
+    EPOCH_MULTIPLIER = 1 #2D: 1, 3D: 12 for lowRes, 3 for highRes
     DATA_AUGMENTATION = False
     DAUG_SCALE = True
     DAUG_NOISE = True
@@ -59,7 +60,7 @@ class Config:
     NR_OF_CLASSES = len(exp_utils.get_bundle_names(CLASSES)[1:])
     # NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(CLASSES)[1:])
 
-    INPUT_DIM = (144, 144, 144)  # (80, 80) / (144, 144)
+    INPUT_DIM = None  # (80, 80) / (144, 144)
     LOSS_WEIGHT = 1  # 1: no weighting
     LOSS_WEIGHT_LEN = -1  # -1: constant over all epochs
     SLICE_DIRECTION = "y"  # x, y, z  (combined needs z)

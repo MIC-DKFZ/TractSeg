@@ -93,7 +93,7 @@ class DataLoaderTraining:
     def _augment_data(self, batch_generator, type=None):
 
         if self.Config.DATA_AUGMENTATION:
-            num_processes = 16  # 6 is a bit faster than 16
+            num_processes = 16  # 2D: 8 is a bit faster than 16
         else:
             num_processes = 6
 

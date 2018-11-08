@@ -91,8 +91,10 @@ def train_model(Config, model, data_loader):
             batch_gen_time = time.time() - start_time_batch_gen
             # print("batch_gen_time: {}s".format(batch_gen_time))
 
-            # nr_of_samples = len(getattr(Config, type.upper() + "_SUBJECTS")) * Config.INPUT_DIM[0]
-            nr_of_samples = len(getattr(Config, type.upper() + "_SUBJECTS"))
+            if Config.DIM == "2D":
+                nr_of_samples = len(getattr(Config, type.upper() + "_SUBJECTS")) * Config.INPUT_DIM[0]
+            else:
+                nr_of_samples = len(getattr(Config, type.upper() + "_SUBJECTS"))
 
             # *Config.EPOCH_MULTIPLIER needed to have roughly same number of updates/batches as with 2D U-Net
             nr_batches = int(nr_of_samples / Config.BATCH_SIZE) * Config.EPOCH_MULTIPLIER
@@ -107,9 +109,6 @@ def train_model(Config, model, data_loader):
 
                 x = batch["data"]  # (bs, nr_of_channels, x, y)
                 y = batch["seg"]  # (bs, nr_of_classes, x, y)
-
-                # print("x shape: {}".format(x.shape))
-                # print("y shape: {}".format(y.shape))
 
                 data_preparation_time += time.time() - start_time_data_preparation
                 start_time_network = time.time()
