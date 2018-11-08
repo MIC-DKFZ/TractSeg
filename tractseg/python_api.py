@@ -87,6 +87,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     Config.DROPOUT_SAMPLING = dropout_sampling
     Config.THRESHOLD = threshold
     Config.NR_CPUS = nr_cpus
+    Config.INPUT_DIM = exp_utils.get_correct_input_dim(Config)
 
     if bundle_specific_threshold:
         Config.GET_PROBS = True

@@ -416,3 +416,21 @@ def print_and_save(Config, text, only_log=False):
 def print_verbose(Config, text):
     if Config.VERBOSE:
         print(text)
+
+
+def get_correct_input_dim(Config):
+    if Config.DIM == "2D":
+        if Config.RESOLUTION == "1.25mm":
+            input_dim = (144, 144)
+        elif Config.RESOLUTION == "2mm":
+            input_dim = (96, 96)
+        elif Config.RESOLUTION == "2.5mm":
+            input_dim = (80, 80)
+    else:  # 3D
+        if Config.RESOLUTION == "1.25mm":
+            input_dim = (144, 144, 144)
+        elif Config.RESOLUTION == "2mm":
+            input_dim = (96, 96, 96)
+        elif Config.RESOLUTION == "2.5mm":
+            input_dim = (80, 80, 80)
+    return input_dim
