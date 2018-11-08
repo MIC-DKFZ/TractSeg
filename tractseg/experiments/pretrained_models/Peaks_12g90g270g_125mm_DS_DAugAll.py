@@ -12,7 +12,7 @@ class Config(PeakRegConfig):
     NUM_EPOCHS = 250
 
     CLASSES = "All"     # All_Part1 / All_Part2 / All_Part3 / All_Part4
-    MODEL = "UNet_Pytorch_DeepSup_Regression"
+    MODEL = "UNet_Pytorch_DeepSup"
 
     DATA_AUGMENTATION = True
     DAUG_ELASTIC_DEFORM = True

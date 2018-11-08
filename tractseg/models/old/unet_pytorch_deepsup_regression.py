@@ -67,7 +67,7 @@ class UNet_Pytorch_DeepSup_Regression(torch.nn.Module):
         # self.deconv_3 = nn.Upsample(scale_factor=2)
 
         self.output_2 = nn.Conv2d(n_filt * 4 + n_filt * 8, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
-        self.output_2_up = nn.Upsample(scale_factor=2, mode='nearest')  # nearest/bilinear; does only upscale width and height
+        self.output_2_up = nn.Upsample(scale_factor=2, mode='nearest')  # does only upscale width and height
 
         self.expand_3_1 = conv2d(n_filt * 2 + n_filt * 4, n_filt * 2, stride=1)
         self.expand_3_2 = conv2d(n_filt * 2, n_filt * 2, stride=1)
