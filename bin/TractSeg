@@ -225,8 +225,8 @@ def main():
         data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
                                                                                 do_flip=automatically_flip_peaks)
         if flip_axis is not None:
-            print("\nWARNING: Detected that peaks probably have wrong orientation. You should flip them along the " +
-                  flip_axis + "-axis using the following command: \n" +
+            print("\nWARNING: Detected that peaks probably have wrong orientation. If your results are looking bad you "
+                  "should flip them along the " + flip_axis + "-axis using the following command: \n" +
                   "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") +
                   " -a " + flip_axis + "\"\n" +
                   "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
