@@ -145,7 +145,10 @@ def angle_last_dim(a, b):
     '''
     from tractseg.libs.pytorch_einsum import einsum
 
-    return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
+    if len(a.shape) == 4:
+        return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
+    else:
+        return torch.abs(einsum('abcde,abcde->abcd', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
 
 def angle_second_dim(a, b):
@@ -197,9 +200,14 @@ def angle_loss(y_pred, y_true, weights):
 
 
 def angle_length_loss(y_pred, y_true, weights):
-    y_true = y_true.permute(0, 2, 3, 1)
-    y_pred = y_pred.permute(0, 2, 3, 1)
-    weights = weights.permute(0, 2, 3, 1)
+    if len(y_pred.shape) == 4:  # 2D
+        y_true = y_true.permute(0, 2, 3, 1)
+        y_pred = y_pred.permute(0, 2, 3, 1)
+        weights = weights.permute(0, 2, 3, 1)
+    else:  # 3D
+        y_true = y_true.permute(0, 2, 3, 4, 1)
+        y_pred = y_pred.permute(0, 2, 3, 4, 1)
+        weights = weights.permute(0, 2, 3, 4, 1)
 
     # Single threshold
 
@@ -210,9 +218,12 @@ def angle_length_loss(y_pred, y_true, weights):
     scores = torch.zeros(nr_of_classes)
 
     for idx in range(nr_of_classes):
-        y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
-        y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
-        weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
+        # y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
+        # y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
+        # weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
+        y_pred_bund = y_pred[..., (idx * 3):(idx * 3) + 3].contiguous()
+        y_true_bund = y_true[..., (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
+        weights_bund = weights[..., (idx * 3)].contiguous()  # [x,y,z]
 
         angles = angle_last_dim(y_pred_bund, y_true_bund)
         angles_weighted = angles / weights_bund

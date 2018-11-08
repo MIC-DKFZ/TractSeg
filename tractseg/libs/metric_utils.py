@@ -446,8 +446,12 @@ def calc_peak_length_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9],
     from tractseg.libs.pytorch_einsum import einsum
     from tractseg.libs import pytorch_utils
 
-    y_true = y_true.permute(0, 2, 3, 1)
-    y_pred = y_pred.permute(0, 2, 3, 1)
+    if len(y_pred.shape) == 4:  # 2D
+        y_true = y_true.permute(0, 2, 3, 1)
+        y_pred = y_pred.permute(0, 2, 3, 1)
+    else:  # 3D
+        y_true = y_true.permute(0, 2, 3, 4, 1)
+        y_pred = y_pred.permute(0, 2, 3, 4, 1)
 
     def angle_last_dim(a, b):
         '''
@@ -458,15 +462,17 @@ def calc_peak_length_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9],
 
         return: one dimension less then input
         '''
-        return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
+        if len(a.shape) == 4:
+            return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
+        else:
+            return torch.abs(einsum('abcde,abcde->abcd', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
     #Single threshold
     score_per_bundle = {}
     bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
-        # if bundle == "CST_right":
-        y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
-        y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]
+        y_pred_bund = y_pred[..., (idx * 3):(idx * 3) + 3].contiguous()
+        y_true_bund = y_true[..., (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]
 
         angles = angle_last_dim(y_pred_bund, y_true_bund)
 

@@ -108,7 +108,12 @@ class BaseModel:
         outputs = self.net(X)  # forward; outputs: (bs, classes, x, y)
 
         if weight_factor > 1:
-            weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES, y.shape[2], y.shape[3])).cuda()
+            if len(y.shape) == 4:  # 2D
+                weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
+                                      y.shape[2], y.shape[3])).cuda()
+            else:  # 3D
+                weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
+                                      y.shape[2], y.shape[3], y.shape[4])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  # 10
             if self.Config.EXPERIMENT_TYPE == "peak_regression":
@@ -156,7 +161,12 @@ class BaseModel:
         outputs = self.net(X)  # forward
 
         if weight_factor > 1:
-            weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES, y.shape[2], y.shape[3])).cuda()
+            if len(y.shape) == 4:  # 2D
+                weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
+                                      y.shape[2], y.shape[3])).cuda()
+            else:  # 3D
+                weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
+                                      y.shape[2], y.shape[3], y.shape[4])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor
             if self.Config.EXPERIMENT_TYPE == "peak_regression":
