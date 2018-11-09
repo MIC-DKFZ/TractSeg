@@ -134,7 +134,7 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
-          tracking_on_FODs="False"):
+          tracking_on_FODs="False", tracking_folder="auto"):
     '''
 
     :param bundle:   Bundle name
@@ -148,16 +148,18 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     :param prob_tracking_on_FODs: Runs iFOD2 tracking on original FODs (have to be provided to -i without
         setting --raw_diffusion_input) instead of running FACT tracking on TOMs.
         options: False | FACT | iFOD2
+    :param tracking_folder:
     :return:
     '''
-    if tracking_on_FODs == "FACT":
-        tracking_folder = "Peaks_FACT_trackings"
-    elif tracking_on_FODs == "SD_STREAM":
-        tracking_folder = "FOD_SD_STREAM_trackings"
-    elif tracking_on_FODs == "iFOD2":
-        tracking_folder = "FOD_iFOD2_trackings"
-    else:
-        tracking_folder = "TOM_trackings"
+    if tracking_folder == "auto":
+        if tracking_on_FODs == "FACT":
+            tracking_folder = "Peaks_FACT_trackings"
+        elif tracking_on_FODs == "SD_STREAM":
+            tracking_folder = "FOD_SD_STREAM_trackings"
+        elif tracking_on_FODs == "iFOD2":
+            tracking_folder = "FOD_iFOD2_trackings"
+        else:
+            tracking_folder = "TOM_trackings"
     smooth = None       # None / 10
     TOM_folder = "TOM"
 

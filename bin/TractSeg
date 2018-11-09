@@ -125,6 +125,10 @@ def main():
     parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else",
                         default=False)
 
+    parser.add_argument("--tracking_dir", metavar="folder_name",
+                        help="Set name of folder which will be created to save the tracking output.",
+                        default="auto")
+
     parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
                         help="Set output format of tracking. For trk also the option trk_legacy is available. This "
                              "uses the older trk convention (streamlines are stored in coordinate space and affine is "
@@ -312,7 +316,8 @@ def main():
             mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
                          filter_by_endpoints=args.filter_tracking_by_endpoints,
                          output_format=args.tracking_format, nr_fibers=args.nr_fibers,
-                         nr_cpus=args.nr_cpus, tracking_on_FODs=args.track_FODs)
+                         nr_cpus=args.nr_cpus, tracking_on_FODs=args.track_FODs,
+                         tracking_folder=args.tracking_dir)
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 
