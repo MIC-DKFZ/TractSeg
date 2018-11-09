@@ -26,7 +26,7 @@ import nibabel as nib
 
 from tractseg.libs import fiber_utils
 from tractseg.libs import img_utils
-
+from tractseg.libs import tracking
 
 def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
     print("Moving input to MNI space...")
@@ -189,40 +189,51 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
 
     if filter_by_endpoints and bundle_mask_ok and beginnings_mask_ok and endings_mask_ok:
         # Dilation has to be quite high, because endings sometimes almost completely missing
-        img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
-                                     tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
-        img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
-                                     tmp_dir + "/" + bundle + "_e.nii.gz", dilation=6)
-        img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
-                                     tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
+        # img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
+        #                              tmp_dir + "/" + bundle + ".nii.gz", dilation=3)
+        # img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
+        #                              tmp_dir + "/" + bundle + "_e.nii.gz", dilation=6)
+        # img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
+        #                              tmp_dir + "/" + bundle + "_b.nii.gz", dilation=6)
+        #
+        # # Probabilistic Tracking without TOM (instead using original FODs: have to be provided to -i)
+        # if tracking_on_FODs != "False":
+        #     algorithm = tracking_on_FODs
+        #     if algorithm == "FACT" or algorithm == "SD_STREAM":
+        #         seeds = 1000000
+        #     else:
+        #         seeds = 200000
+        #     subprocess.call("tckgen -algorithm " + algorithm + " " +
+        #                     peaks + " " +
+        #                     output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+        #                     " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+        #                     " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+        #                     " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+        #                     " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+        #                     " -minlength 40 -seeds " + str(seeds) + " -select " +
+        #                     str(nr_fibers) + " -force" + nthreads,
+        #                     shell=True)
+        # else:
+        #     subprocess.call("tckgen -algorithm FACT " +
+        #                     output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
+        #                     output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+        #                     " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+        #                     " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+        #                     " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+        #                     " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+        #                     " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
+        #                     shell=True)
 
-        # Probabilistic Tracking without TOM (instead using original FODs: have to be provided to -i)
-        if tracking_on_FODs != "False":
-            algorithm = tracking_on_FODs
-            if algorithm == "FACT" or algorithm == "SD_STREAM":
-                seeds = 1000000
-            else:
-                seeds = 200000
-            subprocess.call("tckgen -algorithm " + algorithm + " " +
-                            peaks + " " +
-                            output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                            " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
-                            " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
-                            " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
-                            " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                            " -minlength 40 -seeds " + str(seeds) + " -select " +
-                            str(nr_fibers) + " -force" + nthreads,
-                            shell=True)
-        else:
-            subprocess.call("tckgen -algorithm FACT " +
-                            output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
-                            output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                            " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
-                            " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
-                            " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
-                            " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                            " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
-                            shell=True)
+        beginnings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
+        endings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data()
+        seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
+        peaks = nib.load(peaks).get_data()
+
+        streamlines = tracking.track(peaks, seed_img, max_nr_fibers=2000, smooth=15, start_mask=beginnings,
+                                     end_mask=endings, verbose=True)
+        streamlines = fiber_utils.compress_streamlines(streamlines, compress_err_thr=0.1, nr_cpus=nr_cpus)
+        fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
+                                                   streamlines, seed_img.get_affine(), seed_img.get_data().shape)
 
     else:
         img_utils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
@@ -242,15 +253,15 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         #                  "-minlength", "40", "-select", str(nr_fibers), "-force", "-quiet"], shell=False)
 
 
-    if output_format == "trk" or output_format == "trk_legacy":
-        ref_img = nib.load(peaks)
-        reference_affine = ref_img.get_affine()
-        reference_shape = ref_img.get_data().shape[:3]
-        fiber_utils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
-                                       output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
-                                       reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth,
-                                       nr_cpus=nr_cpus, tracking_format=output_format)
-        subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
+    # if output_format == "trk" or output_format == "trk_legacy":
+    #     ref_img = nib.load(peaks)
+    #     reference_affine = ref_img.get_affine()
+    #     reference_shape = ref_img.get_data().shape[:3]
+    #     fiber_utils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
+    #                                    output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
+    #                                    reference_affine, reference_shape, compress_err_thr=0.1, smooth=smooth,
+    #                                    nr_cpus=nr_cpus, tracking_format=output_format)
+    #     subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
     shutil.rmtree(tmp_dir)
 
 

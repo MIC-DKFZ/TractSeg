@@ -27,6 +27,7 @@ import numpy as np
 import nibabel as nib
 from dipy.tracking.streamline import compress_streamlines as compress_streamlines_dipy
 from dipy.segment.metric import ResampleFeature
+from dipy.tracking.metrics import spline
 
 from tractseg.libs import utils
 
@@ -211,3 +212,55 @@ def resample_fibers(streamlines, nb_points=12):
         streamlines_new.append(feature.extract(sl))
     return streamlines_new
 
+
+def smooth_streamlines(streamlines, smoothing_factor=10):
+    """
+
+    Args:
+        streamlines:
+        smoothing_factor: 10: slight smoothing,  100: very smooth from beginning to end
+
+    Returns:
+
+    """
+    streamlines_smooth = []
+    for sl in streamlines:
+        streamlines_smooth.append(spline(sl, s=smoothing_factor))
+    return streamlines_smooth
+
+
+def get_streamline_statistics(streamlines, subsample=False, raw=False):
+    '''
+    Returns (in mm)
+    - mean streamline length (mm)
+    - mean space between two following points (mm)
+    - max space between two following points (mm)
+
+    If raw: return list of fibers length and spaces
+
+    :param streamlines:
+    :return:
+    '''
+    if subsample:   #subsample for faster processing
+        STEP_SIZE = 20
+    else:
+        STEP_SIZE = 1
+
+    lengths = []
+    spaces = [] #spaces between 2 points
+    for j in range(0, len(streamlines), STEP_SIZE):
+        sl = streamlines[j]
+        length = 0
+        for i in range(len(sl)):
+            if i < (len(sl)-1):
+                space = np.linalg.norm(sl[i+1] - sl[i])
+                spaces.append(space)
+                length += space
+        lengths.append(length)
+
+    if raw:
+        # print("raw")
+        return lengths, spaces
+    else:
+        # print("mean")
+        return np.array(lengths).mean(), np.array(spaces).mean(), np.array(spaces).max()
