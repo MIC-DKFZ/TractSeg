@@ -231,6 +231,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
         peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
+        # TODO: set verbose=False
         streamlines = tracking.track(peaks, seed_img, max_nr_fibers=2000, smooth=15, start_mask=beginnings,
                                      end_mask=endings, verbose=True)
         streamlines = fiber_utils.compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=nr_cpus)
