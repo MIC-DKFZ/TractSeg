@@ -87,7 +87,7 @@ def process_seedpoint(seed_point):
 
 
     # Parameters
-    probabilistic = False
+    probabilistic = True
     max_nr_steps = 1000
     min_tract_len = 20
     max_tract_len = 200
@@ -209,7 +209,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
         pool = multiprocessing.Pool(processes=nr_processes)
         streamlines_tmp = pool.map(process_seedpoint, seed_generator(peaks, seeds_per_batch, p_shape, peak_threshold))
         # streamlines_tmp = [process_seedpoint(seed) for seed in
-        #                    seed_generator(peaks, seeds_per_batch, p_shape, peak_threshold)] # single thread for debug
+        #                    seed_generator(peaks, seeds_per_batch, p_shape, peak_threshold)] # single threaded for debug
         pool.close()
         pool.join()
 
