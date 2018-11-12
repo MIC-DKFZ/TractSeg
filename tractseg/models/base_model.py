@@ -209,9 +209,14 @@ class BaseModel:
             self.net.train(False)
         outputs = self.net(X)  # forward
         if self.Config.EXPERIMENT_TYPE == "peak_regression" or self.Config.EXPERIMENT_TYPE == "dm_regression":
-            probs = outputs.detach().cpu().numpy().transpose(0,2,3,1)  # (bs, x, y, classes)
+            probs = outputs.detach().cpu().numpy()
         else:
-            probs = F.sigmoid(outputs).detach().cpu().numpy().transpose(0, 2, 3, 1)  # (bs, x, y, classes)
+            probs = F.sigmoid(outputs).detach().cpu().numpy()
+
+        if self.Config.DIM == "2D":
+            probs = probs.transpose(0, 2, 3, 1)  # (bs, x, y, classes)
+        else:
+            probs = probs.transpose(0, 2, 3, 4, 1)  # (bs, x, y, z, classes)
         return probs
 
 

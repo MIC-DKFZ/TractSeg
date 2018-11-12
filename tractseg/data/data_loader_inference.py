@@ -28,7 +28,6 @@ from tractseg.libs import exp_utils
 from tractseg.libs import dataset_utils
 from tractseg.data.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 from tractseg.data.DLDABG_standalone import SingleThreadedAugmenter
-from tractseg.data.DLDABG_standalone import ReorderSegTransform
 from tractseg.data.DLDABG_standalone import Compose
 
 np.random.seed(1337)  # for reproducibility
@@ -88,6 +87,39 @@ class BatchGenerator2D_data_ordered_standalone(object):
         return data_dict
 
 
+class BatchGenerator3D_data_ordered_standalone(object):
+    def __init__(self, data, batch_size=1):
+        self.Config = None
+        if batch_size != 1:
+            raise ValueError("only batch_size=1 allowed")
+        self.batch_size = batch_size
+        self.global_idx = 0
+        self._data = data
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.generate_train_batch()
+
+    def generate_train_batch(self):
+        data = self._data[0]    # (x, y, z, channels)
+        seg = self._data[1]
+
+        # Stop iterating if we reached end of data
+        if self.global_idx >= 1:
+            self.global_idx = 0
+            raise StopIteration
+        self.global_idx += self.batch_size
+
+        x = data.transpose(3, 0, 1, 2)[np.newaxis,...]  # channels have to be first, add batch_size of 1
+        y = seg.transpose(3, 0, 1, 2)[np.newaxis,...]
+
+        data_dict = {"data": np.array(x),     # (batch_size, channels, x, y, [z])
+                     "seg": np.array(y)}      # (batch_size, channels, x, y, [z])
+        return data_dict
+
+
 class DataLoaderInference():
     """
     Data loader for only one subject and returning slices in ordered way.
@@ -109,7 +141,7 @@ class DataLoaderInference():
         tfs = []  # transforms
 
         if self.Config.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=False))
+            tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
 
         # Not used, because those transformations are not easily invertible with batchgenerators framework:
         #  Mirroring would be the only easy test time DAug, but not trained with this DAug
@@ -130,7 +162,6 @@ class DataLoaderInference():
             # tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
             # tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
 
-        tfs.append(ReorderSegTransform())
         batch_gen = SingleThreadedAugmenter(batch_generator, Compose(tfs))
         return batch_gen
 
@@ -158,7 +189,10 @@ class DataLoaderInference():
         else:
             raise ValueError("Neither 'data' nor 'subject' set.")
 
-        batch_gen = BatchGenerator2D_data_ordered_standalone((data, seg), batch_size=batch_size)
+        if self.Config.DIM == "2D":
+            batch_gen = BatchGenerator2D_data_ordered_standalone((data, seg), batch_size=batch_size)
+        else:
+            batch_gen = BatchGenerator3D_data_ordered_standalone((data, seg), batch_size=batch_size)
         batch_gen.Config = self.Config
 
         batch_gen = self._augment_data(batch_gen, type=type)

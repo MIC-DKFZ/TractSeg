@@ -114,7 +114,7 @@ def train_model(Config, model, data_loader):
                 start_time_network = time.time()
                 if type == "train":
                     nr_of_updates += 1
-                    loss, probs, f1 = model.train(x, y, weight_factor=weight_factor)  # probs: # (bs, x, y, nrClasses)
+                    loss, probs, f1 = model.train(x, y, weight_factor=weight_factor)
                     # loss, probs, f1, intermediate = model.train(x, y)
                 elif type == "validate":
                     loss, probs, f1 = model.test(x, y, weight_factor=weight_factor)
@@ -245,15 +245,16 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
     def finalize_data(layers):
         layers = np.array(layers)
 
-        # Get in right order (x,y,z) and
-        if Config.SLICE_DIRECTION == "x":
-            layers = layers.transpose(0, 1, 2, 3)
+        if Config.DIM == "2D":
+            # Get in right order (x,y,z) and
+            if Config.SLICE_DIRECTION == "x":
+                layers = layers.transpose(0, 1, 2, 3)
 
-        elif Config.SLICE_DIRECTION == "y":
-            layers = layers.transpose(1, 0, 2, 3)
+            elif Config.SLICE_DIRECTION == "y":
+                layers = layers.transpose(1, 0, 2, 3)
 
-        elif Config.SLICE_DIRECTION == "z":
-            layers = layers.transpose(1, 2, 0, 3)
+            elif Config.SLICE_DIRECTION == "z":
+                layers = layers.transpose(1, 2, 0, 3)
 
         if scale_to_world_shape:
             layers = dataset_utils.scale_input_to_world_shape(layers, Config.DATASET, Config.RESOLUTION)
@@ -271,9 +272,14 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
         batch_generator = list(batch_generator)
         for batch in tqdm(batch_generator):
             x = batch["data"]   # (bs, nr_of_channels, x, y)
-            y = batch["seg"]    # (bs, x, y, nr_of_classes)
-            y = y.astype(Config.LABELS_TYPE)
-            y = np.squeeze(y)   # remove bs dimension which is only 1 -> (x, y, nrClasses)
+            y = batch["seg"]    # (bs, nr_of_classes, x, y)
+            if not only_prediction:
+                y = y.astype(Config.LABELS_TYPE)
+                y = np.squeeze(y)   # remove bs dimension which is only 1 -> (x, y, nrClasses)
+                if Config.DIM == "2D":
+                    y = y.transpose(0, 2, 3, 1)
+                else:
+                    y = y.transpose(0, 2, 3, 4, 1)
 
             if Config.DROPOUT_SAMPLING:
                 #For Dropout Sampling (must set Deterministic=False in model)
@@ -300,9 +306,14 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                 seg[seg < Config.THRESHOLD] = 0
                 seg = seg.astype(np.int16)
 
-            layers_seg.append(seg)
-            if not only_prediction:
-                layers_y.append(y)
+            if Config.DIM == "2D":
+                layers_seg.append(seg)
+                if not only_prediction:
+                    layers_y.append(y)
+            else:
+                layers_seg = seg
+                if not only_prediction:
+                    layers_y = y
 
     layers_seg = finalize_data(layers_seg)
     if not only_prediction:
