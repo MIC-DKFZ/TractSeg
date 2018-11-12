@@ -216,7 +216,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
         # use higher number, because we find less valid fibers -> faster processing
         seeds_per_batch = 20000  # how many seeds to process in each pool.map iteration
     else:
-        seeds_per_batch = 5000  # how many seeds to process in each pool.map iteration
+        seeds_per_batch = 5000
 
     nr_processes = psutil.cpu_count()
 
