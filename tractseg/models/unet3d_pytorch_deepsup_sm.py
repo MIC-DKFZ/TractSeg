@@ -28,7 +28,7 @@ from tractseg.libs.pytorch_utils import deconv3d
 
 
 class UNet3D_Pytorch_DeepSup_sm(torch.nn.Module):
-    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False):
+    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False, upsample="trilinear"):
         super(UNet3D_Pytorch_DeepSup_sm, self).__init__()
         self.in_channel = n_input_channels
         self.n_classes = n_classes
@@ -62,7 +62,7 @@ class UNet3D_Pytorch_DeepSup_sm(torch.nn.Module):
         self.deconv_3 = deconv3d(n_filt * 4, n_filt * 2, kernel_size=2, stride=2)
 
         self.output_2 = nn.Conv3d(n_filt * 4 + n_filt * 4, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
-        self.output_2_up = nn.Upsample(scale_factor=2, mode='trilinear')  # does only upscale width and height
+        self.output_2_up = nn.Upsample(scale_factor=2, mode=upsample)  # does only upscale width and height
 
         # Up 2
         self.expand_3_1 = conv3d(n_filt * 2 + n_filt * 2, n_filt * 2, stride=1)
@@ -70,7 +70,7 @@ class UNet3D_Pytorch_DeepSup_sm(torch.nn.Module):
         self.deconv_4 = deconv3d(n_filt * 2, n_filt * 1, kernel_size=2, stride=2)
 
         self.output_3 = nn.Conv3d(n_filt * 2 + n_filt * 2, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
-        self.output_3_up = nn.Upsample(scale_factor=2, mode='trilinear')  # does only upscale width and height
+        self.output_3_up = nn.Upsample(scale_factor=2, mode=upsample)  # does only upscale width and height
 
         # Up 3
         self.expand_4_1 = conv3d(n_filt + n_filt * 1, n_filt, stride=1)

@@ -93,6 +93,7 @@ class Config:
     GET_PROBS = False
     OUTPUT_MULTIPLE_FILES = False
     RESET_LAST_LAYER = False
+    UPSAMPLE_TYPE = "bilinear"  # bilinear / nearest
 
     # Peak_regression specific
     PEAK_DICE_THR = [0.95]

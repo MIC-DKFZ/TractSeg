@@ -28,7 +28,7 @@ from tractseg.libs.pytorch_utils import deconv2d
 
 
 class UNet_Pytorch_DeepSup(torch.nn.Module):
-    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False):
+    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False, upsample="bilinear"):
         super(UNet_Pytorch_DeepSup, self).__init__()
         self.in_channel = n_input_channels
         self.n_classes = n_classes
@@ -69,7 +69,7 @@ class UNet_Pytorch_DeepSup(torch.nn.Module):
 
         self.output_2 = nn.Conv2d(n_filt * 4 + n_filt * 8, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
         # 'nearest' a bit faster but a little results a little worse (~0.4 dice points worse)
-        self.output_2_up = nn.Upsample(scale_factor=2, mode='bilinear')
+        self.output_2_up = nn.Upsample(scale_factor=2, mode=upsample)
 
         self.expand_3_1 = conv2d(n_filt * 2 + n_filt * 4, n_filt * 2, stride=1)
         self.expand_3_2 = conv2d(n_filt * 2, n_filt * 2, stride=1)
@@ -77,7 +77,7 @@ class UNet_Pytorch_DeepSup(torch.nn.Module):
         # self.deconv_4 = nn.Upsample(scale_factor=2)
 
         self.output_3 = nn.Conv2d(n_filt * 2 + n_filt * 4, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
-        self.output_3_up = nn.Upsample(scale_factor=2, mode='bilinear')  # does only upscale width and height
+        self.output_3_up = nn.Upsample(scale_factor=2, mode=upsample)  # does only upscale width and height
 
         self.expand_4_1 = conv2d(n_filt + n_filt * 2, n_filt, stride=1)
         self.expand_4_2 = conv2d(n_filt, n_filt, stride=1)

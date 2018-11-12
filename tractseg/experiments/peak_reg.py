@@ -32,6 +32,7 @@ class Config(BaseConfig):
     TRAINING_SLICE_DIRECTION = "y"
     GET_PROBS = True
     INFO_2 = "using AngleLengthLoss, PeakLengthDice"
+    UPSAMPLE_TYPE = "nearest"
 
     DAUG_ELASTIC_DEFORM = False
 

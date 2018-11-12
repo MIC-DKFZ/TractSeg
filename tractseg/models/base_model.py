@@ -68,7 +68,7 @@ class BaseModel:
                                self.Config.MODEL)
         self.net = NetworkClass(n_input_channels=NR_OF_GRADIENTS, n_classes=self.Config.NR_OF_CLASSES,
                                 n_filt=self.Config.UNET_NR_FILT, batchnorm=self.Config.BATCH_NORM,
-                                dropout=self.Config.USE_DROPOUT)
+                                dropout=self.Config.USE_DROPOUT, upsample=self.Config.UPSAMPLE_TYPE)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         net = self.net.to(self.device)
