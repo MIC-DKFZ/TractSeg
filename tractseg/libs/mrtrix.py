@@ -226,14 +226,14 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         #                     " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
         #                     shell=True)
 
+        bundle_mask = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz").get_data()
         beginnings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
         endings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data()
         seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
         peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
-        # TODO: set verbose=False
-        streamlines = tracking.track(peaks, seed_img, max_nr_fibers=2000, smooth=15, start_mask=beginnings,
-                                     end_mask=endings, verbose=True)
+        streamlines = tracking.track(peaks, seed_img, max_nr_fibers=2000, smooth=15, bundle_mask=bundle_mask,
+                                     start_mask=beginnings, end_mask=endings, verbose=False)
         streamlines = fiber_utils.compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=nr_cpus)
         fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
                                                    streamlines, seed_img.get_affine(), seed_img.get_data().shape)

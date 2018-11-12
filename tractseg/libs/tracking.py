@@ -5,12 +5,14 @@ import numpy as np
 from random import randint
 import multiprocessing
 import psutil
+from functools import partial
 
 from dipy.tracking.utils import move_streamlines
 from scipy.ndimage.morphology import binary_dilation
 from dipy.tracking.streamline import Streamlines
 
 from tractseg.libs import fiber_utils
+from tractseg.libs import dataset_utils
 
 
 global _PEAKS
@@ -24,11 +26,10 @@ _END_MASK = None
 
 
 
-def process_seedpoint(seed_point):
+def process_seedpoint(seed_point, spacing):
     """
 
     Args:
-        peaks:
         seed_point:
         spacing: Only one value. Assumes isotropic images.
 
@@ -40,6 +41,7 @@ def process_seedpoint(seed_point):
     def process_one_way(peaks, streamline, max_nr_steps, step_size, probabilistic, next_step_displacement_std,
                         max_tract_len, peak_len_thr, reverse=False):
         last_dir = None
+        sl_len = 0
         for i in range(max_nr_steps):
             last_point = streamline[-1]
             dir_raw = peaks[int(last_point[0]), int(last_point[1]), int(last_point[2])]
@@ -63,12 +65,12 @@ def process_seedpoint(seed_point):
             next_point = streamline[-1] + dir_scaled
             last_dir = dir_scaled
 
-            if np.linalg.norm(peaks[int(next_point[0]), int(next_point[1]), int(next_point[2])]) < peak_len_thr:
+            next_peak_len = np.linalg.norm(peaks[int(next_point[0]), int(next_point[1]), int(next_point[2])])
+            sl_len += next_peak_len
+            if next_peak_len < peak_len_thr:
                 break
             else:
-                lengths, spaces = fiber_utils.get_streamline_statistics([streamline], raw=True)  # filter by length
-                # check max length
-                if lengths[0] < max_tract_len:
+                if sl_len < max_tract_len:
                     streamline.append(next_point)
                 else:
                     break
@@ -86,13 +88,22 @@ def process_seedpoint(seed_point):
         return False
 
 
+    # Good setting
+    #  1.  step_size=0.7 and next_step_displacement_std=0.2   (8s)
+    #  2.  step_size=0.5 and next_step_displacement_std=0.15  (10s)
+    #  3.  step_size=0.5 and next_step_displacement_std=0.11  (11s)  -> not complete enough
+    #   -> results very similar, but 1. a bit more complete + faster
+
     # Parameters
     probabilistic = True
     max_nr_steps = 1000
-    min_tract_len = 20
-    max_tract_len = 200
-    step_size = 0.5  # 1 = voxel size (=spacing)
+    min_tract_len = 50      # mm
+    max_tract_len = 200     # mm
+    step_size = 0.7  # relative to voxel size (=spacing)
     peak_len_thr = 0.1
+
+    min_tract_len = int(min_tract_len / spacing)
+    max_tract_len = int(max_tract_len / spacing)
 
     # Displacements are relative to voxel size. If you have bigger voxel size displacement is higher. Depends on
     #   application if this is desired. Keep in mind.
@@ -146,20 +157,26 @@ def process_seedpoint(seed_point):
     return []
 
 
-def seed_generator(peaks, nr_seeds, seed_mask_shape, peak_threshold):
+
+def seed_generator(peaks, nr_seeds, seed_mask_shape, peak_threshold, bbox):
+    # seeding makes no sense here: always same seed points then
     ctr = 0
     while ctr < nr_seeds:
-        x = randint(0, seed_mask_shape[0] - 1)
-        y = randint(0, seed_mask_shape[1] - 1)
-        z = randint(0, seed_mask_shape[2] - 1)
-        if np.linalg.norm(peaks[x, y, z]) > peak_threshold:
+        x = randint(bbox[0][0], bbox[0][1] - 1)
+        y = randint(bbox[1][0], bbox[1][1] - 1)
+        z = randint(bbox[2][0], bbox[2][1] - 1)
+        if np.any(peaks[x, y, z] > 0.01):
             yield [x, y, z]
         ctr += 1
 
 
-def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=None, start_mask=None,
-          end_mask=None, dilation=1, verbose=True):
+def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=None, bundle_mask=None,
+          start_mask=None, end_mask=None, dilation=1, verbose=True):
     """
+    Great speedup was archived by:
+    - only seeding in bundle_mask instead of entire image (seeding took very long)
+    - calculating fiber length on the fly instead of using extra function which has to iterate over entire fiber a
+    second time
 
     Args:
         peaks:
@@ -167,6 +184,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
         max_nr_fibers:
         peak_threshold:
         smooth:
+        bundle_mask:
         start_mask:
         end_mask:
         dilation:
@@ -179,6 +197,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
     if dilation > 0:
         start_mask = binary_dilation(start_mask, iterations=dilation).astype(np.uint8)
         end_mask = binary_dilation(end_mask, iterations=dilation).astype(np.uint8)
+        bundle_mask = binary_dilation(bundle_mask, iterations=dilation).astype(np.uint8)
 
     global _PEAKS
     _PEAKS = peaks
@@ -187,16 +206,17 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
     global _END_MASK
     _END_MASK = end_mask
 
-    # spacing = seed_image.header.get_zooms()[0]
+    bbox = dataset_utils.get_bbox_from_mask(bundle_mask)
+    spacing = seed_image.header.get_zooms()[0]
 
     p_shape = seed_image.get_data().shape
 
     max_nr_seeds = 3000000  # after how many seeds to abort (to avoid endless runtime)
     if start_mask is not None:
         # use higher number, because we find less valid fibers -> faster processing
-        seeds_per_batch = 100000  # how many seeds to process in each pool.map iteration
-    else:
         seeds_per_batch = 20000  # how many seeds to process in each pool.map iteration
+    else:
+        seeds_per_batch = 5000  # how many seeds to process in each pool.map iteration
 
     nr_processes = psutil.cpu_count()
 
@@ -207,9 +227,11 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
     #   optimised if more familiar with multiprocessing.
     while fiber_ctr < max_nr_fibers:
         pool = multiprocessing.Pool(processes=nr_processes)
-        streamlines_tmp = pool.map(process_seedpoint, seed_generator(peaks, seeds_per_batch, p_shape, peak_threshold))
-        # streamlines_tmp = [process_seedpoint(seed) for seed in
-        #                    seed_generator(peaks, seeds_per_batch, p_shape, peak_threshold)] # single threaded for debug
+        streamlines_tmp = pool.map(partial(process_seedpoint, spacing=spacing),
+                                   seed_generator(peaks, seeds_per_batch, p_shape, peak_threshold, bbox))
+        # streamlines_tmp = [process_seedpoint(seed, spacing=spacing) for seed in
+        #                    seed_generator(peaks, seeds_per_batch,
+        #                                   p_shape, peak_threshold, bbox)] # single threaded for debug
         pool.close()
         pool.join()
 
