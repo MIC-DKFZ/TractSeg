@@ -170,8 +170,8 @@ def seed_generator(peaks, nr_seeds, seed_mask_shape, peak_threshold, bbox):
         ctr += 1
 
 
-def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=None, bundle_mask=None,
-          start_mask=None, end_mask=None, dilation=1, verbose=True):
+def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=None, compress=0.1, bundle_mask=None,
+          start_mask=None, end_mask=None, dilation=1, nr_cpus=-1, verbose=True):
     """
     Great speedup was archived by:
     - only seeding in bundle_mask instead of entire image (seeding took very long)
@@ -184,10 +184,12 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
         max_nr_fibers:
         peak_threshold:
         smooth:
+        compress:
         bundle_mask:
         start_mask:
         end_mask:
         dilation:
+        nr_cpus:
         verbose:
 
     Returns:
@@ -211,14 +213,17 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
 
     p_shape = seed_image.get_data().shape
 
-    max_nr_seeds = 3000000  # after how many seeds to abort (to avoid endless runtime)
+    max_nr_seeds = 1000 * max_nr_fibers  # after how many seeds to abort (to avoid endless runtime)
     if start_mask is not None:
         # use higher number, because we find less valid fibers -> faster processing
         seeds_per_batch = 20000  # how many seeds to process in each pool.map iteration
     else:
         seeds_per_batch = 5000
 
-    nr_processes = psutil.cpu_count()
+    if nr_cpus == -1:
+        nr_processes = psutil.cpu_count()
+    else:
+        nr_processes = nr_cpus
 
     streamlines = []
     fiber_ctr = 0
@@ -249,11 +254,15 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
     if verbose:
         print("final nr streamlines: {}".format(len(streamlines)))
 
+    streamlines = streamlines[:max_nr_fibers]   # remove surplus of fibers (comes from multiprocessing)
     streamlines = Streamlines(streamlines)  # Generate streamlines object
     # move streamlines to coordinate space
     streamlines = list(move_streamlines(streamlines, seed_image.get_affine()))
 
     if smooth:
         streamlines = fiber_utils.smooth_streamlines(streamlines, smoothing_factor=smooth)
+
+    if compress:
+        streamlines = fiber_utils.compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=nr_cpus)
 
     return streamlines

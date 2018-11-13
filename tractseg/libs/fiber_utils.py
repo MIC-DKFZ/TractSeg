@@ -122,9 +122,11 @@ def save_streamlines_as_trk_legacy(out_file, streamlines, affine, shape):
     nib.trackvis.write(out_file, streamlines_trk_format, trackvis_header, points_space="rasmm")
 
 
-def save_streamlines_as_trk(out_file, streamlines, affine=None, shape=None, vox_sizes=None, vox_order='RAS'):
+def save_streamlines(out_file, streamlines, affine=None, shape=None, vox_sizes=None, vox_order='RAS'):
     """
-    This function saves tracts in Trackvis '.trk' format.
+    Saves streamlines either in .trk format or in .tck format. Depending on the ending of out_file.
+
+    If using .trk: This function saves tracts in Trackvis '.trk' format.
     The default values for the parameters are the values for the HCP data.
     The HCP default affine is: array([[  -1.25,    0.  ,    0.  ,   90.  ],
                                       [   0.  ,    1.25,    0.  , -126.  ],
@@ -157,9 +159,6 @@ def save_streamlines_as_trk(out_file, streamlines, affine=None, shape=None, vox_
 
     if vox_sizes is None:
         vox_sizes = np.array([abs(affine[0,0]), abs(affine[1,1]), abs(affine[2,2])], dtype=np.float32)
-
-    if out_file.split('.')[-1] != 'trk':
-        out_file = out_file + '.trk'
 
     # Create a new header with the correct affine and # of streamlines
     hdr = nib.streamlines.trk.TrkFile.create_empty_header()
@@ -202,7 +201,7 @@ def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_sh
     if tracking_format == "trk_legacy":
         save_streamlines_as_trk_legacy(filename_out, streamlines, reference_affine, reference_shape)
     else:
-        save_streamlines_as_trk(filename_out, streamlines, reference_affine, reference_shape)
+        save_streamlines(filename_out, streamlines, reference_affine, reference_shape)
 
 
 def resample_fibers(streamlines, nb_points=12):
