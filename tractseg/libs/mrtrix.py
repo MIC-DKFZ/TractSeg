@@ -203,8 +203,10 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
 
     if filter_by_endpoints and bundle_mask_ok and beginnings_mask_ok and endings_mask_ok:
 
+        #todo important: change
         # Prepare masks for Mrtrix tracking
-        if tracking_on_FODs != "False" or not peak_prob_tracking:
+        # if tracking_on_FODs != "False" or not peak_prob_tracking:
+        if True:
             img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
                                          tmp_dir + "/" + bundle + ".nii.gz", dilation=1)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
@@ -232,15 +234,17 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             if output_format == "trk" or output_format == "trk_legacy":
                 mrtrix_tck_to_trk()
 
-        # Probabilistic tracking on peaks (without Mrtrix)
+        # Probabilistic tracking on peaks
         elif peak_prob_tracking:
+
+            # Custom implementation
+            #   Takes around 6min for 1 subject (2mm resolution)
             bundle_mask = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz").get_data()
             beginnings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
             endings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data()
             seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
             peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
-            # Takes around 6min for 1 subject (2mm resolution)
             streamlines = tracking.track(peaks, seed_img, max_nr_fibers=2000, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
                                          nr_cpus=nr_cpus, verbose=False)
@@ -254,6 +258,23 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
                     output_dir + "/" + tracking_folder + "/" + bundle + "." + output_format,
                     streamlines, seed_img.get_affine(),
                     seed_img.get_data().shape)
+
+            #Mrtrix
+            #   Takes around 12min for 1 subject (2mm resolution)
+            # img_utils.peaks2fixel(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz", tmp_dir + "/fixel")
+            # subprocess.call("fixel2sh " + tmp_dir + "/fixel/amplitudes.nii.gz " +
+            #                 tmp_dir + "/fixel/sh.nii.gz -quiet", shell=True)
+            # subprocess.call("tckgen -algorithm iFOD2 " +
+            #                 tmp_dir + "/fixel/sh.nii.gz " +
+            #                 output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+            #                 " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+            #                 " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+            #                 " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+            #                 " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+            #                 " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
+            #                 shell=True)
+            # if output_format == "trk" or output_format == "trk_legacy":
+            #     mrtrix_tck_to_trk()
 
         # Deterministic Tracking on TOMs with filtering
         else:

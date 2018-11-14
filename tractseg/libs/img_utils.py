@@ -389,6 +389,46 @@ def dilate_binary_mask(file_in, file_out, dilation=2):
     nib.save(img_out, file_out)
 
 
+def peaks2fixel(peaks_file_in, fixel_dir_out):
+    """
+    Transform TOM peak file to mrtrix fixels format. That can then be transformed to spherical harmonics using
+    fixel2sh.
+
+    Args:
+        peaks_file_in: (x,y,z,3)   (only 1 peak allowed per voxel)
+        fixel_dir_out:
+
+    Returns:
+        Void
+    """
+    exp_utils.make_dir(fixel_dir_out)
+
+    peaks_img = nib.load(peaks_file_in)
+    peaks = peaks_img.get_data()
+    s = peaks.shape
+
+    directions = []
+    index = np.zeros(list(s[:3]) + [2])
+    amplitudes = []
+
+    idx_ctr = 0
+    for x in range(s[0]):
+        for y in range(s[1]):
+            for z in range(s[2]):
+                peak = peaks[x, y, z]
+                peak_len = np.linalg.norm(peak)
+                if peak_len > 0:
+                    peak_normalized = peak / (peak_len + 1e-20)
+                    directions.append(peak_normalized)
+                    amplitudes.append(peak_len)
+                    index[x, y, z] = [1, idx_ctr]
+                    idx_ctr += 1
+
+    nib.save(nib.Nifti2Image(np.array(directions), np.eye(4)), join(fixel_dir_out, "directions.nii.gz"))
+    nib.save(nib.Nifti2Image(index, peaks_img.get_affine()), join(fixel_dir_out, "index.nii.gz"))
+    nib.save(nib.Nifti2Image(np.array(amplitudes), np.eye(4)), join(fixel_dir_out, "amplitudes.nii.gz"))
+
+
 def flip_peaks(data, axis="x"):
     if axis == "x":
         # flip x Axis  (9 channel image)  (3 peaks)
