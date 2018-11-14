@@ -125,6 +125,10 @@ def main():
     parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else",
                         default=False)
 
+    parser.add_argument("--tracking_dir", metavar="folder_name",
+                        help="Set name of folder which will be created to save the tracking output.",
+                        default="auto")
+
     parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
                         help="Set output format of tracking. For trk also the option trk_legacy is available. This "
                              "uses the older trk convention (streamlines are stored in coordinate space and affine is "
@@ -172,9 +176,10 @@ def main():
     #Private parameters
     input_type = "peaks"  # peaks / T1
     dropout_sampling = args.uncertainty
-    threshold = 0.5          #specificity (tract_segmentation and endings_segmentation)
-    peak_threshold = 0.3     #specificity (TOM)
+    threshold = 0.5          # specificity (tract_segmentation and endings_segmentation)
+    peak_threshold = 0.3     # specificity (TOM)
     automatically_flip_peaks = False
+    peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking (faster, but less complete)
 
     input_path = args.input
     config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
@@ -310,9 +315,9 @@ def main():
             peaks_path = input_path
         for bundle in tqdm(exp_utils.get_bundle_names(Config.CLASSES)[1:]):
             mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
-                         filter_by_endpoints=args.filter_tracking_by_endpoints,
-                         output_format=args.tracking_format, nr_fibers=args.nr_fibers,
-                         nr_cpus=args.nr_cpus, tracking_on_FODs=args.track_FODs)
+                         filter_by_endpoints=args.filter_tracking_by_endpoints, output_format=args.tracking_format,
+                         nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
+                         tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir)
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 

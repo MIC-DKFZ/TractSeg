@@ -27,6 +27,7 @@ import numpy as np
 import nibabel as nib
 from dipy.tracking.streamline import compress_streamlines as compress_streamlines_dipy
 from dipy.segment.metric import ResampleFeature
+from dipy.tracking.metrics import spline
 
 from tractseg.libs import utils
 
@@ -121,9 +122,11 @@ def save_streamlines_as_trk_legacy(out_file, streamlines, affine, shape):
     nib.trackvis.write(out_file, streamlines_trk_format, trackvis_header, points_space="rasmm")
 
 
-def save_streamlines_as_trk(out_file, streamlines, affine=None, shape=None, vox_sizes=None, vox_order='RAS'):
+def save_streamlines(out_file, streamlines, affine=None, shape=None, vox_sizes=None, vox_order='RAS'):
     """
-    This function saves tracts in Trackvis '.trk' format.
+    Saves streamlines either in .trk format or in .tck format. Depending on the ending of out_file.
+
+    If using .trk: This function saves tracts in Trackvis '.trk' format.
     The default values for the parameters are the values for the HCP data.
     The HCP default affine is: array([[  -1.25,    0.  ,    0.  ,   90.  ],
                                       [   0.  ,    1.25,    0.  , -126.  ],
@@ -156,9 +159,6 @@ def save_streamlines_as_trk(out_file, streamlines, affine=None, shape=None, vox_
 
     if vox_sizes is None:
         vox_sizes = np.array([abs(affine[0,0]), abs(affine[1,1]), abs(affine[2,2])], dtype=np.float32)
-
-    if out_file.split('.')[-1] != 'trk':
-        out_file = out_file + '.trk'
 
     # Create a new header with the correct affine and # of streamlines
     hdr = nib.streamlines.trk.TrkFile.create_empty_header()
@@ -201,7 +201,7 @@ def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_sh
     if tracking_format == "trk_legacy":
         save_streamlines_as_trk_legacy(filename_out, streamlines, reference_affine, reference_shape)
     else:
-        save_streamlines_as_trk(filename_out, streamlines, reference_affine, reference_shape)
+        save_streamlines(filename_out, streamlines, reference_affine, reference_shape)
 
 
 def resample_fibers(streamlines, nb_points=12):
@@ -211,3 +211,55 @@ def resample_fibers(streamlines, nb_points=12):
         streamlines_new.append(feature.extract(sl))
     return streamlines_new
 
+
+def smooth_streamlines(streamlines, smoothing_factor=10):
+    """
+
+    Args:
+        streamlines:
+        smoothing_factor: 10: slight smoothing,  100: very smooth from beginning to end
+
+    Returns:
+
+    """
+    streamlines_smooth = []
+    for sl in streamlines:
+        streamlines_smooth.append(spline(sl, s=smoothing_factor))
+    return streamlines_smooth
+
+
+def get_streamline_statistics(streamlines, subsample=False, raw=False):
+    '''
+    Returns (in mm)
+    - mean streamline length (mm)
+    - mean space between two following points (mm)
+    - max space between two following points (mm)
+
+    If raw: return list of fibers length and spaces
+
+    :param streamlines:
+    :return:
+    '''
+    if subsample:   #subsample for faster processing
+        STEP_SIZE = 20
+    else:
+        STEP_SIZE = 1
+
+    lengths = []
+    spaces = [] #spaces between 2 points
+    for j in range(0, len(streamlines), STEP_SIZE):
+        sl = streamlines[j]
+        length = 0
+        for i in range(len(sl)):
+            if i < (len(sl)-1):
+                space = np.linalg.norm(sl[i+1] - sl[i])
+                spaces.append(space)
+                length += space
+        lengths.append(length)
+
+    if raw:
+        # print("raw")
+        return lengths, spaces
+    else:
+        # print("mean")
+        return np.array(lengths).mean(), np.array(spaces).mean(), np.array(spaces).max()
