@@ -1,3 +1,11 @@
+## Master
+
+* Added 3D U-Net
+* New trk format (nibabel.streamlines API)
+* Probabilistic tracking on TOM output
+* Minor improvements
+
+
 ## Release 1.7.1
 
 * **Interface change**: TractSeg does not automatically flip the peaks anymore if it detects that they probably have
