@@ -180,6 +180,7 @@ def main():
     peak_threshold = 0.3     # specificity (TOM)
     automatically_flip_peaks = False
     peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking (faster, but less complete)
+    blob_size_thr = 50  # default: 50
 
     input_path = args.input
     config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
@@ -262,7 +263,8 @@ def main():
                                bundle_specific_threshold=args.bundle_specific_threshold,
                                get_probs=args.get_probabilities, peak_threshold=peak_threshold,
                                postprocess=args.postprocess, peak_regression_part=part,
-                               input_type=input_type, nr_cpus=args.nr_cpus, verbose=args.verbose)
+                               input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
+                               verbose=args.verbose)
 
             if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
                 print("Saving preview...")

@@ -43,7 +43,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                  single_orientation=False, dropout_sampling=False, threshold=0.5,
                  bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
                  postprocess=False, peak_regression_part="All", input_type="peaks",
-                 nr_cpus=-1, verbose=False):
+                 blob_size_thr=50, nr_cpus=-1, verbose=False):
     """
     Run TractSeg
 
@@ -65,6 +65,8 @@ def run_tractseg(data, output_type="tract_segmentation",
             72 bundles. If set to 'Part1'-'Part4' it will only run for a subset of the bundles to reduce memory
             load.
         input_type: Always set to "peaks"
+        blob_size_thr: If setting postprocess to True, all blobs having a smaller number of voxels than specified in
+            this threshold will be removed.
         nr_cpus: Number of CPUs to use. -1 means all available CPUs.
         verbose: Show debugging infos
 
@@ -205,7 +207,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     seg = dataset_utils.add_original_zero_padding_again(seg, bbox, original_shape, Config.NR_OF_CLASSES)  # quite slow
 
     if postprocess:
-        seg = img_utils.postprocess_segmentations(seg, blob_thr=50, hole_closing=2)
+        seg = img_utils.postprocess_segmentations(seg, blob_thr=blob_size_thr, hole_closing=2)
 
     exp_utils.print_verbose(Config, "Took {}s".format(round(time.time() - start_time, 2)))
     return seg

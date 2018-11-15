@@ -139,6 +139,11 @@ def remove_small_blobs(img, threshold=1, debug=True):
     if debug:
         print('Number of blobs before: ' + str(number_of_blobs))
     counts = np.bincount(mask.flatten())  # number of pixels in each blob
+
+    # Find largest blob, to make sure we do not remove everything
+    #   Largest blob is actually the second largest, because largest is the background
+    second_largest_blob_value = np.sort(counts)[-2]
+    second_largest_blob_idx = np.where(counts==second_largest_blob_value)
     if debug:
         print(counts)
 
@@ -146,7 +151,8 @@ def remove_small_blobs(img, threshold=1, debug=True):
     remove_idx = np.nonzero(remove)[0]  # somehow returns tupple with 1 value -> remove tupple, only keep value
 
     for idx in remove_idx:
-        mask[mask == idx] = 0  # set blobs we remove to 0
+        if idx != second_largest_blob_idx:  # make sure to keep at least one blob
+            mask[mask == idx] = 0  # set blobs we remove to 0
     mask[mask > 0] = 1  # set everything else to 1
 
     if debug:
