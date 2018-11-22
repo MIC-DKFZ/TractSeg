@@ -134,7 +134,7 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
-          peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto"):
+          peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1):
     '''
 
     :param bundle:   Bundle name
@@ -206,13 +206,14 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         # Prepare masks for Mrtrix tracking
         if tracking_on_FODs != "False" or not peak_prob_tracking:
             img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
-                                         tmp_dir + "/" + bundle + ".nii.gz", dilation=1)
+                                         tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
-                                         tmp_dir + "/" + bundle + "_e.nii.gz", dilation=1)
+                                         tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
-                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=1)
+                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation)
 
         # Probabilistic Tracking without TOM (instead using original FODs: have to be provided to -i)
+        #   Quite slow.
         if tracking_on_FODs != "False":
             algorithm = tracking_on_FODs
             if algorithm == "FACT" or algorithm == "SD_STREAM":
@@ -243,10 +244,9 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
             peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
-            #todo important: change: dilation=0
             streamlines = tracking.track(peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
-                                         dilation=0, nr_cpus=nr_cpus, verbose=False)
+                                         dilation=dilation, nr_cpus=nr_cpus, verbose=False)
 
             if output_format == "trk_legacy":
                 fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",

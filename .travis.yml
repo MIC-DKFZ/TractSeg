@@ -51,6 +51,7 @@ script:
   - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master TractSeg
     -i /data/tests/reference_files/peaks.nii.gz -o /data/examples
     --output_type TOM --track --only_track --filter_tracking_by_endpoints
+    --nr_fibers 1000 --tracking_dilation 0
 
   #Tractometry
   - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv

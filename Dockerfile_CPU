@@ -85,7 +85,7 @@ RUN tar -zxvf /code/mrtrix3_RC3.tar.gz -C code \
     && /code/mrtrix3/set_path
 
 # Uncomment if we want to rebuild the following commands (otherwise using cache)
-RUN echo "rebuild"
+#RUN echo "rebuild"
 
 RUN pip install --upgrade https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
 
