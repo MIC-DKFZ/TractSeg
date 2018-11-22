@@ -316,10 +316,12 @@ def main():
         else:
             peaks_path = input_path
         for bundle in tqdm(exp_utils.get_bundle_names(Config.CLASSES)[1:]):
-            mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
-                         filter_by_endpoints=args.filter_tracking_by_endpoints, output_format=args.tracking_format,
-                         nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
-                         tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir)
+            #todo important: change
+            if bundle == "CA":
+                mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
+                             filter_by_endpoints=args.filter_tracking_by_endpoints, output_format=args.tracking_format,
+                             nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
+                             tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir)
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 

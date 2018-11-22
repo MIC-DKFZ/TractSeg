@@ -18,6 +18,9 @@ from tractseg.libs import dataset_utils
 global _PEAKS
 _PEAKS = None
 
+global _BUNDLE_MASK
+_BUNDLE_MASK = None
+
 global _START_MASK
 _START_MASK = None
 
@@ -65,6 +68,9 @@ def process_seedpoint(seed_point, spacing):
             next_point = streamline[-1] + dir_scaled
             last_dir = dir_scaled
 
+            # if start_mask[int(sl[0][0]), int(sl[0][1]), int(sl[0][2])] == 0:
+            #     break
+
             next_peak_len = np.linalg.norm(peaks[int(next_point[0]), int(next_point[1]), int(next_point[2])])
             sl_len += next_peak_len
             if next_peak_len < peak_len_thr:
@@ -74,7 +80,7 @@ def process_seedpoint(seed_point, spacing):
                     streamline.append(next_point)
                 else:
                     break
-        return streamline
+        return streamline, sl_len
 
     def streamline_ends_in_masks(sl, start_mask, end_mask):
         if (start_mask[int(sl[0][0]), int(sl[0][1]), int(sl[0][2])] == 1 and
@@ -117,6 +123,8 @@ def process_seedpoint(seed_point, spacing):
 
     global _PEAKS
     peaks = _PEAKS
+    global _BUNDLE_MASK
+    bundle_mask = _BUNDLE_MASK
     global _START_MASK
     start_mask = _START_MASK
     global _END_MASK
@@ -129,12 +137,12 @@ def process_seedpoint(seed_point, spacing):
     streamline1.append([seed_point[0], seed_point[1], seed_point[2]])  # add first point to streamline
     streamline2 = list(streamline1)  # deep copy
 
-    streamline_part1 = process_one_way(peaks, streamline1, max_nr_steps, step_size, probabilistic,
+    streamline_part1, length_1 = process_one_way(peaks, streamline1, max_nr_steps, step_size, probabilistic,
                                    next_step_displacement_std, max_tract_len, peak_len_thr, reverse=False)
 
     # Roughly doubles execution time but also roughly doubles number of resulting streamlines
     #   Makes sense because many too short if seeding in middle of streamline
-    streamline_part2 = process_one_way(peaks, streamline2, max_nr_steps, step_size, probabilistic,
+    streamline_part2, length_2 = process_one_way(peaks, streamline2, max_nr_steps, step_size, probabilistic,
                                    next_step_displacement_std, max_tract_len, peak_len_thr, reverse=True)
     # streamline_part2 = []
 
@@ -145,11 +153,11 @@ def process_seedpoint(seed_point, spacing):
         streamline = streamline_part1
 
     # Check min and max length
-    lengths, spaces = fiber_utils.get_streamline_statistics([streamline], raw=True)
-    if lengths[0] < min_tract_len or lengths[0] > max_tract_len:
+    length = length_1 + length_2
+    if length < min_tract_len or length > max_tract_len:
         return []
 
-    # Filter by mask
+    # Filter by start and end mask
     if start_mask is not None and end_mask is not None:
         if streamline_ends_in_masks(streamline, start_mask, end_mask):
             return streamline
@@ -157,17 +165,21 @@ def process_seedpoint(seed_point, spacing):
     return []
 
 
+def seed_generator(mask_coords, nr_seeds):
+    """
+    Randomly select #nr_seeds voxels from mask.
 
-def seed_generator(peaks, nr_seeds, seed_mask_shape, peak_threshold, bbox):
-    # seeding makes no sense here: always same seed points then
-    ctr = 0
-    while ctr < nr_seeds:
-        x = randint(bbox[0][0], bbox[0][1] - 1)
-        y = randint(bbox[1][0], bbox[1][1] - 1)
-        z = randint(bbox[2][0], bbox[2][1] - 1)
-        if np.any(peaks[x, y, z] > 0.01):
-            yield [x, y, z]
-        ctr += 1
+    Args:
+        mask_coords:
+        nr_seeds:
+
+    Returns:
+
+    """
+    nr_voxels = mask_coords.shape[0]
+    random_indices = np.random.choice(nr_voxels, nr_seeds, replace=True)
+    res = np.take(mask_coords, random_indices, axis=0)
+    return res
 
 
 def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=None, compress=0.1, bundle_mask=None,
@@ -203,22 +215,21 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
 
     global _PEAKS
     _PEAKS = peaks
+    global _BUNDLE_MASK
+    _BUNDLE_MASK = bundle_mask
     global _START_MASK
     _START_MASK = start_mask
     global _END_MASK
     _END_MASK = end_mask
 
-    bbox = dataset_utils.get_bbox_from_mask(bundle_mask)
+    # Get list of coordinates of each voxel in mask to seed from those
+    mask_coords = np.array(np.where(bundle_mask == 1)).transpose()
+    nr_voxels = mask_coords.shape[0]
     spacing = seed_image.header.get_zooms()[0]
 
-    p_shape = seed_image.get_data().shape
-
-    max_nr_seeds = 1000 * max_nr_fibers  # after how many seeds to abort (to avoid endless runtime)
-    if start_mask is not None:
-        # use higher number, because we find less valid fibers -> faster processing
-        seeds_per_batch = 20000  # how many seeds to process in each pool.map iteration
-    else:
-        seeds_per_batch = 5000
+    max_nr_seeds = 250 * max_nr_fibers  # after how many seeds to abort (to avoid endless runtime)
+    # How many seeds to process in each pool.map iteration
+    seeds_per_batch = 5000
 
     if nr_cpus == -1:
         nr_processes = psutil.cpu_count()
@@ -233,7 +244,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
     while fiber_ctr < max_nr_fibers:
         pool = multiprocessing.Pool(processes=nr_processes)
         streamlines_tmp = pool.map(partial(process_seedpoint, spacing=spacing),
-                                   seed_generator(peaks, seeds_per_batch, p_shape, peak_threshold, bbox))
+                                   seed_generator(mask_coords, seeds_per_batch))
         # streamlines_tmp = [process_seedpoint(seed, spacing=spacing) for seed in
         #                    seed_generator(peaks, seeds_per_batch,
         #                                   p_shape, peak_threshold, bbox)] # single threaded for debug

@@ -203,10 +203,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
 
     if filter_by_endpoints and bundle_mask_ok and beginnings_mask_ok and endings_mask_ok:
 
-        #todo important: change
         # Prepare masks for Mrtrix tracking
-        # if tracking_on_FODs != "False" or not peak_prob_tracking:
-        if True:
+        if tracking_on_FODs != "False" or not peak_prob_tracking:
             img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
                                          tmp_dir + "/" + bundle + ".nii.gz", dilation=1)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
@@ -234,7 +232,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             if output_format == "trk" or output_format == "trk_legacy":
                 mrtrix_tck_to_trk()
 
-        # Probabilistic tracking on peaks
+        # Probabilistic tracking on TOMs
         elif peak_prob_tracking:
 
             # Custom implementation
@@ -245,9 +243,10 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
             peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
+            #todo important: change: dilation=0
             streamlines = tracking.track(peaks, seed_img, max_nr_fibers=2000, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
-                                         nr_cpus=nr_cpus, verbose=False)
+                                         dilation=1, nr_cpus=nr_cpus, verbose=False)
 
             if output_format == "trk_legacy":
                 fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
