@@ -92,7 +92,8 @@ class test_end_to_end(unittest.TestCase):
     def test_tractometry(self):
         ref = np.loadtxt("tests/reference_files/Tractometry_1k.csv", delimiter=";", skiprows=1).transpose()
         new = np.loadtxt("examples/Tractometry.csv", delimiter=";", skiprows=1).transpose()
-        arrays_equal = np.allclose(ref, new, rtol=3e-2, atol=3e-2)  #allow error of around 0.03      #2k fibers
+        arrays_equal = np.allclose(ref, new, rtol=9e-2, atol=9e-2)  #allow error of around 0.03      #1k fibers
+        # arrays_equal = np.allclose(ref, new, rtol=3e-2, atol=3e-2)  #allow error of around 0.03      #2k fibers
         # arrays_equal = np.allclose(ref, new, rtol=9e-3, atol=9e-3)    #allow error of around 0.009     #10k fibers
         self.assertTrue(arrays_equal, "Tractometry not correct")
 
