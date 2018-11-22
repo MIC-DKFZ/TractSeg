@@ -42,7 +42,7 @@ def process_seedpoint(seed_point, spacing):
 
     # Has to be sub-method otherwise not working
     def process_one_way(peaks, streamline, max_nr_steps, step_size, probabilistic, next_step_displacement_std,
-                        max_tract_len, peak_len_thr, reverse=False):
+                        max_tract_len, peak_len_thr, bundle_mask=None, reverse=False):
         last_dir = None
         sl_len = 0
         for i in range(max_nr_steps):
@@ -51,8 +51,9 @@ def process_seedpoint(seed_point, spacing):
             if reverse and i == 0:
                 dir_raw = -dir_raw  # inverse first step
 
+            dir_raw_len = np.linalg.norm(dir_raw)
             # first normalize to length=1 then set to length of step_size
-            dir_scaled = (dir_raw / (np.linalg.norm(dir_raw) + 1e-20)) * step_size
+            dir_scaled = (dir_raw / (dir_raw_len + 1e-20)) * step_size
             dir_scaled = np.nan_to_num(dir_scaled)
 
             if i > 0:
@@ -65,20 +66,28 @@ def process_seedpoint(seed_point, spacing):
                 uncertainty = np.random.normal(0, next_step_displacement_std, 3)
                 dir_scaled = dir_scaled + uncertainty
 
+                # If step_size too small and next_step_displacement_std too big: sometimes even goes back
+                #  -> ends up in random places (better since normalizing peak length after random displacing,
+                #  but still happens if step_size to small)
+                # dir_scaled = (dir_scaled / (np.linalg.norm(dir_scaled) + 1e-20)) * step_size
+
             next_point = streamline[-1] + dir_scaled
             last_dir = dir_scaled
 
+            # stop fiber if running out of bundle mask
+            if bundle_mask is not None:
+                if bundle_mask[int(next_point[0]), int(next_point[1]), int(next_point[2])] == 0:
+                    break
 
-            # if start_mask[int(sl[0][0]), int(sl[0][1]), int(sl[0][2])] == 0:
-            #     break
-
+            # This does not take too much runtime, because most of these cases already caught by previous bundle_mask
+            #  check. Here it is mainly only the good fibers (a lot less than all fibers seeded).
             next_peak_len = np.linalg.norm(peaks[int(next_point[0]), int(next_point[1]), int(next_point[2])])
-            sl_len += next_peak_len
             if next_peak_len < peak_len_thr:
                 break
             else:
                 if sl_len < max_tract_len:
                     streamline.append(next_point)
+                    sl_len += dir_raw_len
                 else:
                     break
         return streamline, sl_len
@@ -106,9 +115,12 @@ def process_seedpoint(seed_point, spacing):
     max_nr_steps = 1000
     min_tract_len = 50      # mm
     max_tract_len = 200     # mm
+    # If step_size too small and next_step_displacement_std too big: sometimes even goes back -> ends up in random
+    # places (better since normalizing peak length after random displacing, but still happens if step_size to small)
     step_size = 0.7  # relative to voxel size (=spacing)
     peak_len_thr = 0.1
 
+    # transform length to voxel space
     min_tract_len = int(min_tract_len / spacing)
     max_tract_len = int(max_tract_len / spacing)
 
@@ -139,13 +151,12 @@ def process_seedpoint(seed_point, spacing):
     streamline2 = list(streamline1)  # deep copy
 
     streamline_part1, length_1 = process_one_way(peaks, streamline1, max_nr_steps, step_size, probabilistic,
-                                   next_step_displacement_std, max_tract_len, peak_len_thr, reverse=False)
+                                   next_step_displacement_std, max_tract_len, peak_len_thr, bundle_mask, reverse=False)
 
     # Roughly doubles execution time but also roughly doubles number of resulting streamlines
     #   Makes sense because many too short if seeding in middle of streamline
     streamline_part2, length_2 = process_one_way(peaks, streamline2, max_nr_steps, step_size, probabilistic,
-                                   next_step_displacement_std, max_tract_len, peak_len_thr, reverse=True)
-    # streamline_part2 = []
+                                   next_step_displacement_std, max_tract_len, peak_len_thr, bundle_mask, reverse=True)
 
     if len(streamline_part2) > 0:
         # remove first element of part2 otherwise have seed_point 2 times
@@ -183,7 +194,7 @@ def seed_generator(mask_coords, nr_seeds):
     return res
 
 
-def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=None, compress=0.1, bundle_mask=None,
+def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None,
           start_mask=None, end_mask=None, dilation=1, nr_cpus=-1, verbose=True):
     """
     Great speedup was archived by:
@@ -247,8 +258,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
         streamlines_tmp = pool.map(partial(process_seedpoint, spacing=spacing),
                                    seed_generator(mask_coords, seeds_per_batch))
         # streamlines_tmp = [process_seedpoint(seed, spacing=spacing) for seed in
-        #                    seed_generator(peaks, seeds_per_batch,
-        #                                   p_shape, peak_threshold, bbox)] # single threaded for debug
+        #                    seed_generator(mask_coords, seeds_per_batch)] # single threaded for debug
         pool.close()
         pool.join()
 
@@ -267,6 +277,10 @@ def track(peaks, seed_image, max_nr_fibers=2000, peak_threshold=0.01, smooth=Non
         print("final nr streamlines: {}".format(len(streamlines)))
 
     streamlines = streamlines[:max_nr_fibers]   # remove surplus of fibers (comes from multiprocessing)
+
+    # Does not lead to different outcome. Still not all fibers completely within mask.
+    # streamlines = fiber_utils.filter_streamlines_leaving_mask(streamlines, bundle_mask)
+
     streamlines = Streamlines(streamlines)  # Generate streamlines object
     # move streamlines to coordinate space
     streamlines = list(move_streamlines(streamlines, seed_image.get_affine()))

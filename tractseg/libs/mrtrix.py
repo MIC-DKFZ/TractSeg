@@ -244,9 +244,9 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
             #todo important: change: dilation=0
-            streamlines = tracking.track(peaks, seed_img, max_nr_fibers=2000, smooth=10, compress=0.1,
+            streamlines = tracking.track(peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
-                                         dilation=1, nr_cpus=nr_cpus, verbose=False)
+                                         dilation=0, nr_cpus=nr_cpus, verbose=False)
 
             if output_format == "trk_legacy":
                 fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",

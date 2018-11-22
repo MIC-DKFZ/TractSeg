@@ -28,6 +28,7 @@ import nibabel as nib
 from dipy.tracking.streamline import compress_streamlines as compress_streamlines_dipy
 from dipy.segment.metric import ResampleFeature
 from dipy.tracking.metrics import spline
+from dipy.tracking import utils as utils_trk
 
 from tractseg.libs import utils
 
@@ -263,3 +264,21 @@ def get_streamline_statistics(streamlines, subsample=False, raw=False):
     else:
         # print("mean")
         return np.array(lengths).mean(), np.array(spaces).mean(), np.array(spaces).max()
+
+
+def filter_streamlines_leaving_mask(streamlines, mask):
+    '''
+    Remove all streamlines that exit the mask
+    '''
+    # max_seq_len = abs(ref_affine[0, 0] / 4)
+    max_seq_len = 0.1
+    streamlines = list(utils_trk.subsegment(streamlines, max_seq_len))
+
+    new_str_idxs = []
+    for i, streamline in enumerate(streamlines):
+        new_str_idxs.append(i)
+        for point in streamline:
+            if mask[int(point[0]), int(point[1]), int(point[2])] == 0:
+                new_str_idxs.pop()
+                break
+    return [streamlines[idx] for idx in new_str_idxs]
