@@ -68,6 +68,7 @@ def process_seedpoint(seed_point, spacing):
             next_point = streamline[-1] + dir_scaled
             last_dir = dir_scaled
 
+
             # if start_mask[int(sl[0][0]), int(sl[0][1]), int(sl[0][2])] == 0:
             #     break
 
