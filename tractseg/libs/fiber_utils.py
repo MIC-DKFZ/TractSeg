@@ -283,30 +283,6 @@ def filter_streamlines_leaving_mask(streamlines, mask):
                 break
     return [streamlines[idx] for idx in new_str_idxs]
 
-def get_best_original_peaks_slow_buggy(peaks_pred, peaks_orig, peak_len_thr=0.1):
-
-    def get_most_aligned_peak(pred, orig):
-        angle1 = abs(np.dot(pred, orig[0]) / (np.linalg.norm(pred) * np.linalg.norm(orig[0])))
-        angle2 = abs(np.dot(pred, orig[1]) / (np.linalg.norm(pred) * np.linalg.norm(orig[1])))
-        angle3 = abs(np.dot(pred, orig[2]) / (np.linalg.norm(pred) * np.linalg.norm(orig[2])))
-        argmax = np.argmax([angle1, angle2, angle3])
-        return orig[argmax]
-
-    new_img = np.zeros(peaks_pred.shape).astype(peaks_pred.dtype)
-    for x in range(peaks_pred.shape[0]):
-        for y in range(peaks_pred.shape[1]):
-            for z in range(peaks_pred.shape[2]):
-                predicted = peaks_pred[x, y, z, :]
-                if np.linalg.norm(predicted) > peak_len_thr:
-                    best_orig = get_most_aligned_peak(predicted,
-                                                      [peaks_orig[x, y, z, 0:3],
-                                                       peaks_orig[x, y, z, 3:6],
-                                                       peaks_orig[x, y, z, 6:9]])
-                    new_img[x, y, z] = np.array(best_orig)
-
-    new_img = np.zeros(peaks_pred.shape).astype(peaks_pred.dtype)
-    return new_img
-
 
 def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
 
@@ -345,18 +321,3 @@ def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
                                        peaks_orig[:, :, :, 3:6],
                                        peaks_orig[:, :, :, 6:9]])
     return best_orig
-
-
-# orig_img = nib.load("/Users/jakob/Downloads/peaks.nii.gz")
-# orig = orig_img.get_data()
-# pred = nib.load("/Users/jakob/Downloads/CA.nii.gz").get_data()
-#
-# orig = np.nan_to_num(orig)
-# pred = np.nan_to_num(pred)
-#
-# import time
-# start_time = time.time()
-# best_peaks = get_best_original_peaks(pred, orig)
-# print(time.time() - start_time)
-#
-# nib.save(nib.Nifti1Image(best_peaks, orig_img.get_affine()), "/Users/jakob/Downloads/CA_best_slow.nii.gz")
