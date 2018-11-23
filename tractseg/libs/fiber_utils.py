@@ -304,11 +304,11 @@ def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
         angle3 = angle_last_dim(pred, orig[2])
         argmax = np.argmax(np.stack([angle1, angle2, angle3], axis=-1), axis=-1)
 
+        x, y, z = (orig.shape[1], orig.shape[2], orig.shape[3])
+        return orig[tuple([argmax] + np.ogrid[:x, :y, :z])]
         # Other ways that would also work
-        # x, y, z = (orig.shape[1], orig.shape[2], orig.shape[3])
-        # return orig[tuple([argmax] + np.ogrid[:x, :y, :z])]
         # return orig[argmax, np.arange(x)[:, None, None], np.arange(y)[:, None], np.arange(z)]
-        return np.take_along_axis(orig, argmax[None, ..., None], axis=0)[0]
+        # return np.take_along_axis(orig, argmax[None, ..., None], axis=0)[0]   # only supported in newest numpy version
 
     peaks_pred = np.nan_to_num(peaks_pred)
     peaks_orig = np.nan_to_num(peaks_orig)

@@ -244,14 +244,12 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
             tom_peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
-            # Get best original peaks
-            # print("Get peaks ...")
+            #Get best original peaks
             # orig_peaks = nib.load(peaks)
             # best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks.get_data())
             # nib.save(nib.Nifti1Image(best_orig_peaks, orig_peaks.get_affine()),
             #          output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz")
             # tom_peaks = best_orig_peaks
-            # print("Track...")
 
             streamlines = tracking.track(tom_peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
