@@ -155,7 +155,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     '''
 
     def mrtrix_tck_to_trk():
-        ref_img = nib.load(peaks)
+        ref_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
         reference_affine = ref_img.get_affine()
         reference_shape = ref_img.get_data().shape[:3]
         fiber_utils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
@@ -242,9 +242,18 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             beginnings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
             endings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data()
             seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
-            peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
+            tom_peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
-            streamlines = tracking.track(peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
+            # Get best original peaks
+            # print("Get peaks ...")
+            # orig_peaks = nib.load(peaks)
+            # best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks.get_data())
+            # nib.save(nib.Nifti1Image(best_orig_peaks, orig_peaks.get_affine()),
+            #          output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz")
+            # tom_peaks = best_orig_peaks
+            # print("Track...")
+
+            streamlines = tracking.track(tom_peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
                                          dilation=dilation, nr_cpus=nr_cpus, verbose=False)
 
