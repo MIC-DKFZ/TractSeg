@@ -39,6 +39,9 @@ def process_seedpoint(seed_point, spacing):
     Returns:
 
     """
+    def get_at_idx(img, idx):
+        return img[int(idx[0]), int(idx[1]), int(idx[2])]
+        # return img[int(idx[0]+0.5), int(idx[1]+0.5), int(idx[2]+0.5)]
 
     # Has to be sub-method otherwise not working
     def process_one_way(peaks, streamline, max_nr_steps, step_size, probabilistic, next_step_displacement_std,
@@ -47,7 +50,7 @@ def process_seedpoint(seed_point, spacing):
         sl_len = 0
         for i in range(max_nr_steps):
             last_point = streamline[-1]
-            dir_raw = peaks[int(last_point[0]), int(last_point[1]), int(last_point[2])]
+            dir_raw = get_at_idx(peaks, (last_point[0], last_point[1], last_point[2]))
             if reverse and i == 0:
                 dir_raw = -dir_raw  # inverse first step
 
@@ -76,12 +79,12 @@ def process_seedpoint(seed_point, spacing):
 
             # stop fiber if running out of bundle mask
             if bundle_mask is not None:
-                if bundle_mask[int(next_point[0]), int(next_point[1]), int(next_point[2])] == 0:
+                if get_at_idx(bundle_mask, (next_point[0], next_point[1], next_point[2])) == 0:
                     break
 
             # This does not take too much runtime, because most of these cases already caught by previous bundle_mask
             #  check. Here it is mainly only the good fibers (a lot less than all fibers seeded).
-            next_peak_len = np.linalg.norm(peaks[int(next_point[0]), int(next_point[1]), int(next_point[2])])
+            next_peak_len = np.linalg.norm(get_at_idx(peaks, (next_point[0], next_point[1], next_point[2])))
             if next_peak_len < peak_len_thr:
                 break
             else:
@@ -93,12 +96,12 @@ def process_seedpoint(seed_point, spacing):
         return streamline, sl_len
 
     def streamline_ends_in_masks(sl, start_mask, end_mask):
-        if (start_mask[int(sl[0][0]), int(sl[0][1]), int(sl[0][2])] == 1 and
-                end_mask[int(sl[-1][0]), int(sl[-1][1]), int(sl[-1][2])] == 1):
+        if (get_at_idx(start_mask, (sl[0][0], sl[0][1], sl[0][2])) == 1 and
+                get_at_idx(end_mask, (sl[-1][0], sl[-1][1], sl[-1][2])) == 1):
             return True
 
-        if (start_mask[int(sl[-1][0]), int(sl[-1][1]), int(sl[-1][2])] == 1 and
-                end_mask[int(sl[0][0]), int(sl[0][1]), int(sl[0][2])] == 1):
+        if (get_at_idx(start_mask, (sl[-1][0], sl[-1][1], sl[-1][2])) == 1 and
+                get_at_idx(end_mask, (sl[0][0], sl[0][1], sl[0][2])) == 1):
             return True
 
         return False
@@ -277,13 +280,24 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
         print("final nr streamlines: {}".format(len(streamlines)))
 
     streamlines = streamlines[:max_nr_fibers]   # remove surplus of fibers (comes from multiprocessing)
+    streamlines = Streamlines(streamlines)  # Generate streamlines object
 
-    # Does not lead to different outcome. Still not all fibers completely within mask.
+    # We generated fibers in RAS space. But trk expects them in RASmm space (origin is center of voxel). Therefore we
+    #  have to move them by half a voxel. -> therefore correct to use np.eye(4) as input_space and not offset 0.5 !?!
+    # voxel_space = np.array([[1.,    0.,    0.,   .5],
+    #                         [0.,    1.,    0.,   .5],
+    #                         [0.,    0.,    1.,   .5],
+    #                         [0.,    0.,    0.,    1.]])
+
+    # Remove fibers outside of mask.
+    #   Not working properly. Still keeping fibers outside of mask. Why??
+    #   More than doubles runtime.
+    # streamlines = list(move_streamlines(streamlines, input_space=np.eye(4), output_space=voxel_space))
     # streamlines = fiber_utils.filter_streamlines_leaving_mask(streamlines, bundle_mask)
 
-    streamlines = Streamlines(streamlines)  # Generate streamlines object
     # move streamlines to coordinate space
-    streamlines = list(move_streamlines(streamlines, seed_image.get_affine()))
+    # streamlines = list(move_streamlines(streamlines, input_space=voxel_space, output_space=seed_image.get_affine()))
+    streamlines = list(move_streamlines(streamlines, output_space=seed_image.get_affine()))
 
     if smooth:
         streamlines = fiber_utils.smooth_streamlines(streamlines, smoothing_factor=smooth)
