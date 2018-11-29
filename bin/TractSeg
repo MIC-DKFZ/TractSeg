@@ -175,6 +175,8 @@ def main():
 
     parser.add_argument('--version', action='version', version='TractSeg 1.7.1')
 
+    # parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment")
+
     args = parser.parse_args()
 
 
@@ -187,6 +189,7 @@ def main():
     peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking (faster, but less complete)
     blob_size_thr = 50  # default: 50
     use_best_original_peaks = False # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
+    manual_exp_name = None  # args.exp_name
 
     input_path = args.input
     config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
@@ -270,7 +273,7 @@ def main():
                                get_probs=args.get_probabilities, peak_threshold=peak_threshold,
                                postprocess=args.postprocess, peak_regression_part=part,
                                input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
-                               verbose=args.verbose)
+                               verbose=args.verbose, manual_exp_name=manual_exp_name)
 
             if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
                 print("Saving preview...")

@@ -43,7 +43,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                  single_orientation=False, dropout_sampling=False, threshold=0.5,
                  bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
                  postprocess=False, peak_regression_part="All", input_type="peaks",
-                 blob_size_thr=50, nr_cpus=-1, verbose=False):
+                 blob_size_thr=50, nr_cpus=-1, verbose=False, manual_exp_name=None):
     """
     Run TractSeg
 
@@ -94,7 +94,9 @@ def run_tractseg(data, output_type="tract_segmentation",
     if bundle_specific_threshold:
         Config.GET_PROBS = True
 
-    if input_type == "peaks":
+    if manual_exp_name is not None and Config.EXPERIMENT_TYPE != "peak_regression":
+        Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(join(C.EXP_PATH, manual_exp_name), True)
+    elif input_type == "peaks":
         if Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.DROPOUT_SAMPLING:
             Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_dropout_v2.npz")
         elif Config.EXPERIMENT_TYPE == "tract_segmentation":
@@ -167,7 +169,12 @@ def run_tractseg(data, output_type="tract_segmentation",
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
         for idx, part in enumerate(parts):
-            Config.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, weights[part])
+            if manual_exp_name is not None:
+                manual_exp_name_peaks = exp_utils.get_manual_exp_name_peaks(manual_exp_name, part)
+                Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(
+                    join(C.EXP_PATH, manual_exp_name_peaks), True)
+            else:
+                Config.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, weights[part])
             print("Loading weights from: {}".format(Config.WEIGHTS_PATH))
             Config.CLASSES = "All_" + part
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])

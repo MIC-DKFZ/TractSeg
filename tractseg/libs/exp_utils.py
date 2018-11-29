@@ -434,3 +434,20 @@ def get_correct_input_dim(Config):
         elif Config.RESOLUTION == "2.5mm":
             input_dim = (80, 80, 80)
     return input_dim
+
+
+def get_manual_exp_name_peaks(manual_exp_name, part):
+    """
+    If want to use manual experiment name for peak regression, replace part nr by X:
+    e.g. PeaksPartX_HR_DAug_fold2
+    -> will find correct part then automatically
+
+    Args:
+        manual_exp_name:
+        part:
+
+    Returns:
+
+    """
+    manual_exp_name_parts = manual_exp_name.split("X")
+    return manual_exp_name_parts[0] + part[-1] + manual_exp_name_parts[1]
