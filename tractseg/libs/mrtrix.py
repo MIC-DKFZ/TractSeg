@@ -271,6 +271,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
 
             #Mrtrix
             #   Takes around 12min for 1 subject (2mm resolution)
+            #   Info: If using this have to activate img_utils.dilate_binary_mask... code further up.
             # img_utils.peaks2fixel(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz", tmp_dir + "/fixel")
             # subprocess.call("fixel2sh " + tmp_dir + "/fixel/amplitudes.nii.gz " +
             #                 tmp_dir + "/fixel/sh.nii.gz -quiet", shell=True)
