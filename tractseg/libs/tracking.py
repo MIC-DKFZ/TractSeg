@@ -284,6 +284,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
 
     # We generated fibers in RAS space. But trk expects them in RASmm space (origin is center of voxel). Therefore we
     #  have to move them by half a voxel. -> therefore correct to use np.eye(4) as input_space and not offset 0.5 !?!
+    #  => ????
     # voxel_space = np.array([[1.,    0.,    0.,   .5],
     #                         [0.,    1.,    0.,   .5],
     #                         [0.,    0.,    1.,   .5],

@@ -134,7 +134,8 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
-          peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1):
+          peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1,
+          use_best_original_peaks=False):
     '''
 
     :param bundle:   Bundle name
@@ -171,6 +172,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             tracking_folder = "FOD_SD_STREAM_trackings"
         elif tracking_on_FODs == "iFOD2":
             tracking_folder = "FOD_iFOD2_trackings"
+        elif use_best_original_peaks:
+            tracking_folder = "BestOrig_trackings"
         else:
             tracking_folder = "TOM_trackings"
     TOM_folder = "TOM"
@@ -212,7 +215,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
                                          tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation)
 
-        # Probabilistic Tracking without TOM (instead using original FODs: have to be provided to -i)
+        # Probabilistic Mrtrix Tracking on original FODs (have to be provided to -i)
         #   Quite slow.
         if tracking_on_FODs != "False":
             algorithm = tracking_on_FODs
@@ -245,11 +248,12 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             tom_peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
             #Get best original peaks
-            # orig_peaks = nib.load(peaks)
-            # best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks.get_data())
-            # nib.save(nib.Nifti1Image(best_orig_peaks, orig_peaks.get_affine()),
-            #          output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz")
-            # tom_peaks = best_orig_peaks
+            if use_best_original_peaks:
+                orig_peaks = nib.load(peaks)
+                best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks.get_data())
+                nib.save(nib.Nifti1Image(best_orig_peaks, orig_peaks.get_affine()),
+                         output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz")
+                tom_peaks = best_orig_peaks
 
             streamlines = tracking.track(tom_peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
