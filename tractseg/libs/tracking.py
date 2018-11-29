@@ -282,22 +282,11 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     streamlines = streamlines[:max_nr_fibers]   # remove surplus of fibers (comes from multiprocessing)
     streamlines = Streamlines(streamlines)  # Generate streamlines object
 
-    # We generated fibers in RAS space. But trk expects them in RASmm space (origin is center of voxel). Therefore we
-    #  have to move them by half a voxel. -> therefore correct to use np.eye(4) as input_space and not offset 0.5 !?!
-    #  => ????
-    # voxel_space = np.array([[1.,    0.,    0.,   .5],
-    #                         [0.,    1.,    0.,   .5],
-    #                         [0.,    0.,    1.,   .5],
-    #                         [0.,    0.,    0.,    1.]])
-
-    # Remove fibers outside of mask.
-    #   Not working properly. Still keeping fibers outside of mask. Why??
-    #   More than doubles runtime.
-    # streamlines = list(move_streamlines(streamlines, input_space=np.eye(4), output_space=voxel_space))
-    # streamlines = fiber_utils.filter_streamlines_leaving_mask(streamlines, bundle_mask)
+    # Move from origin being at the edge of the voxel to the origin being at the center of the voxel. Otherwise
+    # tractogram and mask do not perfectly align when viewing in MITK, but are slightly offset.
+    streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
     # move streamlines to coordinate space
-    # streamlines = list(move_streamlines(streamlines, input_space=voxel_space, output_space=seed_image.get_affine()))
     streamlines = list(move_streamlines(streamlines, output_space=seed_image.get_affine()))
 
     if smooth:

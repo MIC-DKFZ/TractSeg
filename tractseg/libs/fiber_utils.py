@@ -321,3 +321,20 @@ def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
                                        peaks_orig[:, :, :, 3:6],
                                        peaks_orig[:, :, :, 6:9]])
     return best_orig
+
+
+def add_to_each_streamline(streamlines, scalar):
+    """
+    Add scalar value to each coordinate of each streamline
+
+    Args:
+        streamlines:
+        scalar:
+
+    Returns:
+
+    """
+    sl_new = []
+    for sl in streamlines:
+        sl_new.append(np.array(sl) + scalar)
+    return sl_new
