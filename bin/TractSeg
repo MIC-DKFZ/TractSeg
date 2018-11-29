@@ -152,7 +152,7 @@ def main():
     parser.add_argument("--tracking_dilation", metavar="n", type=int,
                         help="When using '--filter_tracking_by_endpoints' dilate the endpoint and bundle masks by the "
                              "respective number of voxels. (default: 1)",
-                        default=1)
+                        default=1)  # Info: dilation of endpoint mask: dilation+1
 
     parser.add_argument("--super_resolution", action="store_true",
                         help="Keep 1.25mm resolution of model instead of downsampling back to original resolution",

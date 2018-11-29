@@ -211,9 +211,9 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
                                          tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
-                                         tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation)
+                                         tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation+1)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
-                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation)
+                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation+1)
 
         # Probabilistic Mrtrix Tracking on original FODs (have to be provided to -i)
         #   Quite slow.
