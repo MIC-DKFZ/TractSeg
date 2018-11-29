@@ -284,6 +284,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
 
     # Move from origin being at the edge of the voxel to the origin being at the center of the voxel. Otherwise
     # tractogram and mask do not perfectly align when viewing in MITK, but are slightly offset.
+    # We can still see a few fibers a little bit outside of mask because of big step size (no resegmenting done).
     streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
     # move streamlines to coordinate space
