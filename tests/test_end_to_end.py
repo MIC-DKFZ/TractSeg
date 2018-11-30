@@ -90,14 +90,14 @@ class test_end_to_end(unittest.TestCase):
     #     self.assertTrue(images_equal, "FA not correct")
 
     def test_tractometry(self):
-        ref = np.loadtxt("tests/reference_files/Tractometry_1k.csv", delimiter=";", skiprows=1).transpose()
+        ref = np.loadtxt("tests/reference_files/Tractometry_2k.csv", delimiter=";", skiprows=1).transpose()
         new = np.loadtxt("examples/Tractometry.csv", delimiter=";", skiprows=1).transpose()
         # Because tracking is a stochastic process the results are not always the same. Check if they are the same
         #   within a certain margin.
-        mean_difference = abs((ref-new).mean())
-        arrays_equal = mean_difference < 0.003
-        # arrays_equal = np.allclose(ref, new, rtol=0, atol=2e-1)  #allow error of around 0.03      #1k fibers
-        # arrays_equal = np.allclose(ref, new, rtol=3e-2, atol=3e-2)  #allow error of around 0.03      #2k fibers
+        # mean_difference = abs((ref-new).mean())
+        # arrays_equal = mean_difference < 0.003
+        # arrays_equal = np.allclose(ref, new, rtol=0, atol=2e-1)  #allow error of around 0.2      #1k fibers
+        arrays_equal = np.allclose(ref, new, rtol=3e-2, atol=3e-2)  #allow error of around 0.03      #2k fibers
         # arrays_equal = np.allclose(ref, new, rtol=9e-3, atol=9e-3)    #allow error of around 0.009     #10k fibers
         self.assertTrue(arrays_equal, "Tractometry not correct")
 

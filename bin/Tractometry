@@ -105,12 +105,18 @@ def main():
                              "uses the older trk convention (streamlines are stored in coordinate space and affine is "
                              "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
                         default="trk_legacy")
+    parser.add_argument("--test", action="store_true", help="Only needed for unittesting.",
+                        default=False)
     args = parser.parse_args()
 
-    bundles = exp_utils.get_bundle_names("All")[1:]
     NR_POINTS = int(args.nr_points)
     DILATION = 5
     scalar_image = nib.load(args.scalar_img)
+
+    if args.test:
+        bundles = exp_utils.get_bundle_names("test")[1:]
+    else:
+        bundles = exp_utils.get_bundle_names("All")[1:]
 
     results = []
     for bundle in bundles:

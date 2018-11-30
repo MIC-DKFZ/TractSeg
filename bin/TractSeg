@@ -327,7 +327,12 @@ def main():
             peaks_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
         else:
             peaks_path = input_path
-        for bundle in tqdm(exp_utils.get_bundle_names(Config.CLASSES)[1:]):
+
+        if args.test:
+            bundles = exp_utils.get_bundle_names("test")[1:]
+        else:
+            bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+        for bundle in tqdm(bundles):
             mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
                          filter_by_endpoints=args.filter_tracking_by_endpoints, output_format=args.tracking_format,
                          nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,

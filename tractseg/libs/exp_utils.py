@@ -227,6 +227,10 @@ def get_bundle_names(CLASSES):
          'ST_POSTC_right_b', 'ST_POSTC_right_e', 'ST_PAR_left_b', 'ST_PAR_left_e', 'ST_PAR_right_b',
          'ST_PAR_right_e', 'ST_OCC_left_b', 'ST_OCC_left_e', 'ST_OCC_right_b', 'ST_OCC_right_e'] #144
 
+    elif CLASSES == "test":
+        # Only use subset of classes for unit testing because of runtime
+        bundles = ["CST_right", "CA", "UF_left"]
+
     else:
         #1 tract
         # bundles = ["CST_right"]
