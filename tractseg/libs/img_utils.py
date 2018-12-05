@@ -250,7 +250,7 @@ def save_multilabel_img_as_multiple_files(Config, img, affine, path, name="bundl
         nib.save(img_seg, join(path, name, bundle + ".nii.gz"))
 
 
-def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path):
+def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path, name="TOM"):
     bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         data = img[:, :, :, (idx*3):(idx*3)+3]
@@ -262,8 +262,8 @@ def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path):
             filename = bundle + ".nii.gz"
 
         img_seg = nib.Nifti1Image(data, affine)
-        exp_utils.make_dir(join(path, "TOM"))
-        nib.save(img_seg, join(path, "TOM", filename))
+        exp_utils.make_dir(join(path, name))
+        nib.save(img_seg, join(path, name, filename))
 
 
 def save_multilabel_img_as_multiple_files_endings(Config, img, affine, path):

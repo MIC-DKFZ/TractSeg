@@ -69,6 +69,7 @@ def run_tractseg(data, output_type="tract_segmentation",
             this threshold will be removed.
         nr_cpus: Number of CPUs to use. -1 means all available CPUs.
         verbose: Show debugging infos
+        manual_exp_name: Name of experiment if do not want to use pretrained model but your own one
 
     Returns:
         4D numpy array with the output of tractseg

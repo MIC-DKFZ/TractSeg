@@ -178,7 +178,16 @@ def main():
     parser.add_argument("--test", action="store_true", help="Only needed for unittesting.",
                         default=False)
 
-    # parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment")
+    parser.add_argument('--tract_segmentation_output_dir', metavar="folder_name",
+                        help="name of bundle segmentations output folder (default: bundle_segmentations)",
+                        default="bundle_segmentations")
+
+    parser.add_argument('--TOM_output_dir', metavar="folder_name",
+                        help="name of TOM output folder (default: TOM)",
+                        default="TOM")
+
+    # parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment",
+    #                     default="False")
 
     args = parser.parse_args()
 
@@ -193,6 +202,8 @@ def main():
     blob_size_thr = 50  # default: 50
     use_best_original_peaks = False # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
     manual_exp_name = None  # args.exp_name
+    tract_segmentation_output_dir = args.tract_segmentation_output_dir
+    TOM_output_dir = args.TOM_output_dir
 
     input_path = args.input
     config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
@@ -304,13 +315,15 @@ def main():
                                                                     name="bundle_uncertainties")
                 elif Config.EXPERIMENT_TYPE == "tract_segmentation":
                     img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
-                                                                    Config.PREDICT_IMG_OUTPUT)
+                                                                    Config.PREDICT_IMG_OUTPUT,
+                                                                    name=tract_segmentation_output_dir)
                 elif Config.EXPERIMENT_TYPE == "endings_segmentation":
                     img_utils.save_multilabel_img_as_multiple_files_endings(Config, seg, data_affine,
                                                                             Config.PREDICT_IMG_OUTPUT)
                 elif Config.EXPERIMENT_TYPE == "peak_regression":
                     img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine,
-                                                                          Config.PREDICT_IMG_OUTPUT)
+                                                                          Config.PREDICT_IMG_OUTPUT,
+                                                                          name=TOM_output_dir)
                 elif Config.EXPERIMENT_TYPE == "dm_regression":
                     img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
                                                                     Config.PREDICT_IMG_OUTPUT, name="dm_regression")

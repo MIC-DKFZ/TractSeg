@@ -136,7 +136,7 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
           peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1,
           use_best_original_peaks=False):
-    '''
+    """
 
     :param bundle:   Bundle name
     :param peaks:
@@ -153,7 +153,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
         options: False | FACT | iFOD2
     :param tracking_folder:
     :return:
-    '''
+    """
 
     def mrtrix_tck_to_trk():
         ref_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")

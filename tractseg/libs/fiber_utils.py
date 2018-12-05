@@ -285,6 +285,17 @@ def filter_streamlines_leaving_mask(streamlines, mask):
 
 
 def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
+    """
+    Find the peak from preaks_orig which is closest to the peak in peaks_pred.
+
+    Args:
+        peaks_pred: file containing 1 peak [x,y,z,3]
+        peaks_orig: file containing 4 peaks [x,y,z,9]
+        peak_len_thr: all peaks shorter than this threshold will be removed
+
+    Returns:
+        Image containing 1 peak [x,y,z,3]
+    """
 
     def angle_last_dim(a, b):
         '''
