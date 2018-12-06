@@ -135,7 +135,7 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
           peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1,
-          use_best_original_peaks=False):
+          use_best_original_peaks=False, dir_postfix=""):
     """
 
     :param bundle:   Bundle name
@@ -176,14 +176,15 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             tracking_folder = "BestOrig_trackings"
         else:
             tracking_folder = "TOM_trackings"
-    TOM_folder = "TOM"
+    TOM_folder = "TOM" + dir_postfix
 
     tmp_dir = tempfile.mkdtemp()
     subprocess.call("export PATH=/code/mrtrix3/bin:$PATH", shell=True)
     subprocess.call("mkdir -p " + output_dir + "/" + tracking_folder, shell=True)
 
     if filter_by_endpoints:
-        bundle_mask_ok = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz").get_data().max() > 0
+        bundle_mask_ok = nib.load(output_dir + "/bundle_segmentations" + dir_postfix
+                                  + "/" + bundle + ".nii.gz").get_data().max() > 0
         beginnings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data().max() > 0
         endings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data().max() > 0
 
@@ -208,7 +209,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
 
         # Prepare masks for Mrtrix tracking
         if tracking_on_FODs != "False" or not peak_prob_tracking:
-            img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz",
+            img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations" + dir_postfix + "/" + bundle + ".nii.gz",
                                          tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
                                          tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation+1)
@@ -241,10 +242,12 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
 
             # Custom implementation
             #   Takes around 6min for 1 subject (2mm resolution)
-            bundle_mask = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz").get_data()
+            bundle_mask = nib.load(output_dir + "/bundle_segmentations" + dir_postfix + "/"
+                                   + bundle + ".nii.gz").get_data()
             beginnings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
             endings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data()
-            seed_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
+            seed_img = nib.load(output_dir + "/bundle_segmentations" + dir_postfix + "/" +
+                                bundle + ".nii.gz")
             tom_peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
             #Get best original peaks
