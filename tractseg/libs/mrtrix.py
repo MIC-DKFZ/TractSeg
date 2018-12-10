@@ -156,7 +156,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
     """
 
     def mrtrix_tck_to_trk():
-        ref_img = nib.load(output_dir + "/bundle_segmentations/" + bundle + ".nii.gz")
+        ref_img = nib.load(output_dir + "/bundle_segmentations"  + dir_postfix + "/" + bundle + ".nii.gz")
         reference_affine = ref_img.get_affine()
         reference_shape = ref_img.get_data().shape[:3]
         fiber_utils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
