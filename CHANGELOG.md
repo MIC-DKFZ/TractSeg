@@ -1,9 +1,15 @@
 ## Master
 
-* Added 3D U-Net
-* New trk format (nibabel.streamlines API)
-* Probabilistic tracking on TOM output
-* Minor improvements
+* Minor improvements 
+
+
+## Release 1.8
+
+* "Probabilistic" tracking on TOM output
+* New trk format (nibabel.streamlines API). Use `--tracking_format trk` to use it.
+* Option to do Mrtrix iFOD2 tracking on original FODs but filter by TractSeg masks.
+* Added 3D U-Net, but not used
+* Minor improvements & Bugfixes
 
 
 ## Release 1.7.1
