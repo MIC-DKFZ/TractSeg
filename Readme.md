@@ -32,7 +32,7 @@ option `--preprocess` this is not needed)
 #### Install TractSeg
 Latest stable version:
 ```
-pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.7.1.zip
+pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.8.zip
 ```
 
 #### Docker
