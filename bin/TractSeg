@@ -153,6 +153,7 @@ def main():
                         help="When using '--filter_tracking_by_endpoints' dilate the endpoint and bundle masks by the "
                              "respective number of voxels. (default: 1)",
                         default=1)  # Info: dilation of endpoint mask: dilation+1
+                        # for HCP data: tracking_dilation=0 better
 
     parser.add_argument("--super_resolution", action="store_true",
                         help="Keep 1.25mm resolution of model instead of downsampling back to original resolution",
@@ -200,10 +201,8 @@ def main():
     automatically_flip_peaks = False
     peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking (faster, but less complete)
     blob_size_thr = 50  # default: 50
-    use_best_original_peaks = False # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
+    use_best_original_peaks = False  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
     manual_exp_name = None  # args.exp_name
-    tract_segmentation_output_dir = args.tract_segmentation_output_dir
-    TOM_output_dir = args.TOM_output_dir
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
     dir_postfix = ""    # "_BSThr"
 
@@ -318,14 +317,14 @@ def main():
                 elif Config.EXPERIMENT_TYPE == "tract_segmentation":
                     img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
                                                                     Config.PREDICT_IMG_OUTPUT,
-                                                                    name=tract_segmentation_output_dir)
+                                                                    name=args.tract_segmentation_output_dir)
                 elif Config.EXPERIMENT_TYPE == "endings_segmentation":
                     img_utils.save_multilabel_img_as_multiple_files_endings(Config, seg, data_affine,
                                                                             Config.PREDICT_IMG_OUTPUT)
                 elif Config.EXPERIMENT_TYPE == "peak_regression":
                     img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine,
                                                                           Config.PREDICT_IMG_OUTPUT,
-                                                                          name=TOM_output_dir)
+                                                                          name=args.TOM_output_dir)
                 elif Config.EXPERIMENT_TYPE == "dm_regression":
                     img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
                                                                     Config.PREDICT_IMG_OUTPUT, name="dm_regression")

@@ -201,6 +201,21 @@ peaks = nib.load("tests/reference_files/peaks.nii.gz").get_data()
 segmentation = run_tractseg(peaks)
 ```
 
+#### Different tracking types
+You can use different types of tracking when doing `--track`:
+
+* "Probabilistic" tracking on TOM peaks [**default**].  
+`TractSeg -i peaks.nii.gz --output_type TOM --track --only_track --filter_tracking_by_endpoints`  
+Probabilistic means that at each step a small random factor will be added to the direction given by the TOM peaks.
+If not doing this on low resolution data it sometimes gets difficult finding fibers running from start to end and
+covering the whole bundle.
+
+* Probabilistic tracking on original FODs.  
+`TractSeg -i WM_FODs.nii.gz --output_type TOM --track --only_track --filter_tracking_by_endpoints --track_FODs iFOD2`  
+Is calling Mrtrix iFOD2 tracking internally. Does not use TOM peaks but the original FODs. The results will get 
+filtered by the bundle mask and have to start and end in the endings masks.
+
+
 #### Aligning image to MNI space
 The input image must have the same "orientation" as the Human Connectome Project data (MNI space) (LEFT must be on the same side as 
 LEFT of the HCP data). If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
