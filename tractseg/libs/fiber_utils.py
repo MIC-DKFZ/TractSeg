@@ -162,7 +162,7 @@ def save_streamlines(out_file, streamlines, affine=None, shape=None, vox_sizes=N
         vox_sizes = np.array([abs(affine[0,0]), abs(affine[1,1]), abs(affine[2,2])], dtype=np.float32)
 
     # Create a new header with the correct affine and # of streamlines
-    hdr = nib.streamlines.trk.TrkFile.create_empty_header()
+    hdr = {}
     hdr['voxel_sizes'] = vox_sizes
     hdr['voxel_order'] = vox_order
     hdr['dimensions'] = shape
