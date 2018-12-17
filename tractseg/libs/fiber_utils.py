@@ -125,6 +125,8 @@ def save_streamlines_as_trk_legacy(out_file, streamlines, affine, shape):
 
 def save_streamlines(out_file, streamlines, affine=None, shape=None, vox_sizes=None, vox_order='RAS'):
     """
+    todo: use dipy.io.streamline.save_tractogram to save streamlines
+
     Saves streamlines either in .trk format or in .tck format. Depending on the ending of out_file.
 
     If using .trk: This function saves tracts in Trackvis '.trk' format.
