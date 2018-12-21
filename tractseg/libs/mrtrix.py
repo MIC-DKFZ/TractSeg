@@ -209,6 +209,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
 
         # Prepare masks for Mrtrix tracking
         if tracking_on_FODs != "False" or not peak_prob_tracking:
+        # if True:
             img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations" + dir_postfix + "/" + bundle + ".nii.gz",
                                          tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
@@ -285,6 +286,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
             #   Takes around 12min for 1 subject (2mm resolution)
             #   Info: If using this have to activate img_utils.dilate_binary_mask... code further up.
             # img_utils.peaks2fixel(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz", tmp_dir + "/fixel")
+            # #img_utils.peaks2fixel(output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz", tmp_dir + "/fixel")
             # subprocess.call("fixel2sh " + tmp_dir + "/fixel/amplitudes.nii.gz " +
             #                 tmp_dir + "/fixel/sh.nii.gz -quiet", shell=True)
             # subprocess.call("tckgen -algorithm iFOD2 " +
