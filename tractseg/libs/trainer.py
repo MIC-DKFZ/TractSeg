@@ -240,7 +240,25 @@ def train_model(Config, model, data_loader):
     return model
 
 
-def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=True, only_prediction=False):
+def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=True, only_prediction=False,
+                batch_size=1):
+    """
+    Runtime on CPU:
+      bs=1  -> 9min     4.5GB RAM
+      bs=48 -> 6.5min   30GB RAM
+
+    Args:
+        Config:
+        model:
+        data_loader:
+        probs:
+        scale_to_world_shape:
+        only_prediction:
+        batch_size:
+
+    Returns:
+
+    """
 
     def finalize_data(layers):
         layers = np.array(layers)
@@ -268,16 +286,17 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
 
         layers_seg = []
         layers_y = []
-        batch_generator = data_loader.get_batch_generator(batch_size=1)
+        batch_generator = data_loader.get_batch_generator(batch_size=batch_size)
         batch_generator = list(batch_generator)
         for batch in tqdm(batch_generator):
             x = batch["data"]   # (bs, nr_of_channels, x, y)
             y = batch["seg"]    # (bs, nr_of_classes, x, y)
+
             if not only_prediction:
                 y = y.astype(Config.LABELS_TYPE)
-                y = np.squeeze(y)   # remove bs dimension which is only 1 -> (x, y, nrClasses)
+                # y = np.squeeze(y)   # remove bs dimension which is only 1 -> (nrClasses, x, y)
                 if Config.DIM == "2D":
-                    y = y.transpose(0, 2, 3, 1)
+                    y = y.transpose(0, 2, 3, 1) # (bs, x, y, nr_of_classes)
                 else:
                     y = y.transpose(0, 2, 3, 4, 1)
 
@@ -296,7 +315,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
             else:
                 # For normal prediction
                 layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
-                layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
+                # layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
 
             if probs:
                 seg = layer_probs   # (x, y, nrClasses)
@@ -315,8 +334,15 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                 if not only_prediction:
                     layers_y = y
 
+    layers_seg = np.array(layers_seg)   # [i, bs, x, y, nr_classes]
+    ls = layers_seg.shape
+    layers_seg = np.reshape(layers_seg, (ls[0]*ls[1], ls[2], ls[3], ls[4]))  # [i*bs, x, y, nr_classes]
     layers_seg = finalize_data(layers_seg)
+
     if not only_prediction:
+        layers_y = np.array(layers_y)  # [i, bs, x, y, nr_classes]
+        ls = layers_y.shape
+        layers_y = np.reshape(layers_y, (ls[0] * ls[1], ls[2], ls[3], ls[4]))  # [i*bs, x, y, nr_classes]
         layers_y = finalize_data(layers_y)
 
     return layers_seg, layers_y   # (Prediction, Groundtruth)

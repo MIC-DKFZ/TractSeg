@@ -205,6 +205,7 @@ def main():
     manual_exp_name = None  # args.exp_name
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
     dir_postfix = ""    # "_BSThr"
+    inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
 
     input_path = args.input
     config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
@@ -288,7 +289,8 @@ def main():
                                get_probs=args.get_probabilities, peak_threshold=peak_threshold,
                                postprocess=args.postprocess, peak_regression_part=part,
                                input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
-                               verbose=args.verbose, manual_exp_name=manual_exp_name)
+                               verbose=args.verbose, manual_exp_name=manual_exp_name,
+                               inference_batch_size=inference_batch_size)
 
             if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
                 print("Saving preview...")

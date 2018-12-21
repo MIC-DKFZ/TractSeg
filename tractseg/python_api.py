@@ -43,7 +43,8 @@ def run_tractseg(data, output_type="tract_segmentation",
                  single_orientation=False, dropout_sampling=False, threshold=0.5,
                  bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
                  postprocess=False, peak_regression_part="All", input_type="peaks",
-                 blob_size_thr=50, nr_cpus=-1, verbose=False, manual_exp_name=None):
+                 blob_size_thr=50, nr_cpus=-1, verbose=False, manual_exp_name=None,
+                 inference_batch_size=1):
     """
     Run TractSeg
 
@@ -70,6 +71,7 @@ def run_tractseg(data, output_type="tract_segmentation",
         nr_cpus: Number of CPUs to use. -1 means all available CPUs.
         verbose: Show debugging infos
         manual_exp_name: Name of experiment if do not want to use pretrained model but your own one
+        inference_batch_size: batch size (higher: a bit faster but needs more RAM)
 
     Returns:
         4D numpy array with the output of tractseg
@@ -141,14 +143,17 @@ def run_tractseg(data, output_type="tract_segmentation",
             data_loder_inference = DataLoaderInference(Config, data=data)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
                 seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
-                                                 scale_to_world_shape=False, only_prediction=True)
+                                                 scale_to_world_shape=False, only_prediction=True,
+                                                 batch_size=inference_batch_size)
             else:
                 seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=False,
-                                                 scale_to_world_shape=False, only_prediction=True)
+                                                 scale_to_world_shape=False, only_prediction=True,
+                                                 batch_size=inference_batch_size)
         else:
             seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
                                                                            scale_to_world_shape=False,
-                                                                           only_prediction=True)
+                                                                           only_prediction=True,
+                                                                           batch_size=inference_batch_size)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
                 seg = direction_merger.mean_fusion(Config.THRESHOLD, seg_xyz, probs=True)
             else:
@@ -184,7 +189,8 @@ def run_tractseg(data, output_type="tract_segmentation",
             data_loder_inference = DataLoaderInference(Config, data=data)
             model = BaseModel(Config)
             seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
-                                             scale_to_world_shape=False, only_prediction=True)
+                                             scale_to_world_shape=False, only_prediction=True,
+                                             batch_size=inference_batch_size)
 
             if peak_regression_part == "All":
                 seg_all[:, :, :, (idx*Config.NR_OF_CLASSES) : (idx*Config.NR_OF_CLASSES+Config.NR_OF_CLASSES)] = seg
@@ -204,7 +210,8 @@ def run_tractseg(data, output_type="tract_segmentation",
         #3 dir for Peaks -> bad results
         # seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
         #                                                                scale_to_world_shape=False,
-        #                                                                only_prediction=True)
+        #                                                                only_prediction=True,
+        #                                                                batch_size=inference_batch_size)
         # seg = direction_merger.mean_fusion(Config.THRESHOLD, seg_xyz, probs=True)
 
     if bundle_specific_threshold and Config.EXPERIMENT_TYPE == "tract_segmentation":
