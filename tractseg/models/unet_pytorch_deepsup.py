@@ -67,6 +67,7 @@ class UNet_Pytorch_DeepSup(torch.nn.Module):
         self.deconv_3 = deconv2d(n_filt * 4, n_filt * 4, kernel_size=2, stride=2)
         # self.deconv_3 = nn.Upsample(scale_factor=2)
 
+        # Deep Supervision
         self.output_2 = nn.Conv2d(n_filt * 4 + n_filt * 8, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
         # 'nearest' a bit faster but a little results a little worse (~0.4 dice points worse)
         self.output_2_up = nn.Upsample(scale_factor=2, mode=upsample)
@@ -76,6 +77,7 @@ class UNet_Pytorch_DeepSup(torch.nn.Module):
         self.deconv_4 = deconv2d(n_filt * 2, n_filt * 2, kernel_size=2, stride=2)
         # self.deconv_4 = nn.Upsample(scale_factor=2)
 
+        # Deep Supervision
         self.output_3 = nn.Conv2d(n_filt * 2 + n_filt * 4, n_classes, kernel_size=1, stride=1, padding=0, bias=True)
         self.output_3_up = nn.Upsample(scale_factor=2, mode=upsample)  # does only upscale width and height
 
@@ -119,6 +121,7 @@ class UNet_Pytorch_DeepSup(torch.nn.Module):
         expand_2_2 = self.expand_2_2(expand_2_1)
         deconv_3 = self.deconv_3(expand_2_2)
 
+        # Deep Supervision
         output_2 = self.output_2(concat2)
         output_2_up = self.output_2_up(output_2)
 
@@ -127,6 +130,7 @@ class UNet_Pytorch_DeepSup(torch.nn.Module):
         expand_3_2 = self.expand_3_2(expand_3_1)
         deconv_4 = self.deconv_4(expand_3_2)
 
+        # Deep Supervision
         output_3 = output_2_up + self.output_3(concat3)
         output_3_up = self.output_3_up(output_3)
 
