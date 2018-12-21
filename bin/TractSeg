@@ -349,6 +349,8 @@ def main():
             bundles = exp_utils.get_bundle_names("test")[1:]
         else:
             bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+
+        # bundles = ["T_POSTC_left", "CA", "CST_right", "IFO_right"]
         for bundle in tqdm(bundles):
             mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
                          filter_by_endpoints=args.filter_tracking_by_endpoints, output_format=args.tracking_format,
