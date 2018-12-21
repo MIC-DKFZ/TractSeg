@@ -79,9 +79,9 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation
 
 For the extraction of the Tract Orientation maps we can again add the option `--bundle_specific_threshold`:
 ```
-TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --bundle_specific_threshold --track
+TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --bundle_specific_threshold \
+--track --filter_tracking_by_endpoints --tracking_dilation 1
 ```
-* You can also add the option `--filter_tracking_by_endpoints`. However, that should only be used with care on non-HCP data. On non-HCP data 
-the results can have flaws for some bundles. This can lead to major problems for the option `--filter_tracking_by_endpoints` as 
-this is very dependend on the endings segmentations, bundle segmentations and trackings to all fit well together. If one of them is flawed, the
-resulting tractogram can be very sparse.
+* `--tracking_dilation`: This defines how much to dilate the tract mask as well as the start/end region mask 
+before using them for filtering during tracking. On low resolution data those masks can have some flaws. 
+Therefore it is advisable to dilate them slightly by using a value of 1 or 2 instead of the default of 0.
