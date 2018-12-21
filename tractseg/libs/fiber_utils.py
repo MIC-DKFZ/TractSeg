@@ -336,6 +336,22 @@ def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
     return best_orig
 
 
+def get_weighted_mean_of_peaks(best_orig, tom, weight=0.5):
+    """
+    Calculate weighted mean between best_orig peaks and tom peaks.
+
+    Args:
+        best_orig: original peaks
+        tom: prior
+        weight: how much to apply prior (0: only original signal, 1: only prior)
+
+    Returns:
+        weighted mean
+    """
+    stacked = np.stack([best_orig, tom])
+    return np.average(stacked, axis=0, weights=[1 - weight, weight])
+
+
 def add_to_each_streamline(streamlines, scalar):
     """
     Add scalar value to each coordinate of each streamline

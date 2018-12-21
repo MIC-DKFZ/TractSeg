@@ -135,7 +135,7 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
           peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1,
-          use_best_original_peaks=False, dir_postfix=""):
+          use_best_original_peaks=False, dir_postfix="", use_as_prior=False):
     """
 
     :param bundle:   Bundle name
@@ -257,6 +257,15 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="t
                 nib.save(nib.Nifti1Image(best_orig_peaks, orig_peaks.get_affine()),
                          output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz")
                 tom_peaks = best_orig_peaks
+
+            #Get weighted mean between best original peaks and TOMs
+            if use_as_prior:
+                orig_peaks = nib.load(peaks)
+                best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks.get_data())
+                weighted_peaks = fiber_utils.get_weighted_mean_of_peaks(best_orig_peaks, tom_peaks, weight=0.5)
+                nib.save(nib.Nifti1Image(weighted_peaks, orig_peaks.get_affine()),
+                         output_dir + "/" + tracking_folder + "/" + bundle + "_weighted.nii.gz")
+                tom_peaks = weighted_peaks
 
             streamlines = tracking.track(tom_peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
