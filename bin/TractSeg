@@ -350,14 +350,12 @@ def main():
         else:
             bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
         for bundle in tqdm(bundles):
-            #todo important: change
-            if bundle == "CST_right":
-                mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
-                             filter_by_endpoints=args.filter_tracking_by_endpoints, output_format=args.tracking_format,
-                             nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
-                             tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir,
-                             dilation=args.tracking_dilation, use_best_original_peaks=use_best_original_peaks,
-                             dir_postfix=dir_postfix, use_as_prior=use_as_prior)
+            mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
+                         filter_by_endpoints=args.filter_tracking_by_endpoints, output_format=args.tracking_format,
+                         nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
+                         tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir,
+                         dilation=args.tracking_dilation, use_best_original_peaks=use_best_original_peaks,
+                         dir_postfix=dir_postfix, use_as_prior=use_as_prior)
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 
