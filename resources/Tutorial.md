@@ -85,3 +85,7 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --bundle_specifi
 * `--tracking_dilation`: This defines how much to dilate the tract mask as well as the start/end region mask 
 before using them for filtering during tracking. On low resolution data those masks can have some flaws. 
 Therefore it is advisable to dilate them slightly by using a value of 1 or 2 instead of the default of 0.
+
+> Note: If you use `--super_resolution` you have to use it for all steps (tract_segmentation, 
+endings_segmentation and TOM). Otherwise tracking is not possible as the masks do not have the same
+dimensions.
