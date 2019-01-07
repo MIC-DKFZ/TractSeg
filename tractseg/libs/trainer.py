@@ -309,9 +309,9 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                     samples.append(layer_probs)
 
                 samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
-                samples = np.squeeze(samples) # (NR_SAMPLING, x, y, nrClasses)
+                # samples = np.squeeze(samples) # (NR_SAMPLING, x, y, nrClasses)
                 # layer_probs = np.mean(samples, axis=0)
-                layer_probs = np.std(samples, axis=0)    # (x,y,nrClasses)
+                layer_probs = np.std(samples, axis=0)    # (bs,x,y,nrClasses)
             else:
                 # For normal prediction
                 layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
