@@ -239,8 +239,17 @@ def angle_length_loss(y_pred, y_true, weights):
         #   Flip angles to make it a minimization problem
         combined = -angles_weighted + lenghts_weighted / weights_bund.max()
 
-        #Would this work? (mathematically not the same (!), but correct concept?)
+
+        # Loss is the same as the following:
+        # combined = 1/weights_bund * -angles + weights_bund/weights_factor * lengths
+        # where weights_factor = weights_bund.max()
+        # Note: For angles we need /weights and for length we need *weights. Because angles goes from 0 to -1 and
+        # lengths goes from 100+ to 0. Division by weights factor is needed to balance angles and lengths terms relative
+        # to each other.
+
+        # The following would not work:
         # combined = weights_bund * (-angles + lengths)
+        # angles and lengths are both multiplied with weights. But one needs to be multiplied and one divided.
 
         scores[idx] = torch.mean(combined)
 
