@@ -59,9 +59,14 @@ def main():
     parser.add_argument("--track_FODs", metavar="False|FACT|SD_STREAM|iFOD2",
                         choices=["False", "FACT", "SD_STREAM", "iFOD2"],
                         help="Running tracking on FODs (provided as argument to '-i') instead of tracking on TOMs. "
-                             "Only works if you do not use '--no_filtering_by_endpoints'. If you choose 'FACT' "
-                             "you have to pass a peak image instead of FODs to -i.",
+                             "Only works if you do not use '--no_filtering_by_endpoints'. Uses MRtrix tracking. If you "
+                             "choose 'FACT' you have to pass a peak image instead of FODs to -i.",
                         default="False")
+
+    parser.add_argument("--track_best_orig", action="store_true",
+                        help="Select peak from the original peaks (provided as argument to -i) which is closest to "
+                             "the TOM peak. Track on these peaks.",
+                        default=False)
 
     parser.add_argument("--tracking_dilation", metavar="n", type=int,
                         help="Dilate the endpoint and bundle masks by the "
@@ -79,7 +84,8 @@ def main():
                         default="trk_legacy")
 
     parser.add_argument("--no_filtering_by_endpoints", action="store_true",
-                        help="Run tracking on TOMs without filtering results by tract mask and endpoint masks.",
+                        help="Run tracking on TOMs without filtering results by tract mask and endpoint masks."
+                             "MRtrix FACT tracking will be used instead of the 'probabilistic' tracking on peaks.",
                         default=False)
 
     parser.add_argument("--nr_cpus", metavar="n", type=int,
@@ -97,7 +103,8 @@ def main():
 
 
     #Private parameters
-    peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking (faster, but less complete)
+    peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking
+    TOM_mrtrix_algorithm = "FACT"   # FACT / iFOD2  (used when peak_prob_tracking = False and tracks_FODs = False)
     use_best_original_peaks = False  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
     use_as_prior = False  # Track on weighted average between best original peaks and TOM
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
@@ -128,7 +135,7 @@ def main():
                      nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
                      tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir,
                      dilation=args.tracking_dilation, use_best_original_peaks=use_best_original_peaks,
-                     dir_postfix=dir_postfix, use_as_prior=use_as_prior)
+                     dir_postfix=dir_postfix, use_as_prior=use_as_prior, TOM_mrtrix_algorithm=TOM_mrtrix_algorithm)
 
 
 

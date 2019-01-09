@@ -135,24 +135,30 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="trk", nr_fibers=2000, nr_cpus=-1,
           peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1,
-          use_best_original_peaks=False, dir_postfix="", use_as_prior=False):
+          use_best_original_peaks=False, dir_postfix="", use_as_prior=False, TOM_mrtrix_algorithm="FACT"):
     """
 
-    :param bundle:   Bundle name
-    :param peaks: path to original peaks
-    :param output_dir:
-    :param filter_by_endpoints:  use results of endings_segmentation to filter out
-                                 all fibers not endings in those regions
-    :param output_format:
-    :param nr_fibers:
-    :param nr_cpus:
-    :param peak_prob_tracking:  If doing filter_by_endpoint, use own probabilistic peak tracking instead of mtrix
-        tracking.
-    :param prob_tracking_on_FODs: Runs iFOD2 tracking on original FODs (have to be provided to -i without
-        setting --raw_diffusion_input) instead of running FACT tracking on TOMs.
-        options: False | FACT | iFOD2
-    :param tracking_folder:
-    :return:
+    Args:
+        bundle: bundle name
+        peaks: path to original peaks
+        output_dir: output directory
+        filter_by_endpoints: use results of endings_segmentation to filter out all fibers not endings in those regions
+        output_format:
+        nr_fibers:
+        nr_cpus:
+        peak_prob_tracking: If doing filter_by_endpoint, use own probabilistic peak tracking instead of mtrix tracking
+        tracking_on_FODs: Runs iFOD2 tracking on original FODs (have to be provided to -i without setting
+            --raw_diffusion_input) instead of running FACT tracking on TOMs.
+            options: False | FACT | iFOD2
+        tracking_folder:
+        dilation:
+        use_best_original_peaks:
+        dir_postfix:
+        use_as_prior:
+        TOM_mrtrix_algorithm:
+
+    Returns:
+        Void
     """
 
     def mrtrix_tck_to_trk():
@@ -165,7 +171,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                                        nr_cpus=nr_cpus, tracking_format=output_format)
         subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
 
-    if tracking_folder == "auto":
+    def get_tracking_folder_name():
         if tracking_on_FODs == "FACT":
             tracking_folder = "Peaks_FACT_trackings"
         elif tracking_on_FODs == "SD_STREAM":
@@ -176,12 +182,30 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
             tracking_folder = "BestOrig_trackings"
         else:
             tracking_folder = "TOM_trackings"
+        return tracking_folder
+
+
+    ################### Preparing ###################
+
+    # Auto set tracking folder name
+    if tracking_folder == "auto":
+        tracking_folder = get_tracking_folder_name()
     TOM_folder = "TOM" + dir_postfix
 
-    tmp_dir = tempfile.mkdtemp()
+    # Set nr threads for MRtrix
+    if nr_cpus > 0:
+        nthreads = " -nthreads " + str(nr_cpus)
+    else:
+        nthreads = ""
+
+    # Misc
     subprocess.call("export PATH=/code/mrtrix3/bin:$PATH", shell=True)
     subprocess.call("mkdir -p " + output_dir + "/" + tracking_folder, shell=True)
+    tmp_dir = tempfile.mkdtemp()
+    if tracking_on_FODs != "False":
+        peak_prob_tracking = False
 
+    # Check if bundle masks are valid
     if filter_by_endpoints:
         bundle_mask_ok = nib.load(output_dir + "/bundle_segmentations" + dir_postfix
                                   + "/" + bundle + ".nii.gz").get_data().max() > 0
@@ -200,49 +224,96 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
             print("WARNING: tract endings mask of {} empty. Falling back "
                   "to tracking without filtering by endpoints.".format(bundle))
 
-    if nr_cpus > 0:
-        nthreads = " -nthreads " + str(nr_cpus)
-    else:
-        nthreads = ""
 
+    ################### Tracking ###################
+
+    # No filtering
+    if not filter_by_endpoints:
+        img_utils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
+
+        # FACT Tracking on TOMs
+        subprocess.call("tckgen -algorithm FACT " +
+                        output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
+                        output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+                        " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
+                        " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads, shell=True)
+
+        if output_format == "trk" or output_format == "trk_legacy":
+            mrtrix_tck_to_trk()
+
+    # Filtering
     if filter_by_endpoints and bundle_mask_ok and beginnings_mask_ok and endings_mask_ok:
 
-        # Prepare masks for Mrtrix tracking
+        # Mrtrix Tracking
         if tracking_on_FODs != "False" or not peak_prob_tracking:
-        # if True:
+
+            # Prepare files
             img_utils.dilate_binary_mask(output_dir + "/bundle_segmentations" + dir_postfix + "/" + bundle + ".nii.gz",
                                          tmp_dir + "/" + bundle + ".nii.gz", dilation=dilation)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz",
-                                         tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation+1)
+                                         tmp_dir + "/" + bundle + "_e.nii.gz", dilation=dilation + 1)
             img_utils.dilate_binary_mask(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz",
-                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation+1)
+                                         tmp_dir + "/" + bundle + "_b.nii.gz", dilation=dilation + 1)
 
-        # Probabilistic Mrtrix Tracking on original FODs (have to be provided to -i)
-        #   Quite slow.
-        if tracking_on_FODs != "False":
-            algorithm = tracking_on_FODs
-            if algorithm == "FACT" or algorithm == "SD_STREAM":
-                seeds = 1000000
-            else:
-                seeds = 200000
-            subprocess.call("tckgen -algorithm " + algorithm + " " +
-                            peaks + " " +
-                            output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                            " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
-                            " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
-                            " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
-                            " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                            " -minlength 40 -seeds " + str(seeds) + " -select " +
-                            str(nr_fibers) + " -force" + nthreads,
-                            shell=True)
-            if output_format == "trk" or output_format == "trk_legacy":
-                mrtrix_tck_to_trk()
+            # Mrtrix tracking on original FODs (have to be provided to -i)
+            if tracking_on_FODs != "False":
+                algorithm = tracking_on_FODs
+                if algorithm == "FACT" or algorithm == "SD_STREAM":
+                    seeds = 1000000
+                else:
+                    seeds = 200000
+                # Quite slow
+                subprocess.call("tckgen -algorithm " + algorithm + " " +
+                                peaks + " " +
+                                output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+                                " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+                                " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+                                " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+                                " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+                                " -minlength 40 -seeds " + str(seeds) + " -select " +
+                                str(nr_fibers) + " -force" + nthreads,
+                                shell=True)
+                if output_format == "trk" or output_format == "trk_legacy":
+                    mrtrix_tck_to_trk()
 
-        # Probabilistic tracking on TOMs
-        elif peak_prob_tracking:
+            # FACT tracking on TOMs
+            elif tracking_on_FODs == "False" and not peak_prob_tracking and TOM_mrtrix_algorithm == "FACT":
+                # Takes around 2.5min for 1 subject (2mm resolution)
+                subprocess.call("tckgen -algorithm FACT " +
+                                output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
+                                output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+                                " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+                                " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+                                " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+                                " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+                                " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
+                                shell=True)
+                if output_format == "trk" or output_format == "trk_legacy":
+                    mrtrix_tck_to_trk()
 
-            # Custom implementation
-            #   Takes around 6min for 1 subject (2mm resolution)
+            # iFOD2 tracking on TOMs
+            elif tracking_on_FODs == "False" and not peak_prob_tracking and TOM_mrtrix_algorithm == "iFOD2":
+                # Takes around 12min for 1 subject (2mm resolution)
+                img_utils.peaks2fixel(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz", tmp_dir + "/fixel")
+                subprocess.call("fixel2sh " + tmp_dir + "/fixel/amplitudes.nii.gz " +
+                                tmp_dir + "/fixel/sh.nii.gz -quiet", shell=True)
+                subprocess.call("tckgen -algorithm iFOD2 " +
+                                tmp_dir + "/fixel/sh.nii.gz " +
+                                output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
+                                " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
+                                " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
+                                " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
+                                " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
+                                " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
+                                shell=True)
+                if output_format == "trk" or output_format == "trk_legacy":
+                    mrtrix_tck_to_trk()
+
+
+        # TractSeg probabilistic tracking
+        elif tracking_on_FODs == "False" and peak_prob_tracking:
+
+            # Prepare files
             bundle_mask = nib.load(output_dir + "/bundle_segmentations" + dir_postfix + "/"
                                    + bundle + ".nii.gz").get_data()
             beginnings = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
@@ -268,6 +339,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                          output_dir + "/" + tracking_folder + "/" + bundle + "_weighted.nii.gz")
                 tom_peaks = weighted_peaks
 
+            # Takes around 6min for 1 subject (2mm resolution)
             streamlines = tracking.track(tom_peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
                                          dilation=dilation, nr_cpus=nr_cpus, verbose=False)
@@ -282,60 +354,6 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                     streamlines, seed_img.get_affine(),
                     seed_img.get_data().shape)
 
-            #Mrtrix
-            #   Takes around 12min for 1 subject (2mm resolution)
-            #   Info: If using this have to activate img_utils.dilate_binary_mask... code further up.
-            # img_utils.peaks2fixel(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz", tmp_dir + "/fixel")
-            # #img_utils.peaks2fixel(output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz", tmp_dir + "/fixel")
-            # subprocess.call("fixel2sh " + tmp_dir + "/fixel/amplitudes.nii.gz " +
-            #                 tmp_dir + "/fixel/sh.nii.gz -quiet", shell=True)
-            # subprocess.call("tckgen -algorithm iFOD2 " +
-            #                 tmp_dir + "/fixel/sh.nii.gz " +
-            #                 output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-            #                 " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
-            #                 " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
-            #                 " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
-            #                 " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-            #                 " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
-            #                 shell=True)
-            # if output_format == "trk" or output_format == "trk_legacy":
-            #     mrtrix_tck_to_trk()
-
-        # Deterministic Tracking on TOMs with filtering
-        else:
-            # Takes around 2.5min for 1 subject (2mm resolution)
-            subprocess.call("tckgen -algorithm FACT " +
-                            output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
-                            output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                            " -seed_image " + tmp_dir + "/" + bundle + ".nii.gz" +
-                            " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
-                            " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
-                            " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                            " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
-                            shell=True)
-            if output_format == "trk" or output_format == "trk_legacy":
-                mrtrix_tck_to_trk()
-
-    # Deterministic Tracking on TOMs without filtering
-    else:
-        img_utils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
-
-        subprocess.call("tckgen -algorithm FACT " +
-                        output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
-                        output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
-                        " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
-                        " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads, shell=True)
-
-        # To avoid shell=True (which is system depended) pass all arguments as list
-        #   (but Mrtrix in PATH then because does not read env vars ?)
-        # subprocess.call(["tckgen", "-algorithm", "FACT",
-        #                  output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz",
-        #                  output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
-        #                  "-seed_image", tmp_dir + "/peak_mask.nii.gz",
-        #                  "-minlength", "40", "-select", str(nr_fibers), "-force", "-quiet"], shell=False)
-
-        if output_format == "trk" or output_format == "trk_legacy":
-            mrtrix_tck_to_trk()
 
     shutil.rmtree(tmp_dir)
 
