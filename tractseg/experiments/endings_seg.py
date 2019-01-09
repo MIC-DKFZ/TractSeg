@@ -27,7 +27,9 @@ class Config(BaseConfig):
     CLASSES = "All_endpoints"
     LOSS_WEIGHT = 5
     LOSS_WEIGHT_LEN = -1
-    BATCH_SIZE = 30         #for all 72 (=144) classes we need smaller batch size because of memory limit
+
+    # BATCH_SIZE = 30         # for all 72 (=144) classes we need smaller batch size because of memory limit
+    BATCH_SIZE = 28          # Using torch 1.0 batch_size had to be still fit in memory
 
     # DATASET = "HCP"
     # RESOLUTION = "1.25mm"

@@ -76,7 +76,7 @@ def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
         denominator = torch.sum(y_true[:, i]) + torch.sum(y_pred[:, i])  # works because all multiplied by 0 gets 0
         #Have to cast to float here (for python3 (?)) otherwise always 0
         f1 = (2 * intersect.float()) / (denominator.float() + 1e-6)
-        f1s.append(f1)
+        f1s.append(f1.to('cpu'))
     if per_class:
         return np.array(f1s)
     else:

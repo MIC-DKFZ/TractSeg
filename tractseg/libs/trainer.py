@@ -140,8 +140,11 @@ def train_model(Config, model, data_loader):
                         # peak_f1 = metric_utils.calc_peak_dice(Config, probs, y_right_order)
                         # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
 
+                        # import IPython
+                        # IPython.embed()
+
                         #Pytorch
-                        peak_f1_mean = np.array([s for s in list(f1.values())]).mean()  #if f1 for multiple bundles
+                        peak_f1_mean = np.array([s.to('cpu') for s in list(f1.values())]).mean()  #if f1 for multiple bundles
                         metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type,
                                                                  threshold=Config.THRESHOLD)
 
