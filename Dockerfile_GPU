@@ -161,7 +161,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN easy_install pip \
     && pip install wheel numpy scipy nilearn matplotlib scikit-image nibabel \
-    && pip install http://download.pytorch.org/whl/cu91/torch-0.4.0-cp27-cp27mu-linux_x86_64.whl
+    && pip install http://download.pytorch.org/whl/cu91/torch-1.0.0-cp27-cp27mu-linux_x86_64.whl
 
 # This command does not get cached -> very slow each time when building container -> use prebuild mrtrix_RC3.tar.gz instead
 #RUN mkdir /code && cd /code \
