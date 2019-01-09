@@ -203,7 +203,7 @@ def main():
         peak_path = input_path
         data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
-        if args.track_FODs == "False" and not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
+        if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
             print("ERROR: Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
                           "If you input a Diffusion image add the option '--raw_diffusion_input'.")
             sys.exit()
@@ -212,90 +212,89 @@ def main():
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.get_affine()
 
-    if not args.only_track:
-        data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
-                                                                                do_flip=automatically_flip_peaks)
-        if flip_axis is not None:
-            print("\nWARNING: Detected that peaks probably have wrong orientation. If your results are looking bad you "
-                  "should flip them along the " + flip_axis + "-axis using the following command: \n" +
-                  "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") +
-                  " -a " + flip_axis + "\"\n" +
-                  "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
-                  "Then rerun TractSeg using the flipped peaks.\n")
+    data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
+                                                                            do_flip=automatically_flip_peaks)
+    if flip_axis is not None:
+        print("\nWARNING: Detected that peaks probably have wrong orientation. If your results are looking bad you "
+              "should flip them along the " + flip_axis + "-axis using the following command: \n" +
+              "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") +
+              " -a " + flip_axis + "\"\n" +
+              "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
+              "Then rerun TractSeg using the flipped peaks.\n")
 
-        data_img = None     # free memory
+    data_img = None     # free memory
 
-        #Use Peaks + T1
-        # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
-        # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[:,:,:,None]
-        # # needed if upsampling of peaks resulted in one pixel less (sometimes)
-        # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]
-        # data = np.concatenate((data, t1_data), axis=3)
+    #Use Peaks + T1
+    # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
+    # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[:,:,:,None]
+    # # needed if upsampling of peaks resulted in one pixel less (sometimes)
+    # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]
+    # data = np.concatenate((data, t1_data), axis=3)
 
-        if Config.EXPERIMENT_TYPE == "peak_regression":
-            parts = ["Part1", "Part2", "Part3", "Part4"]
+    if Config.EXPERIMENT_TYPE == "peak_regression":
+        parts = ["Part1", "Part2", "Part3", "Part4"]
+    else:
+        parts = ["All"]
+
+    for part in parts:
+        if part != "All":
+            Config.CLASSES = "All_" + part
+            Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+
+        seg = run_tractseg(data, args.output_type,
+                           single_orientation=args.single_orientation,
+                           dropout_sampling=dropout_sampling, threshold=threshold,
+                           bundle_specific_threshold=args.bundle_specific_threshold,
+                           get_probs=args.get_probabilities, peak_threshold=peak_threshold,
+                           postprocess=args.postprocess, peak_regression_part=part,
+                           input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
+                           verbose=args.verbose, manual_exp_name=manual_exp_name,
+                           inference_batch_size=inference_batch_size)
+
+        if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
+            print("Saving preview...")
+            # brain_mask = nib.load(brain_mask).get_data()
+            plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
+
+        if Config.SINGLE_OUTPUT_FILE:
+            img = nib.Nifti1Image(seg, data_affine)
+            seg = None
+            if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
+            elif Config.EXPERIMENT_TYPE == "tract_segmentation":
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
+            elif Config.EXPERIMENT_TYPE == "endings_segmentation":
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_endings.nii.gz"))
+            elif Config.EXPERIMENT_TYPE == "peak_regression":
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
+            elif Config.EXPERIMENT_TYPE == "dm_regression":
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
+            img = None  # Free memory (before we run tracking)
         else:
-            parts = ["All"]
+            if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
+                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
+                                                                Config.PREDICT_IMG_OUTPUT,
+                                                                name="bundle_uncertainties")
+            elif Config.EXPERIMENT_TYPE == "tract_segmentation":
+                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
+                                                                Config.PREDICT_IMG_OUTPUT,
+                                                                name=args.tract_segmentation_output_dir)
+            elif Config.EXPERIMENT_TYPE == "endings_segmentation":
+                img_utils.save_multilabel_img_as_multiple_files_endings(Config, seg, data_affine,
+                                                                        Config.PREDICT_IMG_OUTPUT)
+            elif Config.EXPERIMENT_TYPE == "peak_regression":
+                img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine,
+                                                                      Config.PREDICT_IMG_OUTPUT,
+                                                                      name=args.TOM_output_dir)
+            elif Config.EXPERIMENT_TYPE == "dm_regression":
+                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
+                                                                Config.PREDICT_IMG_OUTPUT, name="dm_regression")
+            seg = None  # Free memory (before we run tracking)
 
-        for part in parts:
-            if part != "All":
-                Config.CLASSES = "All_" + part
-                Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+        if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
+            mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
 
-            seg = run_tractseg(data, args.output_type,
-                               single_orientation=args.single_orientation,
-                               dropout_sampling=dropout_sampling, threshold=threshold,
-                               bundle_specific_threshold=args.bundle_specific_threshold,
-                               get_probs=args.get_probabilities, peak_threshold=peak_threshold,
-                               postprocess=args.postprocess, peak_regression_part=part,
-                               input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
-                               verbose=args.verbose, manual_exp_name=manual_exp_name,
-                               inference_batch_size=inference_batch_size)
-
-            if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
-                print("Saving preview...")
-                # brain_mask = nib.load(brain_mask).get_data()
-                plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
-
-            if Config.SINGLE_OUTPUT_FILE:
-                img = nib.Nifti1Image(seg, data_affine)
-                seg = None
-                if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
-                elif Config.EXPERIMENT_TYPE == "tract_segmentation":
-                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
-                elif Config.EXPERIMENT_TYPE == "endings_segmentation":
-                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_endings.nii.gz"))
-                elif Config.EXPERIMENT_TYPE == "peak_regression":
-                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
-                elif Config.EXPERIMENT_TYPE == "dm_regression":
-                    nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
-                img = None  # Free memory (before we run tracking)
-            else:
-                if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                    img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
-                                                                    Config.PREDICT_IMG_OUTPUT,
-                                                                    name="bundle_uncertainties")
-                elif Config.EXPERIMENT_TYPE == "tract_segmentation":
-                    img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
-                                                                    Config.PREDICT_IMG_OUTPUT,
-                                                                    name=args.tract_segmentation_output_dir)
-                elif Config.EXPERIMENT_TYPE == "endings_segmentation":
-                    img_utils.save_multilabel_img_as_multiple_files_endings(Config, seg, data_affine,
-                                                                            Config.PREDICT_IMG_OUTPUT)
-                elif Config.EXPERIMENT_TYPE == "peak_regression":
-                    img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine,
-                                                                          Config.PREDICT_IMG_OUTPUT,
-                                                                          name=args.TOM_output_dir)
-                elif Config.EXPERIMENT_TYPE == "dm_regression":
-                    img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
-                                                                    Config.PREDICT_IMG_OUTPUT, name="dm_regression")
-                seg = None  # Free memory (before we run tracking)
-
-            if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
-                mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
-
-        Config.CLASSES = "All"
+    Config.CLASSES = "All"
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 
