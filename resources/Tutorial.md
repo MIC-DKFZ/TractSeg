@@ -38,14 +38,19 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation
 ![endings_segmentation](endings_segmentation.png)
 
 ```
-TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --track --filter_tracking_by_endpoints
+TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM
 ```
-* This will add another subdirectory `TOM` containing the Tract Orientation Maps.  
-* `--track`: This will automatically run MRtrix FACT tracking on the TOM peaks.  
-* `--filter_tracking_by_endpoints`: Only keeps those fibers starting and ending in the beginnings and endings regions (plus a small margin).  
+* This will add another subdirectory `TOM` containing the Tract Orientation Maps (TOMs).  
+```
+Tracking -i tractseg_output/peaks.nii.gz -o .
+```
+* This will run tracking on the TOMs. The tracking algorithm places a gaussian distribution with fixed standard
+deviation on each peak. Then FACT tracking is run but the orientation is sampled from the gaussian distribution. This
+way it is more like probabilistic tracking, giving more complete results.  
+* Only keeps those fibers starting and ending in the beginnings and endings regions.  
 * You can add the option `--tracking_format tck` to generate tck instead of trk files.
 * Peaks and streamlines can be visualized using for example [MITK Diffusion](http://mitk.org/wiki/DiffusionImaging#Downloads).
-(NOTE: Peaks have to be flipped along the z-axis to be displayed correctly in MITK.)  
+(NOTE: Peaks have to be flipped along the z-axis to be displayed correctly in MITK.)
 * results for right CST (corticospinal tract):  
 ![trackings](trackings.png)
 
@@ -79,8 +84,12 @@ TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation
 
 For the extraction of the Tract Orientation maps we can again add the option `--bundle_specific_threshold`:
 ```
-TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --bundle_specific_threshold \
---track --filter_tracking_by_endpoints --tracking_dilation 1
+TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --bundle_specific_threshold
+```
+
+Now we can run the tracking:
+```
+Tracking -i tractseg_output/peaks.nii.gz -o . --tracking_dilation 1
 ```
 * `--tracking_dilation`: This defines how much to dilate the tract mask as well as the start/end region mask 
 before using them for filtering during tracking. On low resolution data those masks can have some flaws. 

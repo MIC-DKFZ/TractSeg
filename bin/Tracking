@@ -1,0 +1,136 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import warnings
+warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
+import argparse
+import importlib
+import os
+from os.path import join
+import sys
+from tqdm import tqdm
+import nibabel as nib
+
+from tractseg.libs.system_config import get_config_name
+from tractseg.libs import exp_utils
+from tractseg.libs import img_utils
+from tractseg.libs import mrtrix
+from tractseg.libs import plot_utils
+from tractseg.python_api import run_tractseg
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Tracking on the TOMs created by TractSeg.",
+                                        epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. "
+                                               "TractSeg - Fast and accurate white matter tract segmentation. "
+                                               "https://doi.org/10.1016/j.neuroimage.2018.07.070'")
+
+    parser.add_argument("-i", metavar="filepath", dest="input",
+                        help="CSD peaks in MRtrix format (4D Nifti image with dimensions [x,y,z,9])", required=True)
+
+    parser.add_argument("-o", metavar="directory", dest="output",
+                        help="Output directory (default: tractseg_output)")
+
+    parser.add_argument("--tracking_dir", metavar="folder_name",
+                        help="Set name of folder which will be created to save the tracking output.",
+                        default="auto")
+
+    parser.add_argument("--track_FODs", metavar="False|FACT|SD_STREAM|iFOD2",
+                        choices=["False", "FACT", "SD_STREAM", "iFOD2"],
+                        help="Running tracking on FODs (provided as argument to '-i') instead of tracking on TOMs. "
+                             "Only works if you do not use '--no_filtering_by_endpoints'. If you choose 'FACT' "
+                             "you have to pass a peak image instead of FODs to -i.",
+                        default="False")
+
+    parser.add_argument("--tracking_dilation", metavar="n", type=int,
+                        help="Dilate the endpoint and bundle masks by the "
+                             "respective number of voxels. (default: 1)",
+                        default=1)  # Info: dilation of endpoint mask: dilation+1
+                        # for HCP data: tracking_dilation=0 better
+
+    parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create (default: 2000)",
+                        default=2000)
+
+    parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
+                        help="Set output format of tracking. For trk also the option trk_legacy is available. This "
+                             "uses the older trk convention (streamlines are stored in coordinate space and affine is "
+                             "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
+                        default="trk_legacy")
+
+    parser.add_argument("--no_filtering_by_endpoints", action="store_true",
+                        help="Run tracking on TOMs without filtering results by tract mask and endpoint masks.",
+                        default=False)
+
+    parser.add_argument("--nr_cpus", metavar="n", type=int,
+                        help="Number of CPUs to use. -1 means all available CPUs (default: -1)",
+                        default=-1)
+
+    parser.add_argument("--test", action="store_true", help="Only needed for unittesting.",
+                        default=False)
+
+
+    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
+                        default=False)
+
+    args = parser.parse_args()
+
+
+    #Private parameters
+    peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking (faster, but less complete)
+    use_best_original_peaks = False  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
+    use_as_prior = False  # Track on weighted average between best original peaks and TOM
+    # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
+    dir_postfix = ""    # "_BSThr"
+
+    filter_tracking_by_endpoints = not args.no_filtering_by_endpoints
+    input_path = args.input
+    config_file = get_config_name("peaks", "tract_segmentation", dropout_sampling=False)
+    Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
+    Config.PREDICT_IMG = input_path is not None
+    if args.output:
+        Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
+    elif Config.PREDICT_IMG:
+        Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
+
+
+    peaks_path = input_path
+
+    if args.test:
+        bundles = exp_utils.get_bundle_names("test")[1:]
+    else:
+        bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+
+    # bundles = ["T_POSTC_left", "CA", "CST_right", "IFO_right"]
+    for bundle in tqdm(bundles):
+        mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
+                     filter_by_endpoints=filter_tracking_by_endpoints, output_format=args.tracking_format,
+                     nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
+                     tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir,
+                     dilation=args.tracking_dilation, use_best_original_peaks=use_best_original_peaks,
+                     dir_postfix=dir_postfix, use_as_prior=use_as_prior)
+
+
+
+if __name__ == '__main__':
+    main()

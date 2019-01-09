@@ -49,7 +49,8 @@ def main():
     parser.add_argument("-i", metavar="filepath", dest="input",
                         help="CSD peaks in MRtrix format (4D Nifti image with dimensions [x,y,z,9])", required=True)
 
-    parser.add_argument("-o", metavar="directory", dest="output", help="Output directory")
+    parser.add_argument("-o", metavar="directory", dest="output",
+                        help="Output directory (default: tractseg_output)")
 
     parser.add_argument("--single_output_file", action="store_true",
                         help="Output all bundles in one file (4D image)",
@@ -84,9 +85,6 @@ def main():
     parser.add_argument("--brain_mask", metavar="filename",
                         help="brain mask file. If not specified will automatically be generated with fsl bet")
 
-    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
-                        default=False)
-
     parser.add_argument("--raw_diffusion_input", action="store_true",
                         help="Provide a Diffusion nifti image as argument to -i. "
                              "Will calculate CSD and extract the mean peaks needed as input for TractSeg.",
@@ -116,45 +114,6 @@ def main():
                         help="Output probability map instead of binary segmentation",
                         default=False)
 
-    parser.add_argument("--track", action="store_true", help="Run tracking on TOM peaks (MRtrix FACT)",
-                        default=False)
-
-    parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create (default: 2000)",
-                        default=2000)
-
-    parser.add_argument("--only_track", action="store_true", help="Run only tracking and nothing else",
-                        default=False)
-
-    parser.add_argument("--tracking_dir", metavar="folder_name",
-                        help="Set name of folder which will be created to save the tracking output.",
-                        default="auto")
-
-    parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
-                        help="Set output format of tracking. For trk also the option trk_legacy is available. This "
-                             "uses the older trk convention (streamlines are stored in coordinate space and affine is "
-                             "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
-                        default="trk_legacy")
-
-    parser.add_argument("--filter_tracking_by_endpoints", action="store_true",
-                        help="Only keep fibers starting and ending in endpoint regions (need to run TractSeg with "
-                             "'--output_type endings_segmentation' first) and not leaving the tract mask (need to "
-                             "run TractSeg with '--output_type tract_segmentation' (default) first). See "
-                             "documentation for more details.",
-                        default=False)
-
-    parser.add_argument("--track_FODs", metavar="False|FACT|SD_STREAM|iFOD2",
-                        choices=["False", "FACT", "SD_STREAM", "iFOD2"],
-                        help="Running tracking on FODs (provided as argument to '-i') instead of tracking on TOMs. "
-                             "Only works in combination with '--filter_tracking_by_endpoints'. If you choose 'FACT' "
-                             "you have to pass a peak image instead of FODs to -i.",
-                        default="False")
-
-    parser.add_argument("--tracking_dilation", metavar="n", type=int,
-                        help="When using '--filter_tracking_by_endpoints' dilate the endpoint and bundle masks by the "
-                             "respective number of voxels. (default: 1)",
-                        default=1)  # Info: dilation of endpoint mask: dilation+1
-                        # for HCP data: tracking_dilation=0 better
-
     parser.add_argument("--super_resolution", action="store_true",
                         help="Keep 1.25mm resolution of model instead of downsampling back to original resolution",
                         default=False)
@@ -174,9 +133,6 @@ def main():
                         help="Number of CPUs to use. -1 means all available CPUs (default: -1)",
                         default=-1)
 
-    parser.add_argument("--test", action="store_true", help="Only needed for unittesting.",
-                        default=False)
-
     parser.add_argument('--tract_segmentation_output_dir', metavar="folder_name",
                         help="name of bundle segmentations output folder (default: bundle_segmentations)",
                         default="bundle_segmentations")
@@ -187,6 +143,9 @@ def main():
 
     # parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment",
     #                     default="False")
+
+    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
+                        default=False)
 
     parser.add_argument('--version', action='version', version='TractSeg 1.8')
 
@@ -337,27 +296,6 @@ def main():
                 mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
 
         Config.CLASSES = "All"
-
-    if args.track or args.only_track:
-        print("Tracking...")
-        if args.raw_diffusion_input:
-            peaks_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
-        else:
-            peaks_path = input_path
-
-        if args.test:
-            bundles = exp_utils.get_bundle_names("test")[1:]
-        else:
-            bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
-
-        # bundles = ["T_POSTC_left", "CA", "CST_right", "IFO_right"]
-        for bundle in tqdm(bundles):
-            mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
-                         filter_by_endpoints=args.filter_tracking_by_endpoints, output_format=args.tracking_format,
-                         nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
-                         tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir,
-                         dilation=args.tracking_dilation, use_best_original_peaks=use_best_original_peaks,
-                         dir_postfix=dir_postfix, use_as_prior=use_as_prior)
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 

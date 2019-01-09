@@ -133,13 +133,13 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
         raise ValueError("'csd_type' contains invalid String")
 
 
-def track(bundle, peaks, output_dir, filter_by_endpoints=False, output_format="trk", nr_fibers=2000, nr_cpus=-1,
+def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="trk", nr_fibers=2000, nr_cpus=-1,
           peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1,
           use_best_original_peaks=False, dir_postfix="", use_as_prior=False):
     """
 
     :param bundle:   Bundle name
-    :param peaks:
+    :param peaks: path to original peaks
     :param output_dir:
     :param filter_by_endpoints:  use results of endings_segmentation to filter out
                                  all fibers not endings in those regions

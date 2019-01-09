@@ -49,12 +49,10 @@ script:
   #Track
   # Use docker if we want to test Mrtrix tracking
 #  # for python 3 it uses the online available container -> built from the previous commit
-#  - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master TractSeg
+#  - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master Tracking
 #    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples
-#    --output_type TOM --track --only_track --filter_tracking_by_endpoints
 #    --nr_fibers 2000 --tracking_dilation 0 --test
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples
-      --output_type TOM --track --only_track --filter_tracking_by_endpoints
+  - Tracking -i tests/reference_files/peaks.nii.gz -o examples
       --nr_fibers 2000 --tracking_dilation 0 --test
 
   #Tractometry

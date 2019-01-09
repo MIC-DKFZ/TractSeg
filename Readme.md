@@ -95,12 +95,13 @@ from start until end).
 TractSeg -i peaks.nii.gz --output_type endings_segmentation
 ```
 
-#### Create trackings filtered by start and end region and bundle mask
-Only keeps fibers not leaving the bundle mask and starting and ending in the endpoint regions.
+#### Create bundle-specific tractograms
+Tracks on TOMs and only keeps fibers not leaving the bundle mask and starting and ending in the endpoint regions.
 ```
 TractSeg -i peaks.nii.gz --output_type tract_segmentation
 TractSeg -i peaks.nii.gz --output_type endings_segmentation
-TractSeg -i peaks.nii.gz --output_type TOM --track --filter_tracking_by_endpoints
+TractSeg -i peaks.nii.gz --output_type TOM 
+Tracking -i peaks.nii.gz
 ```
 
 #### Show uncertainty map
@@ -205,13 +206,13 @@ segmentation = run_tractseg(peaks)
 You can use different types of tracking when doing `--track`:
 
 * "Probabilistic" tracking on TOM peaks [**default**].  
-`TractSeg -i peaks.nii.gz --output_type TOM --track --only_track --filter_tracking_by_endpoints`  
+`TractSeg -i peaks.nii.gz --output_type TOM --track --only_track`  
 Probabilistic means that at each step a small random factor will be added to the direction given by the TOM peaks.
 If not doing this on low resolution data it sometimes gets difficult finding fibers running from start to end and
 covering the whole bundle.
 
 * Probabilistic tracking on original FODs.  
-`TractSeg -i WM_FODs.nii.gz --output_type TOM --track --only_track --filter_tracking_by_endpoints --track_FODs iFOD2`  
+`TractSeg -i WM_FODs.nii.gz --output_type TOM --track --only_track --track_FODs iFOD2`  
 Is calling Mrtrix iFOD2 tracking internally. Does not use TOM peaks but the original FODs. The results will get 
 filtered by the bundle mask and have to start and end in the endings masks.
 

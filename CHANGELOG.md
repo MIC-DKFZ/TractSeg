@@ -1,7 +1,19 @@
 ## Master
 
 * Tracking on best original peaks or on weighted mean of best original peaks and TOMs (non-public interface).
-* Minor improvements 
+* **Interface change**: All tracking related commands (whenever you used `--track`) are not part of `TractSeg` anymore
+ but now are combined under `Tracking`. Moreover the option `--filter_tracking_by_endpoints` is no activated per
+ default. If you want to deactivate is use `--no_filtering_by_endpoints`.
+ So the following command 
+```
+TractSeg -i peaks.nii.gz --output_type TOM --track --filter_tracking_by_endpoints
+``` 
+becomes 
+```
+TractSeg -i peaks.nii.gz --output_type TOM 
+Tracking -i peaks.nii.gz
+```
+* Bugfixes and minor improvements 
 
 
 ## Release 1.8
