@@ -1,5 +1,10 @@
 ## Master
 
+* minor improvements
+
+
+## Release 1.9
+
 * Tracking on best original peaks or on weighted mean of best original peaks and TOMs (non-public interface).
 * **Interface change**: All tracking related commands (whenever you used `--track`) are not part of `TractSeg` anymore
  but now are combined under `Tracking`. Moreover the option `--filter_tracking_by_endpoints` is no activated per
@@ -13,6 +18,7 @@ becomes
 TractSeg -i peaks.nii.gz --output_type TOM 
 Tracking -i peaks.nii.gz
 ```
+* Works with pytorch 1.0 now
 * Bugfixes and minor improvements 
 
 

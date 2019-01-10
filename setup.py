@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='TractSeg',
-        version='1.8',
+        version='1.9',
         description='Fast and accurate segmentation of white matter bundles',
         url='https://github.com/MIC-DKFZ/TractSeg/',
         author='Jakob Wasserthal',
