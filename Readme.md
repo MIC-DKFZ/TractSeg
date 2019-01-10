@@ -34,6 +34,7 @@ Latest stable version:
 ```
 pip install https://github.com/MIC-DKFZ/TractSeg/archive/v1.9.zip
 ```
+> NOTE: See [CHANGELOG](CHANGELOG.md) for (breaking) changes of each version
 
 #### Docker
 You can also directly use TractSeg via Docker (contains all prerequisites).
