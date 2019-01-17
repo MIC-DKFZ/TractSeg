@@ -100,8 +100,8 @@ class BaseModel:
 
 
     def train(self, X, y, weight_factor=10):
-        X = torch.tensor(X, dtype=torch.float32).to(self.device)  # (bs, features, x, y)
-        y = torch.tensor(y, dtype=torch.float32).to(self.device)  # (bs, classes, x, y)
+        X = X.contiguous().cuda(async=True)  # (bs, features, x, y)
+        y = y.contiguous().cuda(async=True)  # (bs, classes, x, y)
 
         self.optimizer.zero_grad()
         self.net.train()
@@ -150,9 +150,19 @@ class BaseModel:
 
 
     def test(self, X, y, weight_factor=10):
+        """
+
+        Args:
+            X: float torch tensor
+            y: float torch tensor
+            weight_factor:
+
+        Returns:
+
+        """
         with torch.no_grad():
-            X = torch.tensor(X, dtype=torch.float32).to(self.device)
-            y = torch.tensor(y, dtype=torch.float32).to(self.device)
+            X = X.contiguous().cuda(async=True)
+            y = y.contiguous().cuda(async=True)
 
         if self.Config.DROPOUT_SAMPLING:
             self.net.train()
@@ -201,7 +211,7 @@ class BaseModel:
 
     def predict(self, X):
         with torch.no_grad():
-            X = torch.tensor(X, dtype=torch.float32).to(self.device)
+            X = torch.tensor(X, dtype=torch.float32).contiguous().to(self.device)
 
         if self.Config.DROPOUT_SAMPLING:
             self.net.train()

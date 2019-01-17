@@ -251,15 +251,23 @@ def crop_to_bbox(image, bbox):
     return image[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]]
 
 
-def crop_to_nonzero(data, seg=None):
+def crop_to_nonzero(data, seg=None, bbox=None):
     original_shape = data.shape
-    bbox = get_bbox_from_mask(data, 0)
+    if bbox is None:
+        bbox = get_bbox_from_mask(data, 0)
 
     cropped_data = []
     for c in range(data.shape[3]):
         cropped = crop_to_bbox(data[:,:,:,c], bbox)
         cropped_data.append(cropped)
     data = np.array(cropped_data).transpose(1,2,3,0)
+
+    if seg is not None:
+        cropped_seg = []
+        for c in range(seg.shape[3]):
+            cropped = crop_to_bbox(seg[:,:,:,c], bbox)
+            cropped_seg.append(cropped)
+        seg = np.array(cropped_seg).transpose(1, 2, 3, 0)
 
     return data, seg, bbox, original_shape
 
@@ -270,19 +278,28 @@ def add_original_zero_padding_again(data, bbox, original_shape, nr_of_classes):
     return data_new
 
 
-def sample_slices(data, seg, slice_idxs, training_slice_direction="y", labels_type=np.int16):
+def slice_dir_to_int(slice_dir):
+    """
+    Args:
+        slice_dir: x / y / z / xyz  (string)
 
-    # Randomly sample slice orientation
-    if training_slice_direction == "xyz":
-        slice_direction = int(round(random.uniform(0, 2)))
-    elif training_slice_direction == "x":
-        slice_direction = 0
-    elif training_slice_direction == "y":
-        slice_direction = 1
-    elif training_slice_direction == "z":
-        slice_direction = 2
+    Returns:
+        0 / 1 / 2 (int)
+    """
+    if slice_dir == "xyz":
+        slice_direction_int = int(round(random.uniform(0, 2)))
+    elif slice_dir == "x":
+        slice_direction_int = 0
+    elif slice_dir == "y":
+        slice_direction_int = 1
+    elif slice_dir == "z":
+        slice_direction_int = 2
     else:
         raise ValueError("Invalid value for 'training_slice_direction'.")
+    return slice_direction_int
+
+
+def sample_slices(data, seg, slice_idxs, slice_direction=0, labels_type=np.int16):
 
     if slice_direction == 0:
         x = data[slice_idxs, :, :].astype(np.float32)  # (batch_size, y, z, channels)

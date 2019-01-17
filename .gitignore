@@ -15,6 +15,7 @@ tractseg/experiments/old_5/*
 tractseg/experiments/old_6/*
 tractseg/experiments/old_7/*
 tractseg/experiments/Miccai2018/*
+tractseg/experiments/MIA2019/*
 tractseg/experiments/DiceLoss/*
 tractseg/experiments/T1Features/*
 tractseg/experiments/EndingsSeg/*
