@@ -246,9 +246,12 @@ def train_model(Config, model, data_loader):
 def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=True, only_prediction=False,
                 batch_size=1):
     """
-    Runtime on CPU:
-      bs=1  -> 9min     4.5GB RAM
-      bs=48 -> 6.5min   30GB RAM
+    Runtime on CPU
+    - python 2 + pytorch 0.4:
+      bs=1  -> 9min      around 4.5GB RAM (maybe even 7GB)
+      bs=48 -> 6.5min           30GB RAM
+    - python 3 + pytorch 1.0:
+      bs=1  -> 2.7min    around 7GB RAM
 
     Args:
         Config:
