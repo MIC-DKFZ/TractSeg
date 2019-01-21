@@ -30,6 +30,7 @@ import os
 from os.path import join
 import random
 import warnings
+import multiprocessing
 from time import sleep
 import numpy as np
 import nibabel as nib
@@ -152,19 +153,19 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
                             labels_type=self.Config.LABELS_TYPE)
 
 
-        # todo: Can be replaced by crop
+        # Can be replaced by crop
         # x = pad_nd_image(x, self.Config.INPUT_DIM, mode='constant', kwargs={'constant_values': 0})
         # y = pad_nd_image(y, self.Config.INPUT_DIM, mode='constant', kwargs={'constant_values': 0})
         # x = center_crop_2D_image_batched(x, self.Config.INPUT_DIM)
         # y = center_crop_2D_image_batched(y, self.Config.INPUT_DIM)
 
         #Crop and pad to input size
-        # x, y = crop(x, y, crop_size=self.Config.INPUT_DIM)  # does not work with img with batches and channels
+        x, y = crop(x, y, crop_size=self.Config.INPUT_DIM)  # does not work with img with batches and channels
 
         # Works -> results as good? -> todo: make the same way for inference!
         # This is needed for Schizo dataset
-        x = pad_nd_image(x, shape_must_be_divisible_by=(16, 16), mode='constant', kwargs={'constant_values': 0})
-        y = pad_nd_image(y, shape_must_be_divisible_by=(16, 16), mode='constant', kwargs={'constant_values': 0})
+        # x = pad_nd_image(x, shape_must_be_divisible_by=(16, 16), mode='constant', kwargs={'constant_values': 0})
+        # y = pad_nd_image(y, shape_must_be_divisible_by=(16, 16), mode='constant', kwargs={'constant_values': 0})
 
         # Does not make it slower
         x = x.astype(np.float32)
@@ -231,6 +232,7 @@ class DataLoaderTraining:
 
         if self.Config.DATA_AUGMENTATION:
             num_processes = 8  # 6 is a bit faster than 16
+            # num_processes = multiprocessing.cpu_count()  # no cluster: gives all cores, not only assigned cores
         else:
             num_processes = 6
 
