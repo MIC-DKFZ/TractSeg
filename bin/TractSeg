@@ -158,13 +158,8 @@ def main():
     threshold = 0.5          # specificity (tract_segmentation and endings_segmentation)
     peak_threshold = 0.3     # specificity (TOM)
     automatically_flip_peaks = False
-    peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking (faster, but less complete)
     blob_size_thr = 50  # default: 50
-    use_best_original_peaks = False  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
-    use_as_prior = False  # Track on weighted average between best original peaks and TOM
     manual_exp_name = None  # args.exp_name
-    # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
-    dir_postfix = ""    # "_BSThr"
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
 
     input_path = args.input
