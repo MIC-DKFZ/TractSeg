@@ -38,6 +38,7 @@ from tractseg.libs import img_utils
 from tractseg.libs import mrtrix
 from tractseg.libs import plot_utils
 from tractseg.python_api import run_tractseg
+from tractseg.libs.utils import bcolors
 
 
 def main():
@@ -199,8 +200,9 @@ def main():
         data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
         if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
-            print("ERROR: Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
-                          "If you input a Diffusion image add the option '--raw_diffusion_input'.")
+            print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
+                  ": Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
+                  "If you input a Diffusion image add the option '--raw_diffusion_input'." + bcolors.ENDC)
             sys.exit()
 
     if args.super_resolution:
@@ -210,12 +212,13 @@ def main():
     data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
                                                                             do_flip=automatically_flip_peaks)
     if flip_axis is not None:
-        print("\nWARNING: Detected that peaks probably have wrong orientation. If your results are looking bad you "
+        print("\n" + bcolors.YELLOW + "WARNING:" + bcolors.ENDC + bcolors.BOLD +
+              "Detected that peaks probably have wrong orientation. If your results are looking bad you "
               "should flip them along the " + flip_axis + "-axis using the following command: \n" +
               "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") +
               " -a " + flip_axis + "\"\n" +
               "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
-              "Then rerun TractSeg using the flipped peaks.\n")
+              "Then rerun TractSeg using the flipped peaks.\n" + bcolors.ENDC)
 
     data_img = None     # free memory
 
@@ -293,6 +296,7 @@ def main():
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 
+    print(bcolors.GREEN + "Finished " + u'\u2713' + bcolors.ENDC)
 
 if __name__ == '__main__':
     main()
