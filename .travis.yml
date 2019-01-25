@@ -21,17 +21,17 @@ script:
 
   #Docker
   # On python 3 building the container is too slow to avoid travis timeout -> we only test it on python 2
-  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker";
-    else docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .; fi
+#  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker";
+#    else docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .; fi
 
 #  - docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .
 #  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
 #    -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
 #  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-#  - docker push wasserth/tractseg_container:master
-  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker upload";
-    else docker push wasserth/tractseg_container:master; fi
+
+#  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+#  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker upload";
+#    else docker push wasserth/tractseg_container:master; fi
 
   #Bundles
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
