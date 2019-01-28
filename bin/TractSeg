@@ -229,6 +229,11 @@ def main():
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]
     # data = np.concatenate((data, t1_data), axis=3)
 
+    print("")
+    print("File system encoding:")
+    print(sys.getfilesystemencoding())
+    print("")
+
     if Config.EXPERIMENT_TYPE == "peak_regression":
         parts = ["Part1", "Part2", "Part3", "Part4"]
     else:
