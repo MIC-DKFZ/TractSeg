@@ -258,18 +258,21 @@ class DataLoaderTraining:
                                                         border_cval_data=0,
                                                         order_data=3,
                                                         border_mode_seg='constant', border_cval_seg=0,
-                                                        order_seg=0, random_crop=True, p_el_per_sample=0.8,
-                                                        p_rot_per_sample=0.8, p_scale_per_sample=0.8))
+                                                        order_seg=0, random_crop=True,
+                                                        p_el_per_sample=self.Config.P_SAMP,
+                                                        p_rot_per_sample=self.Config.P_SAMP,
+                                                        p_scale_per_sample=self.Config.P_SAMP))
 
                 if self.Config.DAUG_RESAMPLE:
                     tfs.append(SimulateLowResolutionTransform(zoom_range=(0.5, 1), p_per_sample=0.2))
 
                 if self.Config.DAUG_GAUSSIAN_BLUR:
                     tfs.append(GaussianBlurTransform(blur_sigma=(0, 1),
-                                                     different_sigma_per_channel=False, p_per_sample=0.8))
+                                                     different_sigma_per_channel=False,
+                                                     p_per_sample=self.Config.P_SAMP))
 
                 if self.Config.DAUG_NOISE:
-                    tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05), p_per_sample=0.8))
+                    tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05), p_per_sample=self.Config.P_SAMP))
 
                 if self.Config.DAUG_MIRROR:
                     tfs.append(MirrorTransform())
