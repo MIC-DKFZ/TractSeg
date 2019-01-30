@@ -232,8 +232,8 @@ class DataLoaderTraining:
     def _augment_data(self, batch_generator, type=None):
 
         if self.Config.DATA_AUGMENTATION:
-            num_processes = 8  # 6 is a bit faster than 16
-            # num_processes = multiprocessing.cpu_count()  # no cluster: gives all cores, not only assigned cores
+            num_processes = 15  # 15 is a bit faster than 8 on cluster
+            # num_processes = multiprocessing.cpu_count()  # on cluster: gives all cores, not only assigned cores
         else:
             num_processes = 6
 
