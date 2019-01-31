@@ -27,7 +27,11 @@ from tractseg.libs.pytorch_utils import deconv2d
 
 
 class UNet_Pytorch_Regression(torch.nn.Module):
-    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False):
+    """
+    This is only needed for dm_regression.
+    todo: also train dm_regression on unet_pytorch_deepsup and then delete this
+    """
+    def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False, upsample="bilinear"):
         super(UNet_Pytorch_Regression, self).__init__()
         self.in_channel = n_input_channels
         self.n_classes = n_classes
