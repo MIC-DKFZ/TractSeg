@@ -50,6 +50,7 @@ from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 from batchgenerators.augmentations.utils import pad_nd_image
 from batchgenerators.augmentations.utils import center_crop_2D_image_batched
 from batchgenerators.augmentations.crop_and_pad_augmentations import crop
+from tractseg.data.DLDABG_standalone import ResampleTransformLegacy
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
@@ -264,7 +265,8 @@ class DataLoaderTraining:
                                                         p_scale_per_sample=self.Config.P_SAMP))
 
                 if self.Config.DAUG_RESAMPLE:
-                    tfs.append(SimulateLowResolutionTransform(zoom_range=(0.5, 1), p_per_sample=0.2))
+                    tfs.append(SimulateLowResolutionTransform(zoom_range=(0.5, 1), p_per_sample=0.2, per_channel=False))
+                    # tfs.append(ResampleTransformLegacy(zoom_range=(0.5, 1)))
 
                 if self.Config.DAUG_GAUSSIAN_BLUR:
                     tfs.append(GaussianBlurTransform(blur_sigma=(0, 1),
