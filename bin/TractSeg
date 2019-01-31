@@ -38,6 +38,7 @@ from tractseg.libs import img_utils
 from tractseg.libs import mrtrix
 from tractseg.libs import plot_utils
 from tractseg.python_api import run_tractseg
+from tractseg.libs.utils import bcolors
 
 
 def main():
@@ -158,13 +159,8 @@ def main():
     threshold = 0.5          # specificity (tract_segmentation and endings_segmentation)
     peak_threshold = 0.3     # specificity (TOM)
     automatically_flip_peaks = False
-    peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking (faster, but less complete)
     blob_size_thr = 50  # default: 50
-    use_best_original_peaks = False  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
-    use_as_prior = False  # Track on weighted average between best original peaks and TOM
     manual_exp_name = None  # args.exp_name
-    # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
-    dir_postfix = ""    # "_BSThr"
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
 
     input_path = args.input
@@ -204,8 +200,9 @@ def main():
         data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
         if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
-            print("ERROR: Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
-                          "If you input a Diffusion image add the option '--raw_diffusion_input'.")
+            print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
+                  ": Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
+                  "If you input a Diffusion image add the option '--raw_diffusion_input'." + bcolors.ENDC)
             sys.exit()
 
     if args.super_resolution:
@@ -215,12 +212,13 @@ def main():
     data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
                                                                             do_flip=automatically_flip_peaks)
     if flip_axis is not None:
-        print("\nWARNING: Detected that peaks probably have wrong orientation. If your results are looking bad you "
+        print("\n" + bcolors.YELLOW + "WARNING:" + bcolors.ENDC + bcolors.BOLD +
+              "Detected that peaks probably have wrong orientation. If your results are looking bad you "
               "should flip them along the " + flip_axis + "-axis using the following command: \n" +
               "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") +
               " -a " + flip_axis + "\"\n" +
               "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
-              "Then rerun TractSeg using the flipped peaks.\n")
+              "Then rerun TractSeg using the flipped peaks.\n" + bcolors.ENDC)
 
     data_img = None     # free memory
 
@@ -298,6 +296,7 @@ def main():
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 
+    # print(bcolors.GREEN + "Finished " + u'\u2713' + bcolors.ENDC)  # Color coding does not working in travis
 
 if __name__ == '__main__':
     main()

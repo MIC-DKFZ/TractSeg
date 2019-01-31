@@ -13,6 +13,7 @@ and [Tract orientation mapping for bundle-specific tractography](https://arxiv.o
 Please cite the papers if you use it. 
 
 [![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
+[![Brainlife](https://brainlife.io/api/warehouse/app/5b82d7f4e2f4f800275e020f/badge)](https://brainlife.io/app/5b82d7f4e2f4f800275e020f#)
 
 ## Table of contents
 * [Install](#install)
