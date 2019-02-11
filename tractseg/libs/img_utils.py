@@ -140,6 +140,10 @@ def remove_small_blobs(img, threshold=1, debug=True):
         print('Number of blobs before: ' + str(number_of_blobs))
     counts = np.bincount(mask.flatten())  # number of pixels in each blob
 
+    #If only one blob (only background) abort because nothing to remove
+    if len(counts) <= 1:
+        return img
+
     # Find largest blob, to make sure we do not remove everything
     #   Largest blob is actually the second largest, because largest is the background
     second_largest_blob_value = np.sort(counts)[-2]
