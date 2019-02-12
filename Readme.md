@@ -60,7 +60,9 @@ for each bundle.
  
 > NOTE: Your input image should have the same orientation as MNI space. 
 Using the option `--preprocess` TractSeg will automatically move your input
-image to MNI space (rigid registration). 
+image to MNI space (rigid registration). Moreover the input image should have isotropic 
+spacing. `--preprocess` will automatically resample the image to isotropic spacing 
+(using FSL `flirt -applyisoxfm`).
 
 #### Custom input and output path and preprocessing:
 ```
@@ -221,7 +223,7 @@ filtered by the bundle mask and have to start and end in the endings masks.
 
 #### Aligning image to MNI space
 The input image must have the same "orientation" as the Human Connectome Project data (MNI space) (LEFT must be on the same side as 
-LEFT of the HCP data). If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
+LEFT of the HCP data) and have isotropic spacing. If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
 you are fine. Otherwise you should rigidly register your image to MNI space (the brains
 do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation).
 If you use the option `--preprocess` TractSeg will do this automatically for you. Otherwise
@@ -239,6 +241,7 @@ flirt -ref tractseg/resources/MNI_FA_template.nii.gz -in Diffusion.nii.gz \
 cp Diffusion.bvals Diffusion_MNI.bvals
 cp Diffusion.bvecs Diffusion_MNI.bvecs
 ```
+To enforce isotropic spacing you can replace `-applyxfm` by `-applyisoxfm <your_spacing>`.
 
 
 ## FAQ
