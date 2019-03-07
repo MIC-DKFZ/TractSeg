@@ -9,11 +9,14 @@ The tool works very well for data similar to the Human Connectome Project. For o
 bundles except for the Commissure Anterior (CA) and the Fornix (FX) which are [incomplete sometimes](#small-bundles-like-the-ca-and-fx-are-incomplete).
 
 TractSeg is the code for the following papers. Please cite the papers if you use it. 
-* Tract Segmentation: [TractSeg - Fast and accurate white matter tract segmentation](https://doi.org/10.1016/j.neuroimage.2018.07.070) ([free arxiv version](https://arxiv.org/abs/1805.07103))
+* Tract Segmentation:   
+[TractSeg - Fast and accurate white matter tract segmentation](https://doi.org/10.1016/j.neuroimage.2018.07.070) ([free arxiv version](https://arxiv.org/abs/1805.07103))
 [NeuroImage 2018]
-* Tract Orientation Mapping (TOM): [Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)
+* Tract Orientation Mapping (TOM):   
+[Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)
 [MICCAI 2018]
-* Tracking on TOMs: [Combined tract segmentation and orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1901.10271)
+* Tracking on TOMs:   
+[Combined tract segmentation and orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1901.10271)
 [submitted to MIA]
 
 [![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
