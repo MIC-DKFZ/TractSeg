@@ -32,16 +32,20 @@ from tractseg.libs import exp_utils
 
 
 DATASET_FOLDER = "HCP"  # source folder
-DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
+# DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
+DATASET_FOLDER_PREPROC = "HCP_preproc_bedpostX"  # target folder
 
 def create_preprocessed_files():
 
     subjects = get_all_subjects(dataset="HCP")
-    filenames_data = ["12g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks"]
-    filenames_seg = ["bundle_masks_72"]
+    # filenames_data = ["12g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks"]
+    # filenames_seg = ["bundle_masks_72"]
 
     # filenames_data = ["12g_125mm_peaks"]
     # filenames_seg = ["bundle_peaks_Part1"]
+
+    filenames_data = ["125mm_bedpostx_tensor"]
+    filenames_seg = ["bundle_masks_72"]
 
     for subject in subjects:
         print(subject)
