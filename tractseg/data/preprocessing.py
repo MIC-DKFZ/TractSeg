@@ -44,7 +44,7 @@ def create_preprocessed_files():
     # filenames_data = ["12g_125mm_peaks"]
     # filenames_seg = ["bundle_peaks_Part1"]
 
-    filenames_data = ["125mm_bedpostx_tensor"]
+    filenames_data = ["125mm_bedpostx_tensor", "125mm_bedpostx_peaks"]
     filenames_seg = ["bundle_masks_72"]
 
     for subject in subjects:
