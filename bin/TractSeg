@@ -143,7 +143,11 @@ def main():
                         default="TOM")
 
     # parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment",
-    #                     default="False")
+    #                     default=None)
+
+    parser.add_argument('--tensor_input', action="store_true",
+                        help="Input are peaks encoded as tensors (input image must have shape [x,y,z,3*6])",
+                        default=False)
 
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
                         default=False)
@@ -176,6 +180,8 @@ def main():
         Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
     elif Config.PREDICT_IMG:
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
+    if args.tensor_input:
+        Config.NR_OF_GRADIENTS = 18
 
     bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
     brain_mask = exp_utils.get_brain_mask_path(Config, args)
@@ -199,7 +205,7 @@ def main():
         peak_path = input_path
         data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
-        if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
+        if not (len(data_img_shape) == 4 and data_img_shape[3] == Config.NR_OF_GRADIENTS):
             print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
                   ": Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
                   "If you input a Diffusion image add the option '--raw_diffusion_input'." + bcolors.ENDC)
@@ -209,8 +215,13 @@ def main():
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.get_affine()
 
-    data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
-                                                                            do_flip=automatically_flip_peaks)
+    if not args.tensor_input:
+        data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
+                                                                                do_flip=automatically_flip_peaks)
+    else:
+        flip_axis = None
+        data = data_img.get_data()
+
     if flip_axis is not None:
         print("\n" + bcolors.YELLOW + "WARNING:" + bcolors.ENDC + bcolors.BOLD +
               "Detected that peaks probably have wrong orientation. If your results are looking bad you "
@@ -247,7 +258,7 @@ def main():
                            postprocess=args.postprocess, peak_regression_part=part,
                            input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
-                           inference_batch_size=inference_batch_size)
+                           inference_batch_size=inference_batch_size, tensor_input=args.tensor_input)
 
         if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
             print("Saving preview...")

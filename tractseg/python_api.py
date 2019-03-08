@@ -44,7 +44,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                  bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
                  postprocess=False, peak_regression_part="All", input_type="peaks",
                  blob_size_thr=50, nr_cpus=-1, verbose=False, manual_exp_name=None,
-                 inference_batch_size=1):
+                 inference_batch_size=1, tensor_input=False):
     """
     Run TractSeg
 
@@ -72,6 +72,7 @@ def run_tractseg(data, output_type="tract_segmentation",
         verbose: Show debugging infos
         manual_exp_name: Name of experiment if do not want to use pretrained model but your own one
         inference_batch_size: batch size (higher: a bit faster but needs more RAM)
+        tensor_input: Set if input are peaks encoded as tensors (input image must have shape [x,y,z,3*6])
 
     Returns:
         4D numpy array with the output of tractseg
@@ -96,6 +97,9 @@ def run_tractseg(data, output_type="tract_segmentation",
 
     if bundle_specific_threshold:
         Config.GET_PROBS = True
+
+    if tensor_input:
+        Config.NR_OF_GRADIENTS = 18
 
     if manual_exp_name is not None and Config.EXPERIMENT_TYPE != "peak_regression":
         Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(join(C.EXP_PATH, manual_exp_name), True)
