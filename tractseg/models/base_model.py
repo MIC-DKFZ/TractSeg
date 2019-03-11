@@ -55,6 +55,8 @@ class BaseModel:
             self.criterion = pytorch_utils.soft_batch_dice
         elif self.Config.EXPERIMENT_TYPE == "peak_regression":
             self.criterion = pytorch_utils.angle_length_loss
+        elif self.Config.EXPERIMENT_TYPE == "dm_regression":
+            self.criterion = nn.MSELoss()
         else:
             # weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
             #                       self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[1])).cuda()

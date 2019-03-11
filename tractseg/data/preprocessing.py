@@ -30,7 +30,7 @@ from tractseg.libs import dataset_utils
 from tractseg.libs.subjects import get_all_subjects
 from tractseg.libs import exp_utils
 
-
+#
 DATASET_FOLDER = "HCP"  # source folder
 # DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
 DATASET_FOLDER_PREPROC = "HCP_preproc_bedpostX"  # target folder
@@ -44,8 +44,11 @@ def create_preprocessed_files():
     # filenames_data = ["12g_125mm_peaks"]
     # filenames_seg = ["bundle_peaks_Part1"]
 
-    filenames_data = ["125mm_bedpostx_tensor", "125mm_bedpostx_peaks"]
-    filenames_seg = ["bundle_masks_72"]
+    # filenames_data = ["125mm_bedpostx_tensor", "125mm_bedpostx_peaks"]
+    # filenames_seg = ["bundle_masks_72", "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
+
+    filenames_data = ["125mm_bedpostx_tensor"]
+    filenames_seg = ["bundle_masks_autoPTX_dm"]
 
     for subject in subjects:
         print(subject)
@@ -63,8 +66,9 @@ def create_preprocessed_files():
                 data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
 
             # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
-            nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject,
-                                                         filename + ".nii.gz"))
+            #todo important: change
+            # nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject,
+            #                                              filename + ".nii.gz"))
 
         for filename in filenames_seg:
             data = nib.load(join(C.DATA_PATH, DATASET_FOLDER, subject, filename + ".nii.gz")).get_data().astype(np.uint8)

@@ -21,3 +21,7 @@ from tractseg.experiments.base import Config as BaseConfig
 class Config(BaseConfig):
 
     EXPERIMENT_TYPE = "tract_segmentation"
+
+    NUM_EPOCHS = 250
+    DATA_AUGMENTATION = True
+    MODEL = "UNet_Pytorch_DeepSup"
