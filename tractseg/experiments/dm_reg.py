@@ -26,6 +26,8 @@ class Config(BaseConfig):
     MODEL = "UNet_Pytorch_Regression"
     LABELS_TYPE = np.float32
 
+    THRESHOLD = 0.01  # Binary: 0.5, Regression: 0.01 ?
+
     # DATASET = "HCP"  # HCP / HCP_32g
     # RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
     # FEATURES_FILENAME = "12g90g270g"  # 12g90g270g / 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz

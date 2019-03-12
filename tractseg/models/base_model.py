@@ -56,7 +56,8 @@ class BaseModel:
         elif self.Config.EXPERIMENT_TYPE == "peak_regression":
             self.criterion = pytorch_utils.angle_length_loss
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
-            self.criterion = nn.MSELoss()
+            # self.criterion = nn.MSELoss()   # aggregate by mean
+            self.criterion = nn.MSELoss(size_average=False, reduce=True)   # aggregate by sum
         else:
             # weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
             #                       self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[1])).cuda()
@@ -137,7 +138,8 @@ class BaseModel:
                                                             max_angle_error=self.Config.PEAK_DICE_THR,
                                                             max_length_error=self.Config.PEAK_DICE_LEN_THR)
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
-            f1 = pytorch_utils.f1_score_macro(y.detach() > 0.5, outputs.detach(), per_class=True)
+            f1 = pytorch_utils.f1_score_macro(y.detach() > self.Config.THRESHOLD, outputs.detach(),
+                                              per_class=True, threshold=self.Config.THRESHOLD)
         else:
             f1 = pytorch_utils.f1_score_macro(y.detach(), F.sigmoid(outputs).detach(), per_class=True,
                                               threshold=self.Config.THRESHOLD)
@@ -197,7 +199,8 @@ class BaseModel:
                                                             max_angle_error=self.Config.PEAK_DICE_THR,
                                                             max_length_error=self.Config.PEAK_DICE_LEN_THR)
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
-            f1 = pytorch_utils.f1_score_macro(y.detach() > 0.5, outputs.detach(), per_class=True)
+            f1 = pytorch_utils.f1_score_macro(y.detach() > self.Config.THRESHOLD, outputs.detach(),
+                                              per_class=True, threshold=self.Config.THRESHOLD)
         else:
             f1 = pytorch_utils.f1_score_macro(y.detach(), F.sigmoid(outputs).detach(), per_class=True,
                                               threshold=self.Config.THRESHOLD)
