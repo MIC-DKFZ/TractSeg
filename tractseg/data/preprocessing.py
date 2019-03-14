@@ -51,10 +51,7 @@ def create_preprocessed_files():
     # filenames_seg = ["bundle_masks_72", "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
     filenames_data = ["125mm_bedpostx_tensor"]
-    filenames_seg = ["bundle_masks_autoPTX_dm"]
-
-    # filenames_data = ["125mm_bedpostx_tensor"]
-    # filenames_seg = ["bundle_masks_autoPTX_thr001_CST"]
+    filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
     for subject in subjects:
         print(subject)
