@@ -6,6 +6,3 @@ class Config(TractSegConfig):
 
     FEATURES_FILENAME = "T1"
     NR_OF_GRADIENTS = 1
-
-    NUM_EPOCHS = 500
-    DATA_AUGMENTATION = True

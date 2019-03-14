@@ -235,6 +235,9 @@ def get_bundle_names(CLASSES):
                    "slf2_r_kattest2_symm", "slf3_l_kattest2_symm", "slf3_r_kattest2_symm", "str_l", "str_r",
                    "unc_l", "unc_r"]
 
+    elif CLASSES == "AutoPTX_CST":
+        bundles = ["cst_l", "cst_r"]
+
     elif CLASSES == "test":
         # Only use subset of classes for unit testing because of runtime
         bundles = ["CST_right", "CA", "UF_left"]
@@ -346,6 +349,14 @@ def get_labels_filename(Config):
             Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001"
         else:
             Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001_808080"
+
+    elif Config.CLASSES == "AutoPTX_CST" and Config.EXPERIMENT_TYPE == "tract_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001_CST"
+        elif Config.RESOLUTION == "2mm" and Config.DATASET == "Schizo":
+            Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001_CST"
+        else:
+            Config.LABELS_FILENAME = "NOT_AVAILABLE"
 
     elif Config.CLASSES == "20" and Config.EXPERIMENT_TYPE == "tract_segmentation":
         if Config.RESOLUTION == "1.25mm":

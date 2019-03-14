@@ -30,23 +30,23 @@ class Config:
     """Settings and Hyperparameters"""
     EXP_MULTI_NAME = ""  #CV Parent Dir name; leave empty for Single Bundle Experiment
     EXP_NAME = "HCP_TEST"
-    MODEL = "UNet_Pytorch"
+    MODEL = "UNet_Pytorch_DeepSup"
     # tract_segmentation / endings_segmentation / dm_regression / peak_regression
     EXPERIMENT_TYPE = "tract_segmentation"
 
     DIM = "2D"  # 2D / 3D
     NUM_EPOCHS = 250
     EPOCH_MULTIPLIER = 1 #2D: 1, 3D: 12 for lowRes, 3 for highRes
-    DATA_AUGMENTATION = False
+    DATA_AUGMENTATION = True
     DAUG_SCALE = True
     DAUG_NOISE = True
     DAUG_ELASTIC_DEFORM = True
-    DAUG_RESAMPLE = True
-    DAUG_GAUSSIAN_BLUR = False
+    DAUG_RESAMPLE = False   # used to be True
+    DAUG_GAUSSIAN_BLUR = True
     DAUG_ROTATE = False
     DAUG_MIRROR = False
     DAUG_FLIP_PEAKS = False
-    P_SAMP = 0.8
+    P_SAMP = 1.0
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - " \
                 "DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
     DATASET = "HCP"  # HCP / HCP_32g / Schizo
@@ -73,7 +73,7 @@ class Config:
     USE_DROPOUT = False
     DROPOUT_SAMPLING = False
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"
-    DATASET_FOLDER = "HCP" # HCP / Schizo
+    DATASET_FOLDER = "HCP_preproc" # HCP / Schizo
     LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
