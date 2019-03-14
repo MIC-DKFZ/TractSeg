@@ -103,8 +103,8 @@ class BaseModel:
 
 
     def train(self, X, y, weight_factor=10):
-        X = X.contiguous().cuda(async=True)  # (bs, features, x, y)
-        y = y.contiguous().cuda(async=True)  # (bs, classes, x, y)
+        X = X.contiguous().cuda(non_blocking=True)  # (bs, features, x, y)
+        y = y.contiguous().cuda(non_blocking=True)  # (bs, classes, x, y)
 
         self.optimizer.zero_grad()
         self.net.train()
@@ -165,8 +165,8 @@ class BaseModel:
 
         """
         with torch.no_grad():
-            X = X.contiguous().cuda(async=True)
-            y = y.contiguous().cuda(async=True)
+            X = X.contiguous().cuda(non_blocking=True)
+            y = y.contiguous().cuda(non_blocking=True)
 
         if self.Config.DROPOUT_SAMPLING:
             self.net.train()

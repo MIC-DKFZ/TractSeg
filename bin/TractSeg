@@ -142,8 +142,8 @@ def main():
                         help="name of TOM output folder (default: TOM)",
                         default="TOM")
 
-    # parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment",
-    #                     default=None)
+    parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment",
+                        default=None)
 
     parser.add_argument('--tensor_input', action="store_true",
                         help="Input are peaks encoded as tensors (input image must have shape [x,y,z,3*6])",
@@ -164,7 +164,9 @@ def main():
     peak_threshold = 0.3     # specificity (TOM)
     automatically_flip_peaks = False
     blob_size_thr = 50  # default: 50
-    manual_exp_name = None  # args.exp_name
+    #todo important: change
+    # manual_exp_name = None  # args.exp_name
+    manual_exp_name = args.exp_name
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
 
     input_path = args.input

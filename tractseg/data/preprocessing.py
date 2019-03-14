@@ -44,11 +44,17 @@ def create_preprocessed_files():
     # filenames_data = ["12g_125mm_peaks"]
     # filenames_seg = ["bundle_peaks_Part1"]
 
+    # filenames_data = ["12g_125mm_peaks"]
+    # filenames_seg = ["bundle_masks_dm"]
+
     # filenames_data = ["125mm_bedpostx_tensor", "125mm_bedpostx_peaks"]
     # filenames_seg = ["bundle_masks_72", "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
     filenames_data = ["125mm_bedpostx_tensor"]
     filenames_seg = ["bundle_masks_autoPTX_dm"]
+
+    # filenames_data = ["125mm_bedpostx_tensor"]
+    # filenames_seg = ["bundle_masks_autoPTX_thr001_CST"]
 
     for subject in subjects:
         print(subject)
@@ -71,7 +77,7 @@ def create_preprocessed_files():
             #                                              filename + ".nii.gz"))
 
         for filename in filenames_seg:
-            data = nib.load(join(C.DATA_PATH, DATASET_FOLDER, subject, filename + ".nii.gz")).get_data().astype(np.uint8)
+            data = nib.load(join(C.DATA_PATH, DATASET_FOLDER, subject, filename + ".nii.gz")).get_data()
             data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
             # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
             nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename +
