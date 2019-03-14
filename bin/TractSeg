@@ -142,7 +142,7 @@ def main():
                         help="name of TOM output folder (default: TOM)",
                         default="TOM")
 
-    parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment",
+    parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment - ONLY FOR TESTING",
                         default=None)
 
     parser.add_argument('--tensor_input', action="store_true",
@@ -164,14 +164,17 @@ def main():
     peak_threshold = 0.3     # specificity (TOM)
     automatically_flip_peaks = False
     blob_size_thr = 50  # default: 50
-    #todo important: change
-    # manual_exp_name = None  # args.exp_name
     manual_exp_name = args.exp_name
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
 
     input_path = args.input
-    config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
-    Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
+    if manual_exp_name is None:
+        config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
+        Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." +
+                                                 config_file), "Config")()
+    else:
+        Config = getattr(importlib.import_module("tractseg.experiments.custom." +
+                                                 manual_exp_name), "Config")()
     Config.CSD_TYPE = args.csd_type
     Config.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
     Config.VERBOSE = args.verbose

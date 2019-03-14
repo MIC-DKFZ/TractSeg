@@ -82,8 +82,11 @@ def run_tractseg(data, output_type="tract_segmentation",
     """
     start_time = time.time()
 
-    config = get_config_name(input_type, output_type, dropout_sampling=dropout_sampling)
-    Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config), "Config")()
+    if manual_exp_name is None:
+        config = get_config_name(input_type, output_type, dropout_sampling=dropout_sampling)
+        Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config), "Config")()
+    else:
+        Config = getattr(importlib.import_module("tractseg.experiments.custom." + manual_exp_name), "Config")()
     Config.VERBOSE = verbose
     Config.TRAIN = False
     Config.TEST = False
