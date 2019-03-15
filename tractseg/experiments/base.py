@@ -42,6 +42,7 @@ class Config:
     DAUG_NOISE = True
     DAUG_ELASTIC_DEFORM = True
     DAUG_RESAMPLE = False   # used to be True
+    DAUG_RESAMPLE_LEGACY = False
     DAUG_GAUSSIAN_BLUR = True
     DAUG_ROTATE = False
     DAUG_MIRROR = False

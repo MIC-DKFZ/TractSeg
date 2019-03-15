@@ -266,7 +266,9 @@ class DataLoaderTraining:
 
                 if self.Config.DAUG_RESAMPLE:
                     tfs.append(SimulateLowResolutionTransform(zoom_range=(0.5, 1), p_per_sample=0.2, per_channel=False))
-                    # tfs.append(ResampleTransformLegacy(zoom_range=(0.5, 1)))
+
+                if self.Config.DAUG_RESAMPLE_LEGACY:
+                    tfs.append(ResampleTransformLegacy(zoom_range=(0.5, 1)))
 
                 if self.Config.DAUG_GAUSSIAN_BLUR:
                     tfs.append(GaussianBlurTransform(blur_sigma=(0, 1),
