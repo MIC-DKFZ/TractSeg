@@ -20,6 +20,7 @@ from __future__ import division
 from __future__ import print_function
 
 from os.path import join
+from os.path import dirname
 from pkg_resources import resource_filename
 import numpy as np
 import nibabel as nib
@@ -620,14 +621,68 @@ def get_image_spacing(img_path):
 
 
 def peak_image_to_binary_mask_path(path_in, path_out, peak_length_threshold=0.1):
-    '''
+    """
     Create binary mask from a peak image.
-    :param path_in: Path of peak image
-    :param path_out: Path of binary output image
-    :return:
-    '''
+
+    Args:
+        path_in: Path of peak image
+        path_out: Path of binary output image
+        peak_length_threshold:
+
+    Returns:
+
+    """
     peak_img = nib.load(path_in)
     peak_data = peak_img.get_data()
     peak_mask = peak_image_to_binary_mask(peak_data, len_thr=peak_length_threshold)
     peak_mask_img = nib.Nifti1Image(peak_mask.astype(np.uint8), peak_img.get_affine())
     nib.save(peak_mask_img, path_out)
+
+
+def peak_image_to_tensor_image(peaks):
+    """
+    Convert peak image to tensor image
+
+    Args:
+        peaks: shape: [x,y,z,nr_peaks*3]
+
+    Returns:
+        tensor with shape: [x,y,z, nr_peaks*6]
+    """
+
+    def peak_to_tensor(peak):
+        tensor = np.zeros(peak.shape[:3] + (6,), dtype=np.float32)
+        tensor[..., 0] = peak[..., 0] * peak[..., 0]
+        tensor[..., 1] = peak[..., 0] * peak[..., 1]
+        tensor[..., 2] = peak[..., 0] * peak[..., 2]
+        tensor[..., 3] = peak[..., 1] * peak[..., 1]
+        tensor[..., 4] = peak[..., 1] * peak[..., 2]
+        tensor[..., 5] = peak[..., 2] * peak[..., 2]
+        return tensor
+
+    nr_peaks = int(peaks.shape[3] / 3)
+    tensor = np.zeros(peaks.shape[:3] + (nr_peaks * 6,), dtype=np.float32)
+    for idx in range(nr_peaks):
+        tensor[..., idx*6:(idx*6)+6] = peak_to_tensor(peaks[..., idx*3:(idx*3)+3])
+    return tensor
+
+
+def load_bedpostX_dyads(path_dyads1):
+    """
+    Load bedpostX dyads (following the default naming convention)
+
+    Args:
+        path_dyads1: path to dyads1.nii.gz
+
+    Returns:
+        tensor with shape: [x,y,z, 18]
+    """
+    dyads1_img = nib.load(path_dyads1)
+    dyads1 = dyads1_img.get_data()
+    dyads2 = nib.load(join(dirname(path_dyads1), "dyads2_thr0.05.nii.gz")).get_data()
+    dyads3 = nib.load(join(dirname(path_dyads1), "dyads3_thr0.05.nii.gz")).get_data()
+    dyads = np.concatenate((dyads1, dyads2, dyads3), axis=3)
+
+    tensor = peak_image_to_tensor_image(dyads)
+    tensor_img = nib.Nifti1Image(tensor, dyads1_img.get_affine())
+    return tensor_img

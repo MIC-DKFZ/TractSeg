@@ -145,7 +145,7 @@ def main():
     parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment - ONLY FOR TESTING",
                         default=None)
 
-    parser.add_argument('--tensor_input', action="store_true",
+    parser.add_argument('--bedpostX_input', action="store_true",
                         help="Input are peaks encoded as tensors (input image must have shape [x,y,z,3*6])",
                         default=False)
 
@@ -166,6 +166,7 @@ def main():
     blob_size_thr = 50  # default: 50
     manual_exp_name = args.exp_name
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
+    tensor_input = args.bedpostX_input
 
     input_path = args.input
     if manual_exp_name is None:
@@ -185,7 +186,7 @@ def main():
         Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
     elif Config.PREDICT_IMG:
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
-    if args.tensor_input:
+    if tensor_input:
         Config.NR_OF_GRADIENTS = 18
 
     bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
@@ -208,7 +209,10 @@ def main():
         data_img = nib.load(peak_path)
     else:
         peak_path = input_path
-        data_img = nib.load(peak_path)
+        if args.bedpostX_input:
+            data_img = img_utils.load_bedpostX_dyads(peak_path)
+        else:
+            data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
         if not (len(data_img_shape) == 4 and data_img_shape[3] == Config.NR_OF_GRADIENTS):
             print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
@@ -220,7 +224,7 @@ def main():
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.get_affine()
 
-    if not args.tensor_input:
+    if not tensor_input:
         data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
                                                                                 do_flip=automatically_flip_peaks)
     else:
@@ -263,7 +267,7 @@ def main():
                            postprocess=args.postprocess, peak_regression_part=part,
                            input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
-                           inference_batch_size=inference_batch_size, tensor_input=args.tensor_input)
+                           inference_batch_size=inference_batch_size, tensor_input=tensor_input)
 
         if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
             print("Saving preview...")
