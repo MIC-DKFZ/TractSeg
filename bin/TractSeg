@@ -127,7 +127,8 @@ def main():
                         help="Simple postprocessing of segmentations: Remove small blobs and fill holes",
                         default=False)
 
-    parser.add_argument("--preprocess", action="store_true", help="Move input image to MNI space.",
+    parser.add_argument("--preprocess", action="store_true",
+                        help="Move input image to MNI space (rigid registration of FA).",
                         default=False)
 
     parser.add_argument("--nr_cpus", metavar="n", type=int,
