@@ -40,10 +40,14 @@ class Config:
     DATA_AUGMENTATION = True
     DAUG_SCALE = True
     DAUG_NOISE = True
+    DAUG_NOISE_VARIANCE = (0, 0.05)
     DAUG_ELASTIC_DEFORM = True
+    DAUG_ALPHA = (90., 120.)
+    DAUG_SIGMA = (9., 11.)
     DAUG_RESAMPLE = False   # does not change validation dice (if using Gaussian_blur) -> deactivate
     DAUG_RESAMPLE_LEGACY = False    # does not change validation dice (at least on AutoPTX) -> deactivate
     DAUG_GAUSSIAN_BLUR = True
+    DAUG_BLUR_SIGMA = (0, 1)
     DAUG_ROTATE = False
     DAUG_MIRROR = False
     DAUG_FLIP_PEAKS = False
