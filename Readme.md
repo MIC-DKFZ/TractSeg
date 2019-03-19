@@ -92,7 +92,7 @@ TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz
 #### Create Tract Orientation Maps (TOMs)
 For each bundle create a Tract Orientation Map ([Wasserthal et al., Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)). 
 This gives you one peak per voxel telling you the main orientation of the respective bundle at this voxel. 
-Can be used for bundle-specific tracking (add option `--track` to generate streamlines).
+Can be used for bundle-specific tracking later on.
 ```
 TractSeg -i peaks.nii.gz --output_type TOM
 ```
@@ -214,16 +214,16 @@ segmentation = run_tractseg(peaks)
 ```
 
 #### Different tracking types
-You can use different types of tracking when doing `--track`:
+You can use different types of tracking:
 
-* "Probabilistic" tracking on TOM peaks [**default**].  
-`TractSeg -i peaks.nii.gz --output_type TOM --track --only_track`  
+* "Probabilistic" tracking on TOM peaks [**default**].    
+`Tracking -i peaks.nii.gz`  
 Probabilistic means that at each step a small random factor will be added to the direction given by the TOM peaks.
 If not doing this on low resolution data it sometimes gets difficult finding fibers running from start to end and
 covering the whole bundle.
 
-* Probabilistic tracking on original FODs.  
-`TractSeg -i WM_FODs.nii.gz --output_type TOM --track --only_track --track_FODs iFOD2`  
+* Probabilistic tracking on original FODs.    
+`Tracking -i WM_FODs.nii.gz --track_FODs iFOD2`  
 Is calling Mrtrix iFOD2 tracking internally. Does not use TOM peaks but the original FODs. The results will get 
 filtered by the bundle mask and have to start and end in the endings masks.
 
