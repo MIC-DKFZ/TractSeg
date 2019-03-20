@@ -439,6 +439,12 @@ def get_cv_fold(fold, dataset="HCP"):
     return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
 
 
+# def get_cv_fold(fold, dataset="HCP"):
+#     subjects = get_all_subjects(dataset)
+#     cut_point = int(len(subjects) * 0.9)
+#     return subjects[:cut_point], subjects[cut_point:], []
+
+
 def print_and_save(Config, text, only_log=False):
     if not only_log:
         print(text)
