@@ -235,6 +235,13 @@ def get_bundle_names(CLASSES):
                    "slf2_r_kattest2_symm", "slf3_l_kattest2_symm", "slf3_r_kattest2_symm", "str_l", "str_r",
                    "unc_l", "unc_r"]
 
+    elif CLASSES == "AutoPTX_42":
+        bundles = ["af_l", "af_r", "ar_l", "ar_r", "atr_l", "atr_r", "cbd_l", "cbd_r", "cbp_l", "cbp_r", "cbt_l",
+                   "cbt_r", "cing_l", "cing_r", "cst_l", "cst_r", "fa_l", "fa_r", "fma", "fmi", "fx_l", "fx_r",
+                   "ifo_l", "ifo_r", "ilf_l", "ilf_r", "mcp", "mdlf_l", "mdlf_r", "MG_ac", "MG_unc_l", "MG_unc_r",
+                   "or_l", "or_r", "slf1_l_kattest2_symm", "slf1_r_kattest2_symm", "slf2_l_kattest2_symm",
+                   "slf2_r_kattest2_symm", "slf3_l_kattest2_symm", "slf3_r_kattest2_symm", "str_l", "str_r"]
+
     elif CLASSES == "AutoPTX_CST":
         bundles = ["cst_l", "cst_r"]
 
@@ -342,7 +349,8 @@ def get_labels_filename(Config):
         else:
             Config.LABELS_FILENAME = "bundle_masks_72_808080"
 
-    elif Config.CLASSES == "AutoPTX" and Config.EXPERIMENT_TYPE == "tract_segmentation":
+    elif (Config.CLASSES == "AutoPTX" or Config.CLASSES == "AutoPTX_42") and \
+            Config.EXPERIMENT_TYPE == "tract_segmentation":
         if Config.RESOLUTION == "1.25mm":
             Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001"
         elif Config.RESOLUTION == "2mm" and Config.DATASET == "Schizo":
@@ -370,7 +378,8 @@ def get_labels_filename(Config):
         else:
             Config.LABELS_FILENAME = "NOT_AVAILABLE"
 
-    elif Config.CLASSES == "AutoPTX" and Config.EXPERIMENT_TYPE == "dm_regression":
+    elif (Config.CLASSES == "AutoPTX" or Config.CLASSES == "AutoPTX_42") and \
+            Config.EXPERIMENT_TYPE == "dm_regression":
         if Config.RESOLUTION == "1.25mm":
             Config.LABELS_FILENAME = "bundle_masks_autoPTX_dm"
         else:

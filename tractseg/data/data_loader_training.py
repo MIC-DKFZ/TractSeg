@@ -75,38 +75,30 @@ def load_training_data(Config, subject):
         # data = np.load(filepath + ".npy", mmap_mode="r")
         return data
 
-    for i in range(20):
-        try:
-            if Config.FEATURES_FILENAME == "12g90g270g":
-                rnd_choice = np.random.random()
-                if rnd_choice < 0.33:
-                    data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_peaks"))
-                elif rnd_choice < 0.66:
-                    data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "90g_125mm_peaks"))
-                else:
-                    data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_peaks"))
-            elif Config.FEATURES_FILENAME == "T1_Peaks270g":
-                peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_peaks"))
-                t1 = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "T1"))
-                data = np.concatenate((peaks, t1), axis=3)
-            elif Config.FEATURES_FILENAME == "T1_Peaks12g90g270g":
-                rnd_choice = np.random.random()
-                if rnd_choice < 0.33:
-                    peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_peaks"))
-                elif rnd_choice < 0.66:
-                    peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "90g_125mm_peaks"))
-                else:
-                    peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_peaks"))
-                t1 = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "T1"))
-                data = np.concatenate((peaks, t1), axis=3)
-            else:
-                data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.FEATURES_FILENAME))
-
-            break
-        except IOError:
-            exp_utils.print_and_save(Config, "\n\nWARNING: Could not load file. Trying again in 20s (Try number: " + str(i) + ").\n\n")
-        exp_utils.print_and_save(Config, "Sleeping 20s")
-        sleep(20)
+    if Config.FEATURES_FILENAME == "12g90g270g":
+        rnd_choice = np.random.random()
+        if rnd_choice < 0.33:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_peaks"))
+        elif rnd_choice < 0.66:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "90g_125mm_peaks"))
+        else:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_peaks"))
+    elif Config.FEATURES_FILENAME == "T1_Peaks270g":
+        peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_peaks"))
+        t1 = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "T1"))
+        data = np.concatenate((peaks, t1), axis=3)
+    elif Config.FEATURES_FILENAME == "T1_Peaks12g90g270g":
+        rnd_choice = np.random.random()
+        if rnd_choice < 0.33:
+            peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_peaks"))
+        elif rnd_choice < 0.66:
+            peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "90g_125mm_peaks"))
+        else:
+            peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_peaks"))
+        t1 = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "T1"))
+        data = np.concatenate((peaks, t1), axis=3)
+    else:
+        data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.FEATURES_FILENAME))
 
 
     seg = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.LABELS_FILENAME))
