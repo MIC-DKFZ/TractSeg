@@ -24,6 +24,7 @@ from __future__ import print_function
 from os.path import join
 import nibabel as nib
 import numpy as np
+from joblib import Parallel, delayed
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
@@ -37,9 +38,8 @@ DATASET_FOLDER = "HCP_for_training_COPY_all"  # source folder
 # DATASET_FOLDER_PREPROC = "HCP_preproc_bedpostX"  # target folder
 DATASET_FOLDER_PREPROC = "HCP_preproc_all"  # target folder
 
-def create_preprocessed_files():
+def create_preprocessed_files(subject):
 
-    subjects = get_all_subjects(dataset="HCP")
     # filenames_data = ["12g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks"]
     # filenames_seg = ["bundle_masks_72"]
 
@@ -62,33 +62,37 @@ def create_preprocessed_files():
     filenames_data = ["125mm_bedpostx_peaks"]
     filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
-    for subject in subjects:
-        print(subject)
-        exp_utils.make_dir(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject))
+    print("idx: {}".format(subjects.index(subject)))
+    exp_utils.make_dir(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject))
 
-        for idx, filename in enumerate(filenames_data):
-            img = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz"))
-            data = img.get_data()
-            affine = img.get_affine()
-            data = np.nan_to_num(data)
+    for idx, filename in enumerate(filenames_data):
+        img = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz"))
+        data = img.get_data()
+        affine = img.get_affine()
+        data = np.nan_to_num(data)
 
-            if idx == 0:
-                data, _, bbox, _ = dataset_utils.crop_to_nonzero(data)
-            else:
-                data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
-
-            # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
-            nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject,
-                                                         filename + ".nii.gz"))
-
-        for filename in filenames_seg:
-            data = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")).get_data()
+        if idx == 0:
+            data, _, bbox, _ = dataset_utils.crop_to_nonzero(data)
+        else:
             data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
-            # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
-            nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename +
-                                                         ".nii.gz"))
+
+        # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
+        nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject,
+                                                     filename + ".nii.gz"))
+
+    for filename in filenames_seg:
+        data = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")).get_data()
+        data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
+        # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
+        nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename +
+                                                     ".nii.gz"))
 
 
 if __name__ == "__main__":
-    create_preprocessed_files()
+    # subjects = get_all_subjects(dataset="HCP")
+    subjects = get_all_subjects(dataset="HCP_all")
+    Parallel(n_jobs=12)(delayed(create_preprocessed_files)(subject) for subject in subjects)  # 37
+    # for subject in subjects:
+    #     create_preprocessed_files(subject)
+
 
