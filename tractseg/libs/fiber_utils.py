@@ -22,7 +22,6 @@ from __future__ import print_function
 import multiprocessing
 from os import getpid
 import logging
-import psutil
 import numpy as np
 import nibabel as nib
 from dipy.tracking.streamline import compress_streamlines as compress_streamlines_dipy
@@ -56,6 +55,7 @@ def compress_fibers_worker_shared_mem(idx):
 
 
 def compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=-1):
+    import psutil
     if nr_cpus == -1:
         nr_processes = psutil.cpu_count()
     else:
