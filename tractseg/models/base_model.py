@@ -38,8 +38,10 @@ class BaseModel:
         self.Config = Config
 
         # torch.backends.cudnn.benchmark = True     #not faster
-        if self.Config.NR_CPUS > 0:
-            torch.set_num_threads(self.Config.NR_CPUS)
+        #todo important: change
+        # if self.Config.NR_CPUS > 0:
+        #     torch.set_num_threads(self.Config.NR_CPUS)
+        torch.set_num_threads(6)
 
         if self.Config.SEG_INPUT == "Peaks" and self.Config.TYPE == "single_direction":
             NR_OF_GRADIENTS = self.Config.NR_OF_GRADIENTS

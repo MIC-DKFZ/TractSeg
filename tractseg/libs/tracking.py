@@ -4,7 +4,6 @@
 import numpy as np
 from random import randint
 import multiprocessing
-import psutil
 from functools import partial
 
 from dipy.tracking.utils import move_streamlines
@@ -222,6 +221,8 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     Returns:
 
     """
+    import psutil
+
     peaks[:, :, :, 0] *= -1  # how to flip along x axis to work properly
     if dilation > 0:
         # Add +1 dilation for start and end mask to be more robust
