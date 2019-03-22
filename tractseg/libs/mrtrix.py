@@ -95,30 +95,33 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
         # MSMT 5TT
         print("Creating peaks (1 of 4)...")
         t1_file = join(os.path.dirname(input_file), "T1w_acpc_dc_restore_brain.nii.gz")
-        os.system("5ttgen fsl " + t1_file + " " + output_dir + "/5TT.mif -premasked" + nthreads)
+        os.system("5ttgen fsl " + t1_file + " " + output_dir + "/5TT.nii.gz -premasked" + nthreads)
         print("Creating peaks (2 of 4)...")
-        os.system("dwi2response msmt_5tt " + input_file + " " + output_dir + "/5TT.mif " + output_dir + "/RF_WM.txt " +
-                  output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -voxels " + output_dir + "/RF_voxels.mif -fslgrad " +
-                  bvecs + " " + bvals + " -mask " + brain_mask + nthreads)         # multi-shell, multi-tissue
+        os.system("dwi2response msmt_5tt " + input_file + " " + output_dir + "/5TT.nii.gz " + output_dir +
+                  "/RF_WM.txt " + output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -voxels " + output_dir +
+                  "/RF_voxels.nii.gz -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask + nthreads)
         print("Creating peaks (3 of 4)...")
         os.system("dwi2fod msmt_csd " + input_file + " " + output_dir + "/RF_WM.txt " + output_dir +
-                  "/WM_FODs.mif " + output_dir + "/RF_GM.txt " + output_dir + "/GM.mif " + output_dir +
-                  "/RF_CSF.txt " + output_dir + "/CSF.mif -mask " + brain_mask +
+                  "/WM_FODs.nii.gz " + output_dir + "/RF_GM.txt " + output_dir + "/GM.nii.gz " + output_dir +
+                  "/RF_CSF.txt " + output_dir + "/CSF.nii.gz -mask " + brain_mask +
                   " -fslgrad " + bvecs + " " + bvals + nthreads)       # multi-shell, multi-tissue
         print("Creating peaks (4 of 4)...")
-        os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
+        os.system("sh2peaks " + output_dir + "/WM_FODs.nii.gz " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
     elif csd_type == "csd_msmt":
         # MSMT DHollander    (only works with msmt_csd, not with csd)
-        # dhollander does not need a T1 image to estimate the response function (more recent (2016) than tournier (2013))
+        # dhollander does not need a T1 image to estimate the response function)
         print("Creating peaks (1 of 3)...")
         os.system("dwi2response dhollander -mask " + brain_mask + " " + input_file + " " + output_dir + "/RF_WM.txt " +
                   output_dir + "/RF_GM.txt " + output_dir + "/RF_CSF.txt -fslgrad " + bvecs + " " + bvals +
                   " -mask " + brain_mask + nthreads)
         print("Creating peaks (2 of 3)...")
-        os.system("dwi2fod msmt_csd " + input_file + " " + output_dir + "/RF_WM.txt " + output_dir +
-                  "/WM_FODs.mif -fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask + nthreads)
+        os.system("dwi2fod msmt_csd " + input_file + " " +
+                  output_dir + "/RF_WM.txt " + output_dir + "/WM_FODs.nii.gz " +
+                  output_dir + "/RF_GM.txt " + output_dir + "/GM_FODs.nii.gz " +
+                  output_dir + "/RF_CSF.txt " + output_dir + "/CSF_FODs.nii.gz " +
+                  "-fslgrad " + bvecs + " " + bvals + " -mask " + brain_mask + nthreads)
         print("Creating peaks (3 of 3)...")
-        os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
+        os.system("sh2peaks " + output_dir + "/WM_FODs.nii.gz " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
     elif csd_type == "csd":
         # CSD Tournier
         print("Creating peaks (1 of 3)...")
@@ -126,9 +129,9 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
                   " -fslgrad " + bvecs + " " + bvals + " -quiet" + nthreads)
         print("Creating peaks (2 of 3)...")
         os.system("dwi2fod csd " + input_file + " " + output_dir + "/response.txt " + output_dir +
-                  "/WM_FODs.mif -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet" + nthreads)
+                  "/WM_FODs.nii.gz -mask " + brain_mask + " -fslgrad " + bvecs + " " + bvals + " -quiet" + nthreads)
         print("Creating peaks (3 of 3)...")
-        os.system("sh2peaks " + output_dir + "/WM_FODs.mif " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
+        os.system("sh2peaks " + output_dir + "/WM_FODs.nii.gz " + output_dir + "/peaks.nii.gz -quiet" + nthreads)
     else:
         raise ValueError("'csd_type' contains invalid String")
 
@@ -364,16 +367,18 @@ def clean_up(Config, preprocessing_done=False):
 
         # os.system("rm -f nodif_brain_mask.nii.gz")
         # os.system("rm -f peaks.nii.gz")
-        os.system("rm -f WM_FODs.mif")
+        os.system("rm -f WM_FODs.nii.gz")
 
         if Config.CSD_TYPE == "csd_msmt" or Config.CSD_TYPE == "csd_msmt_5tt":
-            os.system("rm -f 5TT.mif")
+            os.system("rm -f 5TT.nii.gz")
             os.system("rm -f RF_WM.txt")
             os.system("rm -f RF_GM.txt")
             os.system("rm -f RF_CSF.txt")
-            os.system("rm -f RF_voxels.mif")
-            os.system("rm -f CSF.mif")
-            os.system("rm -f GM.mif")
+            os.system("rm -f RF_voxels.nii.gz")
+            os.system("rm -f CSF.nii.gz")
+            os.system("rm -f GM.nii.gz")
+            os.system("rm -f CSF_FODs.nii.gz")
+            os.system("rm -f GM_FODs.nii.gz")
         else:
             os.system("rm -f response.txt")
 
