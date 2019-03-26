@@ -32,12 +32,13 @@ from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 
+torch.backends.cudnn.benchmark = True
+
 
 class BaseModel:
     def __init__(self, Config):
         self.Config = Config
 
-        # torch.backends.cudnn.benchmark = True     #not faster
         if self.Config.NR_CPUS > 0:
             torch.set_num_threads(self.Config.NR_CPUS)
 
@@ -89,8 +90,8 @@ class BaseModel:
             raise ValueError("Optimizer not defined")
 
         if self.Config.LR_SCHEDULE:
-            self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
-            # self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="max")
+            self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=20, gamma=0.1)
+            # self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="min")
 
         if self.Config.LOAD_WEIGHTS:
             exp_utils.print_verbose(self.Config, "Loading weights ... ({})".format(join(self.Config.EXP_PATH,

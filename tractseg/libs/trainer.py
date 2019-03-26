@@ -192,12 +192,6 @@ def train_model(Config, model, data_loader):
         # Post Training tasks (each epoch)
         ###################################
 
-        #Adapt LR
-        if Config.LR_SCHEDULE:
-            model.scheduler.step()
-            # model.scheduler.step(np.mean(f1))
-            model.print_current_lr()
-
         # Average loss per batch over entire epoch
         metrics = metric_utils.normalize_last_element(metrics, batch_nr["train"], type="train")
         metrics = metric_utils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
@@ -205,6 +199,12 @@ def train_model(Config, model, data_loader):
 
         print("  Epoch {}, Average Epoch loss = {}".format(epoch_nr, metrics["loss_train"][-1]))
         print("  Epoch {}, nr_of_updates {}".format(epoch_nr, nr_of_updates))
+
+        # Adapt LR
+        if Config.LR_SCHEDULE:
+            model.scheduler.step()
+            # model.scheduler.step(metrics["loss_validate"][-1])
+            model.print_current_lr()
 
         # Save Weights
         start_time_saving = time.time()
