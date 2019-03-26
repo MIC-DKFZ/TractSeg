@@ -107,7 +107,7 @@ all_subjects_Schizo = ['CH7912a', 'A00014804', 'A00020805', 'A00010684', 'CH8301
                        'A00000300', 'A00000456', 'A00014830', 'A00012767', 'A00014607']
 
 def get_all_subjects(dataset="HCP"):
-    if dataset == "HCP" or dataset == "HCP_32g":
+    if dataset == "HCP" or dataset == "HCP_final" or dataset == "HCP_32g":
         return all_subjects_FINAL
     elif dataset == "HCP_all":
         return all_subjects_HCP_all

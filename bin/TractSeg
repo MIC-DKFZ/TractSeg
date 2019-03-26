@@ -102,6 +102,9 @@ def main():
                         help="Flip output peaks of TOM along z axis to make compatible with MITK.",
                         default=False)
 
+    parser.add_argument("-td", metavar="directory", dest="tractseg_dir",
+                        help="tractseg output subfolder name (default: tractseg_output)")
+
     parser.add_argument("--single_orientation", action="store_true",
                         help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.",
                         default=False)
@@ -176,6 +179,7 @@ def main():
     else:
         Config = getattr(importlib.import_module("tractseg.experiments.custom." +
                                                  manual_exp_name), "Config")()
+    Config.TRACTSEG_DIR = args.tractseg_dir
     Config.CSD_TYPE = args.csd_type
     Config.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
     Config.VERBOSE = args.verbose
