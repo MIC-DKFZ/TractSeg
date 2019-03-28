@@ -31,13 +31,13 @@ from tractseg.libs import dataset_utils
 from tractseg.libs.subjects import get_all_subjects
 from tractseg.libs import exp_utils
 
-dataset = "HCP_final"
-DATASET_FOLDER = "HCP_for_training_COPY"  # source folder
-DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
+# dataset = "HCP_final"
+# DATASET_FOLDER = "HCP_for_training_COPY"  # source folder
+# DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
 
-# dataset = "HCP_all"
-# DATASET_FOLDER = "HCP_for_training_COPY_all"  # source folder
-# DATASET_FOLDER_PREPROC = "HCP_preproc_all"  # target folder
+dataset = "HCP_all"
+DATASET_FOLDER = "HCP_for_training_COPY_all"  # source folder
+DATASET_FOLDER_PREPROC = "HCP_preproc_all"  # target folder
 
 def create_preprocessed_files(subject):
 
@@ -64,8 +64,11 @@ def create_preprocessed_files(subject):
     # filenames_data = ["125mm_bedpostx_peaks"]
     # filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
-    filenames_data = ["12g_125mm_peaks", "125mm_bedpostx_peaks_scaled"]
-    filenames_seg = ["bundle_masks_autoPTX_thr001"]
+    # filenames_data = ["12g_125mm_peaks", "125mm_bedpostx_peaks_scaled"]
+    # filenames_seg = ["-"]
+
+    filenames_data = ["125mm_bedpostx_peaks", "125mm_bedpostx_peaks_scaled"]
+    filenames_seg = ["-"]
 
     print("idx: {}".format(subjects.index(subject)))
     exp_utils.make_dir(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject))
@@ -96,6 +99,7 @@ def create_preprocessed_files(subject):
 
 
 if __name__ == "__main__":
+    print("Output folder: {}".format(DATASET_FOLDER_PREPROC))
     subjects = get_all_subjects(dataset=dataset)
     Parallel(n_jobs=12)(delayed(create_preprocessed_files)(subject) for subject in subjects)  # 37
     # for subject in subjects:

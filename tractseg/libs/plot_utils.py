@@ -20,6 +20,7 @@ from __future__ import division
 from __future__ import print_function
 
 from os.path import join
+import math
 import numpy as np
 
 from tractseg.libs import exp_utils
@@ -73,6 +74,9 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
     login locally on the remote server). Then all graphics will get rendered locally and not via -X.
     (important: graphical session needs to be running on remote server (e.g. via login locally))
     (important: login needed, not just stay at login screen)
+
+    If running on a headless server without Display using Xvfb might help:
+    https://stackoverflow.com/questions/6281998/can-i-run-glu-opengl-on-a-headless-server
     '''
     from dipy.viz import window
     from tractseg.libs import vtk_utils
@@ -123,6 +127,73 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
     renderer.reset_camera()
     window.record(renderer, out_path=join(out_dir, "preview.png"),
                   size=(WINDOW_SIZE[0], WINDOW_SIZE[1]), reset_camera=False, magnification=2)
+
+
+def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_dir):
+
+    def plot_single_tract(bg, data, orientation, bundle):
+        if orientation == "coronal":
+            data = data.transpose(2,0,1)[::-1,:,:]
+            bg = bg.transpose(2,0,1)[::-1,:,:]
+        elif orientation == "sagittal":
+            data = data.transpose(2,1,0)[::-1,:,:]
+            bg = bg.transpose(2,1,0)[::-1,:,:]
+        else:  # axial
+            pass
+
+        mask_voxel_coords = np.where(data != 0)
+        minidx = int(np.min(mask_voxel_coords[2]))
+        maxidx = int(np.max(mask_voxel_coords[2])) + 1
+        mean_slice = int(np.mean([minidx, maxidx]))
+        bg = bg[:, :, mean_slice]
+        # bg = matplotlib.colors.Normalize()(bg)
+
+        # project 3D to 2D image
+        if aggregation == "mean":
+            data = data.mean(axis=2)
+        else:
+            data = data.max(axis=2)
+
+        plt.imshow(bg, cmap="gray")
+        data = np.ma.masked_where(data < 0.0001, data)
+        plt.imshow(data, cmap="autumn")
+        plt.title(bundle, fontsize=7)
+        # plt.title(bundle)
+
+    if classes.startswith("AutoPTX"):
+        bundles = ["cst_r", "ifo_r", "fx_l", "fx_r", "or_l", "fma"]
+    else:
+        bundles = ["CST_right", "CA", "IFO_right", "FX_left", "FX_right", "OR_left", "CC_1", "ICP_left"]
+
+    aggregation = "max"
+    cols = 4
+    rows = math.ceil(len(bundles) / cols)
+
+    background_img = background_img[...,0]
+
+    # fig = plt.figure(figsize=(rows, cols))
+    # fig.subplots_adjust(hspace=0.1, wspace=0.1)
+
+    for j, bundle in enumerate(bundles):
+        bundle_idx = exp_utils.get_bundle_names(classes)[1:].index(bundle)
+        mask_data = bundle_segmentations[:, :, :, bundle_idx]
+
+        if bundle.startswith("CST_"):
+            orientation = "coronal"
+        elif bundle.startswith("CA") or bundle.startswith("FX_") or bundle.startswith("OR_") or \
+                bundle.startswith("CC_1"):
+            orientation = "axial"
+        elif bundle.startswith("IFO_") or bundle.startswith("ICP_"):
+            orientation = "sagittal"
+        else:
+            raise ValueError("invalid bundle")
+
+        plt.subplot(rows, cols, j+1)
+        plt.axis("off")
+        plot_single_tract(background_img, mask_data, orientation, bundle)
+
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.savefig(join(out_dir, "preview.png"), bbox_inches='tight', dpi=300)
 
 
 def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
