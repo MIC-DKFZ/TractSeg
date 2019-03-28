@@ -7,7 +7,7 @@ from __future__ import print_function
 
 import numpy as np
 import vtk
-from dipy.viz.utils import set_input
+from dipy.viz import utils
 from dipy.utils.optpkg import optional_package
 numpy_support, have_ns, _ = optional_package('vtk.util.numpy_support')
 
@@ -108,7 +108,7 @@ def contour_from_roi_smooth(data, affine=None, color=np.array([1, 0, 0]), opacit
 
     # Set the reslicing
     image_resliced = vtk.vtkImageReslice()
-    set_input(image_resliced, im)
+    utils.set_input(image_resliced, im)
     image_resliced.SetResliceTransform(transform)
     image_resliced.AutoCropOutputOn()
 
