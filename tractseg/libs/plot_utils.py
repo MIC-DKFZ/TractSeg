@@ -158,12 +158,11 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
         data = np.ma.masked_where(data < 0.0001, data)
         plt.imshow(data, cmap="autumn")
         plt.title(bundle, fontsize=7)
-        # plt.title(bundle)
 
     if classes.startswith("AutoPTX"):
-        bundles = ["cst_r", "ifo_r", "fx_l", "fx_r", "or_l", "fma"]
+        bundles = ["cst_r", "cst_s_r", "ifo_r", "fx_l", "fx_r", "or_l", "fma"]
     else:
-        bundles = ["CST_right", "CA", "IFO_right", "FX_left", "FX_right", "OR_left", "CC_1", "ICP_left"]
+        bundles = ["CST_right", "CST_s_right", "CA", "IFO_right", "FX_left", "FX_right", "OR_left", "CC_1"]
 
     aggregation = "max"
     cols = 4
@@ -171,22 +170,21 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
 
     background_img = background_img[...,0]
 
-    # fig = plt.figure(figsize=(rows, cols))
-    # fig.subplots_adjust(hspace=0.1, wspace=0.1)
-
     for j, bundle in enumerate(bundles):
-        bundle_idx = exp_utils.get_bundle_names(classes)[1:].index(bundle)
-        mask_data = bundle_segmentations[:, :, :, bundle_idx]
-
-        if bundle.startswith("CST_"):
-            orientation = "coronal"
-        elif bundle.startswith("CA") or bundle.startswith("FX_") or bundle.startswith("OR_") or \
-                bundle.startswith("CC_1"):
+        bun = bundle.lower()
+        if bun.startswith("ca") or bun.startswith("fx_") or bun.startswith("or_") or \
+                bun.startswith("cc_1") or bun.startswith("fma"):
             orientation = "axial"
-        elif bundle.startswith("IFO_") or bundle.startswith("ICP_"):
+        elif bun.startswith("ifo_") or bun.startswith("icp_") or bun.startswith("cst_s_"):
+            bundle = bundle.replace("_s", "")
             orientation = "sagittal"
+        elif bun.startswith("cst_"):
+            orientation = "coronal"
         else:
             raise ValueError("invalid bundle")
+
+        bundle_idx = exp_utils.get_bundle_names(classes)[1:].index(bundle)
+        mask_data = bundle_segmentations[:, :, :, bundle_idx]
 
         plt.subplot(rows, cols, j+1)
         plt.axis("off")

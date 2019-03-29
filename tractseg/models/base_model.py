@@ -93,6 +93,7 @@ class BaseModel:
             # Slightly better results could be archived if training for 500ep without reduction of LR
             # -> but takes too long -> using reudceOnPlateau gives benefits if only training for 200ep
             self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="min")
+            # self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="max", patience=40)
 
         if self.Config.LOAD_WEIGHTS:
             exp_utils.print_verbose(self.Config, "Loading weights ... ({})".format(join(self.Config.EXP_PATH,
