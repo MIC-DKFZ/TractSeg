@@ -679,8 +679,15 @@ def load_bedpostX_dyads(path_dyads1):
     """
     dyads1_img = nib.load(path_dyads1)
     dyads1 = dyads1_img.get_data()
+
+    dyads1 *= nib.load(join(dirname(path_dyads1), "mean_f1samples.nii.gz")).get_data()[...,None]
+
     dyads2 = nib.load(join(dirname(path_dyads1), "dyads2_thr0.05.nii.gz")).get_data()
+    dyads2 *= nib.load(join(dirname(path_dyads1), "mean_f2samples.nii.gz")).get_data()[...,None]
+
     dyads3 = nib.load(join(dirname(path_dyads1), "dyads3_thr0.05.nii.gz")).get_data()
+    dyads3 *= nib.load(join(dirname(path_dyads1), "mean_f3samples.nii.gz")).get_data()[...,None]
+
     dyads = np.concatenate((dyads1, dyads2, dyads3), axis=3)
 
     tensor = peak_image_to_tensor_image(dyads)

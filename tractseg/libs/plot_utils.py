@@ -129,7 +129,7 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
                   size=(WINDOW_SIZE[0], WINDOW_SIZE[1]), reset_camera=False, magnification=2)
 
 
-def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_dir):
+def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_dir, threshold=0.001):
 
     def plot_single_tract(bg, data, orientation, bundle):
         if orientation == "coronal":
@@ -155,7 +155,7 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
             data = data.max(axis=2)
 
         plt.imshow(bg, cmap="gray")
-        data = np.ma.masked_where(data < 0.0001, data)
+        data = np.ma.masked_where(data < 0.00001, data)
         plt.imshow(data, cmap="autumn")
         plt.title(bundle, fontsize=7)
 
@@ -185,6 +185,7 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
 
         bundle_idx = exp_utils.get_bundle_names(classes)[1:].index(bundle)
         mask_data = bundle_segmentations[:, :, :, bundle_idx]
+        mask_data[mask_data < 0.001] = 0
 
         plt.subplot(rows, cols, j+1)
         plt.axis("off")

@@ -274,10 +274,11 @@ def main():
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
                            inference_batch_size=inference_batch_size, tensor_input=tensor_input)
 
-        if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
+        if args.preview and Config.EXPERIMENT_TYPE != "TOM":
             print("Saving preview...")
             # plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
-            plot_utils.plot_tracts_matplotlib(Config.CLASSES, seg, data, Config.PREDICT_IMG_OUTPUT)
+            plot_utils.plot_tracts_matplotlib(Config.CLASSES, seg, data, Config.PREDICT_IMG_OUTPUT,
+                                              threshold=Config.THRESHOLD)
 
         if Config.SINGLE_OUTPUT_FILE:
             img = nib.Nifti1Image(seg, data_affine)
