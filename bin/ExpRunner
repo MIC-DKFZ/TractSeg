@@ -40,6 +40,7 @@ warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
 warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
+import os
 import importlib
 import argparse
 import pickle
@@ -278,6 +279,10 @@ def main():
             img = nib.Nifti1Image(img_probs, img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
             nib.save(img, join(Config.EXP_PATH, "probmaps", subject + "_peak.nii.gz"))
 
+    eval_script_path = join(os.path.expanduser("~"), "dev/bsp/eval_nonHCP.py")
+    if os.path.exists(eval_script_path):
+        print("Evaluating on non HCP data...")
+        os.system("python " + eval_script_path + " " + Config.EXP_NAME)
 
 if __name__ == '__main__':
     main()
