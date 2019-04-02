@@ -415,7 +415,7 @@ def add_background_class(data):
 
 def get_cv_fold(fold, dataset="HCP"):
     '''
-    Brauche train-test-validate wegen Best-model selection und wegen training von combined net
+    Brauche train-validate-test wegen Best-model selection und wegen training von combined net
     :return:
     '''
 
