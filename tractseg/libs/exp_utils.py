@@ -423,8 +423,6 @@ def get_cv_fold(fold, dataset="HCP"):
     if dataset == "HCP_all":
         subjects = get_all_subjects(dataset)
         cut_point = int(len(subjects) * 0.9)
-        #todo important: change
-        # return subjects[:cut_point], subjects[cut_point:], []
         return subjects[:cut_point], subjects[cut_point:], ["599469", "599469"]
     else:
         #For CV
