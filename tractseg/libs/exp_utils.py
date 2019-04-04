@@ -22,6 +22,7 @@ from __future__ import print_function
 import glob
 import os
 import re
+import ast
 from os.path import join
 from pprint import pprint
 import sys
@@ -489,6 +490,16 @@ def get_correct_input_dim(Config):
     return input_dim
 
 
+def get_correct_labels_type(Config):
+    if Config.LABELS_TYPE == "int":
+        Config.LABELS_TYPE = np.int16
+    elif Config.LABELS_TYPE == "float":
+        Config.LABELS_TYPE = np.float32
+    else:
+        raise ValueError("Config.LABELS_TYPE not recognized")
+    return Config
+
+
 def get_manual_exp_name_peaks(manual_exp_name, part):
     """
     If want to use manual experiment name for peak regression, replace part nr by X:
@@ -504,3 +515,19 @@ def get_manual_exp_name_peaks(manual_exp_name, part):
     """
     manual_exp_name_parts = manual_exp_name.split("X")
     return manual_exp_name_parts[0] + part[-1] + manual_exp_name_parts[1]
+
+
+def load_config_from_txt(path):
+
+    class Struct:
+        def __init__(self, **entries):
+            self.__dict__.update(entries)
+
+    config_str = open(path, "r").read()
+    clean_str = ""
+    for line in config_str.splitlines():
+        if not line.startswith("Average Epoch time:"):
+            clean_str += line
+    config_dict = ast.literal_eval(clean_str)
+    config_obj = Struct(**config_dict)
+    return config_obj

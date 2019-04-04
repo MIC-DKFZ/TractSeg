@@ -39,6 +39,7 @@ from tractseg.libs import mrtrix
 from tractseg.libs import plot_utils
 from tractseg.python_api import run_tractseg
 from tractseg.libs.utils import bcolors
+from tractseg.libs.system_config import SystemConfig as C
 
 
 def main():
@@ -149,8 +150,12 @@ def main():
                         default=None)
 
     parser.add_argument('--bedpostX_input', action="store_true",
-                        help="Input are peaks encoded as tensors (input image must have shape [x,y,z,3*6])",
+                        help="Input dyads1.nii.gz of bedpostX",
                         default=False)
+
+    # parser.add_argument('--tensor', action="store_true",
+    #                     help="Convert peaks to tensors before feeding to model.",
+    #                     default=False)
 
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
                         default=False)
@@ -169,7 +174,10 @@ def main():
     blob_size_thr = 50  # default: 50
     manual_exp_name = args.exp_name
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
-    tensor_input = args.bedpostX_input
+    tensor_input = False
+    # tensor_input = args.tensor
+    if args.bedpostX_input:
+        tensor_input = True
 
     input_path = args.input
     if manual_exp_name is None:
@@ -177,8 +185,9 @@ def main():
         Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." +
                                                  config_file), "Config")()
     else:
-        Config = getattr(importlib.import_module("tractseg.experiments.custom." +
-                                                 manual_exp_name), "Config")()
+        Config = exp_utils.load_config_from_txt(join(C.EXP_PATH, manual_exp_name, "Hyperparameters.txt"))
+
+    Config = exp_utils.get_correct_labels_type(Config)
     if args.tractseg_dir:
         Config.TRACTSEG_DIR = args.tractseg_dir
     Config.CSD_TYPE = args.csd_type
@@ -215,15 +224,18 @@ def main():
     else:
         peak_path = input_path
         if args.bedpostX_input:
-            data_img = img_utils.load_bedpostX_dyads(peak_path)
+            data_img = img_utils.load_bedpostX_dyads(peak_path, scale=True)
         else:
             data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
-        if not (len(data_img_shape) == 4 and data_img_shape[3] == Config.NR_OF_GRADIENTS):
+        if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
             print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
                   ": Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
                   "If you input a Diffusion image add the option '--raw_diffusion_input'." + bcolors.ENDC)
             sys.exit()
+
+    if tensor_input:
+        data_img = img_utils.peak_image_to_tensor_image_nifti(data_img)
 
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)

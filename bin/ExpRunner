@@ -111,6 +111,7 @@ def main():
 
     #Autoset input dimensions based on settings
     Config.INPUT_DIM = exp_utils.get_correct_input_dim(Config)
+    Config = exp_utils.get_correct_labels_type(Config)
     Config = exp_utils.get_labels_filename(Config)
 
     if Config.EXPERIMENT_TYPE == "peak_regression":

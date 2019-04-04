@@ -86,7 +86,9 @@ def run_tractseg(data, output_type="tract_segmentation",
         config = get_config_name(input_type, output_type, dropout_sampling=dropout_sampling)
         Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config), "Config")()
     else:
-        Config = getattr(importlib.import_module("tractseg.experiments.custom." + manual_exp_name), "Config")()
+        Config = exp_utils.load_config_from_txt(join(C.EXP_PATH, manual_exp_name, "Hyperparameters.txt"))
+
+    Config = exp_utils.get_correct_labels_type(Config)
     Config.VERBOSE = verbose
     Config.TRAIN = False
     Config.TEST = False

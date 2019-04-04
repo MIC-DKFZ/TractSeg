@@ -666,8 +666,14 @@ def peak_image_to_tensor_image(peaks):
         tensor[..., idx*6:(idx*6)+6] = peak_to_tensor(peaks[..., idx*3:(idx*3)+3])
     return tensor
 
+def peak_image_to_tensor_image_nifti(peaks_img):
+    """
+    Same as peak_image_to_tensor_image() but takes nifti img as input and outputs a nifti img
+    """
+    tensors = peak_image_to_tensor_image(peaks_img.get_data())
+    return nib.Nifti1Image(tensors, peaks_img.get_affine())
 
-def load_bedpostX_dyads(path_dyads1):
+def load_bedpostX_dyads(path_dyads1, scale=True):
     """
     Load bedpostX dyads (following the default naming convention)
 
@@ -679,17 +685,16 @@ def load_bedpostX_dyads(path_dyads1):
     """
     dyads1_img = nib.load(path_dyads1)
     dyads1 = dyads1_img.get_data()
-
-    dyads1 *= nib.load(join(dirname(path_dyads1), "mean_f1samples.nii.gz")).get_data()[...,None]
-
     dyads2 = nib.load(join(dirname(path_dyads1), "dyads2_thr0.05.nii.gz")).get_data()
-    dyads2 *= nib.load(join(dirname(path_dyads1), "mean_f2samples.nii.gz")).get_data()[...,None]
-
     dyads3 = nib.load(join(dirname(path_dyads1), "dyads3_thr0.05.nii.gz")).get_data()
-    dyads3 *= nib.load(join(dirname(path_dyads1), "mean_f3samples.nii.gz")).get_data()[...,None]
+
+    if scale:
+        dyads1 *= nib.load(join(dirname(path_dyads1), "mean_f1samples.nii.gz")).get_data()[...,None]
+        dyads2 *= nib.load(join(dirname(path_dyads1), "mean_f2samples.nii.gz")).get_data()[...,None]
+        dyads3 *= nib.load(join(dirname(path_dyads1), "mean_f3samples.nii.gz")).get_data()[...,None]
 
     dyads = np.concatenate((dyads1, dyads2, dyads3), axis=3)
 
-    tensor = peak_image_to_tensor_image(dyads)
-    tensor_img = nib.Nifti1Image(tensor, dyads1_img.get_affine())
-    return tensor_img
+    # tensor = peak_image_to_tensor_image(dyads)
+    dyads_img = nib.Nifti1Image(dyads, dyads1_img.get_affine())
+    return dyads_img

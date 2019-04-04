@@ -142,9 +142,12 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
             pass
 
         mask_voxel_coords = np.where(data != 0)
-        minidx = int(np.min(mask_voxel_coords[2]))
-        maxidx = int(np.max(mask_voxel_coords[2])) + 1
-        mean_slice = int(np.mean([minidx, maxidx]))
+        if len(mask_voxel_coords) > 2 and len(mask_voxel_coords[2]) > 0:
+            minidx = int(np.min(mask_voxel_coords[2]))
+            maxidx = int(np.max(mask_voxel_coords[2])) + 1
+            mean_slice = int(np.mean([minidx, maxidx]))
+        else:
+            mean_slice = int(bg.shape[2] / 2)
         bg = bg[:, :, mean_slice]
         # bg = matplotlib.colors.Normalize()(bg)
 

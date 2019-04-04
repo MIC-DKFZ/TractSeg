@@ -114,6 +114,7 @@ def main():
     input_path = args.input
     config_file = get_config_name("peaks", "tract_segmentation", dropout_sampling=False)
     Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
+    Config = exp_utils.get_correct_labels_type(Config)
     Config.PREDICT_IMG = input_path is not None
     if args.output:
         Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)

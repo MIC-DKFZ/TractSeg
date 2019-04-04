@@ -23,7 +23,7 @@ class Config(BaseConfig):
 
     EXPERIMENT_TYPE = "dm_regression"
 
-    LABELS_TYPE = np.float32
+    LABELS_TYPE = "float"
 
     THRESHOLD = 0.01  # Binary: 0.5, Regression: 0.01 ?
 

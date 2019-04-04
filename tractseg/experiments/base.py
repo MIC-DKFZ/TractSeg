@@ -116,7 +116,7 @@ class Config:
     NR_CPUS = -1
 
     # Rarly changed:
-    LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
+    LABELS_TYPE = "int"
     THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
     USE_VISLOGGER = False  #only works with Python 3
