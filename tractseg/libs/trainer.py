@@ -202,8 +202,10 @@ def train_model(Config, model, data_loader):
 
         # Adapt LR
         if Config.LR_SCHEDULE:
-            model.scheduler.step(metrics["loss_validate"][-1])
-            # model.scheduler.step(metrics["f1_macro_validate"][-1])
+            if Config.LR_SCHEDULE_MODE == "min":
+                model.scheduler.step(metrics["loss_validate"][-1])
+            else:
+                model.scheduler.step(metrics["f1_macro_validate"][-1])
             model.print_current_lr()
 
         # Save Weights

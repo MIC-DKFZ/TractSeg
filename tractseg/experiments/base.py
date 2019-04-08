@@ -85,6 +85,8 @@ class Config:
     BATCH_SIZE = 47  #Peak Prediction: 44 #Pytorch: 50  #Lasagne: 56  #Lasagne combined: 42  #Pytorch UpSample: 56
     LEARNING_RATE = 0.001  # 0.002 #LR find: 0.000143 ?  # 0.001
     LR_SCHEDULE = False
+    LR_SCHEDULE_MODE = "min"    # "min" / "max"
+    LR_SCHEDULE_PATIENCE = 10
     UNET_NR_FILT = 64
     LOAD_WEIGHTS = False
     # WEIGHTS_PATH = join(C.EXP_PATH, "HCP100_45B_UNet_x_DM_lr002_slope2_dec992_ep800/best_weights_ep64.npz")

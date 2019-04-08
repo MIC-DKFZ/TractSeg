@@ -91,6 +91,16 @@ def load_training_data(Config, subject):
             data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "90g_125mm_bedpostx_peaks_scaled"))
         else:
             data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_bedpostx_peaks_scaled"))
+    elif Config.FEATURES_FILENAME == "32g270g_BX":
+        rnd_choice = np.random.random()
+        path_32g = join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "32g_125mm_bedpostx_peaks_scaled")
+        if rnd_choice < 0.5 and os.path.exists(path_32g + ".nii.gz"):
+            data = load(path_32g)
+            rnd_choice_2 = np.random.random()
+            if rnd_choice_2 < 0.5:
+                data[:, :, :, 6:9] = 0  # set third peak to 0
+        else:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_bedpostx_peaks_scaled"))
     elif Config.FEATURES_FILENAME == "T1_Peaks270g":
         peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_peaks"))
         t1 = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "T1"))
