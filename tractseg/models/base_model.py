@@ -74,6 +74,15 @@ class BaseModel:
                                 n_filt=self.Config.UNET_NR_FILT, batchnorm=self.Config.BATCH_NORM,
                                 dropout=self.Config.USE_DROPOUT, upsample=self.Config.UPSAMPLE_TYPE)
 
+        # Somehow not really faster (max 10% speedup): GPU utility low -> why? (CPU also low)
+        # (with bigger batch_size even worse)
+        # - GPU slow connection? (but maybe same problem as before pin_memory)
+        # - Wrong setup with pin_memory, async, ...? -> should be correct
+        # - load from npy instead of nii -> will not solve entire problem
+        # nr_gpus = torch.cuda.device_count()
+        # exp_utils.print_and_save(self.Config, "nr of gpus: {}".format(nr_gpus))
+        # self.net = nn.DataParallel(self.net)
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         net = self.net.to(self.device)
 
