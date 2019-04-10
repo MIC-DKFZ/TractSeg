@@ -84,7 +84,7 @@ def create_preprocessed_files(subject):
 
     # filenames_data = ["270g_125mm_bedpostx_peaks_scaled", "32g_125mm_bedpostx_peaks_scaled"]
     # filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
-    filenames_data = ["270g_125mm_bedpostx_peaks_scaled"]
+    filenames_data = ["270g_125mm_bedpostx_peaks_scaled", "32g_125mm_bedpostx_peaks_scaled"]
     filenames_seg = []
 
     print("idx: {}".format(subjects.index(subject)))
@@ -104,13 +104,14 @@ def create_preprocessed_files(subject):
                 data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
 
             #todo important: change
-            # if idx > 0:
-            if True:
+            if idx > 0:
+            # if True:
                 # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
                 nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject,
                                                              filename + ".nii.gz"))
         else:
             print("skipping file: {}-{}".format(subject, idx))
+            raise IOError("File missing")
 
     for filename in filenames_seg:
         data = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")).get_data()

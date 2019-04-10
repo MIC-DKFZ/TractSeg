@@ -94,7 +94,7 @@ def load_training_data(Config, subject):
     elif Config.FEATURES_FILENAME == "32g270g_BX":
         rnd_choice = np.random.random()
         path_32g = join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "32g_125mm_bedpostx_peaks_scaled")
-        if rnd_choice < 0.5 and os.path.exists(path_32g + ".nii.gz"):
+        if rnd_choice < 0.5:  # and os.path.exists(path_32g + ".nii.gz"):
             data = load(path_32g)
             rnd_choice_2 = np.random.random()
             if rnd_choice_2 < 0.5:

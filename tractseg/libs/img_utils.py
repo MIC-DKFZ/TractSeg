@@ -691,7 +691,7 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
     if exists(dyads3_path):
         dyads3 = nib.load(dyads3_path).get_data()
     else:
-        dyads3 = np.zeros(dyads2.shape)
+        dyads3 = np.zeros(dyads2.shape, dtype=dyads2.dtype)
 
     if scale:
         dyads1 *= nib.load(join(dirname(path_dyads1), "mean_f1samples.nii.gz")).get_data()[...,None]
