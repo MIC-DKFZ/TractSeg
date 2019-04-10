@@ -21,6 +21,7 @@ from __future__ import print_function
 
 from os.path import join
 from os.path import dirname
+from os.path import exists
 from pkg_resources import resource_filename
 import numpy as np
 import nibabel as nib
@@ -686,12 +687,20 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
     dyads1_img = nib.load(path_dyads1)
     dyads1 = dyads1_img.get_data()
     dyads2 = nib.load(join(dirname(path_dyads1), "dyads2_thr0.05.nii.gz")).get_data()
-    dyads3 = nib.load(join(dirname(path_dyads1), "dyads3_thr0.05.nii.gz")).get_data()
+    dyads3_path = join(dirname(path_dyads1), "dyads3_thr0.05.nii.gz")
+    if exists(dyads3_path):
+        dyads3 = nib.load(dyads3_path).get_data()
+    else:
+        dyads3 = np.zeros(dyads2.shape)
 
     if scale:
         dyads1 *= nib.load(join(dirname(path_dyads1), "mean_f1samples.nii.gz")).get_data()[...,None]
         dyads2 *= nib.load(join(dirname(path_dyads1), "mean_f2samples.nii.gz")).get_data()[...,None]
-        dyads3 *= nib.load(join(dirname(path_dyads1), "mean_f3samples.nii.gz")).get_data()[...,None]
+        f3_path = join(dirname(path_dyads1), "mean_f3samples.nii.gz")
+        if exists(f3_path):
+            dyads3 *= nib.load(f3_path).get_data()[...,None]
+        else:
+            dyads3 *= np.zeros(dyads2.shape[:3])[...,None]
 
     dyads = np.concatenate((dyads1, dyads2, dyads3), axis=3)
 
