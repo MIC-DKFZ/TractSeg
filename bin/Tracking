@@ -109,10 +109,12 @@ def main():
     use_as_prior = False  # Track on weighted average between best original peaks and TOM
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
     dir_postfix = ""    # "_BSThr"
+    tract_definition = "TractQuerier+"  # TractQuerier+ / AutoPTX
 
     filter_tracking_by_endpoints = not args.no_filtering_by_endpoints
     input_path = args.input
-    config_file = get_config_name("peaks", "tract_segmentation", dropout_sampling=False)
+    config_file = get_config_name("peaks", "tract_segmentation", dropout_sampling=False,
+                                  tract_definition=tract_definition, bedpostX_input=False)
     Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
     Config = exp_utils.get_correct_labels_type(Config)
     Config.PREDICT_IMG = input_path is not None

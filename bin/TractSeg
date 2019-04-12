@@ -85,7 +85,9 @@ def main():
                         help="bvecs file. Default is '<name_of_input_file>.bvecs' in same directory as input")
 
     parser.add_argument("--brain_mask", metavar="filename",
-                        help="brain mask file. If not specified will automatically be generated with fsl bet")
+                        help="Manually define brain mask file. If not specified will look for file "
+                             "nodif_brain_mask.nii.gz in same folder as input and if not found create one using "
+                             "fsl bet. Brain mask only needed if using '--raw_diffusion_input'.")
 
     parser.add_argument("--raw_diffusion_input", action="store_true",
                         help="Provide a Diffusion nifti image as argument to -i. "
@@ -150,8 +152,19 @@ def main():
                         default=None)
 
     parser.add_argument('--bedpostX_input', action="store_true",
-                        help="Input dyads1.nii.gz of bedpostX",
+                        help="Input dyads1.nii.gz of bedpostX. Will automatically look for dyads2_thr0.05.nii.gz and "
+                             "dyads3_thr0.05.nii.gz in the same folder. dyads3_thr0.05.nii.gz is optional.",
                         default=False)
+
+    parser.add_argument('--tract_definition', metavar="TractQuerier+|AutoPTX", choices=["TractQuerier+", "AutoPTX"],
+                        help="Select which tract definitions to use. 'TractQuerier+' defines tracts mainly by their"
+                             "cortical start and end region. 'AutoPTX' defines tracts mainly by ROIs in white matter. "
+                             "Both have their advantages and disadvantages. 'TractQuerier+' referes to the dataset "
+                             "described the TractSeg NeuroImage paper. "
+                             "NOTE 1: 'AutoPTX' only works for output type 'tractseg_segmentation' and "
+                             "'dm_regression'. "
+                             "NOTE 2: A pretrained 'AutoPTX' model is not available yet.",
+                        default="TractQuerier+")
 
     # parser.add_argument('--tensor', action="store_true",
     #                     help="Convert peaks to tensors before feeding to model.",
@@ -181,7 +194,8 @@ def main():
 
     input_path = args.input
     if manual_exp_name is None:
-        config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
+        config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling,
+                                      tract_definition=args.tract_definition, bedpostX_input=args.bedpostX_input)
         Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." +
                                                  config_file), "Config")()
     else:
@@ -200,14 +214,13 @@ def main():
         Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
     elif Config.PREDICT_IMG:
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
-    if tensor_input:
-        Config.NR_OF_GRADIENTS = 18
 
     bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
-    brain_mask = exp_utils.get_brain_mask_path(Config, args)
     exp_utils.make_dir(Config.PREDICT_IMG_OUTPUT)
 
     if args.raw_diffusion_input:
+        brain_mask = exp_utils.get_brain_mask_path(Config, args)
+
         if args.brain_mask is None:
             brain_mask = mrtrix.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
 
@@ -269,10 +282,11 @@ def main():
     if Config.EXPERIMENT_TYPE == "peak_regression":
         parts = ["Part1", "Part2", "Part3", "Part4"]
     else:
-        parts = ["All"]
+        # parts = ["All"]
+        parts = [Config.CLASSES]
 
     for part in parts:
-        if part != "All":
+        if part.startswith("Part"):
             Config.CLASSES = "All_" + part
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
@@ -284,7 +298,8 @@ def main():
                            postprocess=args.postprocess, peak_regression_part=part,
                            input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
-                           inference_batch_size=inference_batch_size, tensor_input=tensor_input)
+                           inference_batch_size=inference_batch_size,
+                           tract_definition=args.tract_definition, bedpostX_input=args.bedpostX_input)
 
         if args.preview and Config.EXPERIMENT_TYPE != "TOM":
             print("Saving preview...")
