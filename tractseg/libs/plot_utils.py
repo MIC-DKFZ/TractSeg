@@ -129,15 +129,18 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
                   size=(WINDOW_SIZE[0], WINDOW_SIZE[1]), reset_camera=False, magnification=2)
 
 
-def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_dir, threshold=0.001):
+def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_dir,
+                           threshold=0.001, exp_type="tract_segmentation"):
 
-    def plot_single_tract(bg, data, orientation, bundle):
+    def plot_single_tract(bg, data, orientation, bundle, exp_type):
         if orientation == "coronal":
-            data = data.transpose(2,0,1)[::-1,:,:]
-            bg = bg.transpose(2,0,1)[::-1,:,:]
+            data = data.transpose(2, 0, 1, 3) if exp_type == "peak_regression" else data.transpose(2, 0, 1)
+            data = data[::-1, :, :]
+            bg = bg.transpose(2, 0, 1)[::-1, :, :]
         elif orientation == "sagittal":
-            data = data.transpose(2,1,0)[::-1,:,:]
-            bg = bg.transpose(2,1,0)[::-1,:,:]
+            data = data.transpose(2, 1, 0, 3) if exp_type == "peak_regression" else data.transpose(2, 0, 1)
+            data = data[::-1, :, :]
+            bg = bg.transpose(2, 1, 0)[::-1, :, :]
         else:  # axial
             pass
 
@@ -152,6 +155,7 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
         # bg = matplotlib.colors.Normalize()(bg)
 
         # project 3D to 2D image
+        # todo: this kind of projection not sensible for peak images
         if aggregation == "mean":
             data = data.mean(axis=2)
         else:
@@ -159,13 +163,19 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
 
         plt.imshow(bg, cmap="gray")
         data = np.ma.masked_where(data < 0.00001, data)
-        plt.imshow(data, cmap="autumn")
+        plt.imshow(data, cmap="autumn")  # even with cmap=autumn peaks still RGB
         plt.title(bundle, fontsize=7)
 
     if classes.startswith("AutoPTX"):
         bundles = ["cst_r", "cst_s_r", "ifo_r", "fx_l", "fx_r", "or_l", "fma"]
     else:
         bundles = ["CST_right", "CST_s_right", "CA", "IFO_right", "FX_left", "FX_right", "OR_left", "CC_1"]
+
+    if exp_type == "peak_regression":
+        s = bundle_segmentations.shape
+        bundle_segmentations = bundle_segmentations.reshape([s[0], s[1], s[2], int(s[3]/3), 3])
+        print(bundle_segmentations.shape)
+        bundles = ["CST_right", "CST_s_right", "CA", "CC_1", "AF_left"]  # can only use bundles from part1
 
     aggregation = "max"
     cols = 4
@@ -178,7 +188,8 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
         if bun.startswith("ca") or bun.startswith("fx_") or bun.startswith("or_") or \
                 bun.startswith("cc_1") or bun.startswith("fma"):
             orientation = "axial"
-        elif bun.startswith("ifo_") or bun.startswith("icp_") or bun.startswith("cst_s_"):
+        elif bun.startswith("ifo_") or bun.startswith("icp_") or bun.startswith("cst_s_") or \
+                bun.startswith("af_"):
             bundle = bundle.replace("_s", "")
             orientation = "sagittal"
         elif bun.startswith("cst_"):
@@ -192,7 +203,7 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
 
         plt.subplot(rows, cols, j+1)
         plt.axis("off")
-        plot_single_tract(background_img, mask_data, orientation, bundle)
+        plot_single_tract(background_img, mask_data, orientation, bundle, exp_type=exp_type)
 
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.savefig(join(out_dir, "preview.png"), bbox_inches='tight', dpi=300)

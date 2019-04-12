@@ -301,11 +301,11 @@ def main():
                            inference_batch_size=inference_batch_size,
                            tract_definition=args.tract_definition, bedpostX_input=args.bedpostX_input)
 
-        if args.preview and Config.EXPERIMENT_TYPE != "TOM":
+        if args.preview and Config.CLASSES not in ["All_Part2", "All_Part3", "All_Part4"]:
             print("Saving preview...")
             # plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
             plot_utils.plot_tracts_matplotlib(Config.CLASSES, seg, data, Config.PREDICT_IMG_OUTPUT,
-                                              threshold=Config.THRESHOLD)
+                                              threshold=Config.THRESHOLD, exp_type=Config.EXPERIMENT_TYPE)
 
         if Config.SINGLE_OUTPUT_FILE:
             img = nib.Nifti1Image(seg, data_affine)

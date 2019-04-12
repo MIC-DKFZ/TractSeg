@@ -135,8 +135,9 @@ def run_tractseg(data, output_type="tract_segmentation",
                 Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_dm_regression_aPTX_v1.npz")
             else:
                 raise ValueError("bundle_definition AutoPTX not supported in combination with this output type")
-    if not os.path.exists(Config.WEIGHTS_PATH):
-        raise FileNotFoundError("Could not find weights file: {}".format(Config.WEIGHTS_PATH))
+            #todo: remove when aPTX weights are loaded automatically
+            if not os.path.exists(Config.WEIGHTS_PATH):
+                raise FileNotFoundError("Could not find weights file: {}".format(Config.WEIGHTS_PATH))
 
     if Config.VERBOSE:
         print("Hyperparameters:")
