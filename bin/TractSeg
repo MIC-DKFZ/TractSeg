@@ -52,7 +52,7 @@ def main():
                         help="CSD peaks in MRtrix format (4D Nifti image with dimensions [x,y,z,9])", required=True)
 
     parser.add_argument("-o", metavar="directory", dest="output",
-                        help="Output directory (default: tractseg_output)")
+                        help="Output directory (default: directory of input file)")
 
     parser.add_argument("--single_output_file", action="store_true",
                         help="Output all bundles in one file (4D image)",
@@ -151,10 +151,10 @@ def main():
     parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment - ONLY FOR TESTING",
                         default=None)
 
-    parser.add_argument('--bedpostX_input', action="store_true",
-                        help="Input dyads1.nii.gz of bedpostX. Will automatically look for dyads2_thr0.05.nii.gz and "
-                             "dyads3_thr0.05.nii.gz in the same folder. dyads3_thr0.05.nii.gz is optional.",
-                        default=False)
+    # parser.add_argument('--bedpostX_input', '--bxi', action="store_true",
+    #                     help="Input dyads1.nii.gz of bedpostX. Will automatically look for dyads2_thr0.05.nii.gz and "
+    #                          "dyads3_thr0.05.nii.gz in the same folder. dyads3_thr0.05.nii.gz is optional.",
+    #                     default=False)
 
     parser.add_argument('--tract_definition', metavar="TractQuerier+|AutoPTX", choices=["TractQuerier+", "AutoPTX"],
                         help="Select which tract definitions to use. 'TractQuerier+' defines tracts mainly by their"
@@ -165,6 +165,11 @@ def main():
                              "'dm_regression'. "
                              "NOTE 2: A pretrained 'AutoPTX' model is not available yet.",
                         default="TractQuerier+")
+
+    parser.add_argument("--rescale_dm", action="store_true",
+                        help="Rescale density map to [0,100] range. Original values can be very small and therefore "
+                             "inconvenient to work with.",
+                        default=False)
 
     # parser.add_argument('--tensor', action="store_true",
     #                     help="Convert peaks to tensors before feeding to model.",
@@ -189,13 +194,16 @@ def main():
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
     tensor_input = False
     # tensor_input = args.tensor
-    if args.bedpostX_input:
+    input_path = args.input
+
+    if os.path.basename(input_path) == "dyads1.nii.gz":
+        print("BedpostX dyads detected. Will automatically combine dyads1+2[+3].")
+        bedpostX_input = True
         tensor_input = True
 
-    input_path = args.input
     if manual_exp_name is None:
         config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling,
-                                      tract_definition=args.tract_definition, bedpostX_input=args.bedpostX_input)
+                                      tract_definition=args.tract_definition, bedpostX_input=bedpostX_input)
         Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." +
                                                  config_file), "Config")()
     else:
@@ -236,7 +244,7 @@ def main():
         data_img = nib.load(peak_path)
     else:
         peak_path = input_path
-        if args.bedpostX_input:
+        if bedpostX_input:
             data_img = img_utils.load_bedpostX_dyads(peak_path, scale=True)
         else:
             data_img = nib.load(peak_path)
@@ -299,13 +307,18 @@ def main():
                            input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
                            inference_batch_size=inference_batch_size,
-                           tract_definition=args.tract_definition, bedpostX_input=args.bedpostX_input)
+                           tract_definition=args.tract_definition, bedpostX_input=bedpostX_input)
 
         if args.preview and Config.CLASSES not in ["All_Part2", "All_Part3", "All_Part4"]:
             print("Saving preview...")
             # plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
             plot_utils.plot_tracts_matplotlib(Config.CLASSES, seg, data, Config.PREDICT_IMG_OUTPUT,
                                               threshold=Config.THRESHOLD, exp_type=Config.EXPERIMENT_TYPE)
+
+        if Config.EXPERIMENT_TYPE == "dm_regression":
+            seg[seg < Config.THRESHOLD] = 0
+            if args.rescale_dm:
+                seg = img_utils.scale_to_range(seg, range(0, 100))
 
         if Config.SINGLE_OUTPUT_FILE:
             img = nib.Nifti1Image(seg, data_affine)

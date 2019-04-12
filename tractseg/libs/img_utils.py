@@ -707,3 +707,7 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
     # tensor = peak_image_to_tensor_image(dyads)
     dyads_img = nib.Nifti1Image(dyads, dyads1_img.get_affine())
     return dyads_img
+
+
+def scale_to_range(data, range=(0, 1)):
+    return (range[1] - range[0]) * (data - data.min()) / (data.max() - data.min()) + range[0]

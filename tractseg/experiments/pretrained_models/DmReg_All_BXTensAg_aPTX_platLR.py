@@ -17,7 +17,8 @@ class Config(DmRegConfig):
     CLASSES = "AutoPTX_42"
     NR_OF_CLASSES = len(exp_utils.get_bundle_names(CLASSES)[1:])
 
-    THRESHOLD = 0.001
+    # THRESHOLD = 0.001  # Final DM wil be thresholded at this value
+    THRESHOLD = 0.0001  # use lower value so user has more choice
 
     DATASET = "HCP_all"
 

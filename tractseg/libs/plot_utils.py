@@ -138,7 +138,7 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
             data = data[::-1, :, :]
             bg = bg.transpose(2, 0, 1)[::-1, :, :]
         elif orientation == "sagittal":
-            data = data.transpose(2, 1, 0, 3) if exp_type == "peak_regression" else data.transpose(2, 0, 1)
+            data = data.transpose(2, 1, 0, 3) if exp_type == "peak_regression" else data.transpose(2, 1, 0)
             data = data[::-1, :, :]
             bg = bg.transpose(2, 1, 0)[::-1, :, :]
         else:  # axial
@@ -199,7 +199,9 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
 
         bundle_idx = exp_utils.get_bundle_names(classes)[1:].index(bundle)
         mask_data = bundle_segmentations[:, :, :, bundle_idx]
-        mask_data[mask_data < 0.001] = 0
+        mask_data = np.copy(mask_data)  # copy data otherwise will also threshold data outside of plot function
+        # mask_data[mask_data < threshold] = 0
+        mask_data[mask_data < 0.001] = 0  # higher value better for preview, otherwise half of image just red
 
         plt.subplot(rows, cols, j+1)
         plt.axis("off")
