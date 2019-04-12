@@ -1,3 +1,13 @@
+## Speed_up branch
+
+* Increase training speed roughly by factor of 2 by using pin_memory and non_blocking for pytorch and by 
+cropping all non-brain area from the input images (requires preprocessing of the training data using
+`tractseg/data/preprocessing.py`).
+* Support bedpostX input
+* Refactor `--preview`. Works without vtk now.
+* minor improvements
+
+
 ## Master
 
 * minor improvements
@@ -7,7 +17,7 @@
 
 * Tracking on best original peaks or on weighted mean of best original peaks and TOMs (non-public interface).
 * **Interface change**: All tracking related commands (whenever you used `--track`) are not part of `TractSeg` anymore
- but now are combined under `Tracking`. Moreover the option `--filter_tracking_by_endpoints` is no activated per
+ but now are combined under `Tracking`. Moreover the option `--filter_tracking_by_endpoints` is now activated per
  default. If you want to deactivate is use `--no_filtering_by_endpoints`.
  So the following command 
 ```
