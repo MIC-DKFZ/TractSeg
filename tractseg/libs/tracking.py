@@ -222,7 +222,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     Returns:
 
     """
-    peaks[:, :, :, 0] *= -1  # how to flip along x axis to work properly
+    peaks[:, :, :, 0] *= -1  # have to flip along x axis to work properly
     if dilation > 0:
         # Add +1 dilation for start and end mask to be more robust
         start_mask = binary_dilation(start_mask, iterations=dilation+1).astype(np.uint8)
@@ -255,8 +255,8 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     streamlines = []
     fiber_ctr = 0
     seed_ctr = 0
-    # Processing seeds in batches to we can stop after we reached desired nr of streamlines. Not ideal. Could be
-    #   optimised if more familiar with multiprocessing.
+    # Processing seeds in batches so we can stop after we reached desired nr of streamlines. Not ideal. Could be
+    #   optimised by more multiprocessing fanciness.
     while fiber_ctr < max_nr_fibers:
         pool = multiprocessing.Pool(processes=nr_processes)
         streamlines_tmp = pool.map(partial(process_seedpoint, spacing=spacing),
