@@ -58,4 +58,3 @@ if __name__ == "__main__":
     print("Check folder: {}".format(DATASET_FOLDER_PREPROC))
     subjects = get_all_subjects(dataset=dataset)
     Parallel(n_jobs=12)(delayed(create_preprocessed_files)(subject) for subject in subjects)  # 37
-
