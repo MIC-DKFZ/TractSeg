@@ -39,19 +39,20 @@ from tractseg.libs import mrtrix
 from tractseg.libs import plot_utils
 from tractseg.python_api import run_tractseg
 from tractseg.libs.utils import bcolors
+from tractseg.libs.system_config import SystemConfig as C
 
 
 def main():
     parser = argparse.ArgumentParser(description="Segment white matter bundles in a Diffusion MRI image.",
                                         epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. "
-                                               "TractSeg - Fast and accurate white matter tract segmentation. "
+                                               "TractSeg - Fast and accurate white matter tract segmentation'. "
                                                "https://doi.org/10.1016/j.neuroimage.2018.07.070'")
 
     parser.add_argument("-i", metavar="filepath", dest="input",
                         help="CSD peaks in MRtrix format (4D Nifti image with dimensions [x,y,z,9])", required=True)
 
     parser.add_argument("-o", metavar="directory", dest="output",
-                        help="Output directory (default: tractseg_output)")
+                        help="Output directory (default: directory of input file)")
 
     parser.add_argument("--single_output_file", action="store_true",
                         help="Output all bundles in one file (4D image)",
@@ -84,7 +85,9 @@ def main():
                         help="bvecs file. Default is '<name_of_input_file>.bvecs' in same directory as input")
 
     parser.add_argument("--brain_mask", metavar="filename",
-                        help="brain mask file. If not specified will automatically be generated with fsl bet")
+                        help="Manually define brain mask file. If not specified will look for file "
+                             "nodif_brain_mask.nii.gz in same folder as input and if not found create one using "
+                             "fsl bet. Brain mask only needed if using '--raw_diffusion_input'.")
 
     parser.add_argument("--raw_diffusion_input", action="store_true",
                         help="Provide a Diffusion nifti image as argument to -i. "
@@ -101,6 +104,9 @@ def main():
     parser.add_argument("--flip", action="store_true",
                         help="Flip output peaks of TOM along z axis to make compatible with MITK.",
                         default=False)
+
+    parser.add_argument("-td", metavar="directory", dest="tractseg_dir",
+                        help="tractseg output subfolder name (default: tractseg_output)")
 
     parser.add_argument("--single_orientation", action="store_true",
                         help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.",
@@ -143,8 +149,32 @@ def main():
                         help="name of TOM output folder (default: TOM)",
                         default="TOM")
 
-    # parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment",
-    #                     default="False")
+    parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment - ONLY FOR TESTING",
+                        default=None)
+
+    # parser.add_argument('--bedpostX_input', '--bxi', action="store_true",
+    #                     help="Input dyads1.nii.gz of bedpostX. Will automatically look for dyads2_thr0.05.nii.gz and "
+    #                          "dyads3_thr0.05.nii.gz in the same folder. dyads3_thr0.05.nii.gz is optional.",
+    #                     default=False)
+
+    parser.add_argument('--tract_definition', metavar="TractQuerier+|AutoPTX", choices=["TractQuerier+", "AutoPTX"],
+                        help="Select which tract definitions to use. 'TractQuerier+' defines tracts mainly by their"
+                             "cortical start and end region. 'AutoPTX' defines tracts mainly by ROIs in white matter. "
+                             "Both have their advantages and disadvantages. 'TractQuerier+' referes to the dataset "
+                             "described the TractSeg NeuroImage paper. "
+                             "NOTE 1: 'AutoPTX' only works for output type 'tractseg_segmentation' and "
+                             "'dm_regression'. "
+                             "NOTE 2: A pretrained 'AutoPTX' model is not available yet.",
+                        default="TractQuerier+")
+
+    parser.add_argument("--rescale_dm", action="store_true",
+                        help="Rescale density map to [0,100] range. Original values can be very small and therefore "
+                             "inconvenient to work with.",
+                        default=False)
+
+    # parser.add_argument('--tensor', action="store_true",
+    #                     help="Convert peaks to tensors before feeding to model.",
+    #                     default=False)
 
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
                         default=False)
@@ -161,12 +191,29 @@ def main():
     peak_threshold = 0.3     # specificity (TOM)
     automatically_flip_peaks = False
     blob_size_thr = 50  # default: 50
-    manual_exp_name = None  # args.exp_name
+    manual_exp_name = args.exp_name
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
-
+    bedpostX_input = False
+    tensor_input = False
+    # tensor_input = args.tensor
     input_path = args.input
-    config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling)
-    Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
+
+    if os.path.basename(input_path) == "dyads1.nii.gz":
+        print("BedpostX dyads detected. Will automatically combine dyads1+2[+3].")
+        bedpostX_input = True
+        tensor_input = True
+
+    if manual_exp_name is None:
+        config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling,
+                                      tract_definition=args.tract_definition, bedpostX_input=bedpostX_input)
+        Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." +
+                                                 config_file), "Config")()
+    else:
+        Config = exp_utils.load_config_from_txt(join(C.EXP_PATH, manual_exp_name, "Hyperparameters.txt"))
+
+    Config = exp_utils.get_correct_labels_type(Config)
+    if args.tractseg_dir:
+        Config.TRACTSEG_DIR = args.tractseg_dir
     Config.CSD_TYPE = args.csd_type
     Config.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
     Config.VERBOSE = args.verbose
@@ -179,10 +226,11 @@ def main():
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
 
     bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
-    brain_mask = exp_utils.get_brain_mask_path(Config, args)
     exp_utils.make_dir(Config.PREDICT_IMG_OUTPUT)
 
     if args.raw_diffusion_input:
+        brain_mask = exp_utils.get_brain_mask_path(Config, args)
+
         if args.brain_mask is None:
             brain_mask = mrtrix.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
 
@@ -198,7 +246,10 @@ def main():
         data_img = nib.load(peak_path)
     else:
         peak_path = input_path
-        data_img = nib.load(peak_path)
+        if bedpostX_input:
+            data_img = img_utils.load_bedpostX_dyads(peak_path, scale=True)
+        else:
+            data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
         if not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
             print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
@@ -206,12 +257,20 @@ def main():
                   "If you input a Diffusion image add the option '--raw_diffusion_input'." + bcolors.ENDC)
             sys.exit()
 
+    if tensor_input:
+        data_img = img_utils.peak_image_to_tensor_image_nifti(data_img)
+
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.get_affine()
 
-    data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
-                                                                            do_flip=automatically_flip_peaks)
+    if not tensor_input:
+        data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
+                                                                                do_flip=automatically_flip_peaks)
+    else:
+        flip_axis = None
+        data = data_img.get_data()
+
     if flip_axis is not None:
         print("\n" + bcolors.YELLOW + "WARNING:" + bcolors.ENDC + bcolors.BOLD +
               "Detected that peaks probably have wrong orientation. If your results are looking bad you "
@@ -233,10 +292,11 @@ def main():
     if Config.EXPERIMENT_TYPE == "peak_regression":
         parts = ["Part1", "Part2", "Part3", "Part4"]
     else:
-        parts = ["All"]
+        # parts = ["All"]
+        parts = [Config.CLASSES]
 
     for part in parts:
-        if part != "All":
+        if part.startswith("Part"):
             Config.CLASSES = "All_" + part
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
@@ -248,12 +308,19 @@ def main():
                            postprocess=args.postprocess, peak_regression_part=part,
                            input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
-                           inference_batch_size=inference_batch_size)
+                           inference_batch_size=inference_batch_size,
+                           tract_definition=args.tract_definition, bedpostX_input=bedpostX_input)
 
-        if args.preview and Config.EXPERIMENT_TYPE == "tract_segmentation":
+        if args.preview and Config.CLASSES not in ["All_Part2", "All_Part3", "All_Part4"]:
             print("Saving preview...")
-            # brain_mask = nib.load(brain_mask).get_data()
-            plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
+            # plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
+            plot_utils.plot_tracts_matplotlib(Config.CLASSES, seg, data, Config.PREDICT_IMG_OUTPUT,
+                                              threshold=Config.THRESHOLD, exp_type=Config.EXPERIMENT_TYPE)
+
+        if Config.EXPERIMENT_TYPE == "dm_regression":
+            seg[seg < Config.THRESHOLD] = 0
+            if args.rescale_dm:
+                seg = img_utils.scale_to_range(seg, range(0, 100))
 
         if Config.SINGLE_OUTPUT_FILE:
             img = nib.Nifti1Image(seg, data_affine)

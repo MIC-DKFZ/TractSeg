@@ -29,6 +29,7 @@ from tractseg.libs import dataset_utils
 from tractseg.data.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 from tractseg.data.DLDABG_standalone import SingleThreadedAugmenter
 from tractseg.data.DLDABG_standalone import Compose
+from tractseg.data.DLDABG_standalone import NumpyToTensor
 
 np.random.seed(1337)  # for reproducibility
 
@@ -77,8 +78,9 @@ class BatchGenerator2D_data_ordered_standalone(object):
             new_global_idx = end  # not end-1, because this goes into range, and there automatically -1
 
         slice_idxs = list(range(self.global_idx, new_global_idx))
+        slice_direction = dataset_utils.slice_dir_to_int(self.Config.SLICE_DIRECTION)
         x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
-                                           training_slice_direction=self.Config.SLICE_DIRECTION,
+                                           slice_direction=slice_direction,
                                            labels_type=self.Config.LABELS_TYPE)
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
@@ -161,6 +163,8 @@ class DataLoaderInference():
             # tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
             # tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
             # tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
+
+        tfs.append(NumpyToTensor(keys=["data", "seg"]))
 
         batch_gen = SingleThreadedAugmenter(batch_generator, Compose(tfs))
         return batch_gen

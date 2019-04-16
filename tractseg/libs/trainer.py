@@ -97,7 +97,7 @@ def train_model(Config, model, data_loader):
                 nr_of_samples = len(getattr(Config, type.upper() + "_SUBJECTS"))
 
             # *Config.EPOCH_MULTIPLIER needed to have roughly same number of updates/batches as with 2D U-Net
-            nr_batches = int(nr_of_samples / Config.BATCH_SIZE) * Config.EPOCH_MULTIPLIER
+            nr_batches = int(int(nr_of_samples / Config.BATCH_SIZE) * Config.EPOCH_MULTIPLIER)
 
             print("Start looping batches...")
             start_time_batch_part = time.time()
@@ -192,12 +192,6 @@ def train_model(Config, model, data_loader):
         # Post Training tasks (each epoch)
         ###################################
 
-        #Adapt LR
-        if Config.LR_SCHEDULE:
-            model.scheduler.step()
-            # model.scheduler.step(np.mean(f1))
-            model.print_current_lr()
-
         # Average loss per batch over entire epoch
         metrics = metric_utils.normalize_last_element(metrics, batch_nr["train"], type="train")
         metrics = metric_utils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
@@ -205,6 +199,14 @@ def train_model(Config, model, data_loader):
 
         print("  Epoch {}, Average Epoch loss = {}".format(epoch_nr, metrics["loss_train"][-1]))
         print("  Epoch {}, nr_of_updates {}".format(epoch_nr, nr_of_updates))
+
+        # Adapt LR
+        if Config.LR_SCHEDULE:
+            if Config.LR_SCHEDULE_MODE == "min":
+                model.scheduler.step(metrics["loss_validate"][-1])
+            else:
+                model.scheduler.step(metrics["f1_macro_validate"][-1])
+            model.print_current_lr()
 
         # Save Weights
         start_time_saving = time.time()

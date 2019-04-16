@@ -17,36 +17,63 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import sys
 from os.path import join
 from os.path import expanduser
 
 
-def get_config_name(input_type, output_type, dropout_sampling=False):
-    if input_type == "peaks":
-        if output_type == "tract_segmentation" and dropout_sampling:
-            config = "TractSeg_12g90g270g_125mm_DS_DAugAll_Dropout"
-            # config = "TractSeg_12g90g270g_125mm_DAugAll_Dropout"
-        elif output_type == "tract_segmentation":
-            config = "TractSeg_12g90g270g_125mm_DS_DAugAll"
-            # config = "TractSeg_T1_12g90g270g_125mm_DAugAll"
-            # config = "TractSeg_12g90g270g_125mm_DS_DAugAll_RotMirFlip"
-        elif output_type == "endings_segmentation":
-            config = "EndingsSeg_12g90g270g_125mm_DS_DAugAll"
-        elif output_type == "TOM":
-            config = "Peaks_12g90g270g_125mm_DS_DAugAll"
-        elif output_type == "dm_regression":
-            config = "DmReg_12g90g270g_125mm_DAugAll"
-    elif input_type == "T1":
-        if output_type == "tract_segmentation":
-            config = "TractSeg_T1_125mm_DAugAll"
-        elif output_type == "endings_segmentation":
-            config = "EndingsSeg_12g90g270g_125mm_DAugAll"
-        elif output_type == "TOM":
-            config = "Peaks20_12g90g270g_125mm"
-        elif output_type == "dm_regression":
-            raise ValueError("For dm_regression no pretrained model available for T1")
-    else:
-        raise ValueError("input_type not recognized")
+def get_config_name(input_type, output_type, dropout_sampling=False, tract_definition="TractQuerier+",
+                    bedpostX_input=False):
+    if bedpostX_input:
+        if tract_definition == "TractQuerier+":
+            print("ERROR: bedpostX_input in combination with tract_definition TractQuerier+ not yet supported.")
+            sys.exit()
+        else:  # "AutoPTX"
+            if input_type == "peaks":
+                if output_type == "tract_segmentation" and dropout_sampling:
+                    print("ERROR: tract_definition AutoPTX in combination with uncertainty not supported.")
+                    sys.exit()
+                elif output_type == "tract_segmentation":
+                    config = "TractSeg_All_BXTensAg_aPTX_platLR20"
+                elif output_type == "endings_segmentation":
+                    print("ERROR: tract_definition AutoPTX in combination with output_type endings_segmentation "
+                          "not supported.")
+                    sys.exit()
+                elif output_type == "TOM":
+                    print("ERROR: tract_definition AutoPTX in combination with output_type TOM not supported.")
+                    sys.exit()
+                elif output_type == "dm_regression":
+                    config = "DmReg_All_BXTensAg_aPTX_platLR20_noMiss"
+            else:  # T1
+                print("ERROR: bedpostX_input in combination with input_type T1 not supported.")
+                sys.exit()
+    else:  # not bedpostX_input
+        if tract_definition == "TractQuerier+":
+            if input_type == "peaks":
+                if output_type == "tract_segmentation" and dropout_sampling:
+                    config = "TractSeg_12g90g270g_125mm_DS_DAugAll_Dropout"
+                elif output_type == "tract_segmentation":
+                    config = "TractSeg_12g90g270g_125mm_DS_DAugAll"
+                    # config = "TractSeg_T1_12g90g270g_125mm_DAugAll"
+                elif output_type == "endings_segmentation":
+                    config = "EndingsSeg_12g90g270g_125mm_DS_DAugAll"
+                elif output_type == "TOM":
+                    config = "Peaks_12g90g270g_125mm_DS_DAugAll"
+                elif output_type == "dm_regression":
+                    config = "DmReg_12g90g270g_125mm_DAugAll"
+            else:  # T1
+                if output_type == "tract_segmentation":
+                    config = "TractSeg_T1_125mm_DAugAll"
+                elif output_type == "endings_segmentation":
+                    config = "EndingsSeg_12g90g270g_125mm_DAugAll"
+                elif output_type == "TOM":
+                    config = "Peaks20_12g90g270g_125mm"
+                elif output_type == "dm_regression":
+                    print("ERROR: For dm_regression no pretrained model available for T1")
+                    sys.exit()
+        else:  # "AutoPTX"
+            print("ERROR: CSD input in combination with tract_definition AutoPTX+ not yet supported.")
+            sys.exit()
     return config
 
 def get_config_file():

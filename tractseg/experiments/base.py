@@ -30,21 +30,28 @@ class Config:
     """Settings and Hyperparameters"""
     EXP_MULTI_NAME = ""  #CV Parent Dir name; leave empty for Single Bundle Experiment
     EXP_NAME = "HCP_TEST"
-    MODEL = "UNet_Pytorch"
+    MODEL = "UNet_Pytorch_DeepSup"
     # tract_segmentation / endings_segmentation / dm_regression / peak_regression
     EXPERIMENT_TYPE = "tract_segmentation"
 
     DIM = "2D"  # 2D / 3D
     NUM_EPOCHS = 250
     EPOCH_MULTIPLIER = 1 #2D: 1, 3D: 12 for lowRes, 3 for highRes
-    DATA_AUGMENTATION = False
+    DATA_AUGMENTATION = True
     DAUG_SCALE = True
     DAUG_NOISE = True
+    DAUG_NOISE_VARIANCE = (0, 0.05)
     DAUG_ELASTIC_DEFORM = True
-    DAUG_RESAMPLE = True
+    DAUG_ALPHA = (90., 120.)
+    DAUG_SIGMA = (9., 11.)
+    DAUG_RESAMPLE = False   # does not change validation dice (if using Gaussian_blur) -> deactivate
+    DAUG_RESAMPLE_LEGACY = False    # does not change validation dice (at least on AutoPTX) -> deactivate
+    DAUG_GAUSSIAN_BLUR = True
+    DAUG_BLUR_SIGMA = (0, 1)
     DAUG_ROTATE = False
     DAUG_MIRROR = False
     DAUG_FLIP_PEAKS = False
+    P_SAMP = 1.0    # 1.0 slightly less overfitting than 0.4 but not much ("break-even" 20epochs later)
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - " \
                 "DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"
     DATASET = "HCP"  # HCP / HCP_32g / Schizo
@@ -71,13 +78,15 @@ class Config:
     USE_DROPOUT = False
     DROPOUT_SAMPLING = False
     # DATASET_FOLDER = "HCP_batches/270g_125mm_bundle_peaks_Y_subset"
-    DATASET_FOLDER = "HCP" # HCP / Schizo
+    DATASET_FOLDER = "HCP_preproc" # HCP / Schizo
     LABELS_FOLDER = "bundle_masks"  # bundle_masks / bundle_masks_dm
     MULTI_PARENT_PATH = join(C.EXP_PATH, EXP_MULTI_NAME)
     EXP_PATH = join(C.EXP_PATH, EXP_MULTI_NAME, EXP_NAME)  # default path
     BATCH_SIZE = 47  #Peak Prediction: 44 #Pytorch: 50  #Lasagne: 56  #Lasagne combined: 42  #Pytorch UpSample: 56
     LEARNING_RATE = 0.001  # 0.002 #LR find: 0.000143 ?  # 0.001
     LR_SCHEDULE = False
+    LR_SCHEDULE_MODE = "min"    # "min" / "max"
+    LR_SCHEDULE_PATIENCE = 10
     UNET_NR_FILT = 64
     LOAD_WEIGHTS = False
     # WEIGHTS_PATH = join(C.EXP_PATH, "HCP100_45B_UNet_x_DM_lr002_slope2_dec992_ep800/best_weights_ep64.npz")
@@ -109,7 +118,7 @@ class Config:
     NR_CPUS = -1
 
     # Rarly changed:
-    LABELS_TYPE = np.int16  # Binary: np.int16, Regression: np.float32
+    LABELS_TYPE = "int"
     THRESHOLD = 0.5  # Binary: 0.5, Regression: 0.01 ?
     TEST_TIME_DAUG = False
     USE_VISLOGGER = False  #only works with Python 3

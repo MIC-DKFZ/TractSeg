@@ -22,6 +22,7 @@ from __future__ import print_function
 import glob
 import os
 import re
+import ast
 from os.path import join
 from pprint import pprint
 import sys
@@ -227,6 +228,24 @@ def get_bundle_names(CLASSES):
          'ST_POSTC_right_b', 'ST_POSTC_right_e', 'ST_PAR_left_b', 'ST_PAR_left_e', 'ST_PAR_right_b',
          'ST_PAR_right_e', 'ST_OCC_left_b', 'ST_OCC_left_e', 'ST_OCC_right_b', 'ST_OCC_right_e'] #144
 
+    elif CLASSES == "AutoPTX":
+        bundles = ["af_l", "af_r", "ar_l", "ar_r", "atr_l", "atr_r", "cbd_l", "cbd_r", "cbp_l", "cbp_r", "cbt_l",
+                   "cbt_r", "cing_l", "cing_r", "cst_l", "cst_r", "fa_l", "fa_r", "fma", "fmi", "fx_l", "fx_r",
+                   "ifo_l", "ifo_r", "ilf_l", "ilf_r", "mcp", "mdlf_l", "mdlf_r", "MG_ac", "MG_unc_l", "MG_unc_r",
+                   "or_l", "or_r", "slf1_l_kattest2_symm", "slf1_r_kattest2_symm", "slf2_l_kattest2_symm",
+                   "slf2_r_kattest2_symm", "slf3_l_kattest2_symm", "slf3_r_kattest2_symm", "str_l", "str_r",
+                   "unc_l", "unc_r"]
+
+    elif CLASSES == "AutoPTX_42":
+        bundles = ["af_l", "af_r", "ar_l", "ar_r", "atr_l", "atr_r", "cbd_l", "cbd_r", "cbp_l", "cbp_r", "cbt_l",
+                   "cbt_r", "cing_l", "cing_r", "cst_l", "cst_r", "fa_l", "fa_r", "fma", "fmi", "fx_l", "fx_r",
+                   "ifo_l", "ifo_r", "ilf_l", "ilf_r", "mcp", "mdlf_l", "mdlf_r", "MG_ac", "MG_unc_l", "MG_unc_r",
+                   "or_l", "or_r", "slf1_l_kattest2_symm", "slf1_r_kattest2_symm", "slf2_l_kattest2_symm",
+                   "slf2_r_kattest2_symm", "slf3_l_kattest2_symm", "slf3_r_kattest2_symm", "str_l", "str_r"]
+
+    elif CLASSES == "AutoPTX_CST":
+        bundles = ["cst_l", "cst_r"]
+
     elif CLASSES == "test":
         # Only use subset of classes for unit testing because of runtime
         bundles = ["CST_right", "CA", "UF_left"]
@@ -331,6 +350,23 @@ def get_labels_filename(Config):
         else:
             Config.LABELS_FILENAME = "bundle_masks_72_808080"
 
+    elif (Config.CLASSES == "AutoPTX" or Config.CLASSES == "AutoPTX_42") and \
+            Config.EXPERIMENT_TYPE == "tract_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001"
+        elif Config.RESOLUTION == "2mm" and Config.DATASET == "Schizo":
+            Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001"
+        else:
+            Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001_808080"
+
+    elif Config.CLASSES == "AutoPTX_CST" and Config.EXPERIMENT_TYPE == "tract_segmentation":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001_CST"
+        elif Config.RESOLUTION == "2mm" and Config.DATASET == "Schizo":
+            Config.LABELS_FILENAME = "bundle_masks_autoPTX_thr001_CST"
+        else:
+            Config.LABELS_FILENAME = "NOT_AVAILABLE"
+
     elif Config.CLASSES == "20" and Config.EXPERIMENT_TYPE == "tract_segmentation":
         if Config.RESOLUTION == "1.25mm":
             Config.LABELS_FILENAME = "bundle_masks_20"
@@ -340,6 +376,13 @@ def get_labels_filename(Config):
     elif Config.CLASSES == "All" and Config.EXPERIMENT_TYPE == "dm_regression":
         if Config.RESOLUTION == "1.25mm":
             Config.LABELS_FILENAME = "bundle_masks_dm"
+        else:
+            Config.LABELS_FILENAME = "NOT_AVAILABLE"
+
+    elif (Config.CLASSES == "AutoPTX" or Config.CLASSES == "AutoPTX_42") and \
+            Config.EXPERIMENT_TYPE == "dm_regression":
+        if Config.RESOLUTION == "1.25mm":
+            Config.LABELS_FILENAME = "bundle_masks_autoPTX_dm"
         else:
             Config.LABELS_FILENAME = "NOT_AVAILABLE"
 
@@ -373,37 +416,42 @@ def add_background_class(data):
 
 def get_cv_fold(fold, dataset="HCP"):
     '''
-    Brauche train-test-validate wegen Best-model selection und wegen training von combined net
+    Brauche train-validate-test wegen Best-model selection und wegen training von combined net
     :return:
     '''
 
-    #For CV
-    if fold == 0:
-        train, validate, test = [0, 1, 2], [3], [4]
-        # train, validate, test = [0, 1, 2, 3, 4], [3], [4]
-    elif fold == 1:
-        train, validate, test = [1, 2, 3], [4], [0]
-    elif fold == 2:
-        train, validate, test = [2, 3, 4], [0], [1]
-    elif fold == 3:
-        train, validate, test = [3, 4, 0], [1], [2]
-    elif fold == 4:
-        train, validate, test = [4, 0, 1], [2], [3]
-
-    subjects = get_all_subjects(dataset)
-
-    if dataset.startswith("HCP"):
-        # subjects = list(Utils.chunks(subjects[:100], 10))   #10 folds
-        subjects = list(utils.chunks(subjects, 21))   #5 folds a 21 subjects
-        # => 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
-    elif dataset.startswith("Schizo"):
-        # 410 subjects
-        subjects = list(utils.chunks(subjects, 82))  # 5 folds a 82 subjects
+    if dataset == "HCP_all":
+        subjects = get_all_subjects(dataset)
+        cut_point = int(len(subjects) * 0.9)
+        return subjects[:cut_point], subjects[cut_point:], ["599469", "599469"]
     else:
-        raise ValueError("Invalid dataset name")
+        #For CV
+        if fold == 0:
+            train, validate, test = [0, 1, 2], [3], [4]
+            # train, validate, test = [0, 1, 2, 3, 4], [3], [4]
+        elif fold == 1:
+            train, validate, test = [1, 2, 3], [4], [0]
+        elif fold == 2:
+            train, validate, test = [2, 3, 4], [0], [1]
+        elif fold == 3:
+            train, validate, test = [3, 4, 0], [1], [2]
+        elif fold == 4:
+            train, validate, test = [4, 0, 1], [2], [3]
 
-    subjects = np.array(subjects)
-    return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
+        subjects = get_all_subjects(dataset)
+
+        if dataset.startswith("HCP"):
+            # subjects = list(Utils.chunks(subjects[:100], 10))   #10 folds
+            subjects = list(utils.chunks(subjects, 21))   #5 folds a 21 subjects
+            # => 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
+        elif dataset.startswith("Schizo"):
+            # 410 subjects
+            subjects = list(utils.chunks(subjects, 82))  # 5 folds a 82 subjects
+        else:
+            raise ValueError("Invalid dataset name")
+
+        subjects = np.array(subjects)
+        return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
 
 
 def print_and_save(Config, text, only_log=False):
@@ -440,6 +488,16 @@ def get_correct_input_dim(Config):
     return input_dim
 
 
+def get_correct_labels_type(Config):
+    if Config.LABELS_TYPE == "int":
+        Config.LABELS_TYPE = np.int16
+    elif Config.LABELS_TYPE == "float":
+        Config.LABELS_TYPE = np.float32
+    else:
+        raise ValueError("Config.LABELS_TYPE not recognized")
+    return Config
+
+
 def get_manual_exp_name_peaks(manual_exp_name, part):
     """
     If want to use manual experiment name for peak regression, replace part nr by X:
@@ -455,3 +513,19 @@ def get_manual_exp_name_peaks(manual_exp_name, part):
     """
     manual_exp_name_parts = manual_exp_name.split("X")
     return manual_exp_name_parts[0] + part[-1] + manual_exp_name_parts[1]
+
+
+def load_config_from_txt(path):
+
+    class Struct:
+        def __init__(self, **entries):
+            self.__dict__.update(entries)
+
+    config_str = open(path, "r").read()
+    clean_str = ""
+    for line in config_str.splitlines():
+        if not line.startswith("Average Epoch time:"):
+            clean_str += line
+    config_dict = ast.literal_eval(clean_str)
+    config_obj = Struct(**config_dict)
+    return config_obj

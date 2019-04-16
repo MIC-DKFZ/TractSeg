@@ -23,8 +23,9 @@ class Config(BaseConfig):
 
     EXPERIMENT_TYPE = "dm_regression"
 
-    MODEL = "UNet_Pytorch_Regression"
-    LABELS_TYPE = np.float32
+    LABELS_TYPE = "float"
+
+    THRESHOLD = 0.01  # Binary: 0.5, Regression: 0.01 ?
 
     # DATASET = "HCP"  # HCP / HCP_32g
     # RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)

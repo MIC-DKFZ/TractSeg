@@ -26,27 +26,21 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
-from os.path import join
-import random
-from time import sleep
 import numpy as np
-import nibabel as nib
 
-from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
-from batchgenerators.transforms.resample_transforms import ResampleTransform
+from batchgenerators.transforms.resample_transforms import SimulateLowResolutionTransform
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
 from batchgenerators.transforms.spatial_transforms import SpatialTransform, FlipVectorAxisTransform
 from batchgenerators.transforms.spatial_transforms import MirrorTransform
-from batchgenerators.transforms.crop_and_pad_transforms import PadToMultipleTransform
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
+from batchgenerators.transforms.utility_transforms import NumpyToTensor
 from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
+from batchgenerators.augmentations.utils import pad_nd_image
+from batchgenerators.augmentations.utils import center_crop_3D_image_batched
+from batchgenerators.augmentations.crop_and_pad_augmentations import crop
 
-from tractseg.libs.system_config import SystemConfig as C
-from tractseg.libs import dataset_utils
-from tractseg.libs import exp_utils
 from tractseg.data.data_loader_training import load_training_data
 
 
@@ -77,11 +71,32 @@ class BatchGenerator3D_Nifti_random(SlimDataLoaderBase):
             data, seg = load_training_data(self.Config, subjects[subject_idx])  # (x, y, z, channels)
             data = data.transpose(3, 0, 1, 2)  # channels have to be first
             seg = seg.transpose(3, 0, 1, 2)
+
             x.append(data)
             y.append(seg)
 
-        data_dict = {"data": np.array(x),     # (batch_size, channels, x, y, [z])
-                     "seg": np.array(y)}      # (batch_size, channels, x, y, [z])
+        x = np.array(x)
+        y = np.array(y)
+
+        # Can be replaced by crop -> shorter
+        # x = pad_nd_image(x, self.Config.INPUT_DIM, mode='constant', kwargs={'constant_values': 0})
+        # y = pad_nd_image(y, self.Config.INPUT_DIM, mode='constant', kwargs={'constant_values': 0})
+        # x = center_crop_3D_image_batched(x, self.Config.INPUT_DIM)
+        # y = center_crop_3D_image_batched(y, self.Config.INPUT_DIM)
+
+        # Crop and pad to input size
+        # x, y = crop(x, y, crop_size=self.Config.INPUT_DIM)  # does not work with img with batches and channels
+
+        # Works
+        # This is needed for Schizo dataset
+        x = pad_nd_image(x, shape_must_be_divisible_by=(8, 8), mode='constant', kwargs={'constant_values': 0})
+        y = pad_nd_image(y, shape_must_be_divisible_by=(8, 8), mode='constant', kwargs={'constant_values': 0})
+
+        x = x.astype(np.float32)
+        y = y.astype(np.float32)
+
+        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
+                     "seg": y}      # (batch_size, channels, x, y, [z])
         return data_dict
 
 
@@ -94,6 +109,7 @@ class DataLoaderTraining:
 
         if self.Config.DATA_AUGMENTATION:
             num_processes = 16  # 2D: 8 is a bit faster than 16
+            # num_processes = 8
         else:
             num_processes = 6
 
@@ -101,9 +117,6 @@ class DataLoaderTraining:
 
         if self.Config.NORMALIZE_DATA:
             tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
-
-        if self.Config.DATASET == "Schizo" and self.Config.RESOLUTION == "2mm":
-            tfs.append(PadToMultipleTransform(16))
 
         if self.Config.DATA_AUGMENTATION:
             if type == "train":
@@ -122,13 +135,14 @@ class DataLoaderTraining:
                                                 border_cval_data=0,
                                                 order_data=3,
                                                 border_mode_seg='constant', border_cval_seg=0,
-                                                order_seg=0, random_crop=True))
+                                                order_seg=0, random_crop=True, p_el_per_sample=0.2,
+                                                p_rot_per_sample=0.2, p_scale_per_sample=0.2))
 
                 if self.Config.DAUG_RESAMPLE:
-                    tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
+                    tfs.append(SimulateLowResolutionTransform(zoom_range=(0.5, 1), p_per_sample=0.2))
 
                 if self.Config.DAUG_NOISE:
-                    tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
+                    tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05), p_per_sample=0.2))
 
                 if self.Config.DAUG_MIRROR:
                     tfs.append(MirrorTransform())
@@ -136,9 +150,11 @@ class DataLoaderTraining:
                 if self.Config.DAUG_FLIP_PEAKS:
                     tfs.append(FlipVectorAxisTransform())
 
+        tfs.append(NumpyToTensor(keys=["data", "seg"]))
+
         #num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_generator, Compose(tfs), num_processes=num_processes,
-                                           num_cached_per_queue=1, seeds=None)
+                                           num_cached_per_queue=1, seeds=None, pin_memory=True)
         return batch_gen    # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)
 
 

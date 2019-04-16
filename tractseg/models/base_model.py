@@ -32,12 +32,13 @@ from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 
+torch.backends.cudnn.benchmark = True
+
 
 class BaseModel:
     def __init__(self, Config):
         self.Config = Config
 
-        # torch.backends.cudnn.benchmark = True     #not faster
         if self.Config.NR_CPUS > 0:
             torch.set_num_threads(self.Config.NR_CPUS)
 
@@ -55,6 +56,9 @@ class BaseModel:
             self.criterion = pytorch_utils.soft_batch_dice
         elif self.Config.EXPERIMENT_TYPE == "peak_regression":
             self.criterion = pytorch_utils.angle_length_loss
+        elif self.Config.EXPERIMENT_TYPE == "dm_regression":
+            # self.criterion = nn.MSELoss()   # aggregate by mean
+            self.criterion = nn.MSELoss(size_average=False, reduce=True)   # aggregate by sum
         else:
             # weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
             #                       self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[1])).cuda()
@@ -69,6 +73,15 @@ class BaseModel:
         self.net = NetworkClass(n_input_channels=NR_OF_GRADIENTS, n_classes=self.Config.NR_OF_CLASSES,
                                 n_filt=self.Config.UNET_NR_FILT, batchnorm=self.Config.BATCH_NORM,
                                 dropout=self.Config.USE_DROPOUT, upsample=self.Config.UPSAMPLE_TYPE)
+
+        # Somehow not really faster (max 10% speedup): GPU utility low -> why? (CPU also low)
+        # (with bigger batch_size even worse)
+        # - GPU slow connection? (but maybe same problem as before pin_memory)
+        # - Wrong setup with pin_memory, async, ...? -> should be correct
+        # - load from npy instead of nii -> will not solve entire problem
+        # nr_gpus = torch.cuda.device_count()
+        # exp_utils.print_and_save(self.Config, "nr of gpus: {}".format(nr_gpus))
+        # self.net = nn.DataParallel(self.net)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         net = self.net.to(self.device)
@@ -86,8 +99,11 @@ class BaseModel:
             raise ValueError("Optimizer not defined")
 
         if self.Config.LR_SCHEDULE:
-            self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
-            # self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="max")
+            # Slightly better results could be archived if training for 500ep without reduction of LR
+            # -> but takes too long -> using reudceOnPlateau gives benefits if only training for 200ep
+            self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer,
+                                                            mode=self.Config.LR_SCHEDULE_MODE,
+                                                            patience=self.Config.LR_SCHEDULE_PATIENCE)
 
         if self.Config.LOAD_WEIGHTS:
             exp_utils.print_verbose(self.Config, "Loading weights ... ({})".format(join(self.Config.EXP_PATH,
@@ -100,8 +116,8 @@ class BaseModel:
 
 
     def train(self, X, y, weight_factor=10):
-        X = torch.tensor(X, dtype=torch.float32).to(self.device)  # (bs, features, x, y)
-        y = torch.tensor(y, dtype=torch.float32).to(self.device)  # (bs, classes, x, y)
+        X = X.contiguous().cuda(non_blocking=True)  # (bs, features, x, y)
+        y = y.contiguous().cuda(non_blocking=True)  # (bs, classes, x, y)
 
         self.optimizer.zero_grad()
         self.net.train()
@@ -135,7 +151,8 @@ class BaseModel:
                                                             max_angle_error=self.Config.PEAK_DICE_THR,
                                                             max_length_error=self.Config.PEAK_DICE_LEN_THR)
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
-            f1 = pytorch_utils.f1_score_macro(y.detach() > 0.5, outputs.detach(), per_class=True)
+            f1 = pytorch_utils.f1_score_macro(y.detach() > self.Config.THRESHOLD, outputs.detach(),
+                                              per_class=True, threshold=self.Config.THRESHOLD)
         else:
             f1 = pytorch_utils.f1_score_macro(y.detach(), F.sigmoid(outputs).detach(), per_class=True,
                                               threshold=self.Config.THRESHOLD)
@@ -150,9 +167,19 @@ class BaseModel:
 
 
     def test(self, X, y, weight_factor=10):
+        """
+
+        Args:
+            X: float torch tensor
+            y: float torch tensor
+            weight_factor:
+
+        Returns:
+
+        """
         with torch.no_grad():
-            X = torch.tensor(X, dtype=torch.float32).to(self.device)
-            y = torch.tensor(y, dtype=torch.float32).to(self.device)
+            X = X.contiguous().cuda(non_blocking=True)
+            y = y.contiguous().cuda(non_blocking=True)
 
         if self.Config.DROPOUT_SAMPLING:
             self.net.train()
@@ -185,7 +212,8 @@ class BaseModel:
                                                             max_angle_error=self.Config.PEAK_DICE_THR,
                                                             max_length_error=self.Config.PEAK_DICE_LEN_THR)
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
-            f1 = pytorch_utils.f1_score_macro(y.detach() > 0.5, outputs.detach(), per_class=True)
+            f1 = pytorch_utils.f1_score_macro(y.detach() > self.Config.THRESHOLD, outputs.detach(),
+                                              per_class=True, threshold=self.Config.THRESHOLD)
         else:
             f1 = pytorch_utils.f1_score_macro(y.detach(), F.sigmoid(outputs).detach(), per_class=True,
                                               threshold=self.Config.THRESHOLD)
@@ -201,7 +229,7 @@ class BaseModel:
 
     def predict(self, X):
         with torch.no_grad():
-            X = torch.tensor(X, dtype=torch.float32).to(self.device)
+            X = torch.tensor(X, dtype=torch.float32).contiguous().to(self.device)
 
         if self.Config.DROPOUT_SAMPLING:
             self.net.train()
