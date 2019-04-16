@@ -192,6 +192,7 @@ def main():
     blob_size_thr = 50  # default: 50
     manual_exp_name = args.exp_name
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
+    bedpostX_input = False
     tensor_input = False
     # tensor_input = args.tensor
     input_path = args.input

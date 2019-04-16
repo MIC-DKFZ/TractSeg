@@ -43,7 +43,7 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
                     print("ERROR: bundle_definition AutoPTX in combination with output_type TOM not supported.")
                     sys.exit()
                 elif output_type == "dm_regression":
-                    config = "DmReg_All_BXTensAg_aPTX_platLR"
+                    config = "DmReg_All_BXTensAg_aPTX_platLR20_noMiss"
             else:  # T1
                 print("ERROR: bedpostX_input in combination with input_type T1 not supported.")
                 sys.exit()

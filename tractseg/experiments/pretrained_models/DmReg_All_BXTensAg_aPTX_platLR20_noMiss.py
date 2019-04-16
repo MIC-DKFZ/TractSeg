@@ -24,6 +24,6 @@ class Config(DmRegConfig):
 
     LR_SCHEDULE = True
     LR_SCHEDULE_MODE = "min"
-    LR_SCHEDULE_PATIENCE = 10
+    LR_SCHEDULE_PATIENCE = 20
 
     NUM_EPOCHS = 200    # 130 probably also fine
