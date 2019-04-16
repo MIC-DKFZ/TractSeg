@@ -26,21 +26,21 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
                     bedpostX_input=False):
     if bedpostX_input:
         if tract_definition == "TractQuerier+":
-            print("ERROR: bedpostX_input in combination with bundle_definition TractQuerier+ not yet supported.")
+            print("ERROR: bedpostX_input in combination with tract_definition TractQuerier+ not yet supported.")
             sys.exit()
         else:  # "AutoPTX"
             if input_type == "peaks":
                 if output_type == "tract_segmentation" and dropout_sampling:
-                    print("ERROR: bundle_definition AutoPTX in combination with uncertainty not supported.")
+                    print("ERROR: tract_definition AutoPTX in combination with uncertainty not supported.")
                     sys.exit()
                 elif output_type == "tract_segmentation":
                     config = "TractSeg_All_BXTensAg_aPTX_platLR20"
                 elif output_type == "endings_segmentation":
-                    print("ERROR: bundle_definition AutoPTX in combination with output_type endings_segmentation "
+                    print("ERROR: tract_definition AutoPTX in combination with output_type endings_segmentation "
                           "not supported.")
                     sys.exit()
                 elif output_type == "TOM":
-                    print("ERROR: bundle_definition AutoPTX in combination with output_type TOM not supported.")
+                    print("ERROR: tract_definition AutoPTX in combination with output_type TOM not supported.")
                     sys.exit()
                 elif output_type == "dm_regression":
                     config = "DmReg_All_BXTensAg_aPTX_platLR20_noMiss"
@@ -72,7 +72,7 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
                     print("ERROR: For dm_regression no pretrained model available for T1")
                     sys.exit()
         else:  # "AutoPTX"
-            print("ERROR: CSD input in combination with bundle_definition AutoPTX+ not yet supported.")
+            print("ERROR: CSD input in combination with tract_definition AutoPTX+ not yet supported.")
             sys.exit()
     return config
 
