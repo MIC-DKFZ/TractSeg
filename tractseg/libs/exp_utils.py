@@ -275,6 +275,9 @@ def get_ACT_noACT_bundle_names():
 
 
 def get_labels_filename(Config):
+    """
+    Returns name of labels file (without file ending (.nii.gz automatically added)) depending on config settings.
+    """
 
     if Config.CLASSES == "All" and Config.EXPERIMENT_TYPE == "peak_regression":
         if Config.RESOLUTION == "1.25mm":

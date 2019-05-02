@@ -295,25 +295,32 @@ TractSeg uses these commands so they have to be available.
 
 
 ## Train your own model
-TractSeg uses a pretrained model. However, you can also train your own model on your own data.
-But be aware: This is more complicated than just running with the pretrained model. The following 
+TractSeg uses a pretrained model. You can also train your own model on your own data, however TractSeg is not 
+optimised to make this convenient, as most people will use the pretrained model. The following 
 guide is quite short and you might have problems following every step. Contact the author if
 you need help training your own model.
 
-1. Install BatchGenerators: `pip install https://github.com/MIC-DKFZ/batchgenerators/archive/master.zip`
+1. Install BatchGenerators and use commit `802e9cbd556b9ebc1300beded7c10a37ef09b7b9`: 
+    ```
+    git clone https://github.com/MIC-DKFZ/batchgenerators.git
+    cd batchgenerators
+    git checkout 802e9cbd556b9ebc1300beded7c10a37ef09b7b9
+    pip intall -e .
+    ```  
 2. The folder structure of your training data should be the following:
-```
-custom_path/HCP/subject_01/
-      '-> mrtrix_peaks.nii.gz       (mrtrix CSD peaks;  shape: [x,y,z,9])
-      '-> bundle_masks.nii.gz       (Reference bundle masks; shape: [x,y,z,nr_bundles])
-custom_path/HCP/subject_02/
-      ...
-```
-3. Adapt the file tractseg/config/custom/My_custom_experiment.py.
-4. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory, e.g.
+    ```
+    custom_path/HCP/subject_01/
+          '-> mrtrix_peaks.nii.gz       (mrtrix CSD peaks;  shape: [x,y,z,9])
+          '-> bundle_masks.nii.gz       (Reference bundle masks; shape: [x,y,z,nr_bundles])
+    custom_path/HCP/subject_02/
+          ...
+    ```  
+3. Preprocess the data using `tractseg/data/preprocessing.py` to remove all non-brain area (crop to brain 
+bounding box). Adapt the data pathes in `tractseg/data/preprocessing.py` to fit your data (look for `#todo: adapt` 
+inside of the file.)
+4. Adapt the file `tractseg/config/custom/My_custom_experiment.py`.
+5. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory `working_dir=XXX`, e.g.
 `working_dir=custom_path`.
-5. Adapt `tractseg.libs.DatasetUtils.scale_input_to_unet_shape()` to scale your input data to the 
-UNet input size of `144x144`. This is not very convenient. Contact the author if you need help.
 6. Adapt `tractseg.libs.exp_utils.get_bundle_names()` with the bundles you use in your reference data.
 7. Adapt `tractseg.libs.exp_utils.get_labels_filename()` with the names of your label files.
 8. Adapt `tractseg.libs.Subjects` with the list of your subject IDs.
