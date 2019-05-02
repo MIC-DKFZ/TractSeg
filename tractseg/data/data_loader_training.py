@@ -302,7 +302,7 @@ class DataLoaderTraining:
                 if self.Config.DAUG_FLIP_PEAKS:
                     tfs.append(FlipVectorAxisTransform())
 
-        tfs.append(NumpyToTensor(keys=["data", "seg"]))
+        tfs.append(NumpyToTensor(keys=["data", "seg"], cast_to="float"))
 
         #num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_generator, Compose(tfs), num_processes=num_processes,

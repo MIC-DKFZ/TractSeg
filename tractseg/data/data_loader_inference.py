@@ -164,7 +164,7 @@ class DataLoaderInference():
             # tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
             # tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
 
-        tfs.append(NumpyToTensor(keys=["data", "seg"]))
+        tfs.append(NumpyToTensor(keys=["data", "seg"], cast_to="float"))
 
         batch_gen = SingleThreadedAugmenter(batch_generator, Compose(tfs))
         return batch_gen
