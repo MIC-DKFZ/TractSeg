@@ -20,10 +20,10 @@ from __future__ import division
 from __future__ import print_function
 
 import warnings
-warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
-warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
-warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
-warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
+warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)  # hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")  # hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")  # hide Cython benign warning
 import argparse
 import importlib
 import os
@@ -201,7 +201,7 @@ def main():
     if os.path.basename(input_path) == "dyads1.nii.gz":
         print("BedpostX dyads detected. Will automatically combine dyads1+2[+3].")
         bedpostX_input = True
-        tensor_input = True
+        # tensor_input = True
 
     if manual_exp_name is None:
         config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling,

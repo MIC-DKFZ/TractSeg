@@ -682,7 +682,7 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
         path_dyads1: path to dyads1.nii.gz
 
     Returns:
-        tensor with shape: [x,y,z, 18]
+        peaks with shape: [x,y,z,9]
     """
     dyads1_img = nib.load(path_dyads1)
     dyads1 = dyads1_img.get_data()
@@ -704,7 +704,11 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
 
     dyads = np.concatenate((dyads1, dyads2, dyads3), axis=3)
 
-    # tensor = peak_image_to_tensor_image(dyads)
+    # Flip x axis to make BedpostX compatible with mrtrix CSD
+    dyads[:, :, :, 0] *= -1
+    dyads[:, :, :, 3] *= -1
+    dyads[:, :, :, 6] *= -1
+
     dyads_img = nib.Nifti1Image(dyads, dyads1_img.get_affine())
     return dyads_img
 
