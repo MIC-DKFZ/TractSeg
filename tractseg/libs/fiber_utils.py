@@ -21,7 +21,6 @@ from __future__ import print_function
 
 import multiprocessing
 from os import getpid
-import logging
 import numpy as np
 import nibabel as nib
 from dipy.tracking.streamline import compress_streamlines as compress_streamlines_dipy
@@ -31,8 +30,9 @@ from dipy.tracking import utils as utils_trk
 
 from tractseg.libs import utils
 
-logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of output
-logging.getLogger().setLevel(logging.INFO)
+# import logging
+# logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of output
+# logging.getLogger().setLevel(logging.INFO)
 
 
 # Global variables needed for shared memory of parallel fiber compression
@@ -50,7 +50,7 @@ def compress_fibers_worker_shared_mem(idx):
     """
     streamlines_chunk = _FIBER_BATCHES[idx]  # shared memory; by using indices each worker accesses only his part
     result = compress_streamlines_dipy(streamlines_chunk, tol_error=_COMPRESSION_ERROR_THRESHOLD)
-    logging.debug('PID {}, DONE'.format(getpid()))
+    # logging.debug('PID {}, DONE'.format(getpid()))
     return result
 
 
