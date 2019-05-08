@@ -77,6 +77,7 @@ def main():
     parser.add_argument("--seg", action="store_true", help="Create binary segmentation")
     parser.add_argument("--probs", action="store_true", help="Create probmap segmentation")
     parser.add_argument("--lw", action="store_true", help="Load weights of pretrained net")
+    parser.add_argument("--only_val", action="store_true", help="only run validation")
     parser.add_argument("--en", metavar="name", help="Experiment name")
     parser.add_argument("--fold", metavar="N", help="Which fold to train when doing CrossValidation", type=int)
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)
@@ -99,7 +100,9 @@ def main():
     if args.lw:
         Config.LOAD_WEIGHTS = args.lw
     if args.fold:
-        Config.CV_FOLD= args.fold
+        Config.CV_FOLD = args.fold
+    if args.only_val:
+        Config.ONLY_VAL = True
     Config.VERBOSE = args.verbose
 
     Config.MULTI_PARENT_PATH = join(C.EXP_PATH, Config.EXP_MULTI_NAME)
@@ -119,7 +122,7 @@ def main():
     else:
         Config.NR_OF_CLASSES = len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
-    if Config.TRAIN:
+    if Config.TRAIN and not Config.ONLY_VAL:
         Config.EXP_PATH = exp_utils.create_experiment_folder(Config.EXP_NAME, Config.MULTI_PARENT_PATH, Config.TRAIN)
 
     if Config.DIM == "2D":
@@ -210,7 +213,7 @@ def main():
         model = trainer.train_model(Config, model, data_loader)
 
     # After Training
-    if Config.TRAIN:
+    if Config.TRAIN and not Config.ONLY_VAL:
         # Have to load other weights, because after training it has the weights of the last epoch
         print("Loading best epoch: {}".format(Config.BEST_EPOCH))
         Config.WEIGHTS_PATH = Config.EXP_PATH + "/best_weights_ep" + str(Config.BEST_EPOCH) + ".npz"
@@ -285,7 +288,7 @@ def main():
             nib.save(img, join(Config.EXP_PATH, "probmaps", subject + "_peak.nii.gz"))
 
     eval_script_path = join(os.path.expanduser("~"), "dev/bsp/eval_nonHCP.py")
-    if os.path.exists(eval_script_path):
+    if os.path.exists(eval_script_path) and not Config.ONLY_VAL and not Config.TEST:
         print("Evaluating on non HCP data...")
         os.system("python " + eval_script_path + " " + Config.EXP_NAME)
 

@@ -59,7 +59,6 @@ from tractseg.libs import img_utils
 
 # warnings.simplefilter("ignore", UserWarning)  # hide batchgenerator warnings
 
-
 def load_training_data(Config, subject):
     """
     Load data and labels for one subject from the training set. Cut and scale to make them have
@@ -178,6 +177,9 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
         self.Config = None
 
     def generate_train_batch(self):
+
+        # np.random.seed(1234)
+
         subjects = self._data[0]
         subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
 

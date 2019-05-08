@@ -190,6 +190,11 @@ class DataLoaderInference():
             else:
                 from tractseg.data.data_loader_training import load_training_data
                 data, seg = load_training_data(self.Config, self.subject)
+
+                data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data,
+                                                                                     target_size=self.Config.INPUT_DIM[0])
+                seg, transformation = dataset_utils.pad_and_scale_img_to_square_img(seg,
+                                                                                    target_size=self.Config.INPUT_DIM[0])
         else:
             raise ValueError("Neither 'data' nor 'subject' set.")
 

@@ -246,17 +246,18 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
                         metrics["loss_train"][5:], "r:", label='loss train')
         plt2, = ax.plot(list(range(5, len(metrics["loss_validate"]))),
                         metrics["loss_validate"][5:], "r", label='loss val')
-        plt3, = ax.plot(list(range(5, len(metrics["loss_test"]))),
-                        metrics["loss_test"][5:], "r--", label='loss test')
+        # plt3, = ax.plot(list(range(5, len(metrics["loss_test"]))),
+        #                 metrics["loss_test"][5:], "r--", label='loss test')
 
         plt4, = ax2.plot(list(range(5, len(metrics["f1_macro_train"]))),
                          metrics["f1_macro_train"][5:], "g:", label='f1_macro_train')
         plt5, = ax2.plot(list(range(5, len(metrics["f1_macro_validate"]))),
                          metrics["f1_macro_validate"][5:], "g", label='f1_macro_val')
-        plt6, = ax2.plot(list(range(5, len(metrics["f1_macro_test"]))),
-                         metrics["f1_macro_test"][5:], "g--", label='f1_macro_test')
+        # plt6, = ax2.plot(list(range(5, len(metrics["f1_macro_test"]))),
+        #                  metrics["f1_macro_test"][5:], "g--", label='f1_macro_test')
 
-        plt.legend(handles=[plt1, plt2, plt3, plt4, plt5, plt6],
+        # plt.legend(handles=[plt1, plt2, plt3, plt4, plt5, plt6],
+        plt.legend(handles=[plt1, plt2, plt4, plt5],
                    loc=2,
                    borderaxespad=0.,
                    bbox_to_anchor=(1.03, 1))  # wenn weiter von Achse weg soll: 1.05 -> 1.15
@@ -266,11 +267,11 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
     else:
         plt1, = ax.plot(metrics["loss_train"], "r:", label='loss train')
         plt2, = ax.plot(metrics["loss_validate"], "r", label='loss val')
-        plt3, = ax.plot(metrics["loss_test"], "r--", label='loss test')
+        # plt3, = ax.plot(metrics["loss_test"], "r--", label='loss test')
 
         plt7, = ax2.plot(metrics["f1_macro_train"], "g:", label='f1_macro_train')
         plt8, = ax2.plot(metrics["f1_macro_validate"], "g", label='f1_macro_val')
-        plt9, = ax2.plot(metrics["f1_macro_test"], "g--", label='f1_macro_test')
+        # plt9, = ax2.plot(metrics["f1_macro_test"], "g--", label='f1_macro_test')
 
         # #tmp
         # plt10, = ax2.plot(metrics["f1_LenF1_train"], "b:", label='f1_LenF1_train')
@@ -282,7 +283,8 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
         # plt14, = ax2.plot(metrics["f1_Thr2_validate"], "m", label='f1_Thr2_val')
         # plt15, = ax2.plot(metrics["f1_Thr2_test"], "m--", label='f1_Thr2_test')
 
-        plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9],
+        # plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9],
+        plt.legend(handles=[plt1, plt2, plt7, plt8],
         # plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9, plt10, plt11, plt12],
         # plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9, plt10, plt11, plt12, plt13, plt14, plt15],
                    loc=2,

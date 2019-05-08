@@ -82,7 +82,12 @@ def train_model(Config, model, data_loader):
             else:
                 weight_factor = 1.
 
-        for type in ["train", "test", "validate"]:
+        if Config.ONLY_VAL:
+            types = ["validate"]
+        else:
+            types = ["train", "validate"]
+
+        for type in types:
             print_loss = []
             start_time_batch_gen = time.time()
 
@@ -192,10 +197,15 @@ def train_model(Config, model, data_loader):
         # Post Training tasks (each epoch)
         ###################################
 
+        if Config.ONLY_VAL:
+            metrics = metric_utils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
+            print("f1 macro validate: {}".format(round(metrics["f1_macro_validate"][0], 4)))
+            return model
+
         # Average loss per batch over entire epoch
         metrics = metric_utils.normalize_last_element(metrics, batch_nr["train"], type="train")
         metrics = metric_utils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
-        metrics = metric_utils.normalize_last_element(metrics, batch_nr["test"], type="test")
+        # metrics = metric_utils.normalize_last_element(metrics, batch_nr["test"], type="test")
 
         print("  Epoch {}, Average Epoch loss = {}".format(epoch_nr, metrics["loss_train"][-1]))
         print("  Epoch {}, nr_of_updates {}".format(epoch_nr, nr_of_updates))
@@ -299,6 +309,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
         for batch in tqdm(batch_generator):
             x = batch["data"]   # (bs, nr_of_channels, x, y)
             y = batch["seg"]    # (bs, nr_of_classes, x, y)
+            y = y.numpy()
 
             if not only_prediction:
                 y = y.astype(Config.LABELS_TYPE)

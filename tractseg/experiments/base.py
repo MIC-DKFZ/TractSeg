@@ -131,3 +131,4 @@ class Config:
     BEST_EPOCH = 0
     VERBOSE = True
     CALC_F1 = True
+    ONLY_VAL = False
