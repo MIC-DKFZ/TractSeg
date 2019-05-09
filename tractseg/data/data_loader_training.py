@@ -191,9 +191,13 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
 
         slice_direction = dataset_utils.slice_dir_to_int(self.Config.TRAINING_SLICE_DIRECTION)
         slice_idxs = np.random.choice(data.shape[slice_direction], self.batch_size, False, None)
-        x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
-                            slice_direction=slice_direction,
-                            labels_type=self.Config.LABELS_TYPE)
+
+        if self.Config.NR_SLICES > 1:
+            x, y = dataset_utils.sample_Xslices(data, seg, slice_idxs, slice_direction=slice_direction,
+                                               labels_type=self.Config.LABELS_TYPE, slice_window=self.Config.NR_SLICES)
+        else:
+            x, y = dataset_utils.sample_slices(data, seg, slice_idxs, slice_direction=slice_direction,
+                                               labels_type=self.Config.LABELS_TYPE)
 
 
         # Can be replaced by crop
@@ -351,76 +355,3 @@ class DataLoaderTraining:
         batch_gen = self._augment_data(batch_gen, type=type)
 
         return batch_gen
-
-
-
-############################################################################################################
-# Backup
-############################################################################################################
-
-class BatchGenerator2D_Nifti_random_5slices(SlimDataLoaderBase):
-    '''
-    Randomly selects subjects and slices and creates batch of 2D slices (+2 slices above and below).
-
-    Takes image ID provided via self._data, loads the nifti image and randomly samples 2D slices
-    from it. Always adds 2 slices above and below.
-
-    Timing:
-    About 2.5s per 54-batch 75 bundles 1.25mm. ?
-    About 2s per 54-batch 45 bundles 1.25mm.
-    '''
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-        self.Config = None
-
-    def generate_train_batch(self):
-        subjects = self._data[0]
-        subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
-
-        data, seg = load_training_data(self.Config, subjects[subject_idx])
-
-        slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
-
-        # Randomly sample slice orientation
-        slice_direction = int(round(random.uniform(0,2)))
-
-        if slice_direction == 0:
-            y = seg[slice_idxs, :, :].astype(self.Config.LABELS_TYPE)
-            y = np.array(y).transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
-        elif slice_direction == 1:
-            y = seg[:, slice_idxs, :].astype(self.Config.LABELS_TYPE)
-            y = np.array(y).transpose(1, 3, 0, 2)
-        elif slice_direction == 2:
-            y = seg[:, :, slice_idxs].astype(self.Config.LABELS_TYPE)
-            y = np.array(y).transpose(2, 3, 0, 1)
-
-
-        sw = 5 #slice_window (only odd numbers allowed)
-        pad = int((sw-1) / 2)
-
-        data_pad = np.zeros((data.shape[0]+sw-1, data.shape[1]+sw-1, data.shape[2]+sw-1, data.shape[3])).astype(data.dtype)
-        data_pad[pad:-pad, pad:-pad, pad:-pad, :] = data   #padded with two slices of zeros on all sides
-        batch=[]
-        for s_idx in slice_idxs:
-            if slice_direction == 0:
-                #(s_idx+2)-2:(s_idx+2)+3 = s_idx:s_idx+5
-                x = data_pad[s_idx:s_idx+sw:, pad:-pad, pad:-pad, :].astype(np.float32)      # (5, y, z, channels)
-                x = np.array(x).transpose(0, 3, 1, 2)  # channels dim has to be before width and height for Unet (but after batches)
-                x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
-                batch.append(x)
-            elif slice_direction == 1:
-                x = data_pad[pad:-pad, s_idx:s_idx+sw, pad:-pad, :].astype(np.float32)  # (5, y, z, channels)
-                x = np.array(x).transpose(1, 3, 0, 2)  # channels dim has to be before width and height for Unet (but after batches)
-                x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
-                batch.append(x)
-            elif slice_direction == 2:
-                x = data_pad[pad:-pad, pad:-pad, s_idx:s_idx+sw, :].astype(np.float32)  # (5, y, z, channels)
-                x = np.array(x).transpose(2, 3, 0, 1)  # channels dim has to be before width and height for Unet (but after batches)
-                x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
-                batch.append(x)
-        data_dict = {"data": np.array(batch),     # (batch_size, channels, x, y, [z])
-                     "seg": y}                    # (batch_size, channels, x, y, [z])
-
-        return data_dict
-
-

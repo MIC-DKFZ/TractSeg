@@ -322,4 +322,43 @@ def sample_slices(data, seg, slice_idxs, slice_direction=0, labels_type=np.int16
     return x, y
 
 
+def sample_Xslices(data, seg, slice_idxs, slice_direction=0, labels_type=np.int16, slice_window=5):
+    """
+    Sample slices but add slices_window/2 above and below.
+    """
+    sw = slice_window  # slice_window (only odd numbers allowed)
+    pad = int((sw - 1) / 2)
 
+    if slice_direction == 0:
+        y = seg[slice_idxs, :, :].astype(labels_type)
+        y = np.array(y).transpose(0, 3, 1, 2)  # nr_classes channel has to be before with and height for DataAugmentation (bs, nr_of_classes, x, y)
+    elif slice_direction == 1:
+        y = seg[:, slice_idxs, :].astype(labels_type)
+        y = np.array(y).transpose(1, 3, 0, 2)
+    elif slice_direction == 2:
+        y = seg[:, :, slice_idxs].astype(labels_type)
+        y = np.array(y).transpose(2, 3, 0, 1)
+
+    data_pad = np.zeros((data.shape[0] + sw - 1, data.shape[1] + sw - 1, data.shape[2] + sw - 1, data.shape[3])).astype(
+        data.dtype)
+    data_pad[pad:-pad, pad:-pad, pad:-pad, :] = data  # padded with two slices of zeros on all sides
+    batch = []
+    for s_idx in slice_idxs:
+        if slice_direction == 0:
+            # (s_idx+2)-2:(s_idx+2)+3 = s_idx:s_idx+5
+            x = data_pad[s_idx:s_idx + sw:, pad:-pad, pad:-pad, :].astype(np.float32)  # (5, y, z, channels)
+            x = np.array(x).transpose(0, 3, 1, 2)  # channels dim has to be before width and height for Unet (but after batches)
+            x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
+            batch.append(x)
+        elif slice_direction == 1:
+            x = data_pad[pad:-pad, s_idx:s_idx + sw, pad:-pad, :].astype(np.float32)  # (5, y, z, channels)
+            x = np.array(x).transpose(1, 3, 0, 2)  # channels dim has to be before width and height for Unet (but after batches)
+            x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
+            batch.append(x)
+        elif slice_direction == 2:
+            x = data_pad[pad:-pad, pad:-pad, s_idx:s_idx + sw, :].astype(np.float32)  # (5, y, z, channels)
+            x = np.array(x).transpose(2, 3, 0, 1)  # channels dim has to be before width and height for Unet (but after batches)
+            x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
+            batch.append(x)
+
+    return np.array(batch), y  # (batch_size, channels, x, y, [z])
