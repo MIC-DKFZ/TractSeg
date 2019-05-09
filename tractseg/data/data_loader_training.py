@@ -186,7 +186,7 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
         data, seg = load_training_data(self.Config, subjects[subject_idx])
 
         #Convert peaks to tensors if tensor model
-        if self.Config.NR_OF_GRADIENTS == 18:
+        if self.Config.NR_OF_GRADIENTS == 18*self.Config.NR_SLICES:
             data = img_utils.peak_image_to_tensor_image(data)
 
         slice_direction = dataset_utils.slice_dir_to_int(self.Config.TRAINING_SLICE_DIRECTION)
