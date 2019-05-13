@@ -79,9 +79,14 @@ class BatchGenerator2D_data_ordered_standalone(object):
 
         slice_idxs = list(range(self.global_idx, new_global_idx))
         slice_direction = dataset_utils.slice_dir_to_int(self.Config.SLICE_DIRECTION)
-        x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
-                                           slice_direction=slice_direction,
-                                           labels_type=self.Config.LABELS_TYPE)
+
+        if self.Config.NR_SLICES > 1:
+            x, y = dataset_utils.sample_Xslices(data, seg, slice_idxs, slice_direction=slice_direction,
+                                               labels_type=self.Config.LABELS_TYPE, slice_window=self.Config.NR_SLICES)
+        else:
+            x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
+                                               slice_direction=slice_direction,
+                                               labels_type=self.Config.LABELS_TYPE)
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])
