@@ -366,5 +366,6 @@ def main():
 
     # print(bcolors.GREEN + "Finished " + u'\u2713' + bcolors.ENDC)  # Color coding does not working in travis
 
+
 if __name__ == '__main__':
     main()
