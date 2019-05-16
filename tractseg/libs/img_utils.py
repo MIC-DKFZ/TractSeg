@@ -537,6 +537,13 @@ def enforce_shape(data, target_shape=(91, 109, 91, 9)):
 
 
 def change_spacing_4D(img_in, new_spacing=1.25):
+    """
+    Note: Only works properly if affine is all 0 except for diagonal and offset (=no rotation and sheering)
+
+    :param img_in:
+    :param new_spacing:
+    :return:
+    """
     from dipy.align.imaffine import AffineMap
 
     data = img_in.get_data()

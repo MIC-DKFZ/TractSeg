@@ -182,7 +182,7 @@ def pad_and_scale_img_to_square_img(data, target_size=144):
     # Scale to right size
     zoom = float(target_size) / biggest_dim
     if nr_dims == 4:
-        #use order=0, otherwise image values of a DWI will be quite different after downsampling and upsampling
+        #use order=0, otherwise does not work for peak images (results would be wrong)
         new_img = img_utils.resize_first_three_dims(new_img, order=0, zoom=zoom)
     else:
         new_img = ndimage.zoom(new_img, zoom, order=0)
