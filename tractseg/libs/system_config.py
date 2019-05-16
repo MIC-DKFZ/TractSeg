@@ -26,8 +26,26 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
                     bedpostX_input=False):
     if bedpostX_input:
         if tract_definition == "TractQuerier+":
-            print("ERROR: bedpostX_input in combination with tract_definition TractQuerier+ not yet supported.")
-            sys.exit()
+            if input_type == "peaks":
+                if output_type == "tract_segmentation" and dropout_sampling:
+                    print("ERROR: bedpostX_input in combination with uncertainty not supported.")
+                    sys.exit()
+                elif output_type == "tract_segmentation":
+                    config = "TractSeg_BXTensAg"
+                elif output_type == "endings_segmentation":
+                    print("ERROR: bedpostX_input in combination with output_type endings_segmentation "
+                          "not supported.")
+                    sys.exit()
+                elif output_type == "TOM":
+                    print("ERROR: bedpostX_input in combination with output_type TOM not supported.")
+                    sys.exit()
+                elif output_type == "dm_regression":
+                    print("ERROR: bedpostX_input in combination with output_type dm_regression and tract_definition "
+                          "TractQuerier+ not supported.")
+            else:  # T1
+                print("ERROR: bedpostX_input in combination with input_type T1 and tract_definition TractQuerier+ "
+                      "not supported.")
+                sys.exit()
         else:  # "AutoPTX"
             if input_type == "peaks":
                 if output_type == "tract_segmentation" and dropout_sampling:
