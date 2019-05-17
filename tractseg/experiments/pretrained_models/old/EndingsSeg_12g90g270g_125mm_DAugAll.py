@@ -1,5 +1,5 @@
 import os
-from tractseg.experiments.endings_seg import Config as EndingsSegConfig
+from tractseg.experiments.base_legacy.endings_seg_legacy import Config as EndingsSegConfig
 
 
 class Config(EndingsSegConfig):

@@ -15,18 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from tractseg.libs import exp_utils
 from tractseg.experiments.base import Config as BaseConfig
 
 
 class Config(BaseConfig):
 
-    EXPERIMENT_TYPE = "endings_segmentation"
+    EXPERIMENT_TYPE = "tract_segmentation"
 
-    CLASSES = "All_endpoints"
-    LOSS_WEIGHT = 5
-    LOSS_WEIGHT_LEN = -1
+    # CLASSES = "AutoPTX"
+    # NR_OF_CLASSES = len(exp_utils.get_bundle_names(CLASSES)[1:])
 
-    # BATCH_SIZE = 30         # for all 72 (=144) classes we need smaller batch size because of memory limit
-    BATCH_SIZE = 28          # Using torch 1.0 batch_size had to be still fit in memory
-
-    FEATURES_FILENAME = "12g90g270g_CSD_BX"
+    LR_SCHEDULE = False

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from tractseg.experiments.tract_seg import Config as TractSegConfig
+from tractseg.experiments.base_legacy.tract_seg_legacy import Config as TractSegConfig
 
 #todo: remove this model when CSD+BX input properly integrated
 

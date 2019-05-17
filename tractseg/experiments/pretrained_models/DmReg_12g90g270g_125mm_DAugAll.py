@@ -1,6 +1,5 @@
 import os
-from tractseg.libs import exp_utils
-from tractseg.experiments.dm_reg import Config as DmRegConfig
+from tractseg.experiments.base_legacy.dm_reg_legacy import Config as DmRegConfig
 
 
 class Config(DmRegConfig):

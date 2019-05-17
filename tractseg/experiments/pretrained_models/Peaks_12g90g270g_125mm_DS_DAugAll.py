@@ -1,5 +1,5 @@
 import os
-from tractseg.experiments.peak_reg import Config as PeakRegConfig
+from tractseg.experiments.base_legacy.peak_reg_legacy import Config as PeakRegConfig
 
 #Name of original exp: Peaks20_12g90g270g_ALLoss
 

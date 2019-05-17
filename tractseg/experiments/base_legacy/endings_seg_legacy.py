@@ -29,4 +29,4 @@ class Config(BaseConfig):
     # BATCH_SIZE = 30         # for all 72 (=144) classes we need smaller batch size because of memory limit
     BATCH_SIZE = 28          # Using torch 1.0 batch_size had to be still fit in memory
 
-    FEATURES_FILENAME = "12g90g270g_CSD_BX"
+    LR_SCHEDULE = False

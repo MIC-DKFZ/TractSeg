@@ -23,5 +23,5 @@ class Config(BaseConfig):
 
     EXPERIMENT_TYPE = "tract_segmentation"
 
-    # CLASSES = "AutoPTX"
-    # NR_OF_CLASSES = len(exp_utils.get_bundle_names(CLASSES)[1:])
+    FEATURES_FILENAME = "12g90g270g_CSD_BX"
+

@@ -3,7 +3,7 @@
 
 import os
 from tractseg.libs import exp_utils
-from tractseg.experiments.tract_seg import Config as TractSegConfig
+from tractseg.experiments.base_legacy.tract_seg_legacy import Config as TractSegConfig
 
 
 class Config(TractSegConfig):

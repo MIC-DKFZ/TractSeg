@@ -15,18 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 from tractseg.experiments.base import Config as BaseConfig
 
 
 class Config(BaseConfig):
 
-    EXPERIMENT_TYPE = "endings_segmentation"
+    EXPERIMENT_TYPE = "dm_regression"
 
-    CLASSES = "All_endpoints"
-    LOSS_WEIGHT = 5
-    LOSS_WEIGHT_LEN = -1
+    LABELS_TYPE = "float"
 
-    # BATCH_SIZE = 30         # for all 72 (=144) classes we need smaller batch size because of memory limit
-    BATCH_SIZE = 28          # Using torch 1.0 batch_size had to be still fit in memory
+    THRESHOLD = 0.01  # Binary: 0.5, Regression: 0.01 ?
 
-    FEATURES_FILENAME = "12g90g270g_CSD_BX"
+    LR_SCHEDULE = False
+
+    # DATASET = "HCP"  # HCP / HCP_32g
+    # RESOLUTION = "1.25mm"  # 1.25mm (/ 2.5mm)
+    # FEATURES_FILENAME = "12g90g270g"  # 12g90g270g / 270g_125mm_xyz / 270g_125mm_peaks / 90g_125mm_peaks / 32g_25mm_peaks / 32g_25mm_xyz
