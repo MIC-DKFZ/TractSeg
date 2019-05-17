@@ -45,9 +45,12 @@ DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
 def create_preprocessed_files(subject):
 
     # todo: adapt
-    # filenames_data = ["12g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks", "125mm_bedpostx_tensor"]
-    # filenames_seg = ["bundle_masks_72", "bundle_peaks_Part1", "bundle_masks_dm",
-    #                  "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
+    filenames_data = ["12g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks",
+                      "12g_125mm_bedpostx_peaks_scaled", "90g_125mm_bedpostx_peaks_scaled",
+                      "270g_125mm_bedpostx_peaks_scaled"]
+    filenames_seg = ["bundle_masks_72", "bundle_masks_dm", "endpoints_72_ordered",
+                     "bundle_peaks_Part1", "bundle_peaks_Part2", "bundle_peaks_Part3", "bundle_peaks_Part4",
+                     "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
     # filenames_data = ["270g_125mm_peaks", "90g_125mm_peaks", "12g_125mm_peaks",
     #                   "12g_125mm_bedpostx_peaks_scaled", "90g_125mm_bedpostx_peaks_scaled",
@@ -55,8 +58,8 @@ def create_preprocessed_files(subject):
 
     # filenames_data = ["270g_125mm_bedpostx_peaks_scaled", "32g_125mm_bedpostx_peaks_scaled"]
     # filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
-    filenames_data = ["270g_125mm_bedpostx_peaks_scaled", "32g_125mm_bedpostx_peaks_scaled"]
-    filenames_seg = []
+    # filenames_data = ["270g_125mm_bedpostx_peaks_scaled", "32g_125mm_bedpostx_peaks_scaled"]
+    # filenames_seg = []
 
 
     print("idx: {}".format(subjects.index(subject)))
