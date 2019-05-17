@@ -27,7 +27,6 @@ ExpRunner --config=XXX
 sbatch --job-name=XXX ~/runner.sh   (runner.sh not provided)
 
 #Predicting with new config setup:
-ExpRunner --train=False --seg --lw --config=XXX
 ExpRunner --train=False --test=True --lw --config=XXX
 """
 
