@@ -253,12 +253,10 @@ class BaseModel:
             max_f1_idx = np.argmax(metrics["f1_macro_validate"])
             max_f1 = np.max(metrics["f1_macro_validate"])
             do_save = epoch_nr == max_f1_idx and max_f1 > 0.01
-            print("do_save 1: {}".format(do_save))
         else:
             min_loss_idx = np.argmin(metrics["loss_validate"])
-            min_loss = np.min(metrics["loss_validate"])
+            # min_loss = np.min(metrics["loss_validate"])
             do_save = epoch_nr == min_loss_idx
-            print("do_save 2: {}".format(do_save))
 
         # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
         if do_save:
