@@ -224,7 +224,7 @@ def train_model(Config, model, data_loader):
         # Save Weights
         start_time_saving = time.time()
         if Config.SAVE_WEIGHTS:
-            model.save_model(metrics, epoch_nr)
+            model.save_model(metrics, epoch_nr, mode=Config.BEST_EPOCH_SELECTION)
         saving_time += time.time() - start_time_saving
 
         # Create Plots

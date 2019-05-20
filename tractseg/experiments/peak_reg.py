@@ -36,3 +36,6 @@ class Config(BaseConfig):
     UPSAMPLE_TYPE = "nearest"
 
     FEATURES_FILENAME = "12g90g270g_CSD_BX"
+
+    BEST_EPOCH_SELECTION = "loss"
+    NUM_EPOCHS = 500

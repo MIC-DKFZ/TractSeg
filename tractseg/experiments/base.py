@@ -103,6 +103,7 @@ class Config:
     OUTPUT_MULTIPLE_FILES = False
     RESET_LAST_LAYER = False
     UPSAMPLE_TYPE = "bilinear"  # bilinear / nearest
+    BEST_EPOCH_SELECTION = "f1"  # f1 / loss
 
     # Peak_regression specific
     PEAK_DICE_THR = [0.95]

@@ -30,3 +30,5 @@ class Config(BaseConfig):
     BATCH_SIZE = 28          # Using torch 1.0 batch_size had to be still fit in memory
 
     FEATURES_FILENAME = "12g90g270g_CSD_BX"
+
+    # 150ep would easily be enough
