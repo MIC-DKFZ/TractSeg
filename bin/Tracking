@@ -71,7 +71,7 @@ def main():
     parser.add_argument("--tracking_dilation", metavar="n", type=int,
                         help="Dilate the endpoint and bundle masks by the "
                              "respective number of voxels. (default: 1)",
-                        default=1)  # Info: dilation of endpoint mask: dilation+1
+                        default=0)  # Info: dilation of endpoint mask: dilation+1
                         # for HCP data: tracking_dilation=0 better
 
     parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create (default: 2000)",
