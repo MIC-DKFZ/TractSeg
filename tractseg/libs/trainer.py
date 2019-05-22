@@ -73,14 +73,18 @@ def train_model(Config, model, data_loader):
             "validate": 0
         }
 
-        if Config.LOSS_WEIGHT_LEN == -1:
+        if Config.LOSS_WEIGHT is None:
+            weight_factor = None
+        elif Config.LOSS_WEIGHT_LEN == -1:
             weight_factor = float(Config.LOSS_WEIGHT)
         else:
+            # Linearly decrease from LOSS_WEIGHT to 1 over LOSS_WEIGHT_LEN epochs
             if epoch_nr < Config.LOSS_WEIGHT_LEN:
                 weight_factor = -((Config.LOSS_WEIGHT-1) /
                                   float(Config.LOSS_WEIGHT_LEN)) * epoch_nr + float(Config.LOSS_WEIGHT)
             else:
                 weight_factor = 1.
+            exp_utils.print_and_save(Config, "Current weight_factor: {}".format(weight_factor))
 
         if Config.ONLY_VAL:
             types = ["validate"]

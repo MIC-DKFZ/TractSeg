@@ -68,7 +68,7 @@ class Config:
     # NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(CLASSES)[1:])
 
     INPUT_DIM = None  # (80, 80) / (144, 144)
-    LOSS_WEIGHT = 1  # 1: no weighting
+    LOSS_WEIGHT = None  # None: no weighting
     LOSS_WEIGHT_LEN = -1  # -1: constant over all epochs
     SLICE_DIRECTION = "y"  # x, y, z  (combined needs z)
     TRAINING_SLICE_DIRECTION = "xyz"    # y / xyz

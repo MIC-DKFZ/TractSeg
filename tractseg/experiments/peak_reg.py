@@ -38,4 +38,4 @@ class Config(BaseConfig):
     FEATURES_FILENAME = "12g90g270g_CSD_BX"
 
     BEST_EPOCH_SELECTION = "loss"
-    NUM_EPOCHS = 500
+    NUM_EPOCHS = 800

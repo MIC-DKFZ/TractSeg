@@ -115,7 +115,7 @@ class BaseModel:
                                         stride=1, padding=0, bias=True).to(self.device)
 
 
-    def train(self, X, y, weight_factor=10):
+    def train(self, X, y, weight_factor=None):
         X = X.contiguous().cuda(non_blocking=True)  # (bs, features, x, y)
         y = y.contiguous().cuda(non_blocking=True)  # (bs, classes, x, y)
 
@@ -123,7 +123,7 @@ class BaseModel:
         self.net.train()
         outputs = self.net(X)  # forward; outputs: (bs, classes, x, y)
 
-        if weight_factor > 1:
+        if weight_factor is not None:
             if len(y.shape) == 4:  # 2D
                 weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
                                       y.shape[2], y.shape[3])).cuda()
@@ -166,7 +166,7 @@ class BaseModel:
         return loss.item(), probs, f1
 
 
-    def test(self, X, y, weight_factor=10):
+    def test(self, X, y, weight_factor=None):
         """
 
         Args:
@@ -187,7 +187,7 @@ class BaseModel:
             self.net.train(False)
         outputs = self.net(X)  # forward
 
-        if weight_factor > 1:
+        if weight_factor is not None:
             if len(y.shape) == 4:  # 2D
                 weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
                                       y.shape[2], y.shape[3])).cuda()
