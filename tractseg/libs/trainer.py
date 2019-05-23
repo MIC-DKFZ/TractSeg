@@ -47,12 +47,16 @@ def train_model(Config, model, data_loader):
     epoch_times = []
     nr_of_updates = 0
 
+    #todo important: change
+    metric_types = ["loss", "f1_macro"]
+    # metric_types = ["loss", "f1_macro", "angle_err"]
+
     metrics = {}
     for type in ["train", "test", "validate"]:
-        metrics_new = {
-            "loss_" + type: [0],
-            "f1_macro_" + type: [0],
-        }
+        metrics_new = {}
+        for metric in metric_types:
+            metrics_new[metric + "_" + type] = [0]
+
         metrics = dict(list(metrics.items()) + list(metrics_new.items()))
 
     for epoch_nr in range(Config.NUM_EPOCHS):
@@ -126,64 +130,34 @@ def train_model(Config, model, data_loader):
                 start_time_network = time.time()
                 if type == "train":
                     nr_of_updates += 1
-                    loss, probs, f1 = model.train(x, y, weight_factor=weight_factor)
-                    # loss, probs, f1, intermediate = model.train(x, y)
+                    probs, metr_batch = model.train(x, y, weight_factor=weight_factor)
                 elif type == "validate":
-                    loss, probs, f1 = model.test(x, y, weight_factor=weight_factor)
+                    probs, metr_batch = model.test(x, y, weight_factor=weight_factor)
                 elif type == "test":
-                    loss, probs, f1 = model.test(x, y, weight_factor=weight_factor)
+                    probs, metr_batch = model.test(x, y, weight_factor=weight_factor)
                 network_time += time.time() - start_time_network
 
                 start_time_metrics = time.time()
 
                 if Config.CALC_F1:
                     if Config.EXPERIMENT_TYPE == "peak_regression":
-                        #Following two lines increase metrics_time by 30s (without < 1s);
-                        #  time per batch increases by 1.5s by these lines
-                        # y_flat = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-                        # y_flat = np.reshape(y_flat, (-1, y_flat.shape[-1]))  # (bs*x*y, nr_of_classes)
-                        # metrics = metric_utils.calculate_metrics(metrics, y_flat, probs, loss, f1=np.mean(f1),
-                        #                                          type=type, threshold=Config.THRESHOLD,
-                        #                                          f1_per_bundle={"CA": f1[5], "FX_left": f1[23],
-                        #                                                         "FX_right": f1[24]})
+                        peak_f1_mean = np.array([s.to('cpu') for s in list(metr_batch["f1_macro"].values())]).mean()
+                        metr_batch["f1_macro"] = peak_f1_mean
+                        #todo important: change
+                        metr_batch["loss"] = abs(metr_batch["loss"])
 
-                        #Numpy
-                        # y_right_order = y.transpose(0, 2, 3, 1)  # (bs, x, y, nr_of_classes)
-                        # peak_f1 = metric_utils.calc_peak_dice(Config, probs, y_right_order)
-                        # peak_f1_mean = np.array([s for s in peak_f1.values()]).mean()
+                        metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, metric_types)
 
-                        # import IPython
-                        # IPython.embed()
-
-                        #Pytorch
-                        peak_f1_mean = np.array([s.to('cpu') for s in list(f1.values())]).mean()  #if f1 for multiple bundles
-                        metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean, type=type,
-                                                                 threshold=Config.THRESHOLD)
-
-                        #Pytorch 2 F1
-                        # peak_f1_mean_a = np.array([s for s in f1[0].values()]).mean()
-                        # peak_f1_mean_b = np.array([s for s in f1[1].values()]).mean()
-                        # metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=peak_f1_mean_a,
-                        #                                         type=type, threshold=Config.THRESHOLD,
-                        #                                         f1_per_bundle={"LenF1": peak_f1_mean_b})
-
-                        #Single Bundle
-                        # metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"][0],
-                        #                                          type=type, threshold=Config.THRESHOLD,
-                        #                                          f1_per_bundle={"Thr1": f1["CST_right"][1],
-                        #                                                         "Thr2": f1["CST_right"][2]})
-                        # metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=f1["CST_right"],
-                        #                                          type=type, threshold=Config.THRESHOLD)
                     else:
-                        metrics = metric_utils.calculate_metrics(metrics, None, None, loss, f1=np.mean(f1), type=type,
-                                                                 threshold=Config.THRESHOLD)
+                        metr_batch["f1_macro"] = np.mean(metr_batch["f1_macro"])
+                        metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, metric_types)
 
                 else:
-                    metrics = metric_utils.calculate_metrics_onlyLoss(metrics, loss, type=type)
+                    metrics = metric_utils.calculate_metrics_onlyLoss(metrics, metr_batch["loss"], type=type)
 
                 metrics_time += time.time() - start_time_metrics
 
-                print_loss.append(loss)
+                print_loss.append(metr_batch["loss"])
                 if batch_nr[type] % Config.PRINT_FREQ == 0:
                     time_batch_part = time.time() - start_time_batch_part
                     start_time_batch_part = time.time()
@@ -197,7 +171,7 @@ def train_model(Config, model, data_loader):
                     print_loss = []
 
                 if Config.USE_VISLOGGER:
-                    plot_utils.plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr)
+                    plot_utils.plot_result_trixi(trixi, x, y, probs, metr_batch["loss"], metr_batch["f1_macro"], epoch_nr)
 
 
         ###################################
@@ -234,8 +208,14 @@ def train_model(Config, model, data_loader):
         # Create Plots
         start_time_plotting = time.time()
         pickle.dump(metrics, open(join(Config.EXP_PATH, "metrics.pkl"), "wb"))
-        plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME)
-        plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME, without_first_epochs=True)
+        plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME,
+                                   keys=metric_types,
+                                   types=["train", "validate"],
+                                   selected_ax=["loss", "f1", "loss"])
+        plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME, without_first_epochs=True,
+                                   keys=metric_types,
+                                   types=["train", "validate"],
+                                   selected_ax=["loss", "f1", "loss"])
         plotting_time += time.time() - start_time_plotting
 
         epoch_time = time.time() - start_time

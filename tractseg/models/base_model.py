@@ -133,7 +133,7 @@ class BaseModel:
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  # 10
             if self.Config.EXPERIMENT_TYPE == "peak_regression":
-                loss = self.criterion(outputs, y, weights)
+                loss, angle_err = self.criterion(outputs, y, weights)
             else:
                 loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
         else:
@@ -163,7 +163,12 @@ class BaseModel:
         else:
             probs = None    #faster
 
-        return loss.item(), probs, f1
+        metrics = {}
+        metrics["loss"] = loss.item()
+        metrics["f1_macro"] = f1
+        metrics["angle_err"] = angle_err if angle_err is not None else 0
+
+        return probs, metrics
 
 
     def test(self, X, y, weight_factor=None):
@@ -197,7 +202,7 @@ class BaseModel:
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor
             if self.Config.EXPERIMENT_TYPE == "peak_regression":
-                loss = self.criterion(outputs, y, weights)
+                loss, angle_err = self.criterion(outputs, y, weights)
             else:
                 loss = nn.BCEWithLogitsLoss(weight=weights)(outputs, y)
         else:
@@ -224,7 +229,12 @@ class BaseModel:
         else:
             probs = None  # faster
 
-        return loss.item(), probs, f1
+        metrics = {}
+        metrics["loss"] = loss.item()
+        metrics["f1_macro"] = f1
+        metrics["angle_err"] = angle_err if angle_err is not None else 0
+
+        return probs, metrics
 
 
     def predict(self, X):

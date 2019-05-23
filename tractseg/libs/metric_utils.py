@@ -176,6 +176,12 @@ def calculate_metrics(metrics, y, class_probs, loss, f1=None, f1_per_bundle=None
     return metrics
 
 
+def add_to_metrics(metrics, metr_batch, type, metric_types):
+    for key in metric_types:
+        metrics[key + "_" + type][-1] += metr_batch[key]
+    return metrics
+
+
 def calculate_metrics_onlyLoss(metrics, loss, type="train"):
     metrics["loss_"+type][-1] += loss
     return metrics

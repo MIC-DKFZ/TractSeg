@@ -253,7 +253,8 @@ def angle_length_loss(y_pred, y_true, weights):
 
         scores[idx] = torch.mean(combined)
 
-    return torch.mean(scores)
+    # return torch.mean(scores)
+    return torch.mean(scores), torch.mean(angles).item()
 
 
 def angle_loss_faster(y_pred, y_true, weights):

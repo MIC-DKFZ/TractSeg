@@ -251,8 +251,6 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
     box2 = axes["f1"].get_position()
     axes["f1"].set_position([box2.x0, box2.y0, box2.width * 0.95, box2.height])
 
-    print(axes)
-
     if without_first_epochs:
         handles = []
         for idx, key in enumerate(keys):
