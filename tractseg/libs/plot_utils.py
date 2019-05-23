@@ -211,20 +211,29 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
     plt.savefig(join(out_dir, "preview.png"), bbox_inches='tight', dpi=300)
 
 
-def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
+def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
+                    keys=["loss", "f1_macro"], types=["train", "validate"], selected_ax=["loss", "f1"]):
 
-    min_loss_test = np.min(metrics["loss_validate"])
-    min_loss_test_epoch_idx = np.argmin(metrics["loss_validate"])
-    description_loss = "min loss_validate: {} (ep {})".format(round(min_loss_test, 7), min_loss_test_epoch_idx)
+    colors = ["r", "g", "b", "m"]
+    markers = [":", "", "--"]
 
-    max_f1_test = np.max(metrics["f1_macro_validate"])
-    max_f1_test_epoch_idx = np.argmax(metrics["f1_macro_validate"])
-    description_f1 = "max f1_macro_validate: {} (ep {})".format(round(max_f1_test, 4), max_f1_test_epoch_idx)
+    if "loss" in keys and "f1_macro" in keys:
+        min_loss_test = np.min(metrics["loss_validate"])
+        min_loss_test_epoch_idx = np.argmin(metrics["loss_validate"])
+        description_loss = "min loss_validate: {} (ep {})".format(round(min_loss_test, 7), min_loss_test_epoch_idx)
 
-    description = description_loss + " || " + description_f1
+        max_f1_test = np.max(metrics["f1_macro_validate"])
+        max_f1_test_epoch_idx = np.argmax(metrics["f1_macro_validate"])
+        description_f1 = "max f1_macro_validate: {} (ep {})".format(round(max_f1_test, 4), max_f1_test_epoch_idx)
 
+        description = description_loss + " || " + description_f1
+    else:
+        description = "MIN not available because loss and f1_macro not in keys"
+
+    axes = {}
 
     fig, ax = plt.subplots(figsize=(17, 5))
+    axes["loss"] = ax
 
     # does not properly work with ax.twinx()
     # fig.gca().set_position((.1, .3, .8, .6))  # [left, bottom, width, height]; between 0-1: where it should be in result
@@ -234,30 +243,26 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
     plt.ylabel('Loss')
 
     ax2 = ax.twinx()  # create second scale
+    axes["f1"] = ax2
 
     #shrink current axis by 5% to make room for legend next to it
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * 0.95, box.height])
-    box2 = ax2.get_position()
-    ax2.set_position([box2.x0, box2.y0, box2.width * 0.95, box2.height])
+    box = axes["loss"].get_position()
+    axes["loss"].set_position([box.x0, box.y0, box.width * 0.95, box.height])
+    box2 = axes["f1"].get_position()
+    axes["f1"].set_position([box2.x0, box2.y0, box2.width * 0.95, box2.height])
+
+    print(axes)
 
     if without_first_epochs:
-        plt1, = ax.plot(list(range(5, len(metrics["loss_train"]))),
-                        metrics["loss_train"][5:], "r:", label='loss train')
-        plt2, = ax.plot(list(range(5, len(metrics["loss_validate"]))),
-                        metrics["loss_validate"][5:], "r", label='loss val')
-        # plt3, = ax.plot(list(range(5, len(metrics["loss_test"]))),
-        #                 metrics["loss_test"][5:], "r--", label='loss test')
+        handles = []
+        for idx, key in enumerate(keys):
+            for jdx, type in enumerate(types):
+                name = key + "_" + type
+                plt_handle, = axes[selected_ax[idx]].plot(list(range(5, len(metrics[name]))),
+                                metrics[name][5:], colors[idx] + markers[jdx], label=name)
+                handles.append(plt_handle)
 
-        plt4, = ax2.plot(list(range(5, len(metrics["f1_macro_train"]))),
-                         metrics["f1_macro_train"][5:], "g:", label='f1_macro_train')
-        plt5, = ax2.plot(list(range(5, len(metrics["f1_macro_validate"]))),
-                         metrics["f1_macro_validate"][5:], "g", label='f1_macro_val')
-        # plt6, = ax2.plot(list(range(5, len(metrics["f1_macro_test"]))),
-        #                  metrics["f1_macro_test"][5:], "g--", label='f1_macro_test')
-
-        # plt.legend(handles=[plt1, plt2, plt3, plt4, plt5, plt6],
-        plt.legend(handles=[plt1, plt2, plt4, plt5],
+        plt.legend(handles=handles,
                    loc=2,
                    borderaxespad=0.,
                    bbox_to_anchor=(1.03, 1))  # wenn weiter von Achse weg soll: 1.05 -> 1.15
@@ -265,34 +270,19 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False):
         fig_name = "metrics.png"
 
     else:
-        plt1, = ax.plot(metrics["loss_train"], "r:", label='loss train')
-        plt2, = ax.plot(metrics["loss_validate"], "r", label='loss val')
-        # plt3, = ax.plot(metrics["loss_test"], "r--", label='loss test')
+        handles = []
+        for idx, key in enumerate(keys):
+            for jdx, type in enumerate(types):
+                name = key + "_" + type
+                plt_handle, = axes[selected_ax[idx]].plot(metrics[name], colors[idx] + markers[jdx], label=name)
+                handles.append(plt_handle)
 
-        plt7, = ax2.plot(metrics["f1_macro_train"], "g:", label='f1_macro_train')
-        plt8, = ax2.plot(metrics["f1_macro_validate"], "g", label='f1_macro_val')
-        # plt9, = ax2.plot(metrics["f1_macro_test"], "g--", label='f1_macro_test')
-
-        # #tmp
-        # plt10, = ax2.plot(metrics["f1_LenF1_train"], "b:", label='f1_LenF1_train')
-        # plt11, = ax2.plot(metrics["f1_LenF1_validate"], "b", label='f1_LenF1_val')
-        # plt12, = ax2.plot(metrics["f1_LenF1_test"], "b--", label='f1_LenF1_test')
-        #
-        # #tmp
-        # plt13, = ax2.plot(metrics["f1_Thr2_train"], "m:", label='f1_Thr2_train')
-        # plt14, = ax2.plot(metrics["f1_Thr2_validate"], "m", label='f1_Thr2_val')
-        # plt15, = ax2.plot(metrics["f1_Thr2_test"], "m--", label='f1_Thr2_test')
-
-        # plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9],
-        plt.legend(handles=[plt1, plt2, plt7, plt8],
-        # plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9, plt10, plt11, plt12],
-        # plt.legend(handles=[plt1, plt2, plt3, plt7, plt8, plt9, plt10, plt11, plt12, plt13, plt14, plt15],
+        plt.legend(handles=handles,
                    loc=2,
                    borderaxespad=0.,
-                   bbox_to_anchor=(1.03, 1))
+                   bbox_to_anchor=(1.03, 1))  # wenn weiter von Achse weg soll: 1.05 -> 1.15
 
         fig_name = "metrics_all.png"
-
 
     fig.text(0.12, 0.95, exp_name, size=12, weight="bold")
     fig.text(0.12, 0.02, description)
