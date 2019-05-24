@@ -23,4 +23,3 @@ tractseg/experiments/TractSeg/*
 tractseg/experiments/Peaks/*
 tractseg/experiments/Schizo/*
 tractseg/experiments/UNet3D_and_TOMxyz/*
-tractseg/experiments/run_multiple.sh
