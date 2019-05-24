@@ -34,6 +34,7 @@ class Config(BaseConfig):
     GET_PROBS = True
     INFO_2 = "using AngleLengthLoss, PeakLengthDice"
     UPSAMPLE_TYPE = "nearest"
+    LOSS_FUNCTION = "angle_length_loss"
 
     FEATURES_FILENAME = "12g90g270g_CSD_BX"
 

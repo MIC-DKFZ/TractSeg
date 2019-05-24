@@ -55,7 +55,10 @@ class BaseModel:
         elif self.Config.LOSS_FUNCTION == "soft_batch_dice":
             self.criterion = pytorch_utils.soft_batch_dice
         elif self.Config.EXPERIMENT_TYPE == "peak_regression":
-            self.criterion = pytorch_utils.angle_length_loss
+            if self.Config.LOSS_FUNCTION == "angle_length_loss":
+                self.criterion = pytorch_utils.angle_length_loss
+            elif self.Config.LOSS_FUNCTION == "angle_loss":
+                self.criterion = pytorch_utils.angle_loss
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
             # self.criterion = nn.MSELoss()   # aggregate by mean
             self.criterion = nn.MSELoss(size_average=False, reduce=True)   # aggregate by sum
@@ -122,6 +125,7 @@ class BaseModel:
         self.optimizer.zero_grad()
         self.net.train()
         outputs = self.net(X)  # forward; outputs: (bs, classes, x, y)
+        angle_err = None
 
         if weight_factor is not None:
             if len(y.shape) == 4:  # 2D
@@ -132,6 +136,7 @@ class BaseModel:
                                       y.shape[2], y.shape[3], y.shape[4])).cuda()
             bundle_mask = y > 0
             weights[bundle_mask.data] *= weight_factor  # 10
+
             if self.Config.EXPERIMENT_TYPE == "peak_regression":
                 loss, angle_err = self.criterion(outputs, y, weights)
             else:
@@ -191,6 +196,7 @@ class BaseModel:
         else:
             self.net.train(False)
         outputs = self.net(X)  # forward
+        angle_err = None
 
         if weight_factor is not None:
             if len(y.shape) == 4:  # 2D

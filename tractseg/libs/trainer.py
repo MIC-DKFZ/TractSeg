@@ -212,11 +212,12 @@ def train_model(Config, model, data_loader):
                                    types=["train", "validate"],
                                    selected_ax=["loss", "f1"],
                                    fig_name="metrics.png")
-        plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME, without_first_epochs=True,
-                                   keys=["loss", "angle_err"],
-                                   types=["train", "validate"],
-                                   selected_ax=["loss", "f1"],
-                                   fig_name="metrics_angle.png")
+        if "angle_err" in Config.METRIC_TYPES:
+            plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME, without_first_epochs=True,
+                                       keys=["loss", "angle_err"],
+                                       types=["train", "validate"],
+                                       selected_ax=["loss", "f1"],
+                                       fig_name="metrics_angle.png")
 
         plotting_time += time.time() - start_time_plotting
 
