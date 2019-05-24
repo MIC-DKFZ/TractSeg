@@ -152,52 +152,40 @@ def angle_last_dim(a, b):
         return torch.abs(einsum('abcde,abcde->abcd', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
 
-def angle_second_dim(a, b):
-    '''
-    Not working !
-    RuntimeError: invalid argument 2: input is not contiguous (and
-
-    Calculate the angle between two nd-arrays (array of vectors) along the second dimension
-
-    without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
-    np.arccos -> returns degree in pi (90°: 0.5*pi)
-
-    return: one dimension less then input
-    '''
-    from tractseg.libs.pytorch_einsum import einsum
-
-    return torch.abs(einsum('abcd,abcd->acd', a, b) / (torch.norm(a, 2., 1) * torch.norm(b, 2, 1) + 1e-7))
-
-
 def angle_loss(y_pred, y_true, weights):
     '''
-    Not working! Have to replace np.mean by torch.mean (?)
-
+    Does not need weighting. y_true is 0 all over background, therefore angle will also be 0 in those areas -> no
+    extra masking of background needed.
     :param y_pred:
     :param y_true:
     :param weights:  [bs, classes, x, y, z]
     :return:
     '''
-    # faster if no permute?
-    y_true = y_true.permute(0, 2, 3, 1)
-    y_pred = y_pred.permute(0, 2, 3, 1)
-    weights = weights.permute(0, 2, 3, 1)
+    if len(y_pred.shape) == 4:  # 2D
+        y_true = y_true.permute(0, 2, 3, 1)
+        y_pred = y_pred.permute(0, 2, 3, 1)
+        # weights = weights.permute(0, 2, 3, 1)
+    else:  # 3D
+        y_true = y_true.permute(0, 2, 3, 4, 1)
+        y_pred = y_pred.permute(0, 2, 3, 4, 1)
+        # weights = weights.permute(0, 2, 3, 4, 1)
 
-    scores = []
     nr_of_classes = int(y_true.shape[-1] / 3.)
+    scores = torch.zeros(nr_of_classes)
 
     for idx in range(nr_of_classes):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
         y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
-        weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
+        # weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
 
-        angles = angle_last_dim(y_pred_bund, y_true_bund)
+        angles = angle_last_dim(y_pred_bund, y_true_bund)  # range 0 -> 1  (1: best)
 
-        angles_weighted = angles / weights_bund
-        scores.append(torch.mean(angles_weighted))
+        # angles_weighted = angles / weights_bund   # penalize voxels of bundles more strongly
+        angles_weighted = angles
+        scores[idx] = torch.mean(angles_weighted)
 
-    #BUG: in pytorch 0.4 this does not work anymore: have to use torch for taking mean which is derivable
-    return -np.mean(scores)
+    # doing 1-angle would also work, but 1 will be removed when taking derivatives anyways -> kann simply do *-1
+    return -torch.mean(scores), None  # range 0 -> -1  (-1: best)
 
 
 def angle_length_loss(y_pred, y_true, weights):
@@ -217,6 +205,7 @@ def angle_length_loss(y_pred, y_true, weights):
 
     nr_of_classes = int(y_true.shape[-1] / 3.)
     scores = torch.zeros(nr_of_classes)
+    angles_all = torch.zeros(nr_of_classes)
 
     for idx in range(nr_of_classes):
         # y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
@@ -227,6 +216,7 @@ def angle_length_loss(y_pred, y_true, weights):
         weights_bund = weights[..., (idx * 3)].contiguous()  # [x,y,z]
 
         angles = angle_last_dim(y_pred_bund, y_true_bund)
+        angles_all[idx] = torch.mean(angles)
         angles_weighted = angles / weights_bund
         #norm lengths to 0-1 to be more equal to angles?? -> peaks are already around 1 -> ok
         lengths = (torch.norm(y_pred_bund, 2., -1) - torch.norm(y_true_bund, 2, -1)) ** 2
@@ -255,34 +245,7 @@ def angle_length_loss(y_pred, y_true, weights):
         scores[idx] = torch.mean(combined)
 
     # return torch.mean(scores)
-    return torch.mean(scores), torch.mean(angles).item()
-
-
-def angle_loss_faster(y_pred, y_true, weights):
-    '''
-    Not working !
-    RuntimeError: invalid argument 2: input is not contiguous (and 'abcd,abcd->acd' also in numpy wrong)
-
-    :param y_pred:
-    :param y_true:
-    :param weights:
-    :return:
-    '''
-    scores = []
-    nr_of_classes = int(y_true.shape[-1] / 3.)
-
-    for idx in range(nr_of_classes):
-        y_pred_bund = y_pred[:, (idx * 3):(idx * 3) + 3, :, :].contiguous()
-        y_true_bund = y_true[:, (idx * 3):(idx * 3) + 3, :, :].contiguous()  # [x,y,z,3]
-        weights_bund = weights[:, (idx * 3), :, :].contiguous()  # [x,y,z]
-
-        angles = angle_second_dim(y_pred_bund, y_true_bund)
-
-        angles_weighted = angles / weights_bund
-        scores.append(torch.mean(angles_weighted))
-
-    #BUG: in pytorch 0.4 this does not work anymore: have to use torch for taking mean which is derivable
-    return -np.mean(scores)
+    return torch.mean(scores), -torch.mean(angles_all).item()
 
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
@@ -337,3 +300,47 @@ def deconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
                            padding=padding, output_padding=output_padding, bias=bias),
         nonlinearity)
     return layer
+
+
+def angle_loss_faster_BUGGY(y_pred, y_true, weights):
+    '''
+    Not working !
+    RuntimeError: invalid argument 2: input is not contiguous (and 'abcd,abcd->acd' also in numpy wrong)
+
+    :param y_pred:
+    :param y_true:
+    :param weights:
+    :return:
+    '''
+
+    def angle_second_dim(a, b):
+        '''
+        Not working !
+        RuntimeError: invalid argument 2: input is not contiguous (and
+
+        Calculate the angle between two nd-arrays (array of vectors) along the second dimension
+
+        without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
+        np.arccos -> returns degree in pi (90°: 0.5*pi)
+
+        return: one dimension less then input
+        '''
+        from tractseg.libs.pytorch_einsum import einsum
+
+        return torch.abs(einsum('abcd,abcd->acd', a, b) / (torch.norm(a, 2., 1) * torch.norm(b, 2, 1) + 1e-7))
+
+    scores = []
+    nr_of_classes = int(y_true.shape[-1] / 3.)
+
+    for idx in range(nr_of_classes):
+        y_pred_bund = y_pred[:, (idx * 3):(idx * 3) + 3, :, :].contiguous()
+        y_true_bund = y_true[:, (idx * 3):(idx * 3) + 3, :, :].contiguous()  # [x,y,z,3]
+        weights_bund = weights[:, (idx * 3), :, :].contiguous()  # [x,y,z]
+
+        angles = angle_second_dim(y_pred_bund, y_true_bund)
+
+        angles_weighted = angles / weights_bund
+        scores.append(torch.mean(angles_weighted))
+
+    # BUG: in pytorch 0.4 this does not work anymore: have to use torch for taking mean which is derivable
+    return -np.mean(scores)
