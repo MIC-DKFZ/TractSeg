@@ -47,14 +47,10 @@ def train_model(Config, model, data_loader):
     epoch_times = []
     nr_of_updates = 0
 
-    #todo important: change
-    metric_types = ["loss", "f1_macro"]
-    # metric_types = ["loss", "f1_macro", "angle_err"]
-
     metrics = {}
     for type in ["train", "test", "validate"]:
         metrics_new = {}
-        for metric in metric_types:
+        for metric in Config.METRIC_TYPES:
             metrics_new[metric + "_" + type] = [0]
 
         metrics = dict(list(metrics.items()) + list(metrics_new.items()))
@@ -143,14 +139,12 @@ def train_model(Config, model, data_loader):
                     if Config.EXPERIMENT_TYPE == "peak_regression":
                         peak_f1_mean = np.array([s.to('cpu') for s in list(metr_batch["f1_macro"].values())]).mean()
                         metr_batch["f1_macro"] = peak_f1_mean
-                        #todo important: change
-                        metr_batch["loss"] = abs(metr_batch["loss"])
 
-                        metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, metric_types)
+                        metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, Config.METRIC_TYPES)
 
                     else:
                         metr_batch["f1_macro"] = np.mean(metr_batch["f1_macro"])
-                        metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, metric_types)
+                        metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, Config.METRIC_TYPES)
 
                 else:
                     metrics = metric_utils.calculate_metrics_onlyLoss(metrics, metr_batch["loss"], type=type)
@@ -209,13 +203,21 @@ def train_model(Config, model, data_loader):
         start_time_plotting = time.time()
         pickle.dump(metrics, open(join(Config.EXP_PATH, "metrics.pkl"), "wb"))
         plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME,
-                                   keys=metric_types,
+                                   keys=["loss", "f1_macro"],
                                    types=["train", "validate"],
-                                   selected_ax=["loss", "f1", "loss"])
+                                   selected_ax=["loss", "f1"],
+                                   fig_name="metrics_all.png")
         plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME, without_first_epochs=True,
-                                   keys=metric_types,
+                                   keys=["loss", "f1_macro"],
                                    types=["train", "validate"],
-                                   selected_ax=["loss", "f1", "loss"])
+                                   selected_ax=["loss", "f1"],
+                                   fig_name="metrics.png")
+        plot_utils.create_exp_plot(metrics, Config.EXP_PATH, Config.EXP_NAME, without_first_epochs=True,
+                                   keys=["loss", "angle_err"],
+                                   types=["train", "validate"],
+                                   selected_ax=["loss", "f1"],
+                                   fig_name="metrics_angle.png")
+
         plotting_time += time.time() - start_time_plotting
 
         epoch_time = time.time() - start_time

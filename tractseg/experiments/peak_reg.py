@@ -39,3 +39,4 @@ class Config(BaseConfig):
 
     # BEST_EPOCH_SELECTION = "loss"
     NUM_EPOCHS = 250
+    METRIC_TYPES = ["loss", "f1_macro", "angle_err"]

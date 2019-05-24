@@ -136,12 +136,13 @@ def MSE_weighted(y_pred, y_true, weights):
 
 def angle_last_dim(a, b):
     '''
-    Calculate the angle between two nd-arrays (array of vectors) along the last dimension
+    Calculate the angle between two nd-arrays (array of vectors) along the last dimension.
+    Returns dot product without applying arccos -> higher value = lower angle
 
     without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
     np.arccos -> returns degree in pi (90°: 0.5*pi)
 
-    return: one dimension less then input
+    return: one dimension less than input
     '''
     from tractseg.libs.pytorch_einsum import einsum
 

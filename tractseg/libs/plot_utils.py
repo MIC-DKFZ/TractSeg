@@ -212,19 +212,25 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
 
 
 def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
-                    keys=["loss", "f1_macro"], types=["train", "validate"], selected_ax=["loss", "f1"]):
+                    keys=["loss", "f1_macro"], types=["train", "validate"], selected_ax=["loss", "f1"],
+                    fig_name="metrics.png"):
 
     colors = ["r", "g", "b", "m"]
     markers = [":", "", "--"]
 
-    if "loss" in keys and "f1_macro" in keys:
+    if "loss" in keys:
         min_loss_test = np.min(metrics["loss_validate"])
         min_loss_test_epoch_idx = np.argmin(metrics["loss_validate"])
         description_loss = "min loss_validate: {} (ep {})".format(round(min_loss_test, 7), min_loss_test_epoch_idx)
 
-        max_f1_test = np.max(metrics["f1_macro_validate"])
-        max_f1_test_epoch_idx = np.argmax(metrics["f1_macro_validate"])
-        description_f1 = "max f1_macro_validate: {} (ep {})".format(round(max_f1_test, 4), max_f1_test_epoch_idx)
+        if "f1_macro" in keys:
+            max_f1_test = np.max(metrics["f1_macro_validate"])
+            max_f1_test_epoch_idx = np.argmax(metrics["f1_macro_validate"])
+            description_f1 = "max f1_macro_validate: {} (ep {})".format(round(max_f1_test, 4), max_f1_test_epoch_idx)
+        elif "angle_err" in keys:
+            min_angle_test = np.min(metrics["angle_err_validate"])
+            min_angle_test_epoch_idx = np.argmin(metrics["angle_err_validate"])
+            description_f1 = "min angle_err_validate: {} (ep {})".format(round(min_angle_test, 4), min_angle_test_epoch_idx)
 
         description = description_loss + " || " + description_f1
     else:
@@ -265,7 +271,7 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
                    borderaxespad=0.,
                    bbox_to_anchor=(1.03, 1))  # wenn weiter von Achse weg soll: 1.05 -> 1.15
 
-        fig_name = "metrics.png"
+        fig_name = fig_name
 
     else:
         handles = []
@@ -280,7 +286,7 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
                    borderaxespad=0.,
                    bbox_to_anchor=(1.03, 1))  # wenn weiter von Achse weg soll: 1.05 -> 1.15
 
-        fig_name = "metrics_all.png"
+        fig_name = fig_name
 
     fig.text(0.12, 0.95, exp_name, size=12, weight="bold")
     fig.text(0.12, 0.02, description)

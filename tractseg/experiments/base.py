@@ -104,6 +104,7 @@ class Config:
     RESET_LAST_LAYER = False
     UPSAMPLE_TYPE = "bilinear"  # bilinear / nearest
     BEST_EPOCH_SELECTION = "f1"  # f1 / loss
+    METRIC_TYPES = ["loss", "f1_macro"]
 
     # Peak_regression specific
     PEAK_DICE_THR = [0.95]
