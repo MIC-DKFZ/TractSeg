@@ -201,7 +201,8 @@ def run_tractseg(data, output_type="tract_segmentation",
 
         for idx, part in enumerate(parts):
             if manual_exp_name is not None:
-                manual_exp_name_peaks = exp_utils.get_manual_exp_name_peaks(manual_exp_name, part)
+                # manual_exp_name_peaks = exp_utils.get_manual_exp_name_peaks(manual_exp_name, part)
+                manual_exp_name_peaks = manual_exp_name
                 Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(
                     join(C.EXP_PATH, manual_exp_name_peaks), True)
             else:
@@ -211,19 +212,20 @@ def run_tractseg(data, output_type="tract_segmentation",
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
             utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
                                               dropout_sampling=Config.DROPOUT_SAMPLING, part=part)
-            data_loder_inference = DataLoaderInference(Config, data=data)
             model = BaseModel(Config)
 
-            seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
-                                             scale_to_world_shape=False, only_prediction=True,
-                                             batch_size=inference_batch_size)
-
-            # 3 dir for Peaks -> bad results
-            # seg_xyz, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
-            #                                                                scale_to_world_shape=False,
-            #                                                                only_prediction=True,
-            #                                                                batch_size=inference_batch_size)
-            # seg = direction_merger.mean_fusion_peaks(seg_xyz)
+            if single_orientation:
+                data_loder_inference = DataLoaderInference(Config, data=data)
+                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
+                                                 scale_to_world_shape=False, only_prediction=True,
+                                                 batch_size=inference_batch_size)
+            else:
+                # 3 dir for Peaks -> bad results
+                seg_xyz, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
+                                                                                  scale_to_world_shape=False,
+                                                                                  only_prediction=True,
+                                                                                  batch_size=inference_batch_size)
+                seg = direction_merger.mean_fusion_peaks(seg_xyz)
 
             if peak_regression_part == "All":
                 seg_all[:, :, :, (idx*Config.NR_OF_CLASSES) : (idx*Config.NR_OF_CLASSES+Config.NR_OF_CLASSES)] = seg
@@ -233,7 +235,7 @@ def run_tractseg(data, output_type="tract_segmentation",
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
             seg = seg_all
 
-        # seg = peak_utils.normalize_peak_to_unit_length(seg)
+        # seg = peak_utils.normalize_peak_to_unit_length(seg) #todo: have to apply for each peak independently
 
         #quite fast
         if bundle_specific_threshold:

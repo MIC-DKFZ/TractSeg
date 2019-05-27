@@ -59,6 +59,8 @@ class BaseModel:
                 self.criterion = pytorch_utils.angle_length_loss
             elif self.Config.LOSS_FUNCTION == "angle_loss":
                 self.criterion = pytorch_utils.angle_loss
+            elif self.Config.LOSS_FUNCTION == "l2_loss":
+                self.criterion = pytorch_utils.l2_loss
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
             # self.criterion = nn.MSELoss()   # aggregate by mean
             self.criterion = nn.MSELoss(size_average=False, reduce=True)   # aggregate by sum

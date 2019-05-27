@@ -198,6 +198,9 @@ def main():
     tensor_input = False
     # tensor_input = args.tensor
     input_path = args.input
+    single_orientation = args.single_orientation
+    if args.output_type == "TOM":
+        single_orientation = True
 
     if os.path.basename(input_path) == "dyads1.nii.gz":
         print("BedpostX dyads detected. Will automatically combine dyads1+2[+3].")
@@ -292,6 +295,9 @@ def main():
 
     if Config.EXPERIMENT_TYPE == "peak_regression":
         parts = ["Part1", "Part2", "Part3", "Part4"]
+        if manual_exp_name is not None and "PeaksPart1" in manual_exp_name:
+            print("INFO: Only using Part1")
+            parts = ["Part1"]
     else:
         # parts = ["All"]
         parts = [Config.CLASSES]
@@ -302,7 +308,7 @@ def main():
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
         seg = run_tractseg(data, args.output_type,
-                           single_orientation=args.single_orientation,
+                           single_orientation=single_orientation,
                            dropout_sampling=dropout_sampling, threshold=threshold,
                            bundle_specific_threshold=args.bundle_specific_threshold,
                            get_probs=args.get_probabilities, peak_threshold=peak_threshold,

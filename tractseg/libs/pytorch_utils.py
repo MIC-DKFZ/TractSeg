@@ -156,8 +156,8 @@ def angle_loss(y_pred, y_true, weights):
     '''
     Does not need weighting. y_true is 0 all over background, therefore angle will also be 0 in those areas -> no
     extra masking of background needed.
-    :param y_pred:
-    :param y_true:
+    :param y_pred:  [bs, classes, x, y, z]
+    :param y_true:  [bs, classes, x, y, z]
     :param weights:  [bs, classes, x, y, z]
     :return:
     '''
@@ -246,6 +246,36 @@ def angle_length_loss(y_pred, y_true, weights):
 
     # return torch.mean(scores)
     return torch.mean(scores), -torch.mean(angles_all).item()
+
+
+def l2_loss(y_pred, y_true, weights):
+    '''
+    Calculate the euclidian distance (=l2 norm / frobenius norm) between tensors.
+    Expects a tensor image as input (6 channels per class).
+
+    :param y_pred: [bs, classes, x, y, z]
+    :param y_true: [bs, classes, x, y, z]
+    :param weights:  [bs, classes, x, y, z]
+    :return:
+    '''
+    if len(y_pred.shape) == 4:  # 2D
+        y_true = y_true.permute(0, 2, 3, 1)
+        y_pred = y_pred.permute(0, 2, 3, 1)
+    else:  # 3D
+        y_true = y_true.permute(0, 2, 3, 4, 1)
+        y_pred = y_pred.permute(0, 2, 3, 4, 1)
+
+    nr_of_classes = int(y_true.shape[-1] / 6.)
+    scores = torch.zeros(nr_of_classes)
+
+    for idx in range(nr_of_classes):
+        y_pred_bund = y_pred[:, :, :, (idx * 6):(idx * 6) + 6].contiguous()
+        y_true_bund = y_true[:, :, :, (idx * 6):(idx * 6) + 6].contiguous()  # [x,y,z,6]
+
+        dist = torch.dist(y_pred_bund, y_true_bund, 2)  # calc l2 norm / euclidian distance / frobenius norm
+        scores[idx] = torch.mean(dist)
+
+    return torch.mean(scores), None
 
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
