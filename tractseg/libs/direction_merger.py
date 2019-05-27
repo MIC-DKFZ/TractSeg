@@ -20,7 +20,6 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-from joblib import Parallel, delayed
 
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.libs import peak_utils
@@ -86,11 +85,11 @@ def mean_fusion_peaks(img):
     Calculating mean in tensor space (if simply taking mean in peak space most voxels look fine but a few are
     completely wrong (e.g. some voxels in transition to lateral projections of CST)).
 
-    Very slow :(
-
     :param img: 5D Image with probability per direction, shape: (x, y, z, nr_classes, 3)
     :return: 4D image, shape (x, y, z, nr_classes)
     """
+    from joblib import Parallel, delayed
+
     nr_classes = int(img.shape[3] / 3)
 
     def process_bundle(idx):
@@ -113,35 +112,35 @@ def mean_fusion_peaks(img):
     return merged_peaks_all
 
 
-def mean_fusion_peaks_SingleCore(img):
-    '''
-    Calculating mean in tensor space (if simply taking mean in peak space most voxels look fine but a few are
-    completely wrong (e.g. some voxels in transition to lateral projections of CST)).
-
-    Very slow :(
-
-    :param img: 5D Image with probability per direction, shape: (x, y, z, nr_classes, 3)
-    :return: 4D image, shape (x, y, z, nr_classes)
-    '''
-    merged_peaks_all = []
-
-    nr_classes = int(img.shape[3] / 3)
-    for idx in range(nr_classes):
-        print("idx: {}".format(idx))
-        dirs_per_bundle = []
-        for jdx in range(3):  # 3 orientations
-            peak = img[:, :, :, idx*3:idx*3+3, jdx]
-            tensor = peak_utils.peaks_to_tensors(peak)
-            dirs_per_bundle.append(tensor)
-        merged_tensor = np.array(dirs_per_bundle).mean(axis=0)
-        merged_peak = peak_utils.tensors_to_peaks(merged_tensor)
-        merged_peaks_all.append(merged_peak)
-
-    merged_peaks_all = np.array(merged_peaks_all).transpose(1, 2, 3, 0, 4)
-    s = merged_peaks_all.shape
-    merged_peaks_all = merged_peaks_all.reshape([s[0], s[1], s[2], s[3] * s[4]])
-
-    return merged_peaks_all
+# def mean_fusion_peaks_SingleCore(img):
+#     '''
+#     Calculating mean in tensor space (if simply taking mean in peak space most voxels look fine but a few are
+#     completely wrong (e.g. some voxels in transition to lateral projections of CST)).
+#
+#     Very slow :(
+#
+#     :param img: 5D Image with probability per direction, shape: (x, y, z, nr_classes, 3)
+#     :return: 4D image, shape (x, y, z, nr_classes)
+#     '''
+#     merged_peaks_all = []
+#
+#     nr_classes = int(img.shape[3] / 3)
+#     for idx in range(nr_classes):
+#         print("idx: {}".format(idx))
+#         dirs_per_bundle = []
+#         for jdx in range(3):  # 3 orientations
+#             peak = img[:, :, :, idx*3:idx*3+3, jdx]
+#             tensor = peak_utils.peaks_to_tensors(peak)
+#             dirs_per_bundle.append(tensor)
+#         merged_tensor = np.array(dirs_per_bundle).mean(axis=0)
+#         merged_peak = peak_utils.tensors_to_peaks(merged_tensor)
+#         merged_peaks_all.append(merged_peak)
+#
+#     merged_peaks_all = np.array(merged_peaks_all).transpose(1, 2, 3, 0, 4)
+#     s = merged_peaks_all.shape
+#     merged_peaks_all = merged_peaks_all.reshape([s[0], s[1], s[2], s[3] * s[4]])
+#
+#     return merged_peaks_all
 
 
 def majority_fusion(threshold, img, probs=None):
