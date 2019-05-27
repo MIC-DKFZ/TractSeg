@@ -223,7 +223,7 @@ def run_tractseg(data, output_type="tract_segmentation",
             #                                                                scale_to_world_shape=False,
             #                                                                only_prediction=True,
             #                                                                batch_size=inference_batch_size)
-            # seg = direction_merger.mean_fusion(None, seg_xyz, probs=True)
+            # seg = direction_merger.mean_fusion_peaks(seg_xyz)
 
             if peak_regression_part == "All":
                 seg_all[:, :, :, (idx*Config.NR_OF_CLASSES) : (idx*Config.NR_OF_CLASSES+Config.NR_OF_CLASSES)] = seg
@@ -232,6 +232,8 @@ def run_tractseg(data, output_type="tract_segmentation",
             Config.CLASSES = "All"
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
             seg = seg_all
+
+        # seg = peak_utils.normalize_peak_to_unit_length(seg)
 
         #quite fast
         if bundle_specific_threshold:

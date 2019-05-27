@@ -259,7 +259,7 @@ def main():
             sys.exit()
 
     if tensor_input:
-        data_img = peak_utils.peak_image_to_tensor_image_nifti(data_img)
+        data_img = peak_utils.peaks_to_tensors_nifti(data_img)
 
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)

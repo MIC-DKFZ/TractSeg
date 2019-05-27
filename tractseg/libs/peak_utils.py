@@ -79,7 +79,6 @@ def normalize_peak_to_unit_length(peaks):
     return peaks / (np.linalg.norm(peaks, axis=-1) + 1e-20)[..., None]
 
 
-
 def peak_image_to_binary_mask_path(path_in, path_out, peak_length_threshold=0.1):
     """
     Create binary mask from a peak image.
@@ -99,7 +98,59 @@ def peak_image_to_binary_mask_path(path_in, path_out, peak_length_threshold=0.1)
     nib.save(peak_mask_img, path_out)
 
 
-def peak_image_to_tensor_image(peaks):
+def tensors_to_peaks(tensors):
+    """
+    Convert tensor image to peak image.
+
+    Args:
+        tensors: shape: [x,y,z,nr_peaks*6]
+
+    Returns:
+        peaks with shape: [x,y,z, nr_peaks*3]
+    """
+
+    def tensor_to_peak(tensor):
+        t_matrix = np.zeros(tensor.shape[:3] + (3, 3), dtype=np.float32)
+
+        # Create tensor matrix
+        t_matrix[:, :, :, 0, 0] = tensor[..., 0]
+        t_matrix[:, :, :, 0, 1] = tensor[..., 1]
+        t_matrix[:, :, :, 0, 2] = tensor[..., 2]
+        t_matrix[:, :, :, 1, 0] = tensor[..., 1]  # redundant
+        t_matrix[:, :, :, 1, 1] = tensor[..., 3]
+        t_matrix[:, :, :, 1, 2] = tensor[..., 4]
+        t_matrix[:, :, :, 2, 0] = tensor[..., 2]  # redundant
+        t_matrix[:, :, :, 2, 1] = tensor[..., 4]  # redundant
+        t_matrix[:, :, :, 2, 2] = tensor[..., 5]
+
+        val, vec = np.linalg.eig(t_matrix)  # get eigenvalues and eigenvectors
+        argmax = val.argmax(axis=-1)  # get largest eigenvalue [x,y,z]
+        max = val.max(axis=-1)
+
+        vec2 = vec.transpose(4, 0, 1, 2, 3)  # [3,x,y,z,3]  (bring list of eigenvectors to first dim)
+
+        # select eigenvector with largest eigenvalue
+        x, y, z = (vec2.shape[1], vec2.shape[2], vec2.shape[3])
+        peak = vec2[tuple([argmax] + np.ogrid[:x, :y, :z])]
+
+        # peak[max == 0] = 0  # remove eigenvecs where eigenvalue is zero (everywhere outside of bundle)
+        peak *= max[..., None]  # scale by eigenvalue (otherwise all have equal length)
+        return peak
+
+    nr_tensors = int(tensors.shape[3] / 6)
+    peaks = np.zeros(tensors.shape[:3] + (nr_tensors * 3,), dtype=np.float32)
+    for idx in range(nr_tensors):
+        peak = tensor_to_peak(tensors[..., idx * 6:(idx * 6) + 6])
+
+        # filter small peaks
+        mask = np.linalg.norm(peak, axis=-1) < 0.001  # 0.001 does not really filter anything
+        peak[mask] = 0
+
+        peaks[..., idx * 3:(idx * 3) + 3] = peak
+    return peaks
+
+
+def peaks_to_tensors(peaks):
     """
     Convert peak image to tensor image
 
@@ -126,12 +177,14 @@ def peak_image_to_tensor_image(peaks):
         tensor[..., idx*6:(idx*6)+6] = peak_to_tensor(peaks[..., idx*3:(idx*3)+3])
     return tensor
 
-def peak_image_to_tensor_image_nifti(peaks_img):
+
+def peaks_to_tensors_nifti(peaks_img):
     """
     Same as peak_image_to_tensor_image() but takes nifti img as input and outputs a nifti img
     """
-    tensors = peak_image_to_tensor_image(peaks_img.get_data())
+    tensors = peaks_to_tensors(peaks_img.get_data())
     return nib.Nifti1Image(tensors, peaks_img.get_affine())
+
 
 def load_bedpostX_dyads(path_dyads1, scale=True):
     """

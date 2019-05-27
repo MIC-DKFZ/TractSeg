@@ -200,7 +200,7 @@ class DataLoaderInference():
 
                 # Convert peaks to tensors if tensor model
                 if self.Config.NR_OF_GRADIENTS == 18 * self.Config.NR_SLICES:
-                    data = peak_utils.peak_image_to_tensor_image(data)
+                    data = peak_utils.peaks_to_tensors(data)
 
                 data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data,
                                                                                      target_size=self.Config.INPUT_DIM[0])

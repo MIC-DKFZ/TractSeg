@@ -22,7 +22,7 @@ from __future__ import print_function
 import numpy as np
 
 from tractseg.data.data_loader_inference import DataLoaderInference
-
+from tractseg.libs import peak_utils
 
 def get_seg_single_img_3_directions(Config, model, subject=None, data=None,
                                     scale_to_world_shape=True, only_prediction=False, batch_size=1):
@@ -78,6 +78,36 @@ def mean_fusion(threshold, img, probs=True):
         probs_mean[probs_mean < threshold] = 0
         probs_mean = probs_mean.astype(np.int16)
     return probs_mean
+
+
+def mean_fusion_peaks(img):
+    '''
+    :param img: 5D Image with probability per direction, shape: (x, y, z, nr_classes, 3)
+    :return: 4D image, shape (x, y, z, nr_classes)
+    '''
+    print("img shape: {}".format(img.shape))  # should be (x,y,z,54,3)
+
+    merged_peaks_all = []
+
+    nr_classes = int(img.shape[3] / 3)
+    for idx in range(nr_classes):
+        print("idx: {}".format(idx))
+        dirs_per_bundle = []
+        for jdx in range(3):  # 3 orientations
+            peak = img[:, :, :, idx*3:idx*3+3, jdx]
+            tensor = peak_utils.peaks_to_tensors(peak)
+            dirs_per_bundle.append(tensor)
+        merged_tensor = np.array(dirs_per_bundle).mean(axis=0)
+        merged_peak = peak_utils.tensors_to_peaks(merged_tensor)
+        merged_peaks_all.append(merged_peak)
+
+    merged_peaks_all = np.array(merged_peaks_all).transpose(1, 2, 3, 0, 4)
+    s = merged_peaks_all.shape
+    merged_peaks_all = merged_peaks_all.reshape([s[0], s[1], s[2], s[3] * s[4]])
+
+    print("img shape after: {}".format(merged_peaks_all.shape))  # should be (x,y,z,54)
+
+    return merged_peaks_all
 
 
 def majority_fusion(threshold, img, probs=None):
