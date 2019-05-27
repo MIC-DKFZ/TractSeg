@@ -27,6 +27,7 @@ import nibabel as nib
 from tractseg.libs import fiber_utils
 from tractseg.libs import img_utils
 from tractseg.libs import tracking
+from tractseg.libs import peak_utils
 
 def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
     print("Moving input to MNI space...")
@@ -232,7 +233,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
 
     # No filtering
     if not filter_by_endpoints:
-        img_utils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
+        peak_utils.peak_image_to_binary_mask_path(peaks, tmp_dir + "/peak_mask.nii.gz", peak_length_threshold=0.01)
 
         # FACT Tracking on TOMs
         subprocess.call("tckgen -algorithm FACT " +

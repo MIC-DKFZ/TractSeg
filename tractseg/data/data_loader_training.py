@@ -56,6 +56,7 @@ from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
+from tractseg.libs import peak_utils
 
 # warnings.simplefilter("ignore", UserWarning)  # hide batchgenerator warnings
 
@@ -187,7 +188,7 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
 
         #Convert peaks to tensors if tensor model
         if self.Config.NR_OF_GRADIENTS == 18*self.Config.NR_SLICES:
-            data = img_utils.peak_image_to_tensor_image(data)
+            data = peak_utils.peak_image_to_tensor_image(data)
 
         slice_direction = dataset_utils.slice_dir_to_int(self.Config.TRAINING_SLICE_DIRECTION)
         slice_idxs = np.random.choice(data.shape[slice_direction], self.batch_size, False, None)

@@ -37,6 +37,7 @@ from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import mrtrix
 from tractseg.libs import plot_utils
+from tractseg.libs import peak_utils
 from tractseg.python_api import run_tractseg
 from tractseg.libs.utils import bcolors
 from tractseg.libs.system_config import SystemConfig as C
@@ -247,7 +248,7 @@ def main():
     else:
         peak_path = input_path
         if bedpostX_input:
-            data_img = img_utils.load_bedpostX_dyads(peak_path, scale=True)
+            data_img = peak_utils.load_bedpostX_dyads(peak_path, scale=True)
         else:
             data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
@@ -258,7 +259,7 @@ def main():
             sys.exit()
 
     if tensor_input:
-        data_img = img_utils.peak_image_to_tensor_image_nifti(data_img)
+        data_img = peak_utils.peak_image_to_tensor_image_nifti(data_img)
 
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)

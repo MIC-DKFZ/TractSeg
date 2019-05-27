@@ -27,6 +27,7 @@ from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import dataset_utils
+from tractseg.libs import peak_utils
 from tractseg.data.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 from tractseg.data.DLDABG_standalone import SingleThreadedAugmenter
 from tractseg.data.DLDABG_standalone import Compose
@@ -199,7 +200,7 @@ class DataLoaderInference():
 
                 # Convert peaks to tensors if tensor model
                 if self.Config.NR_OF_GRADIENTS == 18 * self.Config.NR_SLICES:
-                    data = img_utils.peak_image_to_tensor_image(data)
+                    data = peak_utils.peak_image_to_tensor_image(data)
 
                 data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data,
                                                                                      target_size=self.Config.INPUT_DIM[0])

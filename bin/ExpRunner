@@ -55,6 +55,7 @@ from tractseg.libs import direction_merger
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import metric_utils
+from tractseg.libs import peak_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import trainer
 from tractseg.data.data_loader_training import DataLoaderTraining as DataLoaderTraining2D
@@ -234,7 +235,7 @@ def main():
                 data_loader = DataLoaderInference(Config, subject=subject)
                 img_probs, img_y = trainer.predict_img(Config, model_test, data_loader,
                                                        probs=True)  # only x or y or z
-                img_seg = img_utils.peak_image_to_binary_mask(img_probs,
+                img_seg = peak_utils.peak_image_to_binary_mask(img_probs,
                                                               len_thr=0.4)  # thr: 0.4 slightly better than 0.2
             else:
                 # returns probs not binary seg
@@ -270,7 +271,7 @@ def main():
             if Config.EXPERIMENT_TYPE == "peak_regression":
                 # trainerSingle = Trainer(model_test, dataManagerSingle)
                 img_probs, img_y = trainer.predict_img(Config, model_test, data_loader, probs=True)
-                img_probs = img_utils.remove_small_peaks(img_probs, len_thr=0.4)
+                img_probs = peak_utils.remove_small_peaks(img_probs, len_thr=0.4)
             else:
                 img_probs, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject=subject)
                 img_probs = direction_merger.mean_fusion(Config.THRESHOLD, img_probs, probs=True)

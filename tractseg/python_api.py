@@ -34,6 +34,7 @@ from tractseg.libs import exp_utils
 from tractseg.libs import utils
 from tractseg.libs import dataset_utils
 from tractseg.libs import direction_merger
+from tractseg.libs import peak_utils
 from tractseg.libs import img_utils
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.libs import trainer
@@ -212,9 +213,17 @@ def run_tractseg(data, output_type="tract_segmentation",
                                               dropout_sampling=Config.DROPOUT_SAMPLING, part=part)
             data_loder_inference = DataLoaderInference(Config, data=data)
             model = BaseModel(Config)
+
             seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
                                              scale_to_world_shape=False, only_prediction=True,
                                              batch_size=inference_batch_size)
+
+            # 3 dir for Peaks -> bad results
+            # seg_xyz, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
+            #                                                                scale_to_world_shape=False,
+            #                                                                only_prediction=True,
+            #                                                                batch_size=inference_batch_size)
+            # seg = direction_merger.mean_fusion(None, seg_xyz, probs=True)
 
             if peak_regression_part == "All":
                 seg_all[:, :, :, (idx*Config.NR_OF_CLASSES) : (idx*Config.NR_OF_CLASSES+Config.NR_OF_CLASSES)] = seg
@@ -226,17 +235,10 @@ def run_tractseg(data, output_type="tract_segmentation",
 
         #quite fast
         if bundle_specific_threshold:
-            seg = img_utils.remove_small_peaks_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:],
+            seg = peak_utils.remove_small_peaks_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:],
                                                                len_thr=0.3)
         else:
-            seg = img_utils.remove_small_peaks(seg, len_thr=peak_threshold)
-
-        #3 dir for Peaks -> bad results
-        # seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
-        #                                                                scale_to_world_shape=False,
-        #                                                                only_prediction=True,
-        #                                                                batch_size=inference_batch_size)
-        # seg = direction_merger.mean_fusion(Config.THRESHOLD, seg_xyz, probs=True)
+            seg = peak_utils.remove_small_peaks(seg, len_thr=peak_threshold)
 
     if bundle_specific_threshold and Config.EXPERIMENT_TYPE == "tract_segmentation":
         seg = img_utils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])
