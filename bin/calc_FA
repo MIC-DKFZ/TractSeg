@@ -60,7 +60,7 @@ def main():
     FA[np.isnan(FA)] = 0
 
     # logging.info('Saving FA...')
-    fa_img = nib.Nifti1Image(FA.astype(np.float32), img.get_affine())
+    fa_img = nib.Nifti1Image(FA.astype(np.float32), img.affine)
     nib.save(fa_img, args.file_out)
 
 

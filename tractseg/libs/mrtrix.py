@@ -167,7 +167,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
 
     def mrtrix_tck_to_trk():
         ref_img = nib.load(output_dir + "/bundle_segmentations"  + dir_postfix + "/" + bundle + ".nii.gz")
-        reference_affine = ref_img.get_affine()
+        reference_affine = ref_img.affine
         reference_shape = ref_img.get_data().shape[:3]
         fiber_utils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
                                        output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
@@ -330,7 +330,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
             if use_best_original_peaks:
                 orig_peaks = nib.load(peaks)
                 best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks.get_data())
-                nib.save(nib.Nifti1Image(best_orig_peaks, orig_peaks.get_affine()),
+                nib.save(nib.Nifti1Image(best_orig_peaks, orig_peaks.affine),
                          output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz")
                 tom_peaks = best_orig_peaks
 
@@ -339,7 +339,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                 orig_peaks = nib.load(peaks)
                 best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks.get_data())
                 weighted_peaks = fiber_utils.get_weighted_mean_of_peaks(best_orig_peaks, tom_peaks, weight=0.5)
-                nib.save(nib.Nifti1Image(weighted_peaks, orig_peaks.get_affine()),
+                nib.save(nib.Nifti1Image(weighted_peaks, orig_peaks.affine),
                          output_dir + "/" + tracking_folder + "/" + bundle + "_weighted.nii.gz")
                 tom_peaks = weighted_peaks
 
@@ -350,12 +350,12 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
 
             if output_format == "trk_legacy":
                 fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
-                                                           streamlines, seed_img.get_affine(),
+                                                           streamlines, seed_img.affine,
                                                            seed_img.get_data().shape)
             else:  # tck or trk (determined by file ending)
                 fiber_utils.save_streamlines(
                     output_dir + "/" + tracking_folder + "/" + bundle + "." + output_format,
-                    streamlines, seed_img.get_affine(),
+                    streamlines, seed_img.affine,
                     seed_img.get_data().shape)
 
 

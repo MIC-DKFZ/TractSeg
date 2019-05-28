@@ -94,7 +94,7 @@ def peak_image_to_binary_mask_path(path_in, path_out, peak_length_threshold=0.1)
     peak_img = nib.load(path_in)
     peak_data = peak_img.get_data()
     peak_mask = peak_image_to_binary_mask(peak_data, len_thr=peak_length_threshold)
-    peak_mask_img = nib.Nifti1Image(peak_mask.astype(np.uint8), peak_img.get_affine())
+    peak_mask_img = nib.Nifti1Image(peak_mask.astype(np.uint8), peak_img.affine)
     nib.save(peak_mask_img, path_out)
 
 
@@ -183,7 +183,7 @@ def peaks_to_tensors_nifti(peaks_img):
     Same as peak_image_to_tensor_image() but takes nifti img as input and outputs a nifti img
     """
     tensors = peaks_to_tensors(peaks_img.get_data())
-    return nib.Nifti1Image(tensors, peaks_img.get_affine())
+    return nib.Nifti1Image(tensors, peaks_img.affine)
 
 
 def load_bedpostX_dyads(path_dyads1, scale=True):
@@ -221,5 +221,5 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
     dyads[:, :, :, 3] *= -1
     dyads[:, :, :, 6] *= -1
 
-    dyads_img = nib.Nifti1Image(dyads, dyads1_img.get_affine())
+    dyads_img = nib.Nifti1Image(dyads, dyads1_img.affine)
     return dyads_img

@@ -405,7 +405,7 @@ def dilate_binary_mask(file_in, file_out, dilation=2):
 
     data = data > 0.5
 
-    img_out = nib.Nifti1Image(data.astype(np.uint8), img.get_affine())
+    img_out = nib.Nifti1Image(data.astype(np.uint8), img.affine)
     nib.save(img_out, file_out)
 
 
@@ -445,7 +445,7 @@ def peaks2fixel(peaks_file_in, fixel_dir_out):
                     idx_ctr += 1
 
     nib.save(nib.Nifti2Image(np.array(directions), np.eye(4)), join(fixel_dir_out, "directions.nii.gz"))
-    nib.save(nib.Nifti2Image(index, peaks_img.get_affine()), join(fixel_dir_out, "index.nii.gz"))
+    nib.save(nib.Nifti2Image(index, peaks_img.affine), join(fixel_dir_out, "index.nii.gz"))
     nib.save(nib.Nifti2Image(np.array(amplitudes), np.eye(4)), join(fixel_dir_out, "amplitudes.nii.gz"))
 
 
@@ -505,13 +505,13 @@ def change_spacing_4D(img_in, new_spacing=1.25):
 
     data = img_in.get_data()
     old_shape = data.shape
-    img_spacing = abs(img_in.get_affine()[0, 0])
+    img_spacing = abs(img_in.affine[0, 0])
 
     # copy very important; otherwise new_affine changes will also be in old affine
-    new_affine = np.copy(img_in.get_affine())
-    new_affine[0, 0] = new_spacing if img_in.get_affine()[0, 0] > 0 else -new_spacing
-    new_affine[1, 1] = new_spacing if img_in.get_affine()[1, 1] > 0 else -new_spacing
-    new_affine[2, 2] = new_spacing if img_in.get_affine()[2, 2] > 0 else -new_spacing
+    new_affine = np.copy(img_in.affine)
+    new_affine[0, 0] = new_spacing if img_in.affine[0, 0] > 0 else -new_spacing
+    new_affine[1, 1] = new_spacing if img_in.affine[1, 1] > 0 else -new_spacing
+    new_affine[2, 2] = new_spacing if img_in.affine[2, 2] > 0 else -new_spacing
 
     new_shape = np.floor(np.array(img_in.get_data().shape) * (img_spacing / new_spacing))
     new_shape = new_shape[:3]  # drop last dim
@@ -520,7 +520,7 @@ def change_spacing_4D(img_in, new_spacing=1.25):
     for i in range(data.shape[3]):
         affine_map = AffineMap(np.eye(4),
                                new_shape, new_affine,
-                               old_shape, img_in.get_affine()
+                               old_shape, img_in.affine
                                )
         #Generally nearest a bit better results than linear interpolation
         # res = affine_map.transform(data[:,:,:,i], interp="linear")
@@ -581,7 +581,7 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
 
 def get_image_spacing(img_path):
     img = nib.load(img_path)
-    affine = img.get_affine()
+    affine = img.affine
     return str(abs(round(affine[0, 0], 2)))
 
 

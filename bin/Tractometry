@@ -135,7 +135,7 @@ def main():
 
         if len(streamlines) > 0:
             streamlines = fiber_utils.resample_fibers(streamlines, nb_points=NR_POINTS)    #mean over bundles
-            streamlines = list(move_streamlines(streamlines, np.linalg.inv(scalar_image.get_affine())))
+            streamlines = list(move_streamlines(streamlines, np.linalg.inv(scalar_image.affine)))
             mean, std = evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines,
                                                    beginnings.get_data(), NR_POINTS, dilate=DILATION,
                                                    predicted_peaks=predicted_peaks)

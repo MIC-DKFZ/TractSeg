@@ -70,7 +70,7 @@ def create_preprocessed_files(subject):
         if os.path.exists(path):
             img = nib.load(path)
             data = img.get_data()
-            affine = img.get_affine()
+            affine = img.affine
             data = np.nan_to_num(data)
 
             if idx == 0:

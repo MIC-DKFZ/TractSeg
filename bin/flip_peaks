@@ -59,7 +59,7 @@ def main():
         data[ :, :, :, 5] *= -1
         data[ :, :, :, 8] *= -1
 
-    new_image = nib.Nifti1Image(data, img.get_affine())
+    new_image = nib.Nifti1Image(data, img.affine)
     nib.save(new_image, args.file_out)
 
 

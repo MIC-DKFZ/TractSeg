@@ -290,7 +290,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
     # move streamlines to coordinate space
-    streamlines = list(move_streamlines(streamlines, output_space=seed_image.get_affine()))
+    streamlines = list(move_streamlines(streamlines, output_space=seed_image.affine))
 
     if smooth:
         streamlines = fiber_utils.smooth_streamlines(streamlines, smoothing_factor=smooth)
