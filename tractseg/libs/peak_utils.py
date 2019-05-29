@@ -235,10 +235,10 @@ def mask_and_normalize_peaks(peaks, tract_seg_path, bundles):
         mask = nib.load(join(tract_seg_path, bundle + ".nii.gz")).get_data()
         bundle_peaks[mask == 0] = 0
         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)
-        # results_peaks[:, :, :, idx * 3:idx * 3 + 3] = bundle_peaks
         return bundle_peaks
 
-    results_peaks = Parallel(n_jobs=12)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
+    #todo important: change: n_jobs
+    results_peaks = Parallel(n_jobs=2)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
 
     results_peaks = np.array(results_peaks).transpose(1, 2, 3, 0, 4)
     s = results_peaks.shape

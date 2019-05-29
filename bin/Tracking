@@ -95,6 +95,9 @@ def main():
     parser.add_argument("--test", action="store_true", help="Only needed for unittesting.",
                         default=False)
 
+    parser.add_argument("--use_mrtrix_on_TOMs", action="store_true",
+                        help="Use MRtrix FACT tracking to generate trackings based on the TOMs.",
+                        default=False)
 
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
                         default=False)
@@ -103,7 +106,7 @@ def main():
 
 
     #Private parameters
-    peak_prob_tracking = True  # Set to false if you want to use Mrtrix tracking
+    peak_prob_tracking = not args.use_mrtrix_on_TOMs  # Set to false if you want to use Mrtrix tracking
     TOM_mrtrix_algorithm = "FACT"   # FACT / iFOD2  (used when peak_prob_tracking = False and tracks_FODs = False)
     use_best_original_peaks = False  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
     use_as_prior = False  # Track on weighted average between best original peaks and TOM
