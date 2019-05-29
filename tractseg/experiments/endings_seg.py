@@ -31,4 +31,5 @@ class Config(BaseConfig):
 
     FEATURES_FILENAME = "12g90g270g_CSD_BX"
 
-    # 150ep would easily be enough
+    NUM_EPOCHS = 150  # easily enough if using plateau LR schedule
+

@@ -514,8 +514,11 @@ def get_manual_exp_name_peaks(manual_exp_name, part):
     Returns:
 
     """
-    manual_exp_name_parts = manual_exp_name.split("X")
-    return manual_exp_name_parts[0] + part[-1] + manual_exp_name_parts[1]
+    if "PeaksPartX" in manual_exp_name:
+        manual_exp_name_parts = manual_exp_name.split("X")
+        return manual_exp_name_parts[0] + part[-1] + manual_exp_name_parts[1]
+    else:
+        return manual_exp_name
 
 
 def load_config_from_txt(path):

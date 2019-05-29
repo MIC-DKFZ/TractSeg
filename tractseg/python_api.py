@@ -201,8 +201,7 @@ def run_tractseg(data, output_type="tract_segmentation",
 
         for idx, part in enumerate(parts):
             if manual_exp_name is not None:
-                # manual_exp_name_peaks = exp_utils.get_manual_exp_name_peaks(manual_exp_name, part)
-                manual_exp_name_peaks = manual_exp_name
+                manual_exp_name_peaks = exp_utils.get_manual_exp_name_peaks(manual_exp_name, part)
                 Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(
                     join(C.EXP_PATH, manual_exp_name_peaks), True)
             else:
