@@ -173,6 +173,11 @@ def main():
                              "inconvenient to work with.",
                         default=False)
 
+    parser.add_argument("--tract_segmentations_path", metavar="path",
+                        help="Path to tract segmentations. Only needed for TOM. If empty will look for default "
+                             "TractSeg output.",
+                        default=None)
+
     # parser.add_argument('--tensor', action="store_true",
     #                     help="Convert peaks to tensors before feeding to model.",
     #                     default=False)
@@ -213,7 +218,9 @@ def main():
         Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." +
                                                  config_file), "Config")()
     else:
-        Config = exp_utils.load_config_from_txt(join(C.EXP_PATH, manual_exp_name, "Hyperparameters.txt"))
+        Config = exp_utils.load_config_from_txt(join(C.EXP_PATH,
+                                                     exp_utils.get_manual_exp_name_peaks(manual_exp_name, "Part1"),
+                                                     "Hyperparameters.txt"))
 
     Config = exp_utils.get_correct_labels_type(Config)
     if args.tractseg_dir:
@@ -231,6 +238,11 @@ def main():
 
     bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
     exp_utils.make_dir(Config.PREDICT_IMG_OUTPUT)
+
+    if args.tract_segmentations_path is not None:
+        tract_segmentations_path = args.tract_segmentations_path
+    else:
+        tract_segmentations_path = join(Config.PREDICT_IMG_OUTPUT, "bundle_segmentations")  # needed for TOM angle loss
 
     if args.raw_diffusion_input:
         brain_mask = exp_utils.get_brain_mask_path(Config, args)
@@ -316,7 +328,8 @@ def main():
                            input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
                            inference_batch_size=inference_batch_size,
-                           tract_definition=args.tract_definition, bedpostX_input=bedpostX_input)
+                           tract_definition=args.tract_definition, bedpostX_input=bedpostX_input,
+                           tract_segmentations_path=tract_segmentations_path)
 
         if args.preview and Config.CLASSES not in ["All_Part2", "All_Part3", "All_Part4"]:
             print("Saving preview...")

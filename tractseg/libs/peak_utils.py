@@ -223,3 +223,39 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
 
     dyads_img = nib.Nifti1Image(dyads, dyads1_img.affine)
     return dyads_img
+
+
+def mask_and_normalize_peaks(peaks, tract_seg_path, bundles):
+    # runtime TOM: 2min 40s  (~8.5GB)
+
+    from joblib import Parallel, delayed
+
+    def process_bundle(idx, bundle):
+        bundle_peaks = np.copy(peaks[:, :, :, idx * 3:idx * 3 + 3])
+        mask = nib.load(join(tract_seg_path, bundle + ".nii.gz")).get_data()
+        bundle_peaks[mask == 0] = 0
+        bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)
+        # results_peaks[:, :, :, idx * 3:idx * 3 + 3] = bundle_peaks
+        return bundle_peaks
+
+    results_peaks = Parallel(n_jobs=12)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
+
+    results_peaks = np.array(results_peaks).transpose(1, 2, 3, 0, 4)
+    s = results_peaks.shape
+    results_peaks = results_peaks.reshape([s[0], s[1], s[2], s[3] * s[4]])
+    return results_peaks
+
+
+# def mask_and_normalize_peaks_SINGLE_CORE(peaks, tract_seg_path, bundles):
+#     # runtime TOM: 3min 8s
+#
+#     results_peaks = np.zeros(peaks.shape)
+#     for idx, bundle in enumerate(bundles):
+#         bundle_peaks = peaks[:, :, :, idx * 3:idx * 3 + 3]
+#         mask = nib.load(join(tract_seg_path, bundle + ".nii.gz")).get_data()
+#         bundle_peaks[mask == 0] = 0
+#         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)
+#         results_peaks[:,:,:, idx * 3:idx * 3 + 3] = bundle_peaks
+#
+#     return results_peaks
+#
