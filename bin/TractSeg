@@ -150,11 +150,6 @@ def main():
     parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment - ONLY FOR TESTING",
                         default=None)
 
-    # parser.add_argument('--bedpostX_input', '--bxi', action="store_true",
-    #                     help="Input dyads1.nii.gz of bedpostX. Will automatically look for dyads2_thr0.05.nii.gz and "
-    #                          "dyads3_thr0.05.nii.gz in the same folder. dyads3_thr0.05.nii.gz is optional.",
-    #                     default=False)
-
     parser.add_argument('--tract_definition', metavar="TractQuerier+|AutoPTX", choices=["TractQuerier+", "AutoPTX"],
                         help="Select which tract definitions to use. 'TractQuerier+' defines tracts mainly by their"
                              "cortical start and end region. 'AutoPTX' defines tracts mainly by ROIs in white matter. "
