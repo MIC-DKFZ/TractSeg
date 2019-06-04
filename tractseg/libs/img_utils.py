@@ -19,6 +19,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 from os.path import join
 from os.path import dirname
 from os.path import exists

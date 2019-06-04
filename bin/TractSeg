@@ -182,7 +182,7 @@ def main():
     args = parser.parse_args()
 
 
-    print("hello world")
+    print("hello world 2")
 
     #Private parameters
     input_type = "peaks"  # peaks / T1
