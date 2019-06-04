@@ -122,7 +122,7 @@ def main():
     Config = exp_utils.get_correct_labels_type(Config)
     Config.PREDICT_IMG = input_path is not None
     if args.output:
-        Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
+        Config.PREDICT_IMG_OUTPUT = args.output
     elif Config.PREDICT_IMG:
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
 

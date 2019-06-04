@@ -26,6 +26,7 @@ from os.path import exists
 import numpy as np
 import nibabel as nib
 
+from scipy.ndimage.morphology import binary_dilation
 
 
 def peak_image_to_binary_mask(img, len_thr=0.1):
@@ -225,7 +226,7 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
     return dyads_img
 
 
-def mask_and_normalize_peaks(peaks, tract_seg_path, bundles):
+def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation):
     # runtime TOM: 2min 40s  (~8.5GB)
 
     from joblib import Parallel, delayed
@@ -233,12 +234,13 @@ def mask_and_normalize_peaks(peaks, tract_seg_path, bundles):
     def process_bundle(idx, bundle):
         bundle_peaks = np.copy(peaks[:, :, :, idx * 3:idx * 3 + 3])
         mask = nib.load(join(tract_seg_path, bundle + ".nii.gz")).get_data()
+        mask = binary_dilation(mask, iterations=dilation).astype(np.uint8)
         bundle_peaks[mask == 0] = 0
         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)
         return bundle_peaks
 
     #todo important: change: n_jobs
-    results_peaks = Parallel(n_jobs=2)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
+    results_peaks = Parallel(n_jobs=6)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
 
     results_peaks = np.array(results_peaks).transpose(1, 2, 3, 0, 4)
     s = results_peaks.shape

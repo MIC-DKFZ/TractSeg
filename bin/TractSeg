@@ -106,9 +106,6 @@ def main():
                         help="Flip output peaks of TOM along z axis to make compatible with MITK.",
                         default=False)
 
-    parser.add_argument("-td", metavar="directory", dest="tractseg_dir",
-                        help="tractseg output subfolder name (default: tractseg_output)")
-
     parser.add_argument("--single_orientation", action="store_true",
                         help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.",
                         default=False)
@@ -199,6 +196,7 @@ def main():
     blob_size_thr = 50  # default: 50
     manual_exp_name = args.exp_name
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
+    TOM_dilation = 1  # 1 also ok for HCP because in tracking again filtered by mask
     bedpostX_input = False
     tensor_input = False
     # tensor_input = args.tensor
@@ -223,8 +221,6 @@ def main():
                                                      "Hyperparameters.txt"))
 
     Config = exp_utils.get_correct_labels_type(Config)
-    if args.tractseg_dir:
-        Config.TRACTSEG_DIR = args.tractseg_dir
     Config.CSD_TYPE = args.csd_type
     Config.KEEP_INTERMEDIATE_FILES = args.keep_intermediate_files
     Config.VERBOSE = args.verbose
@@ -232,7 +228,7 @@ def main():
     Config.FLIP_OUTPUT_PEAKS = args.flip
     Config.PREDICT_IMG = input_path is not None
     if args.output:
-        Config.PREDICT_IMG_OUTPUT = join(args.output, Config.TRACTSEG_DIR)
+        Config.PREDICT_IMG_OUTPUT = args.output
     elif Config.PREDICT_IMG:
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
 
@@ -329,7 +325,7 @@ def main():
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
                            inference_batch_size=inference_batch_size,
                            tract_definition=args.tract_definition, bedpostX_input=bedpostX_input,
-                           tract_segmentations_path=tract_segmentations_path)
+                           tract_segmentations_path=tract_segmentations_path, TOM_dilation=TOM_dilation)
 
         if args.preview and Config.CLASSES not in ["All_Part2", "All_Part3", "All_Part4"]:
             print("Saving preview...")

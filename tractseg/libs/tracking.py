@@ -244,7 +244,8 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     nr_voxels = mask_coords.shape[0]
     spacing = seed_image.header.get_zooms()[0]
 
-    max_nr_seeds = 250 * max_nr_fibers  # after how many seeds to abort (to avoid endless runtime)
+    # max_nr_seeds = 250 * max_nr_fibers
+    max_nr_seeds = 100 * max_nr_fibers  # after how many seeds to abort (to avoid endless runtime)
     # How many seeds to process in each pool.map iteration
     seeds_per_batch = 5000
 
