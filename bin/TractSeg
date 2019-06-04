@@ -182,6 +182,8 @@ def main():
     args = parser.parse_args()
 
 
+    print("hello world")
+
     #Private parameters
     input_type = "peaks"  # peaks / T1
     dropout_sampling = args.uncertainty
