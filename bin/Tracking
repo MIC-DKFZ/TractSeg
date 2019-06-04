@@ -56,6 +56,13 @@ def main():
                         help="Set name of folder which will be created to save the tracking output.",
                         default="auto")
 
+    parser.add_argument("--algorithm", metavar="prob|det",
+                        choices=["prob", "det"],
+                        help="Choose tracking algorithm. 'prob' uses a custom probabilistic algorithm which is more"
+                             "sensitive. 'det' uses Mrtrix deterministic tracking (FACT) which is more specific. "
+                             "(default: prob)",
+                        default="prob")
+
     parser.add_argument("--track_FODs", metavar="False|FACT|SD_STREAM|iFOD2",
                         choices=["False", "FACT", "SD_STREAM", "iFOD2"],
                         help="Running tracking on FODs (provided as argument to '-i') instead of tracking on TOMs. "
@@ -95,8 +102,8 @@ def main():
     parser.add_argument("--test", action="store_true", help="Only needed for unittesting.",
                         default=False)
 
-    parser.add_argument("--use_mrtrix_on_TOMs", action="store_true",
-                        help="Use MRtrix FACT tracking to generate trackings based on the TOMs.",
+    parser.add_argument("--FACT", action="store_true",
+                        help="Use MRtrix FACT tracking instead of custom probabilistic tracking.",
                         default=False)
 
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
@@ -106,7 +113,7 @@ def main():
 
 
     #Private parameters
-    peak_prob_tracking = not args.use_mrtrix_on_TOMs  # Set to false if you want to use Mrtrix tracking
+    peak_prob_tracking = args.algorithm == "prob"  # Set to false if you want to use Mrtrix tracking
     TOM_mrtrix_algorithm = "FACT"   # FACT / iFOD2  (used when peak_prob_tracking = False and tracks_FODs = False)
     use_best_original_peaks = False  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
     use_as_prior = False  # Track on weighted average between best original peaks and TOM
