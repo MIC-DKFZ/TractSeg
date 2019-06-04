@@ -24,13 +24,19 @@ import time
 import pickle
 import socket
 import datetime
-from tqdm import tqdm
 import numpy as np
 
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 from tractseg.libs import dataset_utils
 from tractseg.libs import plot_utils
+
+#todo: adapt
+try:
+    get_ipython()
+    from tqdm import tqdm_notebook as tqdm
+except:
+    from tqdm import tqdm
 
 
 def train_model(Config, model, data_loader):
