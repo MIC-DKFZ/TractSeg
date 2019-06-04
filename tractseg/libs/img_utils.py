@@ -27,7 +27,7 @@ import numpy as np
 import nibabel as nib
 from scipy import ndimage
 from scipy.ndimage.morphology import binary_dilation
-from sklearn.externals import joblib
+import joblib
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
