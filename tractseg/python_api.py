@@ -191,10 +191,10 @@ def run_tractseg(data, output_type="tract_segmentation",
 
     elif Config.EXPERIMENT_TYPE == "peak_regression":
         weights = {
-            "Part1": "pretrained_weights_peak_regression_part1_v1.npz",
-            "Part2": "pretrained_weights_peak_regression_part2_v1.npz",
-            "Part3": "pretrained_weights_peak_regression_part3_v1.npz",
-            "Part4": "pretrained_weights_peak_regression_part4_v1.npz",
+            "Part1": "pretrained_weights_peak_regression_part1_v2.npz",
+            "Part2": "pretrained_weights_peak_regression_part2_v2.npz",
+            "Part3": "pretrained_weights_peak_regression_part3_v2.npz",
+            "Part4": "pretrained_weights_peak_regression_part4_v2.npz",
         }
         if peak_regression_part == "All":
             parts = ["Part1", "Part2", "Part3", "Part4"]
