@@ -7,11 +7,11 @@ matrix:
   include:
   - python: "2.7"
     env:
-      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-1.0.0-cp27-cp27mu-linux_x86_64.whl
+      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-1.1.0-cp27-cp27mu-linux_x86_64.whl
       - PYTHON_VERS=2.7
   - python: "3.5"
     env:
-      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-linux_x86_64.whl
+      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-1.1.0-cp35-cp35m-linux_x86_64.whl
       - PYTHON_VERS=3.5
 before_install:
   - pip install $PYTORCH_URL
@@ -34,25 +34,25 @@ script:
     else docker push wasserth/tractseg_container:master; fi
 
   #Bundles
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --single_orientation
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --single_orientation
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
 
   #Endings
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --output_type endings_segmentation --single_orientation
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type endings_segmentation --single_orientation
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
  #- python tests/test_end_to_end.py test_end_to_end.test_endingsseg_output  #would also work
 
   #TOM
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples --output_type TOM
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type TOM
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
 
   #Track
   # Use docker if we want to test Mrtrix tracking
 #  # for python 3 it uses the online available container -> built from the previous commit
 #  - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master Tracking
-#    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples
+#    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples/tractseg_output
 #    --nr_fibers 2000 --tracking_dilation 0 --test
-  - Tracking -i tests/reference_files/peaks.nii.gz -o examples
+  - Tracking -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output
       --nr_fibers 2000 --tracking_dilation 0 --test
 
   #Tractometry
@@ -61,6 +61,6 @@ script:
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
 
   #Bundles SR PP BST
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_PP_BST --single_orientation --super_resolution
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_PP_BST/tractseg_output --single_orientation --super_resolution
     --postprocess --bundle_specific_threshold
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_PP_BST
