@@ -19,6 +19,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
 from os.path import join
 from os.path import dirname
 from os.path import exists
@@ -543,40 +544,44 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
     :param do_flip: also return flipped data or only return if flip needed
     :return: 4D numpy array (flipped peaks), boolean if flip was done
     '''
-    peaks = change_spacing_4D(peaks_input, new_spacing=2.).get_data()
-    #shape the classifier has been trained with
-    peaks = enforce_shape(peaks, target_shape=(91, 109, 91, 9))
-
-    peaks_x = peaks[int(peaks.shape[0] / 2.), :, :, :]
-    peaks_y = peaks[:, int(peaks.shape[1] / 2.), :, :]
-    peaks_z = peaks[:, :, int(peaks.shape[2] / 2.), :]
-    X = [list(peaks_x.flatten()) + list(peaks_y.flatten()) + list(peaks_z.flatten())]
-    X = np.nan_to_num(X)
-
-    random_forest_path = resource_filename('resources', 'random_forest_peak_orientation_detection.pkl')
-    clf = joblib.load(random_forest_path)
-    predicted_label = clf.predict(X)[0]
-    # labels:
-    #  ok: 0, x:1, y:2, z:3
-    peaks_input_data = peaks_input.get_data()
-    if do_flip:
-        if predicted_label == 0:
-            return peaks_input_data, None
-        elif predicted_label == 1:
-            return flip_peaks(peaks_input_data, axis="x"), "x"
-        elif predicted_label == 2:
-            return flip_peaks(peaks_input_data, axis="y"), "y"
-        elif predicted_label == 3:
-            return flip_peaks(peaks_input_data, axis="z"), "z"
+    if sys.version_info[0] < 3:
+        print("INFO: Peak orientation check not working on python 2, therefore it is skipped.")
+        return peaks_input.get_data(), None
     else:
-        if predicted_label == 0:
-            return peaks_input_data, None
-        elif predicted_label == 1:
-            return peaks_input_data, "x"
-        elif predicted_label == 2:
-            return peaks_input_data, "y"
-        elif predicted_label == 3:
-            return peaks_input_data, "z"
+        peaks = change_spacing_4D(peaks_input, new_spacing=2.).get_data()
+        #shape the classifier has been trained with
+        peaks = enforce_shape(peaks, target_shape=(91, 109, 91, 9))
+
+        peaks_x = peaks[int(peaks.shape[0] / 2.), :, :, :]
+        peaks_y = peaks[:, int(peaks.shape[1] / 2.), :, :]
+        peaks_z = peaks[:, :, int(peaks.shape[2] / 2.), :]
+        X = [list(peaks_x.flatten()) + list(peaks_y.flatten()) + list(peaks_z.flatten())]
+        X = np.nan_to_num(X)
+
+        random_forest_path = resource_filename('resources', 'random_forest_peak_orientation_detection.pkl')
+        clf = joblib.load(random_forest_path)
+        predicted_label = clf.predict(X)[0]
+        # labels:
+        #  ok: 0, x:1, y:2, z:3
+        peaks_input_data = peaks_input.get_data()
+        if do_flip:
+            if predicted_label == 0:
+                return peaks_input_data, None
+            elif predicted_label == 1:
+                return flip_peaks(peaks_input_data, axis="x"), "x"
+            elif predicted_label == 2:
+                return flip_peaks(peaks_input_data, axis="y"), "y"
+            elif predicted_label == 3:
+                return flip_peaks(peaks_input_data, axis="z"), "z"
+        else:
+            if predicted_label == 0:
+                return peaks_input_data, None
+            elif predicted_label == 1:
+                return peaks_input_data, "x"
+            elif predicted_label == 2:
+                return peaks_input_data, "y"
+            elif predicted_label == 3:
+                return peaks_input_data, "z"
 
 
 def get_image_spacing(img_path):
