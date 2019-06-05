@@ -1,5 +1,7 @@
 # Tractometry
 
+> Warning: This code was not tested extensively and we did not use it in any paper yet. Therefore use with care.
+
 Measuring the FA (or MD or other values) along tracts can provide valuable insights (e.g. [Yeatman et al. 2012](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790)).
 
 ![Tractometry concept figure](Tractometry_concept1.png)
@@ -8,13 +10,14 @@ TractSeg provides an easy way to do so by following these steps (version >=`1.6`
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
 They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space).
 2. Create segmentation of bundles:  
-`TractSeg -i Diffusion.nii.gz --raw_diffusion_input --output_type tract_segmentation` (runtime on GPU: 2min ~14s)  
+`TractSeg -i Diffusion.nii.gz -o tractseg_output --raw_diffusion_input --output_type tract_segmentation` (runtime on 
+GPU: 2min ~14s)  
 (**Note**: if you already have the MRtrix CSD peaks you can also pass those as input and remove the option `--raw_diffusion_input`)
 3. Create segmentation of start and end regions of bundles:  
-`TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation` (runtime on GPU: ~42s)
+`TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation` (runtime on GPU: ~42s)
 4. Create Tract Orientation Maps and use them to do bundle-specific tracking:  
-`TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM` (runtime on GPU: ~1min 30s)
-`Tracking -i tractseg_output/peaks.nii.gz -o .` (runtime on CPU: ~5min)    
+`TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM` (runtime on GPU: ~1min 30s)
+`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output` (runtime on CPU: ~5min)    
  **Note**: Per default 2000 streamlines will be created per bundle. Using `--nr_fibers N` a different number can be chosen. 
  If longer runtime is ok, it is advisable to choose a higher number like 6000 or 10000. As the streamline seeding is random, 
  results will be slightly different everytime you run it. If you only choose 2000 streamlines, the results you will get for 

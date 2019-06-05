@@ -12,7 +12,7 @@ will normally work quite well as it was trained on HCP data.
 In your folder you should have the following files: `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs`, `nodif_brain_mask.nii.gz`,
 `T1w_acpc_dc_restore_brain.nii.gz`. For HCP data they are normally already in MNI space. Now you can run TractSeg:
 ```
-TractSeg -i Diffusion.nii.gz --raw_diffusion_input --csd_type csd_msmt_5tt --brain_mask nodif_brain_mask.nii.gz
+TractSeg -i Diffusion.nii.gz -o tractseg_output --raw_diffusion_input --csd_type csd_msmt_5tt --brain_mask nodif_brain_mask.nii.gz
 ```
 * `--raw_diffusion_input`: This tells the program that we input a Diffusion image and not a peak image (which would be expected by default). 
 It will internally run CSD (Constrained Spherical Deconvolution) and extract the 3 main fiber peaks.  
@@ -31,18 +31,18 @@ Now we have binary tract segmentations but TractSeg can also segment the start a
 Maps (TOM) which can be used to generated bundle-specific tractograms:
 
 ```
-TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation
+TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation
 ```
 * This will add another subdirectory `endings_segmentations` containing the beginning region (`_b`) and ending region (`_e`) of each bundle.
 * results for right CST (corticospinal tract):  
 ![endings_segmentation](endings_segmentation.png)
 
 ```
-TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM
+TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM
 ```
 * This will add another subdirectory `TOM` containing the Tract Orientation Maps (TOMs).  
 ```
-Tracking -i tractseg_output/peaks.nii.gz -o .
+Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output
 ```
 * This will run tracking on the TOMs. The tracking algorithm places a gaussian distribution with fixed standard
 deviation on each peak. Then FACT tracking is run but the orientation is sampled from the gaussian distribution. This
@@ -64,7 +64,7 @@ In your folder you should have the following files: `Diffusion.nii.gz`, `Diffusi
 MNI space (and have isotropic spacing). You can either do so [manually](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) or 
 have TractSeg do it by adding the option `--preprocess`. 
 ```
-TractSeg -i Diffusion.nii.gz --raw_diffusion_input --bundle_specific_threshold --postprocess
+TractSeg -i Diffusion.nii.gz -o tractseg_output --raw_diffusion_input --bundle_specific_threshold --postprocess
 ```
 * The brain mask will be extracted automatically using FSL. The standard MRtrix CSD will be used for extracting the peaks because this also works if 
 only one b-value shell is available.  
@@ -77,24 +77,24 @@ segmentation.
 finally downsampled back to the original resolution. Using `--super_resolution` will output the image at 1.25mm. Especially if image resolution 
 is low parts of the CA can get lost during downsampling.
 
+> Note: If you use `--super_resolution` you have to use it for all steps (tract_segmentation, 
+endings_segmentation and TOM). Otherwise tracking is not possible as the masks do not have the same
+dimensions.
+
 Now segmentation of the bundle endings works straight forward: 
 ```
-TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type endings_segmentation
+TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation
 ```
 
 For the extraction of the Tract Orientation maps we can again add the option `--bundle_specific_threshold`:
 ```
-TractSeg -i tractseg_output/peaks.nii.gz -o . --output_type TOM --bundle_specific_threshold
+TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM --bundle_specific_threshold
 ```
 
 Now we can run the tracking:
 ```
-Tracking -i tractseg_output/peaks.nii.gz -o . --tracking_dilation 1
+Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --tracking_dilation 1
 ```
 * `--tracking_dilation`: This defines how much to dilate the tract mask as well as the start/end region mask 
 before using them for filtering during tracking. On low resolution data those masks can have some flaws. 
 Therefore it is advisable to dilate them slightly by using a value of 1 or 2 instead of the default of 0.
-
-> Note: If you use `--super_resolution` you have to use it for all steps (tract_segmentation, 
-endings_segmentation and TOM). Otherwise tracking is not possible as the masks do not have the same
-dimensions.
