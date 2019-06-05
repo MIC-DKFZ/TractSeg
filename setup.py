@@ -20,7 +20,8 @@ setup(name='TractSeg',
             'tqdm',
             'six',
             'psutil',
-            'dipy'
+            'dipy',
+            'joblib'
             # 'batchgenerators==0.17'   #results in error (version...)
         ],
         # dependency_links=[
