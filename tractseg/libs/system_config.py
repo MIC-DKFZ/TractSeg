@@ -37,8 +37,7 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
                           "not supported.")
                     sys.exit()
                 elif output_type == "TOM":
-                    print("ERROR: bedpostX_input in combination with output_type TOM not supported.")
-                    sys.exit()
+                    config = "Peaks_AngL"
                 elif output_type == "dm_regression":
                     print("ERROR: bedpostX_input in combination with output_type dm_regression and tract_definition "
                           "TractQuerier+ not supported.")
@@ -76,7 +75,7 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
                 elif output_type == "endings_segmentation":
                     config = "EndingsSeg_12g90g270g_125mm_DS_DAugAll"
                 elif output_type == "TOM":
-                    config = "Peaks_12g90g270g_125mm_DS_DAugAll"
+                    config = "Peaks_AngL"
                 elif output_type == "dm_regression":
                     config = "DmReg_12g90g270g_125mm_DAugAll"
             else:  # T1
