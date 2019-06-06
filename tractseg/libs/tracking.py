@@ -117,10 +117,10 @@ def process_seedpoint(seed_point, spacing):
     max_nr_steps = 1000
     min_tract_len = 50      # mm
     max_tract_len = 200     # mm
+    peak_len_thr = 0.1
     # If step_size too small and next_step_displacement_std too big: sometimes even goes back -> ends up in random
     # places (better since normalizing peak length after random displacing, but still happens if step_size to small)
     step_size = 0.7  # relative to voxel size (=spacing)
-    peak_len_thr = 0.1
 
     # transform length to voxel space
     min_tract_len = int(min_tract_len / spacing)
@@ -129,7 +129,7 @@ def process_seedpoint(seed_point, spacing):
     # Displacements are relative to voxel size. If you have bigger voxel size displacement is higher. Depends on
     #   application if this is desired. Keep in mind.
     seedpoint_displacement_std = 0.15
-    next_step_displacement_std = 0.2
+    next_step_displacement_std = 0.15
     # If we want to set displacement in mm use this code:
     # seedpoint_displacement_std = 0.3    # mm
     # next_step_displacement_std = 0.4    # mm
@@ -293,6 +293,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     # move streamlines to coordinate space
     streamlines = list(move_streamlines(streamlines, output_space=seed_image.affine))
 
+    # Smoothing does not change overall results at all because is just little smoothing. Just removes small unevenness.
     if smooth:
         streamlines = fiber_utils.smooth_streamlines(streamlines, smoothing_factor=smooth)
 

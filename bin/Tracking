@@ -115,7 +115,7 @@ def main():
     #Private parameters
     peak_prob_tracking = args.algorithm == "prob"  # Set to false if you want to use Mrtrix tracking
     TOM_mrtrix_algorithm = "FACT"   # FACT / iFOD2  (used when peak_prob_tracking = False and tracks_FODs = False)
-    use_best_original_peaks = False  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
+    use_best_original_peaks = args.track_best_orig  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
     use_as_prior = False  # Track on weighted average between best original peaks and TOM
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
     dir_postfix = ""    # "_BSThr"
