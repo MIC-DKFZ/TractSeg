@@ -91,7 +91,7 @@ def run_tractseg(data, output_type="tract_segmentation",
 
     if manual_exp_name is None:
         config = get_config_name(input_type, output_type, dropout_sampling=dropout_sampling,
-                                 tract_definition=tract_definition, bedpostX_input=bedpostX_input)
+                                 tract_definition=tract_definition)
         Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config), "Config")()
     else:
         Config = exp_utils.load_config_from_txt(join(C.EXP_PATH,

@@ -124,7 +124,7 @@ def main():
     filter_tracking_by_endpoints = not args.no_filtering_by_endpoints
     input_path = args.input
     config_file = get_config_name("peaks", "tract_segmentation", dropout_sampling=False,
-                                  tract_definition=tract_definition, bedpostX_input=False)
+                                  tract_definition=tract_definition)
     Config = getattr(importlib.import_module("tractseg.experiments.pretrained_models." + config_file), "Config")()
     Config = exp_utils.get_correct_labels_type(Config)
     Config.PREDICT_IMG = input_path is not None

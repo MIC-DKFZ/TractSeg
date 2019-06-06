@@ -22,75 +22,51 @@ from os.path import join
 from os.path import expanduser
 
 
-def get_config_name(input_type, output_type, dropout_sampling=False, tract_definition="TractQuerier+",
-                    bedpostX_input=False):
-    if bedpostX_input:
-        if tract_definition == "TractQuerier+":
-            if input_type == "peaks":
-                if output_type == "tract_segmentation" and dropout_sampling:
-                    print("ERROR: bedpostX_input in combination with uncertainty not supported.")
-                    sys.exit()
-                elif output_type == "tract_segmentation":
-                    config = "TractSeg_BXTensAg"
-                elif output_type == "endings_segmentation":
-                    print("ERROR: bedpostX_input in combination with output_type endings_segmentation "
-                          "not supported.")
-                    sys.exit()
-                elif output_type == "TOM":
-                    config = "Peaks_AngL"
-                elif output_type == "dm_regression":
-                    print("ERROR: bedpostX_input in combination with output_type dm_regression and tract_definition "
-                          "TractQuerier+ not supported.")
-            else:  # T1
-                print("ERROR: bedpostX_input in combination with input_type T1 and tract_definition TractQuerier+ "
-                      "not supported.")
+def get_config_name(input_type, output_type, dropout_sampling=False, tract_definition="TractQuerier+"):
+    if tract_definition == "TractQuerier+":
+        if input_type == "peaks":
+            if output_type == "tract_segmentation" and dropout_sampling:
+                config = "TractSeg_12g90g270g_125mm_DS_DAugAll_Dropout"
+            elif output_type == "tract_segmentation":
+                config = "TractSeg_12g90g270g_125mm_DS_DAugAll"
+                # config = "TractSeg_T1_12g90g270g_125mm_DAugAll"
+            elif output_type == "endings_segmentation":
+                config = "EndingsSeg_12g90g270g_125mm_DS_DAugAll"
+            elif output_type == "TOM":
+                config = "Peaks_AngL"
+            elif output_type == "dm_regression":
+                config = "DmReg_12g90g270g_125mm_DAugAll"
+        else:  # T1
+            if output_type == "tract_segmentation":
+                config = "TractSeg_T1_125mm_DAugAll"
+            elif output_type == "endings_segmentation":
+                config = "EndingsSeg_12g90g270g_125mm_DAugAll"
+            elif output_type == "TOM":
+                print("ERROR: For TOM no pretrained model available for T1")
                 sys.exit()
-        else:  # "AutoPTX"
-            if input_type == "peaks":
-                if output_type == "tract_segmentation" and dropout_sampling:
-                    print("ERROR: tract_definition AutoPTX in combination with uncertainty not supported.")
-                    sys.exit()
-                elif output_type == "tract_segmentation":
-                    config = "TractSeg_All_BXTensAg_aPTX_platLR20"
-                elif output_type == "endings_segmentation":
-                    print("ERROR: tract_definition AutoPTX in combination with output_type endings_segmentation "
-                          "not supported.")
-                    sys.exit()
-                elif output_type == "TOM":
-                    print("ERROR: tract_definition AutoPTX in combination with output_type TOM not supported.")
-                    sys.exit()
-                elif output_type == "dm_regression":
-                    config = "DmReg_All_BXTensAg_aPTX_platLR20_noMiss"
-            else:  # T1
-                print("ERROR: bedpostX_input in combination with input_type T1 not supported.")
+            elif output_type == "dm_regression":
+                print("ERROR: For dm_regression no pretrained model available for T1")
                 sys.exit()
-    else:  # not bedpostX_input
-        if tract_definition == "TractQuerier+":
-            if input_type == "peaks":
-                if output_type == "tract_segmentation" and dropout_sampling:
-                    config = "TractSeg_12g90g270g_125mm_DS_DAugAll_Dropout"
-                elif output_type == "tract_segmentation":
-                    config = "TractSeg_12g90g270g_125mm_DS_DAugAll"
-                    # config = "TractSeg_T1_12g90g270g_125mm_DAugAll"
-                elif output_type == "endings_segmentation":
-                    config = "EndingsSeg_12g90g270g_125mm_DS_DAugAll"
-                elif output_type == "TOM":
-                    config = "Peaks_AngL"
-                elif output_type == "dm_regression":
-                    config = "DmReg_12g90g270g_125mm_DAugAll"
-            else:  # T1
-                if output_type == "tract_segmentation":
-                    config = "TractSeg_T1_125mm_DAugAll"
-                elif output_type == "endings_segmentation":
-                    config = "EndingsSeg_12g90g270g_125mm_DAugAll"
-                elif output_type == "TOM":
-                    config = "Peaks20_12g90g270g_125mm"
-                elif output_type == "dm_regression":
-                    print("ERROR: For dm_regression no pretrained model available for T1")
-                    sys.exit()
-        else:  # "AutoPTX"
-            print("ERROR: CSD input in combination with tract_definition AutoPTX+ not yet supported.")
+    else:  # "AutoPTX"
+        if input_type == "peaks":
+            if output_type == "tract_segmentation" and dropout_sampling:
+                print("ERROR: tract_definition AutoPTX in combination with uncertainty not supported yet.")
+                sys.exit()
+            elif output_type == "tract_segmentation":
+                config = "TractSeg_All_BXTensAg_aPTX_platLR20"
+            elif output_type == "endings_segmentation":
+                print("ERROR: tract_definition AutoPTX in combination with output_type endings_segmentation "
+                      "not supported yet.")
+                sys.exit()
+            elif output_type == "TOM":
+                print("ERROR: tract_definition AutoPTX in combination with output_type TOM not supported yet.")
+                sys.exit()
+            elif output_type == "dm_regression":
+                config = "DmReg_All_BXTensAg_aPTX_platLR20_noMiss"
+        else:  # T1
+            print("ERROR: AutoPTX in combination with input_type T1 not supported.")
             sys.exit()
+
     return config
 
 def get_config_file():
