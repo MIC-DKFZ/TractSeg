@@ -271,7 +271,7 @@ def main():
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.affine
 
-    if not tensor_input:
+    if not tensor_input and not bedpostX_input:
         data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
                                                                                 do_flip=automatically_flip_peaks)
     else:

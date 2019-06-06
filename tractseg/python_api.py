@@ -121,10 +121,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                 if Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.DROPOUT_SAMPLING:
                     Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_dropout_v2.npz")
                 elif Config.EXPERIMENT_TYPE == "tract_segmentation":
-                    if bedpostX_input:
-                        Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "TractSeg_BXTensAg_best_weights_ep248.npz")
-                    else:
-                        Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_v2.npz")
+                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_v2.npz")
                 elif Config.EXPERIMENT_TYPE == "endings_segmentation":
                     Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_endings_segmentation_v3.npz")
                 elif Config.EXPERIMENT_TYPE == "dm_regression":
