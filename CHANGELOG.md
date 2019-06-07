@@ -3,13 +3,13 @@
 * minor improvements
 
 
-##  Release 2.0
+## Release 2.0
 
 * Increase training speed roughly by factor of 2 by using pin_memory and non_blocking for pytorch and by 
 cropping all non-brain area from the input images (requires preprocessing of the training data using
 `tractseg/data/preprocessing.py`).
 * Works with newer version of batchgenerators (Note: DataAugmentation slightly changed)
-* Support bedpostX input (but no pretrained model yet)
+* Support bedpostX input
 * Support aPTX tract definitions (but no pretrained model yet)
 * Refactor `--preview`. Works without vtk now.
 * Add plateau LR schedule to training
