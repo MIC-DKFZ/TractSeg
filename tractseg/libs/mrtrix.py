@@ -45,7 +45,8 @@ def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
     os.system("flirt -ref " + template_path + " -in " + input_file + " -out " + output_dir +
               "/Diffusion_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/FA_2_MNI.mat -dof 6")
     os.system("cp " + bvals + " " + output_dir + "/Diffusion_MNI.bvals")
-    os.system("cp " + bvecs + " " + output_dir + "/Diffusion_MNI.bvecs")
+    os.system("rotate_bvecs -i " + bvecs + " -t " + output_dir + "/FA_2_MNI.mat" +
+              " -o " + output_dir + "/Diffusion_MNI.bvecs")
 
     new_input_file = join(output_dir, "Diffusion_MNI.nii.gz")
     bvecs = join(output_dir, "Diffusion_MNI.bvecs")
