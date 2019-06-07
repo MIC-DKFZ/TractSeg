@@ -1,4 +1,9 @@
-## csd_and_bx branch
+## Master
+
+* minor improvements
+
+
+##  Release 2.0
 
 * Increase training speed roughly by factor of 2 by using pin_memory and non_blocking for pytorch and by 
 cropping all non-brain area from the input images (requires preprocessing of the training data using
@@ -9,12 +14,7 @@ cropping all non-brain area from the input images (requires preprocessing of the
 * Refactor `--preview`. Works without vtk now.
 * Add plateau LR schedule to training
 * Add API for mrtrix FACT tracking on TOMs
-* minor improvements
-
-
-
-## Master
-
+* Fix bug in rotation of bvecs when using option `--preprocess`.
 * minor improvements
 
 
