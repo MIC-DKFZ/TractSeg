@@ -226,10 +226,11 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
     return dyads_img
 
 
-def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation):
+def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation, nr_cpus=-1):
     # runtime TOM: 2min 40s  (~8.5GB)
 
     from joblib import Parallel, delayed
+    import psutil
 
     def process_bundle(idx, bundle):
         bundle_peaks = np.copy(peaks[:, :, :, idx * 3:idx * 3 + 3])
@@ -239,8 +240,10 @@ def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation):
         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)
         return bundle_peaks
 
-    #todo important: change: n_jobs
-    results_peaks = Parallel(n_jobs=6)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
+    if nr_cpus == -1:
+        nr_cpus = psutil.cpu_count()
+
+    results_peaks = Parallel(n_jobs=nr_cpus)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
 
     results_peaks = np.array(results_peaks).transpose(1, 2, 3, 0, 4)
     s = results_peaks.shape

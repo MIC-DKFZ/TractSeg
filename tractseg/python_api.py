@@ -253,7 +253,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     if Config.EXPERIMENT_TYPE == "peak_regression":
         seg = peak_utils.mask_and_normalize_peaks(seg, tract_segmentations_path,
                                                   exp_utils.get_bundle_names(Config.CLASSES)[1:],
-                                                  TOM_dilation)
+                                                  TOM_dilation, nr_cpus=nr_cpus)
 
     if postprocess:
         seg = img_utils.postprocess_segmentations(seg, blob_thr=blob_size_thr, hole_closing=2)
