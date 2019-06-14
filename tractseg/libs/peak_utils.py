@@ -187,7 +187,7 @@ def peaks_to_tensors_nifti(peaks_img):
     return nib.Nifti1Image(tensors, peaks_img.affine)
 
 
-def load_bedpostX_dyads(path_dyads1, scale=True):
+def load_bedpostX_dyads(path_dyads1, scale=True, tensor_model=False):
     """
     Load bedpostX dyads (following the default naming convention)
 
@@ -218,9 +218,14 @@ def load_bedpostX_dyads(path_dyads1, scale=True):
     dyads = np.concatenate((dyads1, dyads2, dyads3), axis=3)
 
     # Flip x axis to make BedpostX compatible with mrtrix CSD
-    dyads[:, :, :, 0] *= -1
-    dyads[:, :, :, 3] *= -1
-    dyads[:, :, :, 6] *= -1
+    #  Flipping not needed if model was trained on BX tensors (because then already trained on BX orientation)
+
+    # todo: remove "tensor_model" flag in future when no more models which were directly trained on Tensors (only
+    # trained on tensors derived from peaks on the fly (peaks which are flipped like mrtrix peaks)
+    if not tensor_model:
+        dyads[:, :, :, 0] *= -1
+        dyads[:, :, :, 3] *= -1
+        dyads[:, :, :, 6] *= -1
 
     dyads_img = nib.Nifti1Image(dyads, dyads1_img.affine)
     return dyads_img

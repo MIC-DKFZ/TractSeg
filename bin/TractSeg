@@ -170,10 +170,6 @@ def main():
                              "TractSeg output.",
                         default=None)
 
-    # parser.add_argument('--tensor', action="store_true",
-    #                     help="Convert peaks to tensors before feeding to model.",
-    #                     default=False)
-
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
                         default=False)
 
@@ -193,8 +189,6 @@ def main():
     inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
     TOM_dilation = 1  # 1 also ok for HCP because in tracking again filtered by mask
     bedpostX_input = False
-    tensor_input = False
-    # tensor_input = args.tensor
     input_path = args.input
     single_orientation = args.single_orientation
     if args.output_type == "TOM":
@@ -203,7 +197,6 @@ def main():
     if os.path.basename(input_path) == "dyads1.nii.gz":
         print("BedpostX dyads detected. Will automatically combine dyads1+2[+3].")
         bedpostX_input = True
-        # tensor_input = True
 
     if manual_exp_name is None:
         config_file = get_config_name(input_type, args.output_type, dropout_sampling=dropout_sampling,
@@ -226,6 +219,7 @@ def main():
         Config.PREDICT_IMG_OUTPUT = args.output
     elif Config.PREDICT_IMG:
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
+    tensor_model = Config.NR_OF_GRADIENTS == 18 * Config.NR_SLICES
 
     bvals, bvecs = exp_utils.get_bvals_bvecs_path(args)
     exp_utils.make_dir(Config.PREDICT_IMG_OUTPUT)
@@ -254,7 +248,7 @@ def main():
     else:
         peak_path = input_path
         if bedpostX_input:
-            data_img = peak_utils.load_bedpostX_dyads(peak_path, scale=True)
+            data_img = peak_utils.load_bedpostX_dyads(peak_path, scale=True, tensor_model=tensor_model)
         else:
             data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
@@ -264,14 +258,14 @@ def main():
                   "If you input a Diffusion image add the option '--raw_diffusion_input'." + bcolors.ENDC)
             sys.exit()
 
-    if tensor_input:
+    if tensor_model:
         data_img = peak_utils.peaks_to_tensors_nifti(data_img)
 
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.affine
 
-    if not tensor_input and not bedpostX_input:
+    if not tensor_model and not bedpostX_input:
         data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
                                                                                 do_flip=automatically_flip_peaks)
     else:
