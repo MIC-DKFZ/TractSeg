@@ -169,7 +169,7 @@ def remove_small_blobs(img, threshold=1, debug=True):
     return mask
 
 
-def postprocess_segmentations(data, blob_thr=50, hole_closing=2):
+def postprocess_segmentations(data, blob_thr=50, hole_closing=None):
     '''
     Postprocessing of segmentations. Fill holes and remove small blobs.
 

@@ -261,7 +261,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                                                   TOM_dilation, nr_cpus=nr_cpus)
 
     if postprocess:
-        seg = img_utils.postprocess_segmentations(seg, blob_thr=blob_size_thr, hole_closing=2)
+        seg = img_utils.postprocess_segmentations(seg, blob_thr=blob_size_thr, hole_closing=None)
 
     exp_utils.print_verbose(Config, "Took {}s".format(round(time.time() - start_time, 2)))
     return seg
