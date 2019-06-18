@@ -198,7 +198,7 @@ def postprocess_segmentations(data, blob_thr=50, hole_closing=None):
     return data_new
 
 
-def resize_first_three_dims(img, order=0, zoom=0.62, nr_cpus=-1):
+def resize_first_three_dims_MULTICORE(img, order=0, zoom=0.62, nr_cpus=-1):
     from joblib import Parallel, delayed
     import psutil
 
@@ -210,7 +210,8 @@ def resize_first_three_dims(img, order=0, zoom=0.62, nr_cpus=-1):
     return np.array(img_sm).transpose(1, 2, 3, 0)  # grads channel was in front -> put to back
 
 
-def resize_first_three_dims_singleCore(img, order=0, zoom=0.62):
+#resize_first_three_dims_singleCore
+def resize_first_three_dims(img, order=0, zoom=0.62, nr_cpus=-1):
     """
     Runtime 35ms
     """
