@@ -169,7 +169,7 @@ def remove_small_blobs(img, threshold=1, debug=True):
     return mask
 
 
-def postprocess_segmentations(data, classes, blob_thr=50, hole_closing=None):
+def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
     '''
     Postprocessing of segmentations. Fill holes and remove small blobs.
 
@@ -178,13 +178,16 @@ def postprocess_segmentations(data, classes, blob_thr=50, hole_closing=None):
     :param hole_closing:
     :return:
     '''
-    nr_classes = data.shape[3]
+
+    skip_hole_closing = ["CST_right", "CST_left", "MCP"]
+
+    # nr_classes = data.shape[3]
     data_new = []
-    for idx in range(nr_classes):
+    for idx, bundle in enumerate(bundles):
         data_single = data[:,:,:,idx]
 
         #Fill holes
-        if hole_closing is not None:
+        if hole_closing is not None and bundle not in skip_hole_closing:
             size = hole_closing  # Working as expected (size 2-3 good value)
             data_single = ndimage.binary_closing(data_single,
                                                  structure=np.ones((size, size, size))).astype(data_single.dtype)
