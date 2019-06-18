@@ -180,6 +180,7 @@ def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
     '''
 
     skip_hole_closing = ["CST_right", "CST_left", "MCP"]
+    increased_hole_closing = ["FX_right", "FX_left", "CA"]
 
     # nr_classes = data.shape[3]
     data_new = []
@@ -189,6 +190,8 @@ def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
         #Fill holes
         if hole_closing is not None and bundle not in skip_hole_closing:
             size = hole_closing  # Working as expected (size 2-3 good value)
+            if bundle in increased_hole_closing:
+                size *= 2
             data_single = ndimage.binary_closing(data_single,
                                                  structure=np.ones((size, size, size))).astype(data_single.dtype)
 
