@@ -38,12 +38,13 @@ script:
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
 
   #Endings
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type endings_segmentation --single_orientation
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type endings_segmentation
+    --single_orientation --nr_cpus 1
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
  #- python tests/test_end_to_end.py test_end_to_end.test_endingsseg_output  #would also work
 
   #TOM
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type TOM
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type TOM --nr_cpus 1
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
 
   #Track
