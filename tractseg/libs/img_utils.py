@@ -191,7 +191,7 @@ def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
         if hole_closing is not None and bundle not in skip_hole_closing:
             size = hole_closing  # Working as expected (size 2-3 good value)
             if bundle in increased_hole_closing:
-                size *= 2
+                size *= 2  # makes no bundle more complete
             data_single = ndimage.binary_closing(data_single,
                                                  structure=np.ones((size, size, size))).astype(data_single.dtype)
 
