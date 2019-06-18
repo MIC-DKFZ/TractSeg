@@ -46,9 +46,9 @@ def get_seg_single_img_3_directions(Config, model, subject=None, data=None,
         # print("Processing direction " + Config.SLICE_DIRECTION)
 
         if subject:
-            dataManagerSingle = DataLoaderInference(Config, subject=subject)
+            dataManagerSingle = DataLoaderInference(Config, subject=subject)  # 0s
         else:
-            dataManagerSingle = DataLoaderInference(Config, data=data)
+            dataManagerSingle = DataLoaderInference(Config, data=data)  # 0s
 
         img_probs, img_y = trainer.predict_img(Config, model, dataManagerSingle, probs=True,
                                                scale_to_world_shape=scale_to_world_shape,
@@ -58,10 +58,11 @@ def get_seg_single_img_3_directions(Config, model, subject=None, data=None,
 
     probs_x, probs_y, probs_z = prob_slices
     new_shape = probs_x.shape + (1,)  # (x, y, z, nr_classes)  -> (x, y, z, nr_classes, 1)
+    # runtime on HCP data: 0s
     probs_x = np.reshape(probs_x, new_shape)
     probs_y = np.reshape(probs_y, new_shape)
     probs_z = np.reshape(probs_z, new_shape)
-
+    # runtime on HCP data: 1.4s
     probs_combined = np.concatenate((probs_x, probs_y, probs_z), axis=4)    # (146, 174, 146, 45, 3)
     return probs_combined, img_y
 

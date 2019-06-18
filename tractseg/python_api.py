@@ -156,8 +156,12 @@ def run_tractseg(data, output_type="tract_segmentation",
 
     if input_type == "T1":
         data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], 1))
+
+    #runtime on HCP data: 0.9s
     data, seg_None, bbox, original_shape = dataset_utils.crop_to_nonzero(data)
-    data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data, target_size=Config.INPUT_DIM[0])
+    # runtime on HCP data: 0.5s
+    data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data, target_size=Config.INPUT_DIM[0],
+                                                                         nr_cpus=nr_cpus)
 
     if Config.EXPERIMENT_TYPE == "tract_segmentation" or Config.EXPERIMENT_TYPE == "endings_segmentation" or \
             Config.EXPERIMENT_TYPE == "dm_regression":
@@ -246,9 +250,10 @@ def run_tractseg(data, output_type="tract_segmentation",
     if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_threshold:
         seg = img_utils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
-    #remove following two lines to keep super resolution
-    seg = dataset_utils.cut_and_scale_img_back_to_original_img(seg, transformation)  # quite slow
-    seg = dataset_utils.add_original_zero_padding_again(seg, bbox, original_shape, Config.NR_OF_CLASSES)  # quite slow
+    # runtime on HCP data: 5.1s
+    seg = dataset_utils.cut_and_scale_img_back_to_original_img(seg, transformation, nr_cpus=nr_cpus)
+    # runtime on HCP data: 1.6s
+    seg = dataset_utils.add_original_zero_padding_again(seg, bbox, original_shape, Config.NR_OF_CLASSES)
 
     if Config.EXPERIMENT_TYPE == "peak_regression":
         seg = peak_utils.mask_and_normalize_peaks(seg, tract_segmentations_path,

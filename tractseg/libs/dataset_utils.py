@@ -152,7 +152,7 @@ def scale_input_to_world_shape(img4d, dataset, resolution="1.25mm"):
             return img4d[1:79, :, 3:78, :]  # (78,93,75,none)
 
 
-def pad_and_scale_img_to_square_img(data, target_size=144):
+def pad_and_scale_img_to_square_img(data, target_size=144, nr_cpus=-1):
     '''
     Expects 3D or 4D image as input.
 
@@ -183,7 +183,7 @@ def pad_and_scale_img_to_square_img(data, target_size=144):
     zoom = float(target_size) / biggest_dim
     if nr_dims == 4:
         #use order=0, otherwise does not work for peak images (results would be wrong)
-        new_img = img_utils.resize_first_three_dims(new_img, order=0, zoom=zoom)
+        new_img = img_utils.resize_first_three_dims(new_img, order=0, zoom=zoom, nr_cpus=nr_cpus)
     else:
         new_img = ndimage.zoom(new_img, zoom, order=0)
 
@@ -198,7 +198,7 @@ def pad_and_scale_img_to_square_img(data, target_size=144):
     return new_img, transformation
 
 
-def cut_and_scale_img_back_to_original_img(data, t):
+def cut_and_scale_img_back_to_original_img(data, t, nr_cpus=-1):
     '''
     Undo the transformations done with pad_and_scale_img_to_square_img
 
@@ -213,7 +213,7 @@ def cut_and_scale_img_back_to_original_img(data, t):
     if nr_dims == 3:
         new_data = ndimage.zoom(data, (1. / t["zoom"]), order=0)
     elif nr_dims == 4:
-        new_data = img_utils.resize_first_three_dims(data, order=0, zoom=(1. / t["zoom"]))
+        new_data = img_utils.resize_first_three_dims(data, order=0, zoom=(1. / t["zoom"]), nr_cpus=nr_cpus)
 
     x_residual = 0
     y_residual = 0
