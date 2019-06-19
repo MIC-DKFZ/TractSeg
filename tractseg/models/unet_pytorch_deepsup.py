@@ -26,9 +26,6 @@ import torch.optim.lr_scheduler as lr_scheduler
 from tractseg.libs.pytorch_utils import conv2d
 from tractseg.libs.pytorch_utils import deconv2d
 
-torch.backends.cudnn.benchmark = True    # here probably not needed if we have it already in base_model
-
-
 class UNet_Pytorch_DeepSup(torch.nn.Module):
     def __init__(self, n_input_channels=3, n_classes=7, n_filt=64, batchnorm=False, dropout=False, upsample="bilinear"):
         super(UNet_Pytorch_DeepSup, self).__init__()

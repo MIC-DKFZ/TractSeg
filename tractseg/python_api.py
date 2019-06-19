@@ -165,7 +165,7 @@ def run_tractseg(data, output_type="tract_segmentation",
         Config.NR_OF_CLASSES = len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
         utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
                                           dropout_sampling=Config.DROPOUT_SAMPLING)
-        model = BaseModel(Config)
+        model = BaseModel(Config, inference=True)
         if single_orientation:  # mainly needed for testing because of less RAM requirements
             data_loder_inference = DataLoaderInference(Config, data=data)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
@@ -213,7 +213,7 @@ def run_tractseg(data, output_type="tract_segmentation",
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
             utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
                                               dropout_sampling=Config.DROPOUT_SAMPLING, part=part)
-            model = BaseModel(Config)
+            model = BaseModel(Config, inference=True)
 
             if single_orientation:
                 data_loder_inference = DataLoaderInference(Config, data=data)

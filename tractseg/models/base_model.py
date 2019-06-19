@@ -32,12 +32,12 @@ from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 
-torch.backends.cudnn.benchmark = True
-
-
 class BaseModel:
-    def __init__(self, Config):
+    def __init__(self, Config, inference=False):
         self.Config = Config
+
+        if not inference:
+            torch.backends.cudnn.benchmark = True
 
         if self.Config.NR_CPUS > 0:
             torch.set_num_threads(self.Config.NR_CPUS)
