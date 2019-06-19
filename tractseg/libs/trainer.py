@@ -285,73 +285,65 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
         if scale_to_world_shape:
             layers = dataset_utils.scale_input_to_world_shape(layers, Config.DATASET, Config.RESOLUTION)
 
-        return layers.astype(np.float32)
+        assert (layers.dtype == np.float32)  # .astype() quite slow -> use assert to make sure type is right
+        return layers
 
-    #Test Time DAug
-    for i in range(1):
-        # segs = []
-        # ys = []
+    img_shape = [Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.NR_OF_CLASSES]
+    layers_seg = np.empty(img_shape).astype(np.float32)
+    layers_y = None if only_prediction else np.empty(img_shape).astype(np.float32)
+    batch_generator = data_loader.get_batch_generator(batch_size=batch_size)
+    batch_generator = list(batch_generator)
+    idx = 0
+    for batch in tqdm(batch_generator):
+        x = batch["data"]   # (bs, nr_of_channels, x, y)
+        y = batch["seg"]    # (bs, nr_of_classes, x, y)
+        y = y.numpy()
 
-        layers_seg = []
-        layers_y = []
-        batch_generator = data_loader.get_batch_generator(batch_size=batch_size)
-        batch_generator = list(batch_generator)
-        for batch in tqdm(batch_generator):
-            x = batch["data"]   # (bs, nr_of_channels, x, y)
-            y = batch["seg"]    # (bs, nr_of_classes, x, y)
-            y = y.numpy()
-
-            if not only_prediction:
-                y = y.astype(Config.LABELS_TYPE)
-                # y = np.squeeze(y)   # remove bs dimension which is only 1 -> (nrClasses, x, y)
-                if Config.DIM == "2D":
-                    y = y.transpose(0, 2, 3, 1) # (bs, x, y, nr_of_classes)
-                else:
-                    y = y.transpose(0, 2, 3, 4, 1)
-
-            if Config.DROPOUT_SAMPLING:
-                #For Dropout Sampling (must set Deterministic=False in model)
-                NR_SAMPLING = 30
-                samples = []
-                for i in range(NR_SAMPLING):
-                    layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
-                    samples.append(layer_probs)
-
-                samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
-                # samples = np.squeeze(samples) # (NR_SAMPLING, x, y, nrClasses)
-                # layer_probs = np.mean(samples, axis=0)
-                layer_probs = np.std(samples, axis=0)    # (bs,x,y,nrClasses)
-            else:
-                # For normal prediction
-                layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
-                # layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
-
-            if probs:
-                seg = layer_probs   # (x, y, nrClasses)
-            else:
-                seg = layer_probs
-                seg[seg >= Config.THRESHOLD] = 1
-                seg[seg < Config.THRESHOLD] = 0
-                seg = seg.astype(np.int16)
-
+        if not only_prediction:
+            y = y.astype(Config.LABELS_TYPE)
+            # y = np.squeeze(y)   # remove bs dimension which is only 1 -> (nrClasses, x, y)
             if Config.DIM == "2D":
-                layers_seg.append(seg)
-                if not only_prediction:
-                    layers_y.append(y)
+                y = y.transpose(0, 2, 3, 1) # (bs, x, y, nr_of_classes)
             else:
-                layers_seg = seg
-                if not only_prediction:
-                    layers_y = y
+                y = y.transpose(0, 2, 3, 4, 1)
 
-    layers_seg = np.array(layers_seg)   # [i, bs, x, y, nr_classes]
-    ls = layers_seg.shape
-    layers_seg = np.reshape(layers_seg, (ls[0]*ls[1], ls[2], ls[3], ls[4]))  # [i*bs, x, y, nr_classes]
+        if Config.DROPOUT_SAMPLING:
+            #For Dropout Sampling (must set Deterministic=False in model)
+            NR_SAMPLING = 30
+            samples = []
+            for i in range(NR_SAMPLING):
+                layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
+                samples.append(layer_probs)
+
+            samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
+            # samples = np.squeeze(samples) # (NR_SAMPLING, x, y, nrClasses)
+            # layer_probs = np.mean(samples, axis=0)
+            layer_probs = np.std(samples, axis=0)    # (bs,x,y,nrClasses)
+        else:
+            # For normal prediction
+            layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
+            # layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
+
+        if probs:
+            seg = layer_probs   # (x, y, nrClasses)
+        else:
+            seg = layer_probs
+            seg[seg >= Config.THRESHOLD] = 1
+            seg[seg < Config.THRESHOLD] = 0
+            seg = seg.astype(np.int16)
+
+        if Config.DIM == "2D":
+            layers_seg[idx*batch_size:(idx+1)*batch_size, :, :, :] = seg
+            if not only_prediction:
+                layers_y[idx*batch_size:(idx+1)*batch_size, :, :, :] = y
+        else:
+            layers_seg = np.squeeze(seg)
+            if not only_prediction:
+                layers_y = np.squeeze(y)
+
+        idx += 1
+
     layers_seg = finalize_data(layers_seg)
-
     if not only_prediction:
-        layers_y = np.array(layers_y)  # [i, bs, x, y, nr_classes]
-        ls = layers_y.shape
-        layers_y = np.reshape(layers_y, (ls[0] * ls[1], ls[2], ls[3], ls[4]))  # [i*bs, x, y, nr_classes]
         layers_y = finalize_data(layers_y)
-
     return layers_seg, layers_y   # (Prediction, Groundtruth)

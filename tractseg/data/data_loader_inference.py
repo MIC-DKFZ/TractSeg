@@ -203,9 +203,11 @@ class DataLoaderInference():
                     data = peak_utils.peaks_to_tensors(data)
 
                 data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data,
-                                                                                     target_size=self.Config.INPUT_DIM[0])
+                                                                                     target_size=self.Config.INPUT_DIM[0],
+                                                                                     nr_cpus=1)
                 seg, transformation = dataset_utils.pad_and_scale_img_to_square_img(seg,
-                                                                                    target_size=self.Config.INPUT_DIM[0])
+                                                                                    target_size=self.Config.INPUT_DIM[0],
+                                                                                    nr_cpus=1)
         else:
             raise ValueError("Neither 'data' nor 'subject' set.")
 

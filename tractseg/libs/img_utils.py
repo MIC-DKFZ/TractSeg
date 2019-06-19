@@ -204,7 +204,19 @@ def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
     return data_new
 
 
-def resize_first_three_dims(img, order=0, zoom=0.62):
+def resize_first_three_dims(img, order=0, zoom=0.62, nr_cpus=-1):
+    from joblib import Parallel, delayed
+    import psutil
+
+    def process_gradient(grad_idx):
+        return ndimage.zoom(img[:, :, :, grad_idx], zoom, order=order)
+
+    nr_cpus = psutil.cpu_count() if nr_cpus == -1 else nr_cpus
+    img_sm = Parallel(n_jobs=nr_cpus)(delayed(process_gradient)(grad_idx) for grad_idx in range(img.shape[3]))
+    return np.array(img_sm).transpose(1, 2, 3, 0)  # grads channel was in front -> put to back
+
+
+def resize_first_three_dims_singleCore(img, order=0, zoom=0.62, nr_cpus=-1):
     """
     Runtime 35ms
     """
@@ -215,6 +227,7 @@ def resize_first_three_dims(img, order=0, zoom=0.62):
         img_sm.append(ndimage.zoom(img[:, :, :, grad], zoom, order=order))
     img_sm = np.array(img_sm)
     return img_sm.transpose(1, 2, 3, 0)  # grads channel was in front -> put to back
+
 
 def resize_first_three_dims_NUMPY(img, order=0, zoom=0.62):
     """

@@ -245,9 +245,7 @@ def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation, nr_cpus=-
         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)
         return bundle_peaks
 
-    if nr_cpus == -1:
-        nr_cpus = psutil.cpu_count()
-
+    nr_cpus = psutil.cpu_count() if nr_cpus == -1 else nr_cpus
     results_peaks = Parallel(n_jobs=nr_cpus)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
 
     results_peaks = np.array(results_peaks).transpose(1, 2, 3, 0, 4)

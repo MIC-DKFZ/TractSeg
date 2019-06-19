@@ -186,7 +186,9 @@ def main():
     automatically_flip_peaks = False
     blob_size_thr = 25  # default: 50
     manual_exp_name = args.exp_name
-    inference_batch_size = 1  # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
+    # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
+    # if using 5 -> 12% faster runtime on CPU
+    inference_batch_size = 1
     TOM_dilation = 1  # 1 also ok for HCP because in tracking again filtered by mask
     bedpostX_input = False
     input_path = args.input
