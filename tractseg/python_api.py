@@ -173,15 +173,15 @@ def run_tractseg(data, output_type="tract_segmentation",
         if single_orientation:  # mainly needed for testing because of less RAM requirements
             data_loder_inference = DataLoaderInference(Config, data=data)
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
-                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
+                seg, _ = trainer.predict_img(Config, model, data_loder_inference, probs=True,
                                                  scale_to_world_shape=False, only_prediction=True,
                                                  batch_size=inference_batch_size)
             else:
-                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=False,
+                seg, _ = trainer.predict_img(Config, model, data_loder_inference, probs=False,
                                                  scale_to_world_shape=False, only_prediction=True,
                                                  batch_size=inference_batch_size)
         else:
-            seg_xyz, gt = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
+            seg_xyz, _ = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
                                                                            scale_to_world_shape=False,
                                                                            only_prediction=True,
                                                                            batch_size=inference_batch_size)
@@ -221,12 +221,12 @@ def run_tractseg(data, output_type="tract_segmentation",
 
             if single_orientation:
                 data_loder_inference = DataLoaderInference(Config, data=data)
-                seg, img_y = trainer.predict_img(Config, model, data_loder_inference, probs=True,
+                seg, _ = trainer.predict_img(Config, model, data_loder_inference, probs=True,
                                                  scale_to_world_shape=False, only_prediction=True,
                                                  batch_size=inference_batch_size)
             else:
                 # 3 dir for Peaks -> bad results
-                seg_xyz, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
+                seg_xyz, _ = direction_merger.get_seg_single_img_3_directions(Config, model, data=data,
                                                                                   scale_to_world_shape=False,
                                                                                   only_prediction=True,
                                                                                   batch_size=inference_batch_size)

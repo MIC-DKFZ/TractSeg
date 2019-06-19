@@ -290,7 +290,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
 
     img_shape = [Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.NR_OF_CLASSES]
     layers_seg = np.empty(img_shape).astype(np.float32)
-    layers_y = np.empty(img_shape).astype(np.float32)
+    layers_y = None if only_prediction else np.empty(img_shape).astype(np.float32)
     batch_generator = data_loader.get_batch_generator(batch_size=batch_size)
     batch_generator = list(batch_generator)
     idx = 0
