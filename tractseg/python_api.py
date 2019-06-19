@@ -257,7 +257,7 @@ def run_tractseg(data, output_type="tract_segmentation",
 
     if postprocess and not Config.EXPERIMENT_TYPE == "peak_regression":
         seg = img_utils.postprocess_segmentations(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:],
-                                                  blob_thr=blob_size_thr)
+                                                  blob_thr=blob_size_thr, hole_closing=2)
 
     exp_utils.print_verbose(Config, "Took {}s".format(round(time.time() - start_time, 2)))
     return seg
