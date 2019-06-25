@@ -16,6 +16,9 @@ cropping all non-brain area from the input images (requires preprocessing of the
 * Add API for mrtrix FACT tracking on TOMs
 * Fix bug in rotation of bvecs when using option `--preprocess`.
 * minor improvements
+* Update TOM model and pretrained weights (Only angle in loss instead of angle and length. Gives slightly better 
+peak orientations.). Improved peak orientations allows for slightly less sensitive probabilistic tracking: lowering
+stddev from 0.2 to 0.15.
 
 
 ## Release 1.9
