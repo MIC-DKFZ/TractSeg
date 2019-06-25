@@ -261,9 +261,9 @@ orientation. Otherwise you might have to flip the sign along the x, y or z axis 
 flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
 ```
 
-#### My data as anisotropic spacing. Does it still work?
-If the spacing is only slightly anisotropic (e.g. 1.7mm x 1.7mm x 2mm) it still works. If the spacing is heavily 
-anisotropic (e.g. 1mm x 1mm x 2.5mm) results will be better if you resample your image to isotropic spacing first.
+#### My data has anisotropic spacing. Does it still work?
+If the spacing is only slightly anisotropic (e.g. 1.9mm x 1.9mm x 2mm) it still works fine. If the spacing is heavily 
+anisotropic (e.g. 1mm x 1mm x 2mm) results will be a lot better if you resample your image to isotropic spacing first.
 
 #### Small bundles like the CA and FX are incomplete
 You can use the following three options to improve your results:
