@@ -31,6 +31,19 @@ Tractometry will evaluate the FA along 20 equality distant points along each str
 7. Plot the results with [this python code](../examples/plot_tractometry_results.ipynb)
 
 ### Further options   
-Instead of analysing the FA along the tracts you can also analyze the peak length along the tracts. This has one major advantage: The peaks are generated using Constrained Spherical Deconvolution (CSD) which can handle crossing fibers in contrast to FA which can not. How does TractSeg analyze the peak length along a certain tract:
-CSD gives us up to three peaks per voxel (all further ones are discarded). Now TractSeg selects the peak which is most similar to the direction of the bundle at that voxel (= peak with the lowest angular error to the peak from the Tract Orientation Map for that bundle). The length of that peak is then analyzed.  
+Instead of analysing the FA along the tracts you can also analyze the peak length along the tracts. 
+This has one major advantage: The peaks are generated using Constrained Spherical Deconvolution (CSD) 
+which can handle crossing fibers in contrast to FA which can not. How does TractSeg analyze the peak 
+length along a certain tract:
+CSD gives us up to three peaks per voxel (all further ones are discarded). 
+Now TractSeg selects the peak which is most similar to the direction of the bundle at that voxel 
+(= peak with the lowest angular error to the peak from the Tract Orientation Map for that bundle). 
+The length of that peak is then analyzed.  
+> **IMPORTANT NOTE**: The peak length depends on the response function which will be different for each subject.
+Therefore results will not be comparable between subjects. To solve this you have to use the same response function
+for all subjects when calculating the CSD. Moreover, you should use bias field correction and intensity normalisation. 
+Those steps are documented in detail 
+[here](https://mrtrix.readthedocs.io/en/latest/fixel_based_analysis/st_fibre_density_cross-section.html).
+You have to make yourself familiar with this before you use it.
+
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s peaks.nii.gz --TOM TOM --peak_length`
