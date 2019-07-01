@@ -45,6 +45,7 @@ Therefore results will not be comparable between subjects. To solve this you hav
 for all subjects when calculating the CSD. Moreover, you should use bias field correction and intensity normalisation. 
 Those steps are documented in detail 
 [here](https://mrtrix.readthedocs.io/en/latest/fixel_based_analysis/st_fibre_density_cross-section.html).
-You have to make yourself familiar with this before you use it.
+You have to make yourself familiar with this before you use it. (some more information can also be found 
+[here](https://github.com/MIC-DKFZ/TractSeg/issues/42))
 
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s peaks.nii.gz --TOM TOM --peak_length`
