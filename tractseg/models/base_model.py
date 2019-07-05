@@ -27,6 +27,7 @@ from torch.optim import Adamax
 from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.nn.functional as F
+from apex import amp
 
 from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
@@ -103,6 +104,8 @@ class BaseModel:
         else:
             raise ValueError("Optimizer not defined")
 
+        self.net, self.optimizer = amp.initialize(self.net, self.optimizer, opt_level="O1")
+
         if self.Config.LR_SCHEDULE:
             # Slightly better results could be archived if training for 500ep without reduction of LR
             # -> but takes too long -> using reudceOnPlateau gives benefits if only training for 200ep
@@ -150,7 +153,8 @@ class BaseModel:
             else:
                 loss = self.criterion(outputs, y)
 
-        loss.backward()  # calc gradients
+        with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+            scaled_loss.backward()
         self.optimizer.step()
 
         if self.Config.EXPERIMENT_TYPE == "peak_regression":
