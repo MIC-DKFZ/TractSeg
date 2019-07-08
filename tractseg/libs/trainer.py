@@ -55,12 +55,16 @@ def train_model(Config, model, data_loader):
 
         metrics = dict(list(metrics.items()) + list(metrics_new.items()))
 
+    batch_gen_train = data_loader.get_batch_generator(batch_size=Config.BATCH_SIZE, type="train",
+                                                      subjects=getattr(Config, "TRAIN_SUBJECTS"))
+    batch_gen_val = data_loader.get_batch_generator(batch_size=Config.BATCH_SIZE, type="validate",
+                                                    subjects=getattr(Config, "VALIDATE_SUBJECTS"))
+
     for epoch_nr in range(Config.NUM_EPOCHS):
         start_time = time.time()
         # current_lr = Config.LEARNING_RATE * (Config.LR_DECAY ** epoch_nr)
         # current_lr = Config.LEARNING_RATE
 
-        batch_gen_time = 0
         data_preparation_time = 0
         network_time = 0
         metrics_time = 0
@@ -93,12 +97,6 @@ def train_model(Config, model, data_loader):
 
         for type in types:
             print_loss = []
-            start_time_batch_gen = time.time()
-
-            batch_gen = data_loader.get_batch_generator(batch_size=Config.BATCH_SIZE, type=type,
-                                                        subjects=getattr(Config, type.upper() + "_SUBJECTS"))
-            batch_gen_time = time.time() - start_time_batch_gen
-            # print("batch_gen_time: {}s".format(batch_gen_time))
 
             if Config.DIM == "2D":
                 nr_of_samples = len(getattr(Config, type.upper() + "_SUBJECTS")) * Config.INPUT_DIM[0]
@@ -111,7 +109,11 @@ def train_model(Config, model, data_loader):
             print("Start looping batches...")
             start_time_batch_part = time.time()
             for i in range(nr_batches):
-                batch = next(batch_gen)
+
+                if type == "train":
+                    batch = next(batch_gen_train)
+                else:
+                    batch = next(batch_gen_val)
 
                 start_time_data_preparation = time.time()
                 batch_nr[type] += 1
