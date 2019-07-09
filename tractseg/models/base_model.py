@@ -104,6 +104,7 @@ class BaseModel:
         else:
             raise ValueError("Optimizer not defined")
 
+        # Use O0 to disable fp16 (might be a little faster on TitanX)
         self.net, self.optimizer = amp.initialize(self.net, self.optimizer, opt_level="O1")
 
         if self.Config.LR_SCHEDULE:
