@@ -25,4 +25,5 @@ class Config(BaseConfig):
 
     FEATURES_FILENAME = "12g90g270g_CSD_BX"
 
-    USE_DROPOUT = True  # slightly less overfitting (but max f1_validate maybe slightly worse)
+    # slightly less overfitting (but max f1_validate maybe slightly worse (makes sense if less overfitting))
+    USE_DROPOUT = True
