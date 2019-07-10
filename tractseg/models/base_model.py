@@ -105,7 +105,7 @@ class BaseModel:
             raise ValueError("Optimizer not defined")
 
         # Use O0 to disable fp16 (might be a little faster on TitanX)
-        self.net, self.optimizer = amp.initialize(self.net, self.optimizer, opt_level="O1")
+        self.net, self.optimizer = amp.initialize(self.net, self.optimizer, verbosity=0, opt_level="O1")
 
         if self.Config.LR_SCHEDULE:
             # Slightly better results could be archived if training for 500ep without reduction of LR
