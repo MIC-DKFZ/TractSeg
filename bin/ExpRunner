@@ -125,10 +125,10 @@ def main():
     if Config.TRAIN and not Config.ONLY_VAL:
         Config.EXP_PATH = exp_utils.create_experiment_folder(Config.EXP_NAME, Config.MULTI_PARENT_PATH, Config.TRAIN)
 
-    if Config.DIM == "2D":
-        Config.EPOCH_MULTIPLIER = 1
-    else:
+    if Config.DIM != "2D":
         Config.EPOCH_MULTIPLIER = 3
+    # else:
+    #     Config.EPOCH_MULTIPLIER = 1
 
     if Config.VERBOSE:
         print("Hyperparameters:")
@@ -290,6 +290,11 @@ def main():
     eval_script_path = join(os.path.expanduser("~"), "dev/bsp/eval_nonHCP.py")
     if os.path.exists(eval_script_path) and not Config.ONLY_VAL and not Config.TEST:
         print("Evaluating on non HCP data...")
+        # Free GPU memory  (somehow 2.5GB remaining)
+        import torch
+        model = None
+        model_test = None
+        torch.cuda.empty_cache()
         os.system("python " + eval_script_path + " " + Config.EXP_NAME)
 
 if __name__ == '__main__':
