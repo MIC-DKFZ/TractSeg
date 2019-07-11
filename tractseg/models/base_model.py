@@ -27,7 +27,12 @@ from torch.optim import Adamax
 from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.nn.functional as F
-from apex import amp
+try:
+    from apex import amp
+    APEX_AVAILABLE = True
+except ImportError:
+    APEX_AVAILABLE = False
+    pass
 
 from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
@@ -104,8 +109,15 @@ class BaseModel:
         else:
             raise ValueError("Optimizer not defined")
 
-        # Use O0 to disable fp16 (might be a little faster on TitanX)
-        self.net, self.optimizer = amp.initialize(self.net, self.optimizer, verbosity=0, opt_level="O1")
+        if APEX_AVAILABLE:
+            # Use O0 to disable fp16 (might be a little faster on TitanX)
+            self.net, self.optimizer = amp.initialize(self.net, self.optimizer, verbosity=0, opt_level="O1")
+            if not inference:
+                print("INFO: Using fp16 training")
+        else:
+            if not inference:
+                print("INFO: Did not find APEX, defaulting to fp32 training")
+
 
         if self.Config.LR_SCHEDULE:
             # Slightly better results could be archived if training for 500ep without reduction of LR
@@ -154,8 +166,11 @@ class BaseModel:
             else:
                 loss = self.criterion(outputs, y)
 
-        with amp.scale_loss(loss, self.optimizer) as scaled_loss:
-            scaled_loss.backward()
+        if APEX_AVAILABLE:
+            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
         self.optimizer.step()
 
         if self.Config.EXPERIMENT_TYPE == "peak_regression":
