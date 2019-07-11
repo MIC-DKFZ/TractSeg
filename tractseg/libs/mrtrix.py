@@ -277,7 +277,7 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                                 " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                                 " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
                                 " -minlength 40 -maxlength 250 -seeds " + str(seeds) +
-                                " -select " + str(nr_fibers) + " -force" + nthreads,
+                                " -select " + str(nr_fibers) + " -cutoff 0.1 -force" + nthreads,
                                 shell=True)
                 if output_format == "trk" or output_format == "trk_legacy":
                     mrtrix_tck_to_trk()
