@@ -241,7 +241,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                         output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz " +
                         output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
                         " -seed_image " + tmp_dir + "/peak_mask.nii.gz" +
-                        " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads, shell=True)
+                        " -minlength 40 -maxlength 250 -select " + str(nr_fibers) +
+                        " -force -quiet" + nthreads, shell=True)
 
         if output_format == "trk" or output_format == "trk_legacy":
             mrtrix_tck_to_trk()
@@ -275,8 +276,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                                 " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
                                 " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                                 " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                                " -minlength 40 -seeds " + str(seeds) + " -select " +
-                                str(nr_fibers) + " -force" + nthreads,
+                                " -minlength 40 -maxlength 250 -seeds " + str(seeds) +
+                                " -select " + str(nr_fibers) + " -force" + nthreads,
                                 shell=True)
                 if output_format == "trk" or output_format == "trk_legacy":
                     mrtrix_tck_to_trk()
@@ -291,7 +292,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                                 " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
                                 " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                                 " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                                " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
+                                " -minlength 40 -maxlength 250 -select " + str(nr_fibers) +
+                                " -force -quiet" + nthreads,
                                 shell=True)
                 if output_format == "trk" or output_format == "trk_legacy":
                     mrtrix_tck_to_trk()
@@ -309,7 +311,8 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                                 " -mask " + tmp_dir + "/" + bundle + ".nii.gz" +
                                 " -include " + tmp_dir + "/" + bundle + "_b.nii.gz" +
                                 " -include " + tmp_dir + "/" + bundle + "_e.nii.gz" +
-                                " -minlength 40 -select " + str(nr_fibers) + " -force -quiet" + nthreads,
+                                " -minlength 40 -maxlength 250 -select " + str(nr_fibers) +
+                                " -force -quiet" + nthreads,
                                 shell=True)
                 if output_format == "trk" or output_format == "trk_legacy":
                     mrtrix_tck_to_trk()
