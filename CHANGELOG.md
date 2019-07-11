@@ -1,6 +1,7 @@
 ## Master
 
 * minor improvements
+* FP16 training (increased training speed)
 
 
 ## Release 2.0
