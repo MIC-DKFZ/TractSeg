@@ -53,6 +53,7 @@ class Config:
     DAUG_FLIP_PEAKS = False
     # 1.0 slightly less overfitting than 0.4 but not much ("break-even" 20epochs later)
     # 1.0: CPU bottleneck, 0.4: CPU not 100% all the time anymore, but still GPU utility not 100%
+    # 1.0: clearly more complete CA+FX on nonHCP than 0.2
     P_SAMP = 1.0  # use 1.0 for final model
     DAUG_INFO = "Elastic(90,120)(9,11) - Scale(0.9, 1.5) - CenterDist60 - " \
                 "DownsampScipy(0.5,1) - Gaussian(0,0.05) - Rotate(-0.8,0.8)"

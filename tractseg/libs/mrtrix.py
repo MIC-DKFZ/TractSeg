@@ -269,6 +269,9 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                 else:
                     seeds = 200000
                 # Quite slow
+                # cutoff 0.1 gives more sensitive results than 0.05 (default) (tested for HCP msmt)
+                # - better for CA & FX (less oversegmentation)
+                # - worse for CST (missing lateral projections)
                 subprocess.call("tckgen -algorithm " + algorithm + " " +
                                 peaks + " " +
                                 output_dir + "/" + tracking_folder + "/" + bundle + ".tck" +
