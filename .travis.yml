@@ -58,7 +58,7 @@ script:
 
   #Tractometry
   - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
-    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz --test
+    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz --test 1
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
 
   #Bundles SR PP BST

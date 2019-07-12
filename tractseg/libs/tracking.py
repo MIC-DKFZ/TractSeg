@@ -291,6 +291,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
     # move streamlines to coordinate space
+    #  This is doing: streamlines(coordinate_space) = affine * streamlines(voxel_space)
     streamlines = list(move_streamlines(streamlines, output_space=seed_image.affine))
 
     # Smoothing does not change overall results at all because is just little smoothing. Just removes small unevenness.

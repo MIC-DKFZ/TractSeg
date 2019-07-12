@@ -49,8 +49,9 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     for i in range(nr_points):
         values.append([])
 
-    for i in range(dilate):     #no dilation if dilate=0
+    for i in range(dilate):
         beginnings = binary_dilation(beginnings)
+    beginnings = beginnings.astype(np.uint8)
 
     ctr = 0
     for idx, sl in enumerate(streamlines):
@@ -105,16 +106,20 @@ def main():
                              "uses the older trk convention (streamlines are stored in coordinate space and affine is "
                              "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
                         default="trk_legacy")
-    parser.add_argument("--test", action="store_true", help="Only needed for unittesting.",
-                        default=False)
+    parser.add_argument("--test", metavar="0|1|2", choices=[0, 1, 2], type=int,
+                        help="Only needed for unittesting.",
+                        default=0)
     args = parser.parse_args()
 
     NR_POINTS = int(args.nr_points)
-    DILATION = 5
+    DILATION = 2
     scalar_image = nib.load(args.scalar_img)
 
-    if args.test:
+    if args.test == 1:
         bundles = exp_utils.get_bundle_names("test")[1:]
+    elif args.test == 2:
+        bundles = exp_utils.get_bundle_names("toy")[1:]
+        DILATION = 0
     else:
         bundles = exp_utils.get_bundle_names("All")[1:]
 
