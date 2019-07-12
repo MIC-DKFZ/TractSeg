@@ -44,6 +44,9 @@ DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
 
 def create_preprocessed_files(subject):
 
+    # Estimate bounding box from this file and then apply it to all other files
+    bb_file = "12g_125mm_peaks"
+
     # todo: adapt
     filenames_data = ["12g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks",
                       "12g_125mm_bedpostx_peaks_scaled", "90g_125mm_bedpostx_peaks_scaled",
@@ -52,18 +55,16 @@ def create_preprocessed_files(subject):
                      "bundle_peaks_Part1", "bundle_peaks_Part2", "bundle_peaks_Part3", "bundle_peaks_Part4",
                      "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
-    # filenames_data = ["270g_125mm_peaks", "90g_125mm_peaks", "12g_125mm_peaks",
-    #                   "12g_125mm_bedpostx_peaks_scaled", "90g_125mm_bedpostx_peaks_scaled",
-    #                   "270g_125mm_bedpostx_peaks_scaled"]
-
-    # filenames_data = ["270g_125mm_bedpostx_peaks_scaled", "32g_125mm_bedpostx_peaks_scaled"]
-    # filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
-    # filenames_data = ["270g_125mm_bedpostx_peaks_scaled", "32g_125mm_bedpostx_peaks_scaled"]
-    # filenames_seg = []
+    # filenames_data = []
+    # filenames_seg = ["bundle_masks_72_v2"]
 
 
     print("idx: {}".format(subjects.index(subject)))
     exp_utils.make_dir(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject))
+
+    # Get bounding box
+    data = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, bb_file + ".nii.gz")).get_data()
+    _, _, bbox, _ = dataset_utils.crop_to_nonzero(np.nan_to_num(data))
 
     for idx, filename in enumerate(filenames_data):
         path = join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")
@@ -73,10 +74,7 @@ def create_preprocessed_files(subject):
             affine = img.affine
             data = np.nan_to_num(data)
 
-            if idx == 0:
-                data, _, bbox, _ = dataset_utils.crop_to_nonzero(data)
-            else:
-                data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
+            data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
 
             # if idx > 0:
             # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
@@ -87,10 +85,11 @@ def create_preprocessed_files(subject):
             raise IOError("File missing")
 
     for filename in filenames_seg:
-        data = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")).get_data()
+        img = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz"))
+        data = img.get_data()
         data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
         # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
-        nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename +
+        nib.save(nib.Nifti1Image(data, img.affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename +
                                                      ".nii.gz"))
 
 
