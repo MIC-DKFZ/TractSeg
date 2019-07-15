@@ -53,6 +53,11 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         beginnings = binary_dilation(beginnings)
     beginnings = beginnings.astype(np.uint8)
 
+    # Move from convention "0mm is in voxel center" to convention "0mm is in voxel corner". This makes it easier
+    # to calculate the voxel a streamline point is located in.
+    # (dipy is working with the convention "0mm is in voxel center" therefore this is not needed there)
+    streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
+
     ctr = 0
     for idx, sl in enumerate(streamlines):
         startpoint = sl[0]
