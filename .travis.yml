@@ -19,47 +19,47 @@ install:
   - pip install .
 script:
 
-#  #Docker
-#  # On python 3 building the container is too slow to avoid travis timeout -> we only test it on python 2
-#  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker";
-#    else docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .; fi
-#
-##  - docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .
-##  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
-##    -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
-##  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
-#
-#  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-#  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker upload";
-#    else docker push wasserth/tractseg_container:master; fi
-#
-#  #Bundles
-#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --single_orientation
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
-#
-#  #Endings
-#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type endings_segmentation
-#    --single_orientation --nr_cpus 1
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
-# #- python tests/test_end_to_end.py test_end_to_end.test_endingsseg_output  #would also work
-#
-#  #TOM
-#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type TOM --nr_cpus 1
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
-#
-#  #Track
-#  # Use docker if we want to test Mrtrix tracking
-##  # for python 3 it uses the online available container -> built from the previous commit
-##  - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master Tracking
-##    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples/tractseg_output
-##    --nr_fibers 2000 --tracking_dilation 0 --test
-#  - Tracking -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output
-#      --nr_fibers 2000 --tracking_dilation 0 --test
-#
-#  #Tractometry
-#  - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
-#    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz --test 1
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
+  #Docker
+  # On python 3 building the container is too slow to avoid travis timeout -> we only test it on python 2
+  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker";
+    else docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .; fi
+
+#  - docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .
+#  - docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg
+#    -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker upload";
+    else docker push wasserth/tractseg_container:master; fi
+
+  #Bundles
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --single_orientation
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
+
+  #Endings
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type endings_segmentation
+    --single_orientation --nr_cpus 1
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
+ #- python tests/test_end_to_end.py test_end_to_end.test_endingsseg_output  # would also work
+
+  #TOM
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type TOM --nr_cpus 1
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
+
+  #Track
+  # Use docker if we want to test Mrtrix tracking
+#  # for python 3 it uses the online available container -> built from the previous commit
+#  - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master Tracking
+#    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples/tractseg_output
+#    --nr_fibers 2000 --tracking_dilation 0 --test
+  - Tracking -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output
+      --nr_fibers 2000 --tracking_dilation 0 --test
+
+  #Tractometry
+  - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
+    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz --test 1
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
 
   #Tractometry toy example
   - mkdir -p tractometry_toy_example
@@ -69,7 +69,7 @@ script:
     --nr_points 10 --tracking_format trk_legacy
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry_toy_example
 
-#  #Bundles SR PP BST
-#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_PP_BST/tractseg_output --single_orientation --super_resolution
-#    --postprocess --bundle_specific_threshold
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_PP_BST
+  #Bundles SR PP BST
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_PP_BST/tractseg_output --single_orientation --super_resolution
+    --postprocess --bundle_specific_threshold
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_PP_BST
