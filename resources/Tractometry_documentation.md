@@ -1,12 +1,17 @@
 # Tractometry
 
-> **Warning**: This code was not tested extensively and we did not use it in any paper yet. Therefore use with care.
+> **Warning**: This code was not used in any paper yet. We did not evaluate if this approach of doing Tractometry is
+ the best compared to other approaches. Therefore use with care.  
+ 
+> **Warning**: Use TractSeg `master` because earlier versions contain small bug in Tractometry script (streamlines 
+incorrectly shifted by 0.5 voxels).  
+`pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip`
 
 Measuring the FA (or MD or other values) along tracts can provide valuable insights (e.g. [Yeatman et al. 2012](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790)).
 
 ![Tractometry concept figure](Tractometry_concept1.png)
 
-TractSeg provides an easy way to do so by following these steps (version >=`1.6` needed):
+TractSeg provides an easy way to do so by following these steps (TractSeg `master` needed):
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
 They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) and 
 already be preprocessed (motion and distortion correction, ...).

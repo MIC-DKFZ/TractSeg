@@ -2,6 +2,7 @@
 
 * minor improvements
 * FP16 training (increased training speed)
+* Tractometry more testing and bugfix
 
 
 ## Release 2.0
