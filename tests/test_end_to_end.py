@@ -25,7 +25,6 @@ import numpy as np
 
 from tractseg.libs import exp_utils
 
-
 class test_end_to_end(unittest.TestCase):
 
     def setUp(self):
@@ -95,6 +94,16 @@ class test_end_to_end(unittest.TestCase):
     #     images_equal = np.allclose(img_ref, img_new, rtol=1e-6, atol=1e-6)
     #     self.assertTrue(images_equal, "FA not correct")
 
+    def test_tractometry_toy_example(self):
+        ref = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.7, 0.7, 0.7, 0.7, 0.35])
+        new = np.loadtxt("tractometry_toy_example/Tractometry.csv", delimiter=";", skiprows=1).transpose()
+
+        print("NEW")
+        print(new)
+
+        arrays_equal = np.equal(ref, new)
+        self.assertTrue(arrays_equal, "Tractometry toy example not correct")
+
     def test_tractometry(self):
         ref = np.loadtxt("tests/reference_files/Tractometry_2k.csv", delimiter=";", skiprows=1).transpose()
         new = np.loadtxt("examples/Tractometry.csv", delimiter=";", skiprows=1).transpose()
@@ -106,6 +115,7 @@ class test_end_to_end(unittest.TestCase):
         arrays_equal = np.allclose(ref, new, rtol=3e-2, atol=3e-2)  #allow error of around 0.03      #2k fibers
         # arrays_equal = np.allclose(ref, new, rtol=9e-3, atol=9e-3)    #allow error of around 0.009     #10k fibers
         self.assertTrue(arrays_equal, "Tractometry not correct")
+
 
 
 if __name__ == '__main__':
