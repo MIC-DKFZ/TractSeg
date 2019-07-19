@@ -101,7 +101,7 @@ class test_end_to_end(unittest.TestCase):
         print("NEW")
         print(new)
 
-        arrays_equal = np.equal(ref, new)
+        arrays_equal = np.array_equal(ref, new)
         self.assertTrue(arrays_equal, "Tractometry toy example not correct")
 
     def test_tractometry(self):
