@@ -8,10 +8,13 @@ incorrectly shifted by 0.5 voxels).
 `pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip`
 
 Measuring the FA (or MD or other values) along tracts can provide valuable insights (e.g. [Yeatman et al. 2012](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790)).
+In our implementation of Tractometry we evaluate the FA along 20 equality distant points along each streamline. 
+Finally we will take the mean for each of those 20 points over all streamlines. This is a very basic implementation
+and we recommend using a more sophisticated approach.
 
 ![Tractometry concept figure](Tractometry_concept1.png)
 
-TractSeg provides an easy way to do so by following these steps (TractSeg `master` needed):
+Run the following steps:
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
 They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) and 
 already be preprocessed (motion and distortion correction, ...).
@@ -32,7 +35,6 @@ GPU: 2min ~14s)
 5. Run tractometry:  
 `cd tractseg_output`  
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
-Tractometry will evaluate the FA along 20 equality distant points along each streamline. Finally it will take the mean for each of those 20 points over all streamlines.
 6. Repeat step 1-4 for every subject (use a shell script for that)
 7. Plot the results with [this python code](../examples/plot_tractometry_results.ipynb)
 
