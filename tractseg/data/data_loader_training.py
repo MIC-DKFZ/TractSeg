@@ -50,8 +50,9 @@ from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 from batchgenerators.augmentations.utils import pad_nd_image
 from batchgenerators.augmentations.utils import center_crop_2D_image_batched
 from batchgenerators.augmentations.crop_and_pad_augmentations import crop
-from tractseg.data.DLDABG_standalone import ResampleTransformLegacy
 
+from tractseg.data.DLDABG_standalone import ResampleTransformLegacy
+from tractseg.data.spatial_transform_peaks import SpatialTransformPeaks
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
 from tractseg.libs import exp_utils
@@ -297,7 +298,10 @@ class DataLoaderTraining:
                 if self.Config.DAUG_SCALE:
                     # spatial transform automatically crops/pads to correct size
                     center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-                    tfs.append(SpatialTransform(self.Config.INPUT_DIM,
+                    #todo important: change
+                    # angle_x = (1, 1), angle_y = (1, 1), angle_z = (1, 1),
+                    # tfs.append(SpatialTransform(self.Config.INPUT_DIM,
+                    tfs.append(SpatialTransformPeaks(self.Config.INPUT_DIM,
                                                 patch_center_dist_from_border=center_dist_from_border,
                                                 do_elastic_deform=self.Config.DAUG_ELASTIC_DEFORM,
                                                 alpha=self.Config.DAUG_ALPHA, sigma=self.Config.DAUG_SIGMA,

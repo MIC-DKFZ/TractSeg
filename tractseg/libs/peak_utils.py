@@ -99,6 +99,41 @@ def peak_image_to_binary_mask_path(path_in, path_out, peak_length_threshold=0.1)
     nib.save(peak_mask_img, path_out)
 
 
+def flat_tensor_to_matrix_tensor(tensor):
+    """
+    Converts a flat tensor (x,y,z,6) to a tensor in matrix representation (x,y,z,3,3)
+    """
+    ts = tensor.shape
+    t_matrix = np.zeros(ts[:len(ts) - 1] + (3, 3), dtype=tensor.dtype)  # [x,y,z,6] -> [x,y,z,3,3]
+    # Create tensor matrix
+    t_matrix[..., 0, 0] = tensor[..., 0]
+    t_matrix[..., 0, 1] = tensor[..., 1]
+    t_matrix[..., 0, 2] = tensor[..., 2]
+    t_matrix[..., 1, 0] = tensor[..., 1]  # redundant
+    t_matrix[..., 1, 1] = tensor[..., 3]
+    t_matrix[..., 1, 2] = tensor[..., 4]
+    t_matrix[..., 2, 0] = tensor[..., 2]  # redundant
+    t_matrix[..., 2, 1] = tensor[..., 4]  # redundant
+    t_matrix[..., 2, 2] = tensor[..., 5]
+    return t_matrix
+
+
+def matrix_tensor_to_flat_tensor(matrix):
+    """
+    Converts a tensor in matrix representation (x,y,z,3,3) to a flat tensor (x,y,z,6)
+    """
+    ms = matrix.shape
+    tensor = np.zeros(ms[:len(ms) - 2] + (6,), dtype=matrix.dtype)  # [x,y,z,3,3] -> [x,y,z,6]
+    # Create tensor matrix
+    tensor[..., 0] = matrix[:, :, 0, 0]
+    tensor[..., 1] = matrix[:, :, 0, 1]
+    tensor[..., 2] = matrix[:, :, 0, 2]
+    tensor[..., 3] = matrix[:, :, 1, 1]
+    tensor[..., 4] = matrix[:, :, 1, 2]
+    tensor[..., 5] = matrix[:, :, 2, 2]
+    return tensor
+
+
 def tensors_to_peaks(tensors):
     """
     Convert tensor image to peak image.
@@ -111,18 +146,7 @@ def tensors_to_peaks(tensors):
     """
 
     def tensor_to_peak(tensor):
-        t_matrix = np.zeros(tensor.shape[:3] + (3, 3), dtype=np.float32)
-
-        # Create tensor matrix
-        t_matrix[:, :, :, 0, 0] = tensor[..., 0]
-        t_matrix[:, :, :, 0, 1] = tensor[..., 1]
-        t_matrix[:, :, :, 0, 2] = tensor[..., 2]
-        t_matrix[:, :, :, 1, 0] = tensor[..., 1]  # redundant
-        t_matrix[:, :, :, 1, 1] = tensor[..., 3]
-        t_matrix[:, :, :, 1, 2] = tensor[..., 4]
-        t_matrix[:, :, :, 2, 0] = tensor[..., 2]  # redundant
-        t_matrix[:, :, :, 2, 1] = tensor[..., 4]  # redundant
-        t_matrix[:, :, :, 2, 2] = tensor[..., 5]
+        t_matrix = flat_tensor_to_matrix_tensor(tensor)
 
         val, vec = np.linalg.eig(t_matrix)  # get eigenvalues and eigenvectors
         argmax = val.argmax(axis=-1)  # get largest eigenvalue [x,y,z]
