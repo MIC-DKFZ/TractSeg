@@ -45,7 +45,10 @@ def rotate_multiple_peaks(data, angle_x, angle_y, angle_z):
         rot_matrix = create_matrix_rotation_x_3d(angle_x, rot_matrix)
         rot_matrix = create_matrix_rotation_y_3d(angle_y, rot_matrix)
         rot_matrix = create_matrix_rotation_z_3d(angle_z, rot_matrix)
-        peaks_rot = np.dot(peaks.reshape(3, -1).transpose(), rot_matrix).transpose().reshape(peaks.shape)
+        # rotate clockwise -> wrong
+        # peaks_rot = np.dot(peaks.reshape(3, -1).transpose(), rot_matrix).transpose().reshape(peaks.shape)
+        # rotate counterclockwise -> this is correct
+        peaks_rot = np.dot(rot_matrix, peaks.reshape(3, -1)).reshape(peaks.shape)
         return peaks_rot
 
     peaks_rot = np.zeros(data.shape)
@@ -75,7 +78,10 @@ def rotate_multiple_tensors(data, angle_x, angle_y, angle_z):
         rot_matrix = create_matrix_rotation_z_3d(angle_z, rot_matrix)
 
         peaks = peak_utils.flat_tensor_to_matrix_tensor(peaks)  # (144, 144, 3, 3)
-        peaks_rot = rot_matrix.T @ peaks @ rot_matrix  # (144, 144, 3, 3)
+        # rotate clockwise -> wrong
+        # peaks_rot = rot_matrix.T @ peaks @ rot_matrix  # (144, 144, 3, 3)
+        # rotate counterclockwise -> this is correct
+        peaks_rot = rot_matrix @ peaks @ rot_matrix.T  # (144, 144, 3, 3)
         peaks_rot = peak_utils.matrix_tensor_to_flat_tensor(peaks_rot)
         return peaks_rot
 
