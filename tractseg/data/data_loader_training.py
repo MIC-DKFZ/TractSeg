@@ -224,7 +224,8 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
         #possible optimization: sample slices from different patients and pad all to same size (size of biggest)
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
-                     "seg": y}      # (batch_size, channels, x, y, [z])
+                     "seg": y,
+                     "slice_dir": slice_direction}      # (batch_size, channels, x, y, [z])
         return data_dict
 
 
@@ -290,6 +291,11 @@ class DataLoaderTraining:
         if self.Config.NORMALIZE_DATA:
             tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
 
+        if self.Config.SPATIAL_TRANSFORM == "SpatialTransformPeaks":
+            SpatialTransformUsed = SpatialTransformPeaks
+        else:
+            SpatialTransformUsed = SpatialTransform
+
         if self.Config.DATA_AUGMENTATION:
             if type == "train":
                 # scale: inverted: 0.5 -> bigger; 2 -> smaller
@@ -298,15 +304,14 @@ class DataLoaderTraining:
                 if self.Config.DAUG_SCALE:
                     # spatial transform automatically crops/pads to correct size
                     center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-                    #todo important: change
-                    # angle_x = (1, 1), angle_y = (1, 1), angle_z = (1, 1),
-                    # tfs.append(SpatialTransform(self.Config.INPUT_DIM,
-                    tfs.append(SpatialTransformPeaks(self.Config.INPUT_DIM,
+                    tfs.append(SpatialTransformUsed(self.Config.INPUT_DIM,
                                                 patch_center_dist_from_border=center_dist_from_border,
                                                 do_elastic_deform=self.Config.DAUG_ELASTIC_DEFORM,
                                                 alpha=self.Config.DAUG_ALPHA, sigma=self.Config.DAUG_SIGMA,
                                                 do_rotation=self.Config.DAUG_ROTATE,
-                                                angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8), angle_z=(-0.8, 0.8),
+                                                angle_x=self.Config.DAUG_ROTATE_ANGLE,
+                                                angle_y=self.Config.DAUG_ROTATE_ANGLE,
+                                                angle_z=self.Config.DAUG_ROTATE_ANGLE,
                                                 do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
                                                 border_cval_data=0,
                                                 order_data=3,

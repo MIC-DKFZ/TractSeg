@@ -55,11 +55,6 @@ def rotate_multiple_peaks(data, angle_x, angle_y, angle_z):
     for i in range(3):
         peaks_rot[i*3:(i+1)*3, ...] = rotate_peaks(data[i*3:(i+1)*3, ...], angle_x, angle_y, angle_z)
 
-    # Flip x (needed to align correctly)
-    peaks_rot[0, ...] *= -1
-    peaks_rot[3, ...] *= -1
-    peaks_rot[6, ...] *= -1
-
     return peaks_rot
 
 
@@ -89,14 +84,6 @@ def rotate_multiple_tensors(data, angle_x, angle_y, angle_z):
     for i in range(3):
         peaks_rot[..., i*6:(i+1)*6] = rotate_tensors(data[..., i*6:(i+1)*6], angle_x, angle_y, angle_z)
 
-    # Flip x (needed to align correctly)
-    peaks_rot[..., 1] *= -1
-    peaks_rot[..., 2] *= -1
-    peaks_rot[..., 7] *= -1
-    peaks_rot[..., 8] *= -1
-    peaks_rot[..., 13] *= -1
-    peaks_rot[..., 14] *= -1
-
     peaks_rot = np.moveaxis(peaks_rot, -1, 0)  # move channels to front
     return peaks_rot
 
@@ -106,7 +93,7 @@ def augment_spatial_peaks(data, seg, patch_size, patch_center_dist_from_border=3
                     do_rotation=True, angle_x=(0, 2 * np.pi), angle_y=(0, 2 * np.pi), angle_z=(0, 2 * np.pi),
                     do_scale=True, scale=(0.75, 1.25), border_mode_data='nearest', border_cval_data=0, order_data=3,
                     border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True, p_el_per_sample=1,
-                    p_scale_per_sample=1, p_rot_per_sample=1):
+                    p_scale_per_sample=1, p_rot_per_sample=1, slice_dir=None):
     dim = len(patch_size)
     seg_result = None
     if seg is not None:
@@ -199,6 +186,25 @@ def augment_spatial_peaks(data, seg, patch_size, patch_center_dist_from_border=3
                 seg_result[sample_id] = s[0]
 
         # NEW: Rotate Peaks / Tensors
+        if dim > 2:
+            raise ValueError("augment_spatial_peaks only supports 2D at the moment")
+
+        sampled_2D_angle = a_x  # if 2D angle will always be a_x even if rotating other axis
+        a_x = 0
+        a_y = 0
+        a_z = 0
+
+        if slice_dir == 0:
+            a_x = sampled_2D_angle
+        elif slice_dir == 1:
+            a_y = sampled_2D_angle
+        elif slice_dir == 2:
+            # Somehow we have to invert rotation direction for z to make align properly with rotated voxels.
+            #  Unclear why this is the case. Maybe some different conventions for peaks and voxels??
+            a_z = sampled_2D_angle * -1
+        else:
+            raise ValueError("invalid slice_dir passed as argument")
+
         data_aug = data_result[sample_id]
         if data_aug.shape[0] == 9:
             data_result[sample_id] = rotate_multiple_peaks(data_aug, a_x, a_y, a_z)
@@ -292,6 +298,9 @@ class SpatialTransformPeaks(AbstractTransform):
         data = data_dict.get(self.data_key)
         seg = data_dict.get(self.label_key)
 
+        #NEW: pass slice direction, because peak rotation depends on it
+        slice_dir = data_dict.get("slice_dir")
+
         if self.patch_size is None:
             if len(data.shape) == 4:
                 patch_size = (data.shape[2], data.shape[3])
@@ -312,7 +321,7 @@ class SpatialTransformPeaks(AbstractTransform):
                                       border_mode_seg=self.border_mode_seg, border_cval_seg=self.border_cval_seg,
                                       order_seg=self.order_seg, random_crop=self.random_crop,
                                       p_el_per_sample=self.p_el_per_sample, p_scale_per_sample=self.p_scale_per_sample,
-                                      p_rot_per_sample=self.p_rot_per_sample)
+                                      p_rot_per_sample=self.p_rot_per_sample, slice_dir=slice_dir)
 
         data_dict[self.data_key] = ret_val[0]
         if seg is not None:

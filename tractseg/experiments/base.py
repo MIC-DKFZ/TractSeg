@@ -49,8 +49,10 @@ class Config:
     DAUG_GAUSSIAN_BLUR = True
     DAUG_BLUR_SIGMA = (0, 1)
     DAUG_ROTATE = False
+    DAUG_ROTATE_ANGLE = (-0.4, 0.4)  # rotation: 2*np.pi = 360 degree  (-> 0.8 ~ 45 degree, 0.4 ~ 22 degree))
     DAUG_MIRROR = False
     DAUG_FLIP_PEAKS = False
+    SPATIAL_TRANSFORM = "SpatialTransform"  # SpatialTransform / SpatialTransformPeaks
     # 1.0 slightly less overfitting than 0.4 but not much ("break-even" 20epochs later)
     # 1.0: CPU bottleneck, 0.4: CPU not 100% all the time anymore, but still GPU utility not 100%
     # 1.0: clearly more complete CA+FX on nonHCP than 0.2
