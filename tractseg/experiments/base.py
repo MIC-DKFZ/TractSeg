@@ -49,7 +49,7 @@ class Config:
     DAUG_GAUSSIAN_BLUR = True
     DAUG_BLUR_SIGMA = (0, 1)
     DAUG_ROTATE = False
-    DAUG_ROTATE_ANGLE = (-0.4, 0.4)  # rotation: 2*np.pi = 360 degree  (-> 0.8 ~ 45 degree, 0.4 ~ 22 degree))
+    DAUG_ROTATE_ANGLE = (-0.2, 0.2)  # rotation: 2*np.pi = 360 degree  (-> 0.4 ~ 22 degree, 0.2 ~ 11 degree))
     DAUG_MIRROR = False
     DAUG_FLIP_PEAKS = False
     SPATIAL_TRANSFORM = "SpatialTransform"  # SpatialTransform / SpatialTransformPeaks
