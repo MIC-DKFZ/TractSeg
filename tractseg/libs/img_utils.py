@@ -559,6 +559,15 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
     orientation as the peaks used for training TractSeg. Otherwise detect along which axis they
     have to be flipped to have the right orientation and return the flipped peaks.
 
+    NOTES:
+    - Accuracy around 98%, but often failed on tumor cases
+      -> if not really reliable is no benefit for UX
+    - This random forest was trained on subjects with incorrectly rotated bvecs. Therefore would have to retrain it
+      on subjects with correct bvecs before we can use it again
+    - After fixing of bvecs rotation bug in general peaks are incorrectly flipped a lot less often. Therefore not so
+      important anymore
+    => Do not use anymore
+
     :param peaks_input: nifti peak img
     :param do_flip: also return flipped data or only return if flip needed
     :return: 4D numpy array (flipped peaks), boolean if flip was done

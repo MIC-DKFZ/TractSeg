@@ -266,23 +266,7 @@ def main():
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.affine
-
-    if not tensor_model and not bedpostX_input:
-        data, flip_axis = img_utils.flip_peaks_to_correct_orientation_if_needed(data_img,
-                                                                                do_flip=automatically_flip_peaks)
-    else:
-        flip_axis = None
-        data = data_img.get_data()
-
-    if flip_axis is not None:
-        print("\n" + bcolors.YELLOW + "WARNING:" + bcolors.ENDC + bcolors.BOLD +
-              "Detected that peaks probably have wrong orientation. If your results are looking bad you "
-              "should flip them along the " + flip_axis + "-axis using the following command: \n" +
-              "\"flip_peaks -i " + peak_path + " -o " + join(os.path.dirname(peak_path), "peaks_flipped.nii.gz") +
-              " -a " + flip_axis + "\"\n" +
-              "Use mrview (Tools->Fixel plot) to verify that the peaks are oriented correctly now. " +
-              "Then rerun TractSeg using the flipped peaks.\n" + bcolors.ENDC)
-
+    data = data_img.get_data()
     data_img = None     # free memory
 
     #Use Peaks + T1
