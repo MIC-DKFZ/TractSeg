@@ -117,6 +117,8 @@ def main():
     args = parser.parse_args()
 
     NR_POINTS = int(args.nr_points)
+    # Dilation >0 important because otherwise some streamlines do not start/end in beginnings region and then
+    # correct reorientation/flipping of streamlines does not work anymore
     DILATION = 2
     scalar_image = nib.load(args.scalar_img)
 
