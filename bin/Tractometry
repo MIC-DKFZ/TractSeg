@@ -25,7 +25,7 @@ import nibabel as nib
 import numpy as np
 from nibabel import trackvis
 from scipy.ndimage.morphology import binary_dilation
-from dipy.tracking.utils import move_streamlines
+from dipy.tracking.streamline import transform_streamlines
 
 from tractseg.libs import fiber_utils
 from tractseg.libs import exp_utils
@@ -147,7 +147,7 @@ def main():
 
         if len(streamlines) > 0:
             streamlines = fiber_utils.resample_fibers(streamlines, nb_points=NR_POINTS)    #mean over bundles
-            streamlines = list(move_streamlines(streamlines, np.linalg.inv(scalar_image.affine)))
+            streamlines = list(transform_streamlines(streamlines, np.linalg.inv(scalar_image.affine)))
             mean, std = evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines,
                                                    beginnings.get_data(), NR_POINTS, dilate=DILATION,
                                                    predicted_peaks=predicted_peaks)
