@@ -20,12 +20,20 @@ from __future__ import division
 from __future__ import print_function
 
 from os.path import join
+from collections import defaultdict
 import argparse
+
 import nibabel as nib
 import numpy as np
 from nibabel import trackvis
 from scipy.ndimage.morphology import binary_dilation
 from dipy.tracking.streamline import transform_streamlines
+from scipy.ndimage.interpolation import map_coordinates
+from dipy.tracking.streamline import values_from_volume
+from dipy.tracking.streamline import Streamlines
+from dipy.segment.clustering import QuickBundles
+from dipy.segment.metric import AveragePointwiseEuclideanMetric
+from scipy.spatial import cKDTree
 
 from tractseg.libs import fiber_utils
 from tractseg.libs import exp_utils
@@ -44,7 +52,8 @@ def get_length_best_orig_peak(predicted_img, orig_img, x, y, z):
     return best_peak_len
 
 
-def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, dilate=0, predicted_peaks=None):
+def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, dilate=0, predicted_peaks=None,
+                               affine=None):
     values = []
     for i in range(nr_points):
         values.append([])
@@ -53,30 +62,83 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         beginnings = binary_dilation(beginnings)
     beginnings = beginnings.astype(np.uint8)
 
-    # Move from convention "0mm is in voxel center" to convention "0mm is in voxel corner". This makes it easier
-    # to calculate the voxel a streamline point is located in.
-    # (dipy is working with the convention "0mm is in voxel center" therefore this is not needed there)
-    streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
+    # Runtime:
+    # - default: 2.7s (test),  56s (all)                    10s
+    # - map_coordinate order 1: 1.9s (test), 26s (all)      6s
+    # - map_coordinate order 3: 2.2s (test), 33s (all)
+    # - values_from_volume: 2.5s (test), 43s (all)
+    # => results for all 3 are almost identical (espcially last 2 are even more identical)
 
-    ctr = 0
+    #################################### Manual ####################################
+    # # Move from convention "0mm is in voxel center" to convention "0mm is in voxel corner". This makes it easier
+    # # to calculate the voxel a streamline point is located in.
+    # # (dipy is working with the convention "0mm is in voxel center" therefore this is not needed there)
+    # streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
+    # ctr = 0
+    # for idx, sl in enumerate(streamlines):
+    #     startpoint = sl[0]
+    #     #Flip streamline if not in right order
+    #     # (we could also use dipy.tracking.streamline.orient_by_streamline instead)
+    #     if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
+    #         sl = sl[::-1,:]
+    #         ctr += 1
+    #     for jdx in range(sl.shape[0]):   #iterate over nr_points
+    #         point = sl[jdx]
+    #         if predicted_peaks is not None:
+    #             scalar_value = get_length_best_orig_peak(predicted_peaks, scalar_img,
+    #                                                      int(point[0]), int(point[1]), int(point[2]))
+    #         else:
+    #             scalar_value = scalar_img[int(point[0]), int(point[1]), int(point[2])]
+    #         values[jdx].append(scalar_value)
+    ####################################################################################
+
+    #################################### Using map_coordinates ####################################
+    # Do not use +0.5 for this !!
+    streamlines_new = []
     for idx, sl in enumerate(streamlines):
         startpoint = sl[0]
-        #Flip streamline if not in right order
+        # Flip streamline if not in right order
         if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
-            sl = sl[::-1,:]
-            ctr += 1
-        for jdx in range(sl.shape[0]):   #iterate over nr_points
-            point = sl[jdx]
-            if predicted_peaks is not None:
-                scalar_value = get_length_best_orig_peak(predicted_peaks, scalar_img,
-                                                         int(point[0]), int(point[1]), int(point[2]))
-            else:
-                scalar_value = scalar_img[int(point[0]), int(point[1]), int(point[2])]
-            values[jdx].append(scalar_value)
+            sl = sl[::-1, :]
+        streamlines_new.append(sl)
+    streamlines = streamlines_new
+    values = map_coordinates(scalar_img, np.array(streamlines).T, order=1)
+    # streamlines = list(transform_streamlines(streamlines, affine))  # this has to be here; not remove previous one
+    # values = np.array(values_from_volume(scalar_img, streamlines, affine=affine)).T
 
-    values_mean = np.array(values).mean(axis=1)
-    values_std = np.array(values).std(axis=1)
-    return values_mean, values_std
+    # values_mean = np.array(values).mean(axis=1)
+    # values_std = np.array(values).std(axis=1)
+    # return values_mean, values_std
+    ####################################################################################
+
+    metric = AveragePointwiseEuclideanMetric()
+    qb = QuickBundles(threshold=100., metric=metric)
+    clusters = qb.cluster(streamlines)
+    centroids = Streamlines(clusters.centroids)
+    if len(centroids) > 1:
+        print("WARNING: number clusters > 1 ({})".format(len(centroids)))
+    _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)  # (2000, 20)
+
+    values_t = np.array(values).T  # (2000, 20)
+
+    results_dict = defaultdict(list)
+    for idx, sl in enumerate(values_t):
+        for jdx, seg in enumerate(sl):
+            results_dict[segment_idxs[idx, jdx]].append(seg)
+
+    results_mean = []
+    results_std = []
+    for key in sorted(results_dict.keys()):
+        value = results_dict[key]
+        if len(value) > 0:
+            results_mean.append(np.array(value).mean())
+            results_std.append(np.array(value).std())
+        else:
+            print("WARNING: empty segment")
+            results_mean.append(0)
+            results_std.append(0)
+
+    return results_mean, results_std
 
 
 def main():
@@ -123,7 +185,9 @@ def main():
     scalar_image = nib.load(args.scalar_img)
 
     if args.test == 1:
-        bundles = exp_utils.get_bundle_names("test")[1:]
+        #todo important: change
+        # bundles = exp_utils.get_bundle_names("test")[1:]
+        bundles = ["CST_right", "CA", "UF_left", "CC_5"]
     elif args.test == 2:
         bundles = exp_utils.get_bundle_names("toy")[1:]
         DILATION = 0
@@ -150,7 +214,7 @@ def main():
             streamlines = list(transform_streamlines(streamlines, np.linalg.inv(scalar_image.affine)))
             mean, std = evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines,
                                                    beginnings.get_data(), NR_POINTS, dilate=DILATION,
-                                                   predicted_peaks=predicted_peaks)
+                                                   predicted_peaks=predicted_peaks, affine=scalar_image.affine)
         else:
             mean = np.zeros(NR_POINTS)
             std = np.zeros(NR_POINTS)
