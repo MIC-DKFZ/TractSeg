@@ -34,6 +34,8 @@ from dipy.tracking.streamline import Streamlines
 from dipy.segment.clustering import QuickBundles
 from dipy.segment.metric import AveragePointwiseEuclideanMetric
 from scipy.spatial import cKDTree
+import dipy.stats.analysis as dsa
+from dipy.tracking.streamline import Streamlines
 
 from tractseg.libs import fiber_utils
 from tractseg.libs import exp_utils
@@ -52,8 +54,28 @@ def get_length_best_orig_peak(predicted_img, orig_img, x, y, z):
     return best_peak_len
 
 
+def orient_to_same_start_region(streamlines, beginnings):
+    # (we could also use dipy.tracking.streamline.orient_by_streamline instead)
+    streamlines_new = []
+    for idx, sl in enumerate(streamlines):
+        startpoint = sl[0]
+        # Flip streamline if not in right order
+        if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
+            sl = sl[::-1, :]
+        streamlines_new.append(sl)
+    return streamlines_new
+
+
 def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, dilate=0, predicted_peaks=None,
                                affine=None):
+    # Runtime:
+    # - default: 2.7s (test),  56s (all),                   10s (test 4 bundles, 100 points)
+    # - map_coordinate order 1: 1.9s (test), 26s (all),      6s (test 4 bundles, 100 points)
+    # - map_coordinate order 3: 2.2s (test), 33s (all)
+    # - values_from_volume: 2.5s (test), 43s (all)
+    # - AFQ: Xs (test), Xs (all),                           85s  (test 4 bundles, 100 points)
+    # => results for all 3 are almost identical (espcially last 2 are even more identical)
+
     values = []
     for i in range(nr_points):
         values.append([])
@@ -62,26 +84,20 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         beginnings = binary_dilation(beginnings)
     beginnings = beginnings.astype(np.uint8)
 
-    # Runtime:
-    # - default: 2.7s (test),  56s (all)                    10s
-    # - map_coordinate order 1: 1.9s (test), 26s (all)      6s
-    # - map_coordinate order 3: 2.2s (test), 33s (all)
-    # - values_from_volume: 2.5s (test), 43s (all)
-    # => results for all 3 are almost identical (espcially last 2 are even more identical)
-
-    #################################### Manual ####################################
-    # # Move from convention "0mm is in voxel center" to convention "0mm is in voxel corner". This makes it easier
-    # # to calculate the voxel a streamline point is located in.
-    # # (dipy is working with the convention "0mm is in voxel center" therefore this is not needed there)
+    # THIS IS ONLY NEEDED FOR "MANUAL":
+    # Move from convention "0mm is in voxel center" to convention "0mm is in voxel corner". This makes it easier
+    # to calculate the voxel a streamline point is located in.
+    # (dipy is working with the convention "0mm is in voxel center" therefore this is not needed there)
+    #todo important: change
+    # print("INFO: Adding 0.5 to streamlines")
     # streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
-    # ctr = 0
+
+    streamlines = orient_to_same_start_region(streamlines, beginnings)
+
+    ### Sampling ###
+
+    #################################### Sampling "MANUAL" ############################
     # for idx, sl in enumerate(streamlines):
-    #     startpoint = sl[0]
-    #     #Flip streamline if not in right order
-    #     # (we could also use dipy.tracking.streamline.orient_by_streamline instead)
-    #     if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
-    #         sl = sl[::-1,:]
-    #         ctr += 1
     #     for jdx in range(sl.shape[0]):   #iterate over nr_points
     #         point = sl[jdx]
     #         if predicted_peaks is not None:
@@ -90,27 +106,28 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     #         else:
     #             scalar_value = scalar_img[int(point[0]), int(point[1]), int(point[2])]
     #         values[jdx].append(scalar_value)
-    ####################################################################################
+    ###################################################################################
 
-    #################################### Using map_coordinates ####################################
-    # Do not use +0.5 for this !!
-    streamlines_new = []
-    for idx, sl in enumerate(streamlines):
-        startpoint = sl[0]
-        # Flip streamline if not in right order
-        if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
-            sl = sl[::-1, :]
-        streamlines_new.append(sl)
-    streamlines = streamlines_new
+    #################################### Sampling map_coordinates #####################
     values = map_coordinates(scalar_img, np.array(streamlines).T, order=1)
+    ###################################################################################
+
+    #################################### Sampling values_from_volume ##################
     # streamlines = list(transform_streamlines(streamlines, affine))  # this has to be here; not remove previous one
     # values = np.array(values_from_volume(scalar_img, streamlines, affine=affine)).T
+    ###################################################################################
 
+
+    ### Aggregation ###
+
+    #################################### Aggregating by MEAN ##########################
     # values_mean = np.array(values).mean(axis=1)
+    # print(values_mean.round(2))
     # values_std = np.array(values).std(axis=1)
     # return values_mean, values_std
-    ####################################################################################
+    ###################################################################################
 
+    #################################### Aggregating by cKDTree #######################
     metric = AveragePointwiseEuclideanMetric()
     qb = QuickBundles(threshold=100., metric=metric)
     clusters = qb.cluster(streamlines)
@@ -138,7 +155,19 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
             results_mean.append(0)
             results_std.append(0)
 
+    # print(np.array(results_mean).round(3))
     return results_mean, results_std
+    ###################################################################################
+
+    #################################### AFQ (sampling + aggregation ##################
+    # streamlines = list(transform_streamlines(streamlines, affine))  # this has to be here; not remove previous one
+    # streamlines = Streamlines(streamlines)
+    # weights = dsa.gaussian_weights(streamlines)
+    # results_mean = dsa.afq_profile(scalar_img, streamlines, affine=affine, weights=weights)
+    # results_std = None
+    # return results_mean, results_std
+    ###################################################################################
+
 
 
 def main():
