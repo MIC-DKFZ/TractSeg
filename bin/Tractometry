@@ -76,10 +76,6 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     # - AFQ: Xs (test), Xs (all),                           85s  (test 4 bundles, 100 points)
     # => results for all 3 are almost identical (espcially last 2 are even more identical)
 
-    values = []
-    for i in range(nr_points):
-        values.append([])
-
     for i in range(dilate):
         beginnings = binary_dilation(beginnings)
     beginnings = beginnings.astype(np.uint8)
@@ -97,6 +93,10 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     ### Sampling ###
 
     #################################### Sampling "MANUAL" ############################
+    # values = []
+    # for i in range(nr_points):
+    #     values.append([])
+    #
     # for idx, sl in enumerate(streamlines):
     #     for jdx in range(sl.shape[0]):   #iterate over nr_points
     #         point = sl[jdx]
@@ -142,6 +142,13 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     for idx, sl in enumerate(values_t):
         for jdx, seg in enumerate(sl):
             results_dict[segment_idxs[idx, jdx]].append(seg)
+
+    if len(results_dict.keys()) < nr_points:
+        print("WARNING: found less than required points. Filling up with centroid values.")
+        centroid_values = map_coordinates(scalar_img, np.array([centroids[0]]).T, order=1)
+        for i in range(nr_points):
+            if len(results_dict[i]) == 0:
+                results_dict[i].append(np.array(centroid_values).T[0, i])
 
     results_mean = []
     results_std = []
@@ -214,9 +221,8 @@ def main():
     scalar_image = nib.load(args.scalar_img)
 
     if args.test == 1:
-        #todo important: change
-        # bundles = exp_utils.get_bundle_names("test")[1:]
-        bundles = ["CST_right", "CA", "UF_left", "CC_5"]
+        bundles = exp_utils.get_bundle_names("test")[1:]
+        # bundles = ["CST_right", "CA", "UF_left", "CC_5"]
     elif args.test == 2:
         bundles = exp_utils.get_bundle_names("toy")[1:]
         DILATION = 0
@@ -245,6 +251,7 @@ def main():
                                                    beginnings.get_data(), NR_POINTS, dilate=DILATION,
                                                    predicted_peaks=predicted_peaks, affine=scalar_image.affine)
         else:
+            print("WARNING: bundle {} contains no streamlines. Saving value 0 for this bundle.".format())
             mean = np.zeros(NR_POINTS)
             std = np.zeros(NR_POINTS)
         results.append(mean)
