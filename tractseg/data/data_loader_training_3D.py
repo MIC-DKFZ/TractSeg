@@ -85,12 +85,11 @@ class BatchGenerator3D_Nifti_random(SlimDataLoaderBase):
         # y = center_crop_3D_image_batched(y, self.Config.INPUT_DIM)
 
         # Crop and pad to input size
-        # x, y = crop(x, y, crop_size=self.Config.INPUT_DIM)  # does not work with img with batches and channels
+        x, y = crop(x, y, crop_size=self.Config.INPUT_DIM)
 
-        # Works
-        # This is needed for Schizo dataset
-        x = pad_nd_image(x, shape_must_be_divisible_by=(8, 8), mode='constant', kwargs={'constant_values': 0})
-        y = pad_nd_image(y, shape_must_be_divisible_by=(8, 8), mode='constant', kwargs={'constant_values': 0})
+        # This is needed for Schizo dataset, but only works with DAug=True
+        # x = pad_nd_image(x, shape_must_be_divisible_by=(8, 8), mode='constant', kwargs={'constant_values': 0})
+        # y = pad_nd_image(y, shape_must_be_divisible_by=(8, 8), mode='constant', kwargs={'constant_values': 0})
 
         x = x.astype(np.float32)
         y = y.astype(np.float32)

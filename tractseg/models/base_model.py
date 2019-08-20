@@ -109,7 +109,7 @@ class BaseModel:
         else:
             raise ValueError("Optimizer not defined")
 
-        if APEX_AVAILABLE:
+        if APEX_AVAILABLE and self.Config.FP16:
             # Use O0 to disable fp16 (might be a little faster on TitanX)
             self.net, self.optimizer = amp.initialize(self.net, self.optimizer, verbosity=0, opt_level="O1")
             if not inference:
@@ -166,7 +166,7 @@ class BaseModel:
             else:
                 loss = self.criterion(outputs, y)
 
-        if APEX_AVAILABLE:
+        if APEX_AVAILABLE and self.Config.FP16:
             with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:

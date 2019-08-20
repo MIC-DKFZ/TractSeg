@@ -55,7 +55,7 @@ def create_preprocessed_files(subject):
     #                  "bundle_peaks_Part1", "bundle_peaks_Part2", "bundle_peaks_Part3", "bundle_peaks_Part4",
     #                  "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
-    filenames_data = ["FA"]
+    filenames_data = ["12g_125mm_FA", "90g_125mm_FA", "270g_125mm_FA"]
     filenames_seg = []
 
 
@@ -73,6 +73,10 @@ def create_preprocessed_files(subject):
             data = img.get_data()
             affine = img.affine
             data = np.nan_to_num(data)
+
+            # Add channel dimension if does not exist yet
+            if len(data.shape) == 3:
+                data = data[..., None]
 
             data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
 
@@ -96,4 +100,6 @@ def create_preprocessed_files(subject):
 if __name__ == "__main__":
     print("Output folder: {}".format(DATASET_FOLDER_PREPROC))
     subjects = get_all_subjects(dataset=dataset)
-    Parallel(n_jobs=12)(delayed(create_preprocessed_files)(subject) for subject in subjects)  # 37
+    Parallel(n_jobs=12)(delayed(create_preprocessed_files)(subject) for subject in subjects)
+    # for subject in subjects:
+    #     create_preprocessed_files(subject)

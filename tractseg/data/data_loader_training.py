@@ -94,6 +94,15 @@ def load_training_data(Config, subject):
         else:
             data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_bedpostx_peaks_scaled"))
 
+    elif Config.FEATURES_FILENAME == "12g90g270g_FA":
+        rnd_choice = np.random.random()
+        if rnd_choice < 0.33:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_FA"))
+        elif rnd_choice < 0.66:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "90g_125mm_FA"))
+        else:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_FA"))
+
     elif Config.FEATURES_FILENAME == "12g90g270g_CSD_BX":
         rnd_choice_1 = np.random.random()
         rnd_choice_2 = np.random.random()
@@ -126,10 +135,12 @@ def load_training_data(Config, subject):
                 data[:, :, :, 6:9] = 0  # set third peak to 0
         else:
             data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_bedpostx_peaks_scaled"))
+
     elif Config.FEATURES_FILENAME == "T1_Peaks270g":
         peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_peaks"))
         t1 = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "T1"))
         data = np.concatenate((peaks, t1), axis=3)
+
     elif Config.FEATURES_FILENAME == "T1_Peaks12g90g270g":
         rnd_choice = np.random.random()
         if rnd_choice < 0.33:
@@ -140,6 +151,7 @@ def load_training_data(Config, subject):
             peaks = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_peaks"))
         t1 = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "T1"))
         data = np.concatenate((peaks, t1), axis=3)
+
     else:
         data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.FEATURES_FILENAME))
 
