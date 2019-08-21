@@ -55,7 +55,7 @@ def create_preprocessed_files(subject):
     #                  "bundle_peaks_Part1", "bundle_peaks_Part2", "bundle_peaks_Part3", "bundle_peaks_Part4",
     #                  "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
-    filenames_data = ["12g_125mm_FA", "90g_125mm_FA", "270g_125mm_FA"]
+    filenames_data = ["bundle_uncertainties"]
     filenames_seg = []
 
 
