@@ -263,6 +263,9 @@ def main():
     if tensor_model:
         data_img = peak_utils.peaks_to_tensors_nifti(data_img)
 
+    if input_type == "T1" or Config.NR_OF_GRADIENTS == 1:
+        data_img = nib.Nifti1Image(data_img.get_data()[..., None], data_img.affine)  # add fourth dimension
+
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.affine
