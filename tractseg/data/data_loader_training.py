@@ -40,7 +40,7 @@ from batchgenerators.transforms.resample_transforms import ResampleTransform
 from batchgenerators.transforms.resample_transforms import SimulateLowResolutionTransform
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
 from batchgenerators.transforms.noise_transforms import GaussianBlurTransform
-from batchgenerators.transforms.spatial_transforms import SpatialTransform, FlipVectorAxisTransform
+from batchgenerators.transforms.spatial_transforms import SpatialTransform
 from batchgenerators.transforms.spatial_transforms import MirrorTransform
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.utility_transforms import NumpyToTensor
@@ -51,7 +51,8 @@ from batchgenerators.augmentations.utils import pad_nd_image
 from batchgenerators.augmentations.utils import center_crop_2D_image_batched
 from batchgenerators.augmentations.crop_and_pad_augmentations import crop
 
-from tractseg.data.DLDABG_standalone import ResampleTransformLegacy
+from tractseg.data.custom_transformations import ResampleTransformLegacy
+from tractseg.data.custom_transformations import FlipVectorAxisTransform
 from tractseg.data.spatial_transform_peaks import SpatialTransformPeaks
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import dataset_utils
