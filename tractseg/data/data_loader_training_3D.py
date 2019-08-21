@@ -30,7 +30,7 @@ import numpy as np
 
 from batchgenerators.transforms.resample_transforms import SimulateLowResolutionTransform
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
-from batchgenerators.transforms.spatial_transforms import SpatialTransform, FlipVectorAxisTransform
+from batchgenerators.transforms.spatial_transforms import SpatialTransform
 from batchgenerators.transforms.spatial_transforms import MirrorTransform
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.utility_transforms import NumpyToTensor
@@ -42,7 +42,7 @@ from batchgenerators.augmentations.utils import center_crop_3D_image_batched
 from batchgenerators.augmentations.crop_and_pad_augmentations import crop
 
 from tractseg.data.data_loader_training import load_training_data
-
+from tractseg.data.custom_transformations import FlipVectorAxisTransform
 
 
 class BatchGenerator3D_Nifti_random(SlimDataLoaderBase):
@@ -72,6 +72,11 @@ class BatchGenerator3D_Nifti_random(SlimDataLoaderBase):
             data = data.transpose(3, 0, 1, 2)  # channels have to be first
             seg = seg.transpose(3, 0, 1, 2)
 
+            # Crop here instead of cropping entire batch at once to make each element in batch have same dimensions
+            data, seg = crop(data[None,...], seg[None,...], crop_size=self.Config.INPUT_DIM)
+            data = data.squeeze(axis=0)
+            seg = seg.squeeze(axis=0)
+
             x.append(data)
             y.append(seg)
 
@@ -85,7 +90,7 @@ class BatchGenerator3D_Nifti_random(SlimDataLoaderBase):
         # y = center_crop_3D_image_batched(y, self.Config.INPUT_DIM)
 
         # Crop and pad to input size
-        x, y = crop(x, y, crop_size=self.Config.INPUT_DIM)
+        # x, y = crop(x, y, crop_size=self.Config.INPUT_DIM)
 
         # This is needed for Schizo dataset, but only works with DAug=True
         # x = pad_nd_image(x, shape_must_be_divisible_by=(8, 8), mode='constant', kwargs={'constant_values': 0})

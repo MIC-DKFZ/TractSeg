@@ -1,14 +1,6 @@
 #!/bin/bash
 set -e  # stop on error
 
-#~/my_bsub.sh PeaksPart1_AngL
-#~/my_bsub.sh PeaksPart1_AngL_xyz
-#~/my_bsub.sh PeaksPart1_w10
-#~/my_bsub.sh PeaksPart1_w10_800
-#~/my_bsub.sh PeaksPart1_w10_xyz
-#~/my_bsub.sh PeaksPart1_w20
-#~/my_bsub.sh TractSeg_cu9
-
 #~/my_bsub.sh PeaksPart1_AngL_fold0
 #~/my_bsub.sh PeaksPart1_AngL_fold1
 #~/my_bsub.sh PeaksPart1_AngL_fold2
@@ -34,8 +26,9 @@ set -e  # stop on error
 #~/my_bsub.sh PeaksPart4_AngL_fold4
 #~/my_bsub.sh PeaksPart4_AngL_fold5
 
-~/my_bsub.sh TractSeg_fold0
-~/my_bsub.sh TractSeg_fold1
-~/my_bsub.sh TractSeg_fold2
-~/my_bsub.sh TractSeg_fold3
-~/my_bsub.sh TractSeg_fold4
+#~/my_bsub.sh TractSeg_12g90g270gFA_fold0
+~/my_bsub.sh TractSeg_12g90g270gFA_fold1
+~/my_bsub.sh TractSeg_12g90g270gFA_fold2
+~/my_bsub.sh TractSeg_12g90g270gFA_fold3
+~/my_bsub.sh TractSeg_12g90g270gFA_fold4
+
