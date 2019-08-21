@@ -62,12 +62,24 @@ if __name__ == '__main__':
 
     HOLE_CLOSING = 0
 
+    # choose from "trk" or "trk_legacy"
+    #  Use "trk_legacy" for zenodo dataset v1.1.0 and below
+    #  Use "trk" for zenodo dataset v1.2.0
+    tracking_format = "trk"
+
     ref_img = nib.load(ref_img_path)
     ref_affine = ref_img.get_affine()
     ref_shape = ref_img.get_data().shape
 
     streams, hdr = trackvis.read(file_in)
     streamlines = [s[0] for s in streams]  # list of 2d ndarrays
+
+    if tracking_format == "trk_legacy":
+        streams, hdr = trackvis.read(file_in)
+        streamlines = [s[0] for s in streams]
+    else:
+        sl_file = nib.streamlines.load(file_in)
+        streamlines = sl_file.streamlines
 
     #Upsample Streamlines (very important, especially when using DensityMap Threshold. Without upsampling eroded results)
     max_seq_len = abs(ref_affine[0, 0] / 4)
