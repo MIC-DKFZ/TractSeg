@@ -154,7 +154,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     # if Config.VERBOSE:
     #     nib.save(nib.Nifti1Image(brain_mask, np.eye(4)), "otsu_brain_mask_DEBUG.nii.gz")
 
-    if input_type == "T1":
+    if input_type == "T1" or Config.NR_OF_GRADIENTS == 1:
         data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], 1))
 
     #runtime on HCP data: 0.9s
