@@ -255,6 +255,10 @@ def main():
                   ": Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
                   "If you input a Diffusion image add the option '--raw_diffusion_input'." + bcolors.ENDC)
             sys.exit()
+        if Config.NR_OF_GRADIENTS == 1 and not len(data_img_shape) == 3:
+            print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
+                  ": Input image must be a 3D image (nifti 3D image with dimensions [x,y,z]). " + bcolors.ENDC)
+            sys.exit()
 
     if tensor_model:
         data_img = peak_utils.peaks_to_tensors_nifti(data_img)
