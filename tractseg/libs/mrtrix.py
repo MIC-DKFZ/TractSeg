@@ -140,7 +140,8 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
 
 def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="trk", nr_fibers=2000, nr_cpus=-1,
           peak_prob_tracking=True, tracking_on_FODs="False", tracking_folder="auto", dilation=1,
-          use_best_original_peaks=False, dir_postfix="", use_as_prior=False, TOM_mrtrix_algorithm="FACT"):
+          use_best_original_peaks=False, dir_postfix="", use_as_prior=False, TOM_mrtrix_algorithm="FACT",
+          next_step_displacement_std=0.15):
     """
 
     Args:
@@ -333,6 +334,9 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                                 bundle + ".nii.gz")
             tom_peaks = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz").get_data()
 
+            # tracking_uncertainties = nib.load(output_dir + "/tracking_uncertainties/" + bundle + ".nii.gz").get_data()
+            tracking_uncertainties = None
+
             #Get best original peaks
             if use_best_original_peaks:
                 orig_peaks = nib.load(peaks)
@@ -351,9 +355,11 @@ def track(bundle, peaks, output_dir, filter_by_endpoints=True, output_format="tr
                 tom_peaks = weighted_peaks
 
             # Takes around 6min for 1 subject (2mm resolution)
-            streamlines = tracking.track(tom_peaks, seed_img, max_nr_fibers=nr_fibers, smooth=10, compress=0.1,
+            streamlines = tracking.track(tom_peaks, seed_img, max_nr_fibers=nr_fibers, smooth=5, compress=0.1,
                                          bundle_mask=bundle_mask, start_mask=beginnings, end_mask=endings,
-                                         dilation=dilation, nr_cpus=nr_cpus, verbose=False)
+                                         tracking_uncertainties=tracking_uncertainties,
+                                         dilation=dilation, next_step_displacement_std=next_step_displacement_std,
+                                         nr_cpus=nr_cpus, verbose=False,)
 
             if output_format == "trk_legacy":
                 fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",

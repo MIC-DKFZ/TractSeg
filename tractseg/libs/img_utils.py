@@ -180,7 +180,7 @@ def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
     '''
 
     skip_hole_closing = ["CST_right", "CST_left", "MCP"]
-    increased_hole_closing = ["FX_right", "FX_left", "CA"]
+    increased_hole_closing = []  # not needed anymore because already done in bundle-specific postprocessing
 
     # nr_classes = data.shape[3]
     data_new = []
@@ -191,7 +191,7 @@ def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
         if hole_closing is not None and bundle not in skip_hole_closing:
             size = hole_closing  # Working as expected (size 2-3 good value)
             if bundle in increased_hole_closing:
-                size *= 2  # makes no bundle more complete
+                size *= 2
             data_single = ndimage.binary_closing(data_single,
                                                  structure=np.ones((size, size, size))).astype(data_single.dtype)
 
@@ -202,6 +202,66 @@ def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
         data_new.append(data_single)
     data_new = np.array(data_new).transpose(1, 2, 3, 0)
     return data_new
+
+
+def has_two_big_blobs(img, bundle, debug=True):
+
+    big_cluster_threshold = {
+        "CA": 200,
+        "FX_left": 100,
+        "FX_right": 100
+    }
+
+    mask, number_of_blobs = ndimage.label(img)
+    counts = np.bincount(mask.flatten())  # number of pixels in each blob
+
+    #If only one blob (only background) abort because nothing to remove
+    if len(counts) <= 1:
+        return False
+
+    counts_sorted = np.sort(counts)[::-1][1:]
+
+    if debug:
+        print(counts_sorted)
+
+    nr_big_clusters = len(counts_sorted[counts_sorted > big_cluster_threshold[bundle]])
+    return nr_big_clusters >= 2
+
+
+def bundle_specific_postprocessing(data, bundles):
+    '''
+    For certain bundles checks if bundle contains two big blobs. Then it reduces the threshold for conversion to
+    binary and applies hole closing.
+    '''
+    edit_bundles = ["CA", "FX_right", "FX_left"]
+
+    bundles_thresholds = {
+        "CA": 0.3,
+        "FX_left": 0.4,
+        "FX_right": 0.4,
+    }
+
+    data_new = []
+    for idx, bundle in enumerate(bundles):
+        data_single = data[:, :, :, idx]
+
+        if bundle in edit_bundles:
+            if has_two_big_blobs(data_single > 0.5, bundle, debug=False):
+                print("INFO: Using bundle specific postprocessing for {} because bundle incomplete.".format(bundle))
+                thr = bundles_thresholds[bundle]
+            else:
+                thr = 0.5
+            data_single = data_single > thr
+
+            size = 6
+            data_single = ndimage.binary_closing(data_single,
+                                                 structure=np.ones((size, size, size)))  # returns bool
+        else:
+            data_single = data_single > 0.5
+
+        data_new.append(data_single)
+
+    return np.array(data_new).transpose(1, 2, 3, 0).astype(np.uint8)
 
 
 def resize_first_three_dims(img, order=0, zoom=0.62, nr_cpus=-1):
@@ -336,7 +396,7 @@ def simple_brain_mask(data):
     mask = binary_dilation(mask, iterations=1)
     return mask.astype(np.uint8)
 
-
+# This is not used anymore -> remove
 def probs_to_binary_bundle_specific(seg, bundles):
     '''
 

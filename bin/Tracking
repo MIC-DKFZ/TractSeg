@@ -120,6 +120,7 @@ def main():
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
     dir_postfix = ""    # "_BSThr"
     tract_definition = "TractQuerier+"  # TractQuerier+ / AutoPTX
+    next_step_displacement_std = 0.15
 
     filter_tracking_by_endpoints = not args.no_filtering_by_endpoints
     input_path = args.input
@@ -148,7 +149,8 @@ def main():
                      nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
                      tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir,
                      dilation=args.tracking_dilation, use_best_original_peaks=use_best_original_peaks,
-                     dir_postfix=dir_postfix, use_as_prior=use_as_prior, TOM_mrtrix_algorithm=TOM_mrtrix_algorithm)
+                     dir_postfix=dir_postfix, use_as_prior=use_as_prior, TOM_mrtrix_algorithm=TOM_mrtrix_algorithm,
+                     next_step_displacement_std=next_step_displacement_std)
 
 
 

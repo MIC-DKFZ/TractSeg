@@ -12,7 +12,7 @@ from dipy.tracking.streamline import Streamlines
 
 from tractseg.libs import fiber_utils
 from tractseg.libs import dataset_utils
-
+from tractseg.libs import img_utils
 
 global _PEAKS
 _PEAKS = None
@@ -26,9 +26,11 @@ _START_MASK = None
 global _END_MASK
 _END_MASK = None
 
+global _TRACKING_UNCERTAINTIES
+_TRACKING_UNCERTAINTIES = None
 
 
-def process_seedpoint(seed_point, spacing):
+def process_seedpoint(seed_point, spacing, next_step_displacement_std):
     """
 
     Args:
@@ -44,7 +46,7 @@ def process_seedpoint(seed_point, spacing):
 
     # Has to be sub-method otherwise not working
     def process_one_way(peaks, streamline, max_nr_steps, step_size, probabilistic, next_step_displacement_std,
-                        max_tract_len, peak_len_thr, bundle_mask=None, reverse=False):
+                        max_tract_len, peak_len_thr, bundle_mask, tracking_uncertainties, reverse=False):
         last_dir = None
         sl_len = 0
         for i in range(max_nr_steps):
@@ -65,8 +67,15 @@ def process_seedpoint(seed_point, spacing):
                     dir_scaled = -dir_scaled
 
             if probabilistic:
-                uncertainty = np.random.normal(0, next_step_displacement_std, 3)
-                dir_scaled = dir_scaled + uncertainty
+                if tracking_uncertainties is not None:
+                    uncertainty = get_at_idx(tracking_uncertainties, (last_point[0], last_point[1], last_point[2]))
+                    # If maximal uncertainty we use full next_step_displacement_std. If minimal uncertainty we do not
+                    # use any displacement
+                    displacement_std_scaled = next_step_displacement_std * uncertainty
+                else:
+                    displacement_std_scaled = next_step_displacement_std
+                displacement = np.random.normal(0, displacement_std_scaled, 3)
+                dir_scaled = dir_scaled + displacement
 
                 # If step_size too small and next_step_displacement_std too big: sometimes even goes back
                 #  -> ends up in random places (better since normalizing peak length after random displacing,
@@ -132,7 +141,7 @@ def process_seedpoint(seed_point, spacing):
     # Displacements are relative to voxel size. If you have bigger voxel size displacement is higher. Depends on
     #   application if this is desired. Keep in mind.
     seedpoint_displacement_std = 0.15
-    next_step_displacement_std = 0.15
+    # next_step_displacement_std = 0.15
     # If we want to set displacement in mm use this code:
     # seedpoint_displacement_std = 0.3    # mm
     # next_step_displacement_std = 0.4    # mm
@@ -147,6 +156,8 @@ def process_seedpoint(seed_point, spacing):
     start_mask = _START_MASK
     global _END_MASK
     end_mask = _END_MASK
+    global _TRACKING_UNCERTAINTIES
+    tracking_uncertainties = _TRACKING_UNCERTAINTIES
 
     streamline1 = []
     if probabilistic:
@@ -156,12 +167,14 @@ def process_seedpoint(seed_point, spacing):
     streamline2 = list(streamline1)  # deep copy
 
     streamline_part1, length_1 = process_one_way(peaks, streamline1, max_nr_steps, step_size, probabilistic,
-                                   next_step_displacement_std, max_tract_len, peak_len_thr, bundle_mask, reverse=False)
+                                                 next_step_displacement_std, max_tract_len, peak_len_thr, bundle_mask,
+                                                 tracking_uncertainties, reverse=False)
 
     # Roughly doubles execution time but also roughly doubles number of resulting streamlines
     #   Makes sense because many too short if seeding in middle of streamline
     streamline_part2, length_2 = process_one_way(peaks, streamline2, max_nr_steps, step_size, probabilistic,
-                                   next_step_displacement_std, max_tract_len, peak_len_thr, bundle_mask, reverse=True)
+                                                 next_step_displacement_std, max_tract_len, peak_len_thr, bundle_mask,
+                                                 tracking_uncertainties, reverse=True)
 
     if len(streamline_part2) > 0:
         # remove first element of part2 otherwise have seed_point 2 times
@@ -200,7 +213,8 @@ def seed_generator(mask_coords, nr_seeds):
 
 
 def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None,
-          start_mask=None, end_mask=None, dilation=1, nr_cpus=-1, verbose=True):
+          start_mask=None, end_mask=None, tracking_uncertainties=None, dilation=0,
+          next_step_displacement_std=0.15, nr_cpus=-1, verbose=True):
     """
     Great speedup was archived by:
     - only seeding in bundle_mask instead of entire image (seeding took very long)
@@ -233,6 +247,9 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
         end_mask = binary_dilation(end_mask, iterations=dilation+1).astype(np.uint8)
         bundle_mask = binary_dilation(bundle_mask, iterations=dilation).astype(np.uint8)
 
+    if tracking_uncertainties is not None:
+        tracking_uncertainties = img_utils.scale_to_range(tracking_uncertainties, range=(0, 1))
+
     global _PEAKS
     _PEAKS = peaks
     global _BUNDLE_MASK
@@ -241,6 +258,8 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     _START_MASK = start_mask
     global _END_MASK
     _END_MASK = end_mask
+    global _TRACKING_UNCERTAINTIES
+    _TRACKING_UNCERTAINTIES = tracking_uncertainties
 
     # Get list of coordinates of each voxel in mask to seed from those
     mask_coords = np.array(np.where(bundle_mask == 1)).transpose()
@@ -264,7 +283,8 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     #   optimised by more multiprocessing fanciness.
     while fiber_ctr < max_nr_fibers:
         pool = multiprocessing.Pool(processes=nr_processes)
-        streamlines_tmp = pool.map(partial(process_seedpoint, spacing=spacing),
+        streamlines_tmp = pool.map(partial(process_seedpoint, next_step_displacement_std=next_step_displacement_std,
+                                           spacing=spacing),
                                    seed_generator(mask_coords, seeds_per_batch))
         # streamlines_tmp = [process_seedpoint(seed, spacing=spacing) for seed in
         #                    seed_generator(mask_coords, seeds_per_batch)] # single threaded for debug

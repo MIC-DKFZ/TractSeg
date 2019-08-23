@@ -43,7 +43,7 @@ from tractseg.models.base_model import BaseModel
 
 def run_tractseg(data, output_type="tract_segmentation",
                  single_orientation=False, dropout_sampling=False, threshold=0.5,
-                 bundle_specific_threshold=False, get_probs=False, peak_threshold=0.1,
+                 bundle_specific_postprocessing=True, get_probs=False, peak_threshold=0.1,
                  postprocess=False, peak_regression_part="All", input_type="peaks",
                  blob_size_thr=50, nr_cpus=-1, verbose=False, manual_exp_name=None,
                  inference_batch_size=1, tract_definition="TractQuerier+", bedpostX_input=False,
@@ -61,7 +61,7 @@ def run_tractseg(data, output_type="tract_segmentation",
         single_orientation: Do not run model 3 times along x/y/z orientation with subsequent mean fusion.
         dropout_sampling: Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)
         threshold: Threshold for converting probability map to binary map
-        bundle_specific_threshold: Set threshold to lower for some bundles which need more sensitivity (CA, CST, FX)
+        bundle_specific_postprocessing: Set threshold to lower and use hole closing for CA nd FX if incomplete
         get_probs: Output raw probability map instead of binary map
         peak_threshold: All peaks shorter than peak_threshold will be set to zero
         postprocess: Simple postprocessing of segmentations: Remove small blobs and fill holes
@@ -110,7 +110,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     Config.NR_CPUS = nr_cpus
     Config.INPUT_DIM = exp_utils.get_correct_input_dim(Config)
 
-    if bundle_specific_threshold:
+    if bundle_specific_postprocessing:
         Config.GET_PROBS = True
 
     if manual_exp_name is not None and Config.EXPERIMENT_TYPE != "peak_regression":
@@ -244,8 +244,8 @@ def run_tractseg(data, output_type="tract_segmentation",
         # else:
         #     seg = peak_utils.remove_small_peaks(seg, len_thr=peak_threshold)
 
-    if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_threshold:
-        seg = img_utils.probs_to_binary_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])
+    if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing:
+        seg = img_utils.bundle_specific_postprocessing(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
     # runtime on HCP data: 5.1s
     seg = dataset_utils.cut_and_scale_img_back_to_original_img(seg, transformation, nr_cpus=nr_cpus)

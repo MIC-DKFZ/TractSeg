@@ -110,11 +110,6 @@ def main():
                         help="Do not run model 3x along x/y/z orientation with subsequent mean fusion.",
                         default=False)
 
-    parser.add_argument("--bundle_specific_threshold", action="store_true",
-                        help="For converting probability maps to binary maps use lower threshold for difficult "
-                             "bundles like CA, FX and CST",
-                        default=False)
-
     parser.add_argument("--get_probabilities", action="store_true",
                         help="Output probability map instead of binary segmentation",
                         default=False)
@@ -191,6 +186,7 @@ def main():
     inference_batch_size = 1
     TOM_dilation = 1  # 1 also ok for HCP because in tracking again filtered by mask
     bedpostX_input = False
+    bundle_specific_postprocessing = True
     input_path = args.input
     single_orientation = args.single_orientation
     if args.output_type == "TOM":
@@ -296,7 +292,7 @@ def main():
         seg = run_tractseg(data, args.output_type,
                            single_orientation=single_orientation,
                            dropout_sampling=dropout_sampling, threshold=threshold,
-                           bundle_specific_threshold=args.bundle_specific_threshold,
+                           bundle_specific_postprocessing=bundle_specific_postprocessing,
                            get_probs=args.get_probabilities, peak_threshold=peak_threshold,
                            postprocess=args.postprocess, peak_regression_part=part,
                            input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
