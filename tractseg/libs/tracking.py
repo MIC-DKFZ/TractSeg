@@ -76,8 +76,11 @@ def process_seedpoint(seed_point, spacing):
             next_point = streamline[-1] + dir_scaled
             last_dir = dir_scaled
 
-            # stop fiber if running out of bundle mask
+            # stop fiber if running out of image or out of bundle mask
             if bundle_mask is not None:
+                sh = bundle_mask.shape
+                if int(next_point[0]) >= sh[0] or int(next_point[1]) >= sh[1] or int(next_point[2]) >= sh[2]:
+                    break
                 if get_at_idx(bundle_mask, (next_point[0], next_point[1], next_point[2])) == 0:
                     break
 
