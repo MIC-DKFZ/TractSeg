@@ -248,7 +248,7 @@ def get_bundle_names(CLASSES):
 
     elif CLASSES == "test":
         # Only use subset of classes for unit testing because of runtime
-        bundles = ["CST_right", "CA", "UF_left"]
+        bundles = ["CST_right", "CA", "IFO_right"]
 
     else:
         #1 tract
