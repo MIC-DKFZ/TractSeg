@@ -84,12 +84,9 @@ class test_end_to_end(unittest.TestCase):
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/TOM/" + bundle + ".nii.gz").get_data()
             img_new = nib.load("examples/tractseg_output/TOM/" + bundle + ".nii.gz").get_data()
-            print("diff mean {}: {}".format(bundle, (img_ref - img_new).mean()))
-            print("diff std {}: {}".format(bundle, (img_ref - img_new).std()))
-            # images_equal = np.allclose(img_ref, img_new, rtol=1e-5, atol=1e-5)  # because of floats small tolerance margin needed  #too low
-            # images_equal = np.allclose(img_ref, img_new, rtol=1e-4, atol=1e-4)  # because of floats small tolerance margin needed
-            images_equal = np.allclose(img_ref, img_new, rtol=1e-3, atol=1e-3)  # because of floats small tolerance
-            # margin needed
+            # Because of floats small tolerance margin needed
+            # Allows for difference up to 0.002 -> still fine
+            images_equal = np.allclose(img_ref, img_new, rtol=1e-3, atol=1e-3)
             self.assertTrue(images_equal, "TOMs are not correct (bundle: " + bundle + ")")
 
     # def test_FA(self):
@@ -99,11 +96,14 @@ class test_end_to_end(unittest.TestCase):
     #     self.assertTrue(images_equal, "FA not correct")
 
     def test_tractometry_toy_example(self):
-        ref = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.7, 0.7, 0.7, 0.7, 0.35])
-        # ref = np.array([0., 0., 0., 0.148, 0.173, 0., 0.325, 0.319, 0.28, 0.647]) # coord + tree, round(3)
+        # ref = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.7, 0.7, 0.7, 0.7, 0.35])
+        ref = np.array([0., 0., 0., 0.148, 0.173, 0., 0.325, 0.319, 0.28, 0.647]) # coord + tree, round(3)
         new = np.loadtxt("tractometry_toy_example/Tractometry.csv", delimiter=";", skiprows=1).transpose()
         arrays_equal = np.array_equal(ref, new)
         self.assertTrue(arrays_equal, "Tractometry toy example not correct")
+
+        arrays_equal = np.allclose(ref, new, rtol=1e-3, atol=1e-3)
+        self.assertTrue(arrays_equal, "Tractometry toy example 2 (allclose) not correct")
 
     def test_tractometry(self):
         ref = np.loadtxt("tests/reference_files/Tractometry_2k.csv", delimiter=";", skiprows=1).transpose()
