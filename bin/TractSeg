@@ -122,8 +122,8 @@ def main():
                         help="Create uncertainty map by monte carlo dropout (https://arxiv.org/abs/1506.02142)",
                         default=False)
 
-    parser.add_argument("--postprocess", action="store_true",
-                        help="Simple postprocessing of segmentations: Remove small blobs and fill holes",
+    parser.add_argument("--no_postprocess", action="store_true",
+                        help="Deactivate simple postprocessing of segmentations (removal of small blobs)",
                         default=False)
 
     parser.add_argument("--preprocess", action="store_true",
@@ -186,6 +186,7 @@ def main():
     inference_batch_size = 1
     TOM_dilation = 1  # 1 also ok for HCP because in tracking again filtered by mask
     bedpostX_input = False
+    postprocess = not args.no_postprocess
     bundle_specific_postprocessing = True
     input_path = args.input
     single_orientation = args.single_orientation
@@ -298,7 +299,7 @@ def main():
                            dropout_sampling=dropout_sampling, threshold=threshold,
                            bundle_specific_postprocessing=bundle_specific_postprocessing,
                            get_probs=args.get_probabilities, peak_threshold=peak_threshold,
-                           postprocess=args.postprocess, peak_regression_part=part,
+                           postprocess=postprocess, peak_regression_part=part,
                            input_type=input_type, blob_size_thr=blob_size_thr, nr_cpus=args.nr_cpus,
                            verbose=args.verbose, manual_exp_name=manual_exp_name,
                            inference_batch_size=inference_batch_size,

@@ -169,9 +169,11 @@ def remove_small_blobs(img, threshold=1, debug=True):
     return mask
 
 
-def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=2):
+def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=None):
     '''
     Postprocessing of segmentations. Fill holes and remove small blobs.
+
+    hole_closing is deactivated per default because it incorrectly fills up the gyri (e.g. in AF).
 
     :param data: 4D ndarray
     :param blob_thr:

@@ -245,6 +245,7 @@ def run_tractseg(data, output_type="tract_segmentation",
         #     seg = peak_utils.remove_small_peaks(seg, len_thr=peak_threshold)
 
     if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing:
+        # Runtime ~4s
         seg = img_utils.bundle_specific_postprocessing(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
     # runtime on HCP data: 5.1s
@@ -257,9 +258,13 @@ def run_tractseg(data, output_type="tract_segmentation",
                                                   exp_utils.get_bundle_names(Config.CLASSES)[1:],
                                                   TOM_dilation, nr_cpus=nr_cpus)
 
-    if postprocess and not Config.EXPERIMENT_TYPE == "peak_regression":
+    if Config.EXPERIMENT_TYPE == "tract_segmentation" and postprocess:
+        # Runtime ~7s for 1.25mm resolution
+        # Runtime ~1.5s for  2mm resolution
+        st = time.time()
         seg = img_utils.postprocess_segmentations(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:],
-                                                  blob_thr=blob_size_thr, hole_closing=2)
+                                                  blob_thr=blob_size_thr, hole_closing=None)
+        print("took: {}".format(time.time() - st))
 
     exp_utils.print_verbose(Config, "Took {}s".format(round(time.time() - start_time, 2)))
     return seg
