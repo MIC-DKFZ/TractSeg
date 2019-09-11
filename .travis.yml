@@ -69,7 +69,7 @@ script:
     --nr_points 10 --tracking_format trk_legacy
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry_toy_example
 
-  #Bundles SR PP BST
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_PP_BST/tractseg_output --single_orientation --super_resolution
-    --postprocess --bundle_specific_threshold
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_PP_BST
+  #Bundles SR noPP
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_PP_BST/tractseg_output --single_orientation
+    --super_resolution --no_postprocess
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_noPP

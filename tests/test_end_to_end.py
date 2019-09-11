@@ -52,11 +52,11 @@ class test_end_to_end(unittest.TestCase):
             images_equal = np.array_equal(img_ref, img_new)
             self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
 
-    def test_tractseg_output_SR_PP_BST(self):
+    def test_tractseg_output_SR_noPP(self):
         bundles = exp_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
-            img_ref = nib.load("tests/reference_files/bundle_segmentations_SR_PP_BST/" + bundle + ".nii.gz").get_data()
-            img_new = nib.load("examples/SR_PP_BST/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
+            img_ref = nib.load("tests/reference_files/bundle_segmentations_SR_noPP/" + bundle + ".nii.gz").get_data()
+            img_new = nib.load("examples/SR_noPP/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
             # Processing on travis slightly different from local environment -> have to allow for small margin
             # images_equal = np.array_equal(img_ref, img_new)
             nr_differing_voxels = np.abs(img_ref - img_new).sum()
