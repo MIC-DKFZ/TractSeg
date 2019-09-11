@@ -110,7 +110,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     Config.NR_CPUS = nr_cpus
     Config.INPUT_DIM = exp_utils.get_correct_input_dim(Config)
 
-    if bundle_specific_postprocessing:
+    if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing:
         Config.GET_PROBS = True
 
     if manual_exp_name is not None and Config.EXPERIMENT_TYPE != "peak_regression":
