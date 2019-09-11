@@ -64,7 +64,8 @@ class test_end_to_end(unittest.TestCase):
                 images_equal = True
             else:
                 images_equal = False
-            self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
+            self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ") " +
+                                          "(nr of differing voxels: " + str(nr_differing_voxels) + ")")
 
     def test_endingsseg_output(self):
         bundles = exp_utils.get_bundle_names("All")[1:]
