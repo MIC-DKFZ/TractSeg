@@ -99,11 +99,9 @@ class test_end_to_end(unittest.TestCase):
         # ref = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.7, 0.7, 0.7, 0.7, 0.35])
         ref = np.array([0., 0., 0., 0.148, 0.173, 0., 0.325, 0.319, 0.28, 0.647]) # coord + tree, round(3)
         new = np.loadtxt("tractometry_toy_example/Tractometry.csv", delimiter=";", skiprows=1).transpose()
+        new = new.round(3)
         arrays_equal = np.array_equal(ref, new)
         self.assertTrue(arrays_equal, "Tractometry toy example not correct")
-
-        arrays_equal = np.allclose(ref, new, rtol=1e-3, atol=1e-3)
-        self.assertTrue(arrays_equal, "Tractometry toy example 2 (allclose) not correct")
 
     def test_tractometry(self):
         ref = np.loadtxt("tests/reference_files/Tractometry_2k.csv", delimiter=";", skiprows=1).transpose()
