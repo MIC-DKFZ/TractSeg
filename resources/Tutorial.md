@@ -64,18 +64,22 @@ In your folder you should have the following files: `Diffusion.nii.gz`, `Diffusi
 MNI space (and have isotropic spacing). You can either do so [manually](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) or 
 have TractSeg do it by adding the option `--preprocess`. 
 ```
-TractSeg -i Diffusion.nii.gz -o tractseg_output --raw_diffusion_input --bundle_specific_threshold --postprocess
+TractSeg -i Diffusion.nii.gz -o tractseg_output --raw_diffusion_input 
 ```
 * The brain mask will be extracted automatically using FSL. The standard MRtrix CSD will be used for extracting the peaks because this also works if 
 only one b-value shell is available.  
-* `--bundle_specific_threshold`: Lowering the threshold for converting the model output to binary segmentations. Instead of
-0.5 use 0.3 for CA and 0.4 for CST and FX. For all other bundles keep 0.5. This will increase sensitivity for those
-difficult bundles and improve results on low resolution data.  
-* `--postprocess`: This will fill small holes in the segmentation and remove small blobs not connected to the rest of the
-segmentation.  
-* You can also try the option `--super_resolution`. Per default the input image is upsampled to 1.25mm resolution (the resolution TractSeg was trained on) and 
-finally downsampled back to the original resolution. Using `--super_resolution` will output the image at 1.25mm. Especially if image resolution 
-is low parts of the CA can get lost during downsampling.
+* The CA and FX bundle are quite thin and therefore tend to be incomplete on low resolution data. TractSeg 
+automatically checks for these two bundles if they are incomplete (if there are several segmented blobs instead of 
+only one big one) and if they are incomplete uses a lower threshold (instead of the default of 0.5) to convert the 
+probability maps (which are the output of the network) to binary masks. This way sensitivity is increased. Moreover, 
+hole closing with a size of 6 voxels is used which also helps to connect disconnected blobs. NOTE: These postprocessing
+steps are only done for the CA and FX and only if they are incomplete.
+* Per default a simple postprocessing is also activated for all bundles: Blobs with are made up of only a few voxels 
+are removed. You can deactivate this option by using `--no_postprocess`.
+* You can also try the option `--super_resolution`. Per default the input image is upsampled to 1.25mm resolution 
+(the resolution TractSeg was trained on) and finally downsampled back to the original resolution. 
+Using `--super_resolution` will output the image at 1.25mm. Especially if image resolution is low parts of the CA can 
+get lost during downsampling.
 
 > Note: If you use `--super_resolution` you have to use it for all steps (tract_segmentation, 
 endings_segmentation and TOM). Otherwise tracking is not possible as the masks do not have the same
@@ -86,15 +90,12 @@ Now segmentation of the bundle endings works straight forward:
 TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation
 ```
 
-For the extraction of the Tract Orientation maps we can again add the option `--bundle_specific_threshold`:
+The extraction of the Tract Orientation Maps is also straight forward:
 ```
-TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM --bundle_specific_threshold
+TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM
 ```
 
 Now we can run the tracking:
 ```
-Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --tracking_dilation 1
+Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output
 ```
-* `--tracking_dilation`: This defines how much to dilate the tract mask as well as the start/end region mask 
-before using them for filtering during tracking. On low resolution data those masks can have some flaws. 
-Therefore it is advisable to dilate them slightly by using a value of 1 or 2 instead of the default of 0.
