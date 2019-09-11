@@ -7,6 +7,7 @@
 * **Interface change**: The option `--bundle_specific_threshold` was removed. TractSeg checks itself now if CA or FX 
 are incomplete and then applies a lower threshold.
 * **Interface change**: Postprocessing is activated by default now. If you want to deactivate is use `--no_postprocess`.
+* Python 2 not actively supported anymore (because dipy 1.0.0 does not support python 2 anymore)
 
 ## Release 2.0
 
