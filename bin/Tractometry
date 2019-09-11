@@ -251,7 +251,7 @@ def main():
                                                    beginnings.get_data(), NR_POINTS, dilate=DILATION,
                                                    predicted_peaks=predicted_peaks, affine=scalar_image.affine)
         else:
-            print("WARNING: bundle {} contains no streamlines. Saving value 0 for this bundle.".format())
+            print("WARNING: bundle {} contains no streamlines. Saving value 0 for this bundle.".format(bundle))
             mean = np.zeros(NR_POINTS)
             std = np.zeros(NR_POINTS)
         results.append(mean)

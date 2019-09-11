@@ -241,10 +241,10 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     import psutil
 
     peaks[:, :, :, 0] *= -1  # how to flip along x axis to work properly
+    # Add +1 dilation for start and end mask to be more robust
+    start_mask = binary_dilation(start_mask, iterations=dilation + 1).astype(np.uint8)
+    end_mask = binary_dilation(end_mask, iterations=dilation + 1).astype(np.uint8)
     if dilation > 0:
-        # Add +1 dilation for start and end mask to be more robust
-        start_mask = binary_dilation(start_mask, iterations=dilation+1).astype(np.uint8)
-        end_mask = binary_dilation(end_mask, iterations=dilation+1).astype(np.uint8)
         bundle_mask = binary_dilation(bundle_mask, iterations=dilation).astype(np.uint8)
 
     if tracking_uncertainties is not None:
