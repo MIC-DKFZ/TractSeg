@@ -1,18 +1,31 @@
 # Tractometry
 
-> **Warning**: This code was not used in any paper yet. We did not evaluate if this approach of doing Tractometry is
+> **NOTE**: This code was not used in any paper yet. We did not evaluate if this approach of doing Tractometry is
  the best compared to other approaches. Therefore use with care.  
  
 > **Warning**: Use TractSeg `master` because earlier versions contain small bug in Tractometry script (streamlines 
 incorrectly shifted by 0.5 voxels).  
 `pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip`
 
-Measuring the FA (or MD or other values) along tracts can provide valuable insights (e.g. [Yeatman et al. 2012](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790)).
-In our implementation of Tractometry we evaluate the FA along 20 equality distant points along each streamline. 
-Finally we will take the mean for each of those 20 points over all streamlines. This is a very basic implementation
-and we recommend using a more sophisticated approach.
-
 ![Tractometry concept figure](Tractometry_concept1.png)
+
+Measuring the FA (or MD or other values) along tracts can provide valuable insights (e.g. [Yeatman et al. 2012](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790)).
+In our implementation of Tractometry we do the following:
+1. Resample all streamlines to an equal number of segments/points
+2. Find the centroid of all streamlines
+3. For each streamline assign each segment to the closest centroid segment
+4. Evaluate the FA (or any other metric) at each segment of each streamline
+5. For each centroid segment average the FA for all assigned streamline segments  
+
+This approach is based on the Bundle Analytics paper from 
+[Chandio et al](https://ww5.aievolution.com/hbm1901/index.cfm?do=abs.viewAbs&abs=1914). Please cite their work if you
+use this.
+
+An easier approach (which we used previously in TractSeg) would be to evaluate the FA along 20 equality distant 
+points along each streamline. Then take the mean for each of those 20 points over all streamlines. However, this 
+leads to more blurring of the segments as can be seen in the following figure:
+
+![Tractometry methods comparison figure](Compare_tractometry_methods.png)
 
 Run the following steps:
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
@@ -26,12 +39,9 @@ GPU: 2min ~14s)
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation` (runtime on GPU: ~42s)
 4. Create Tract Orientation Maps and use them to do bundle-specific tracking:  
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM` (runtime on GPU: ~1min 30s)  
-`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 10000` (runtime on CPU: ~23min)
- **Note**: Per default 2000 streamlines will be created per bundle. Using `--nr_fibers N` a different number can be chosen. 
- If longer runtime is ok, it is advisable to choose a higher number like 6000 or 10000. As the streamline seeding is random, 
- results will be slightly different everytime you run it. If you only choose 2000 streamlines, the results you will get for 
- the tractometry can vary up to 0.03 difference in FA just between 2 runs. If you choose 10000 this will go down to around
- 0.004 which is more acceptable.
+`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 10000` (runtime on CPU: ~23min)  
+ **Note**: As the streamline seeding is random, results will be slightly different everytime you run it. 
+ A high number of streamlines like 10000 will keep this variation low. It is not recommendable to use a lower number.
 5. Run tractometry:  
 `cd tractseg_output`  
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  

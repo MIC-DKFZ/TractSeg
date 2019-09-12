@@ -197,7 +197,7 @@ def main():
                         help="Scalar image (e.g. FA) or peak image (MRtrix peaks) if using '--peak_length'",
                         required=True)
     parser.add_argument("--nr_points", metavar="n", dest="nr_points",
-                        help="Number of points along streamline to evaluate (default: 20)", default="20")
+                        help="Number of points along streamline to evaluate (default: 100)", default="100")
     parser.add_argument("--peak_length", action="store_true",
                         help="Instead of taking values of scalar image along streamlines (e.g. FA) take the length "
                              "of the peak pointing in the same direction as the respective bundle. Gives better "
