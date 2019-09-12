@@ -301,14 +301,17 @@ you need help training your own model.
 2. If you have streamlines you have to transform them to binary masks. 
 You can use [this](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/utility_scripts/trk_2_binary.py) 
 script for that. 
-3. Install BatchGenerators and use commit `802e9cbd556b9ebc1300beded7c10a37ef09b7b9`: 
+3. Install TractSeg from local source code:
+    ```
+    git clone https://github.com/MIC-DKFZ/TractSeg.git
+    pip install -e TractSeg
+    ```
+4. Install BatchGenerators: 
     ```
     git clone https://github.com/MIC-DKFZ/batchgenerators.git
-    cd batchgenerators
-    git checkout 802e9cbd556b9ebc1300beded7c10a37ef09b7b9
-    pip intall -e .
+    pip intall -e batchgenerators
     ```  
-4. The folder structure of your training data should be the following:
+5. The folder structure of your training data should be the following:
     ```
     custom_path/HCP/subject_01/
           '-> mrtrix_peaks.nii.gz       (mrtrix CSD peaks;  shape: [x,y,z,9])
@@ -316,17 +319,17 @@ script for that.
     custom_path/HCP/subject_02/
           ...
     ```  
-5. Preprocess the data using `tractseg/data/preprocessing.py` to remove all non-brain area (crop to brain 
+6. Preprocess the data using `tractseg/data/preprocessing.py` to remove all non-brain area (crop to brain 
 bounding box). Adapt the data pathes in `tractseg/data/preprocessing.py` to fit your data (look for `#todo: adapt` 
 inside of the file.)
-6. Adapt the file `tractseg/config/custom/My_custom_experiment.py`.
-7. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory `working_dir=XXX`, e.g.
+7. Adapt the file `tractseg/config/custom/My_custom_experiment.py`.
+8. Create a file `~/.tractseg/config.txt`. This contains the path to your data directory `working_dir=XXX`, e.g.
 `working_dir=custom_path`.
-8. Adapt `tractseg.libs.exp_utils.get_bundle_names()` with the bundles you use in your reference data.
-9. Adapt `tractseg.libs.exp_utils.get_labels_filename()` with the names of your label files.
-10. Adapt `tractseg.libs.Subjects` with the list of your subject IDs.
-11. Run `ExpRunner --config My_custom_experiment` 
-12. `custom_path/hcp_exp/My_custom_experiment` contains the results
+9. Adapt `tractseg.libs.exp_utils.get_bundle_names()` with the bundles you use in your reference data.
+10. Adapt `tractseg.libs.exp_utils.get_labels_filename()` with the names of your label files.
+11. Adapt `tractseg.libs.Subjects` with the list of your subject IDs.
+12. Run `ExpRunner --config My_custom_experiment` 
+13. `custom_path/hcp_exp/My_custom_experiment` contains the results
 
 
 ## Docker
