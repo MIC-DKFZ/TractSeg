@@ -255,6 +255,11 @@ def main():
             print("WARNING: bundle {} contains no streamlines. Saving value 0 for this bundle.".format(bundle))
             mean = np.zeros(NR_POINTS)
             std = np.zeros(NR_POINTS)
+
+        # Remove first and last segment as those tend to be more noisy
+        mean = mean[1:-1]
+        std = std[1:-1]
+
         results.append(mean)
 
     bundle_string = ""

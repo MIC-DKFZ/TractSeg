@@ -26,7 +26,7 @@ points along each streamline. Then take the mean for each of those 20 points ove
 leads to more blurring of the segments as can be seen in the following figure:
 
 ![Tractometry methods comparison figure](Compare_tractometry_methods.png)
-
+``
 Run the following steps:
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
 They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) and 
@@ -47,6 +47,12 @@ GPU: 2min ~14s)
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
 6. Repeat step 1-4 for every subject (use a shell script for that)
 7. Plot the results with [this python code](../examples/plot_tractometry_results.ipynb)
+
+Tractometry is not done for the following bundles, as the geometry of these bundles makes it difficult to produce 
+consistent segments:
+`MLF, CC, T_PREF, T_PREC, T_POSTC, ST_PREF, ST_PREC, ST_POSTC, ST_PAR, ST_OCC`
+
+Tractometry is also not done for these bundles as they are incomplete in some cases: `CA, FX
 
 ### Further options   
 Instead of analysing the FA along the tracts you can also analyze the peak length along the tracts. 
