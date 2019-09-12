@@ -55,6 +55,7 @@ class test_end_to_end(unittest.TestCase):
     def test_tractseg_output_SR_noPP(self):
         bundles = exp_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
+            # IFO somehow very different on travis than locally. Unclear why. All other bundles are fine.
             if bundle != "IFO_right":
                 img_ref = nib.load("tests/reference_files/bundle_segmentations_SR_noPP/" + bundle + ".nii.gz").get_data()
                 img_new = nib.load("examples/SR_noPP/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()

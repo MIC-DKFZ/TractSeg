@@ -69,12 +69,12 @@ def orient_to_same_start_region(streamlines, beginnings):
 def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, dilate=0, predicted_peaks=None,
                                affine=None):
     # Runtime:
-    # - default: 2.7s (test),  56s (all),                   10s (test 4 bundles, 100 points)
-    # - map_coordinate order 1: 1.9s (test), 26s (all),      6s (test 4 bundles, 100 points)
-    # - map_coordinate order 3: 2.2s (test), 33s (all)
-    # - values_from_volume: 2.5s (test), 43s (all)
-    # - AFQ: Xs (test), Xs (all),                           85s  (test 4 bundles, 100 points)
-    # => results for all 3 are almost identical (espcially last 2 are even more identical)
+    # - default:                2.7s (test),    56s (all),      10s (test 4 bundles, 100 points)
+    # - map_coordinate order 1: 1.9s (test),    26s (all),       6s (test 4 bundles, 100 points)
+    # - map_coordinate order 3: 2.2s (test),    33s (all),
+    # - values_from_volume:     2.5s (test),    43s (all),
+    # - AFQ:                      ?s (test),     ?s (all),      85s  (test 4 bundles, 100 points)
+    # => AFQ a lot slower than others
 
     for i in range(dilate):
         beginnings = binary_dilation(beginnings)
@@ -84,7 +84,6 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     # Move from convention "0mm is in voxel center" to convention "0mm is in voxel corner". This makes it easier
     # to calculate the voxel a streamline point is located in.
     # (dipy is working with the convention "0mm is in voxel center" therefore this is not needed there)
-    #todo important: change
     # print("INFO: Adding 0.5 to streamlines")
     # streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
 
@@ -122,7 +121,6 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
 
     #################################### Aggregating by MEAN ##########################
     # values_mean = np.array(values).mean(axis=1)
-    # print(values_mean.round(2))
     # values_std = np.array(values).std(axis=1)
     # return values_mean, values_std
     ###################################################################################
@@ -137,6 +135,11 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)  # (2000, 20)
 
     values_t = np.array(values).T  # (2000, 20)
+
+    # If we want to take weighted mean like in AFQ:
+    # weights = dsa.gaussian_weights(Streamlines(streamlines))
+    # values_t = weights * values_t
+    # return np.sum(values_t, 0), None
 
     results_dict = defaultdict(list)
     for idx, sl in enumerate(values_t):
@@ -162,7 +165,6 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
             results_mean.append(0)
             results_std.append(0)
 
-    # print(np.array(results_mean).round(3))
     return results_mean, results_std
     ###################################################################################
 
@@ -222,12 +224,11 @@ def main():
 
     if args.test == 1:
         bundles = exp_utils.get_bundle_names("test")[1:]
-        # bundles = ["CST_right", "CA", "UF_left", "CC_5"]
     elif args.test == 2:
         bundles = exp_utils.get_bundle_names("toy")[1:]
         DILATION = 0
     else:
-        bundles = exp_utils.get_bundle_names("All")[1:]
+        bundles = exp_utils.get_bundle_names("All_tractometry")[1:]
 
     results = []
     for bundle in bundles:
@@ -262,6 +263,12 @@ def main():
     bundle_string = bundle_string[:-1]
 
     np.savetxt(args.csv_file_out, np.array(results).transpose(), delimiter=";", header=bundle_string, comments="")
+
+    # Notes on reproducibility
+    # - map_coordinates, QuickBundles and cKDTree are deterministic for the same input streamlines
+    # - Variance in final Tractometry results when running 2 probabilistic trackings (10k fibers and 100 points):
+    #   - Max difference ~0.01, but on average difference around 0.004
+    #   - When plotting the differences: very minor; might get averaged out in group analysis
 
 
 if __name__ == '__main__':
