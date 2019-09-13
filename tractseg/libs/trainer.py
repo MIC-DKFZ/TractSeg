@@ -49,11 +49,14 @@ def train_model(Config, model, data_loader):
 
     metrics = {}
     for type in ["train", "test", "validate"]:
-        metrics_new = {}
+        # metrics_new = {}
         for metric in Config.METRIC_TYPES:
-            metrics_new[metric + "_" + type] = [0]
-
-        metrics = dict(list(metrics.items()) + list(metrics_new.items()))
+            #todo: metrics.update(....) ?
+            # metrics_new[metric + "_" + type] = [0]
+            #todo: This should work
+            metrics[metric + "_" + type] = [0]
+        #todo: document
+        # metrics = dict(list(metrics.items()) + list(metrics_new.items()))
 
     batch_gen_train = data_loader.get_batch_generator(batch_size=Config.BATCH_SIZE, type="train",
                                                       subjects=getattr(Config, "TRAIN_SUBJECTS"))
@@ -65,18 +68,21 @@ def train_model(Config, model, data_loader):
         # current_lr = Config.LEARNING_RATE * (Config.LR_DECAY ** epoch_nr)
         # current_lr = Config.LEARNING_RATE
 
+        # todo: use time default dict?
         data_preparation_time = 0
         network_time = 0
         metrics_time = 0
         saving_time = 0
         plotting_time = 0
 
+        # todo: use defaultdict ?
         batch_nr = {
             "train": 0,
             "test": 0,
             "validate": 0
         }
 
+        # todo: move to own function
         if Config.LOSS_WEIGHT is None:
             weight_factor = None
         elif Config.LOSS_WEIGHT_LEN == -1:
@@ -121,9 +127,6 @@ def train_model(Config, model, data_loader):
                 x = batch["data"]  # (bs, nr_of_channels, x, y)
                 y = batch["seg"]  # (bs, nr_of_classes, x, y)
 
-                # print("x.shape: {}".format(x.shape))
-                # print("y.shape: {}".format(y.shape))
-
                 data_preparation_time += time.time() - start_time_data_preparation
                 start_time_network = time.time()
                 if type == "train":
@@ -137,6 +140,7 @@ def train_model(Config, model, data_loader):
 
                 start_time_metrics = time.time()
 
+                # move to extra function?
                 if Config.CALC_F1:
                     if Config.EXPERIMENT_TYPE == "peak_regression":
                         peak_f1_mean = np.array([s.to('cpu') for s in list(metr_batch["f1_macro"].values())]).mean()
@@ -270,6 +274,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
 
     """
 
+    #todo add _ to helper function
     def finalize_data(layers):
         layers = np.array(layers)
 
@@ -287,6 +292,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
         if scale_to_world_shape:
             layers = dataset_utils.scale_input_to_world_shape(layers, Config.DATASET, Config.RESOLUTION)
 
+        #todo: move to top of function
         assert (layers.dtype == np.float32)  # .astype() quite slow -> use assert to make sure type is right
         return layers
 
@@ -318,13 +324,10 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                 samples.append(layer_probs)
 
             samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
-            # samples = np.squeeze(samples) # (NR_SAMPLING, x, y, nrClasses)
-            # layer_probs = np.mean(samples, axis=0)
             layer_probs = np.std(samples, axis=0)    # (bs,x,y,nrClasses)
         else:
             # For normal prediction
             layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
-            # layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
 
         if probs:
             seg = layer_probs   # (x, y, nrClasses)
@@ -332,7 +335,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
             seg = layer_probs
             seg[seg >= Config.THRESHOLD] = 1
             seg[seg < Config.THRESHOLD] = 0
-            seg = seg.astype(np.int16)
+            seg = seg.astype(np.uint8)
 
         if Config.DIM == "2D":
             layers_seg[idx*batch_size:(idx+1)*batch_size, :, :, :] = seg

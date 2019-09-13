@@ -140,8 +140,8 @@ class BaseModel:
         X = X.contiguous().cuda(non_blocking=True)  # (bs, features, x, y)
         y = y.contiguous().cuda(non_blocking=True)  # (bs, classes, x, y)
 
-        self.optimizer.zero_grad()
         self.net.train()
+        self.optimizer.zero_grad()
         outputs = self.net(X)  # forward; outputs: (bs, classes, x, y)
         angle_err = None
 

@@ -241,6 +241,8 @@ def main():
         mrtrix.create_fods(input_path, Config.PREDICT_IMG_OUTPUT, bvals, bvecs,
                            brain_mask, Config.CSD_TYPE, nr_cpus=args.nr_cpus)
 
+    #todo: more comments? Also for bigger blocks
+
     if args.raw_diffusion_input:
         peak_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
         data_img = nib.load(peak_path)

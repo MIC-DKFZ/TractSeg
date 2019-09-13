@@ -187,6 +187,7 @@ def run_tractseg(data, output_type="tract_segmentation",
             else:
                 seg = direction_merger.mean_fusion(Config.THRESHOLD, seg_xyz, probs=False)
 
+    # todo: use method?
     elif Config.EXPERIMENT_TYPE == "peak_regression":
         weights = {
             "Part1": "pretrained_weights_peak_regression_part1_v2.npz",
