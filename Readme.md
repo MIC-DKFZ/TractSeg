@@ -1,4 +1,4 @@
-+# TractSeg
+# TractSeg
  
 ![Alt text](resources/Pipeline_img_for_readme.png)
 
