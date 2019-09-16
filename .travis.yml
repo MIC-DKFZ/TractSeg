@@ -5,10 +5,6 @@ services:
   - docker
 matrix:
   include:
-  - python: "3.6"
-    env:
-      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-1.1.0-cp36-cp36m-linux_x86_64.whl
-      - PYTHON_VERS=3.6
   - python: "3.5"
     env:
       - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-1.1.0-cp35-cp35m-linux_x86_64.whl
@@ -54,11 +50,11 @@ script:
 #    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples/tractseg_output
 #    --nr_fibers 2000 --tracking_dilation 0 --test
   - Tracking -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output
-      --nr_fibers 2000 --tracking_dilation 0 --test
+      --nr_fibers 10000 --tracking_dilation 0 --test 3
 
   #Tractometry
   - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
-    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz --test 1
+    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz --test 3
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
 
   #Tractometry toy example

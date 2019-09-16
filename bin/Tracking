@@ -99,8 +99,9 @@ def main():
                         help="Number of CPUs to use. -1 means all available CPUs (default: -1)",
                         default=-1)
 
-    parser.add_argument("--test", action="store_true", help="Only needed for unittesting.",
-                        default=False)
+    parser.add_argument("--test", metavar="0|1|2", choices=[0, 1, 2, 3], type=int,
+                        help="Only needed for unittesting.",
+                        default=0)
 
     parser.add_argument("--FACT", action="store_true",
                         help="Use MRtrix FACT tracking instead of custom probabilistic tracking.",
@@ -137,8 +138,12 @@ def main():
 
     peaks_path = input_path
 
-    if args.test:
+    if args.test == 1:
         bundles = exp_utils.get_bundle_names("test")[1:]
+    elif args.test == 2:
+        bundles = exp_utils.get_bundle_names("toy")[1:]
+    elif args.test == 3:
+        bundles = exp_utils.get_bundle_names("test_single")[1:]
     else:
         bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
 

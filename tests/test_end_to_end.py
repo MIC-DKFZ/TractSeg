@@ -100,7 +100,7 @@ class test_end_to_end(unittest.TestCase):
 
     def test_tractometry_toy_example(self):
         # ref = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.7, 0.7, 0.7, 0.7, 0.35])
-        ref = np.array([0., 0., 0., 0.148, 0.173, 0., 0.325, 0.319, 0.28, 0.647]) # coord + tree, round(3)
+        ref = np.array([0., 0., 0.148, 0.173, 0., 0.325, 0.319, 0.28]) # coord + tree, round(3)
         new = np.loadtxt("tractometry_toy_example/Tractometry.csv", delimiter=";", skiprows=1).transpose()
         new = new.round(3)
         arrays_equal = np.array_equal(ref, new)
@@ -112,11 +112,12 @@ class test_end_to_end(unittest.TestCase):
         # Because tracking is a stochastic process the results are not always the same. Check if they are the same
         #   within a certain margin.
         # mean_difference = abs((ref-new).mean())
+        diff_max = np.abs(ref-new).max()
         # arrays_equal = mean_difference < 0.003
         # arrays_equal = np.allclose(ref, new, rtol=0, atol=2e-1)  #allow error of around 0.2      #1k fibers
         arrays_equal = np.allclose(ref, new, rtol=3e-2, atol=3e-2)  #allow error of around 0.03      #2k fibers
         # arrays_equal = np.allclose(ref, new, rtol=9e-3, atol=9e-3)    #allow error of around 0.009     #10k fibers
-        self.assertTrue(arrays_equal, "Tractometry not correct")
+        self.assertTrue(arrays_equal, "Tractometry not correct (max difference: " + str(diff_max) + ")")
 
 
 
