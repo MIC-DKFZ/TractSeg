@@ -26,7 +26,7 @@ points along each streamline. Then take the mean for each of those 20 points ove
 leads to more blurring of the segments as can be seen in the following figure:
 
 ![Tractometry methods comparison figure](Compare_tractometry_methods.png)
-``
+
 Run the following steps:
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
 They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) and 

@@ -261,6 +261,10 @@ def get_bundle_names(CLASSES):
         # Only use subset of classes for unit testing because of runtime
         bundles = ["CST_right", "CA", "IFO_right"]
 
+    elif CLASSES == "test_single":
+        # Only use subset of classes for unit testing because of runtime
+        bundles = ["CST_right"]
+
     else:
         #1 tract
         # bundles = ["CST_right"]
