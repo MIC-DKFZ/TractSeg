@@ -138,7 +138,7 @@ def main():
     peaks_path = input_path
 
     if args.test:
-        bundles = exp_utils.get_bundle_names("test")[1:]
+        bundles = exp_utils.get_bundle_names("test_single")[1:]
     else:
         bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
 
