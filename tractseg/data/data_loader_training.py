@@ -60,7 +60,6 @@ from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import peak_utils
 
-# warnings.simplefilter("ignore", UserWarning)  # hide batchgenerator warnings
 
 def load_training_data(Config, subject):
     """

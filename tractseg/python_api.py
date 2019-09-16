@@ -20,8 +20,6 @@ from __future__ import division
 from __future__ import print_function
 
 import warnings
-warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
-warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
 import importlib
 import time
 import os
@@ -39,6 +37,9 @@ from tractseg.libs import img_utils
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.libs import trainer
 from tractseg.models.base_model import BaseModel
+
+warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
 
 
 def run_tractseg(data, output_type="tract_segmentation",
@@ -150,9 +151,6 @@ def run_tractseg(data, output_type="tract_segmentation",
         exp_utils.print_Configs(Config)
 
     data = np.nan_to_num(data)
-    # brain_mask = img_utils.simple_brain_mask(data)
-    # if Config.VERBOSE:
-    #     nib.save(nib.Nifti1Image(brain_mask, np.eye(4)), "otsu_brain_mask_DEBUG.nii.gz")
 
     #runtime on HCP data: 0.9s
     data, seg_None, bbox, original_shape = dataset_utils.crop_to_nonzero(data)
@@ -238,12 +236,6 @@ def run_tractseg(data, output_type="tract_segmentation",
             Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
             seg = seg_all
 
-        #quite fast
-        # if bundle_specific_threshold:
-        #     seg = peak_utils.remove_small_peaks_bundle_specific(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:],
-        #                                                        len_thr=0.3)
-        # else:
-        #     seg = peak_utils.remove_small_peaks(seg, len_thr=peak_threshold)
 
     if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing:
         # Runtime ~4s

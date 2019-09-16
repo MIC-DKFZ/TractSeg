@@ -20,10 +20,6 @@ from __future__ import division
 from __future__ import print_function
 
 import warnings
-warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
-warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
-warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
-warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
 import argparse
 import importlib
 import os
@@ -38,6 +34,11 @@ from tractseg.libs import img_utils
 from tractseg.libs import mrtrix
 from tractseg.libs import plot_utils
 from tractseg.python_api import run_tractseg
+
+warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
 
 
 def main():
