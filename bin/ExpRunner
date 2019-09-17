@@ -1,30 +1,14 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 """
 This module is for training the model. See Readme.md for more details about training your own model.
 
-How to use this module:
+Examples:
+    Run local:
+    $ ExpRunner --config=XXX
 
-#Run local:
-ExpRunner --config=XXX
-
-#Predicting with new config setup:
-ExpRunner --train=False --test=True --lw --config=XXX
+    Predicting with new config setup:
+    $ ExpRunner --train=False --test=True --lw --config=XXX
 """
 
 from __future__ import absolute_import
@@ -47,7 +31,6 @@ import torch
 from tractseg.libs import direction_merger
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
-from tractseg.libs import metric_utils
 from tractseg.libs import peak_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import trainer
