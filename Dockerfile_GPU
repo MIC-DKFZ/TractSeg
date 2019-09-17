@@ -68,11 +68,11 @@ RUN echo '{ \
     \n}' > /neurodocker/neurodocker_specs.json
 
 RUN apt-get update \
-    && apt-get -y install git g++ python python-numpy libeigen3-dev zlib1g-dev libqt4-opengl-dev libgl1-mesa-dev libfftw3-dev libtiff5-dev curl \
-    && apt-get -y install git-core python-setuptools python-dev build-essential \
+    && apt-get -y install git g++ python3 libeigen3-dev zlib1g-dev libqt4-opengl-dev \
+    && apt-get -y install libgl1-mesa-dev libfftw3-dev libtiff5-dev curl \
+    && apt-get -y install git-core python3-pip python3-dev build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 
 ## NVIDIA CUDA Installation
 ###########################
@@ -159,9 +159,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 
-RUN easy_install pip \
+RUN pip3 install --upgrade pip \
     && pip install wheel numpy scipy nilearn matplotlib scikit-image nibabel \
-    && pip install http://download.pytorch.org/whl/cu91/torch-1.0.0-cp27-cp27mu-linux_x86_64.whl
+    && pip install http://download.pytorch.org/whl/cpu/torch-1.1.0-cp35-cp35m-linux_x86_64.whl
 
 # This command does not get cached -> very slow each time when building container -> use prebuild mrtrix_RC3.tar.gz instead
 #RUN mkdir /code && cd /code \
