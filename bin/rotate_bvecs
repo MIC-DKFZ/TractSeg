@@ -16,7 +16,7 @@ def parse_fsl_affine(file):
 
 def read_bvecs(this_fname):
     """
-    adapted from dipy.io.read_bvals_bvecs
+    Adapted from dipy.io.read_bvals_bvecs
     """
     with open(this_fname, 'r') as f:
         content = f.read()

@@ -8,6 +8,7 @@ import argparse
 
 from tractseg.libs import utils
 
+
 def main():
     parser = argparse.ArgumentParser(description="Download all pretrained weights (instead of them being downloaded "
                                                  "automatically on the fly when needed). Will download them to"

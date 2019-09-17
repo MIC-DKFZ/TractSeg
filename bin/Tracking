@@ -60,7 +60,6 @@ def main():
                         help="Dilate the endpoint and bundle masks by the "
                              "respective number of voxels. (default: 0)",
                         default=0)  # Info: dilation of endpoint mask: dilation+1
-                        # for HCP data: tracking_dilation=0 better
 
     parser.add_argument("--nr_fibers", metavar="n", type=int, help="Number of fibers to create (default: 2000)",
                         default=2000)
@@ -96,12 +95,12 @@ def main():
 
     #Private parameters
     peak_prob_tracking = args.algorithm == "prob"  # Set to false if you want to use Mrtrix tracking
-    TOM_mrtrix_algorithm = "FACT"   # FACT / iFOD2  (used when peak_prob_tracking = False and tracks_FODs = False)
+    TOM_mrtrix_algorithm = "FACT"   # FACT|iFOD2  (used when peak_prob_tracking = False and tracks_FODs = False)
     use_best_original_peaks = args.track_best_orig  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
     use_as_prior = False  # Track on weighted average between best original peaks and TOM
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
-    dir_postfix = ""    # "_BSThr"
-    tract_definition = "TractQuerier+"  # TractQuerier+ / AutoPTX
+    dir_postfix = ""    # e.g. "_BSThr"
+    tract_definition = "TractQuerier+"  # TractQuerier+|AutoPTX
     next_step_displacement_std = 0.15
 
     filter_tracking_by_endpoints = not args.no_filtering_by_endpoints
@@ -116,9 +115,6 @@ def main():
     elif Config.PREDICT_IMG:
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
 
-
-    peaks_path = input_path
-
     if args.test == 1:
         bundles = exp_utils.get_bundle_names("test")[1:]
     elif args.test == 2:
@@ -128,16 +124,14 @@ def main():
     else:
         bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
 
-    # bundles = ["CA", "FX_left", "FX_right", "CST_left", "CST_right"]
     for bundle in tqdm(bundles):
-        mrtrix.track(bundle, peaks_path, Config.PREDICT_IMG_OUTPUT,
+        mrtrix.track(bundle, input_path, Config.PREDICT_IMG_OUTPUT,
                      filter_by_endpoints=filter_tracking_by_endpoints, output_format=args.tracking_format,
                      nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
                      tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir,
                      dilation=args.tracking_dilation, use_best_original_peaks=use_best_original_peaks,
                      dir_postfix=dir_postfix, use_as_prior=use_as_prior, TOM_mrtrix_algorithm=TOM_mrtrix_algorithm,
                      next_step_displacement_std=next_step_displacement_std)
-
 
 
 if __name__ == '__main__':
