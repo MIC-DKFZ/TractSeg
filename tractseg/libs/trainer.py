@@ -26,12 +26,13 @@ import socket
 import datetime
 import numpy as np
 from tqdm import tqdm
+from pprint import pprint
 
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 from tractseg.libs import dataset_utils
 from tractseg.libs import plot_utils
-
+from tractseg.data.data_loader_inference import DataLoaderInference
 
 def train_model(Config, model, data_loader):
 
@@ -248,8 +249,6 @@ def train_model(Config, model, data_loader):
         f.write("\n\n")
         f.write("Average Epoch time: {}s".format(sum(epoch_times) / float(len(epoch_times))))
 
-    return model
-
 
 def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=True, only_prediction=False,
                 batch_size=1):
@@ -352,3 +351,62 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
     if not only_prediction:
         layers_y = finalize_data(layers_y)
     return layers_seg, layers_y   # (Prediction, Groundtruth)
+
+
+def test_whole_subject(Config, model, subjects, type):
+
+    metrics = {
+        "loss_" + type: [0],
+        "f1_macro_" + type: [0],
+    }
+
+    # Metrics per bundle
+    metrics_bundles = {}
+    for bundle in exp_utils.get_bundle_names(Config.CLASSES)[1:]:
+        metrics_bundles[bundle] = [0]
+
+    for subject in subjects:
+        print("{} subject {}".format(type, subject))
+        start_time = time.time()
+
+        data_loader = DataLoaderInference(Config, subject=subject)
+        img_probs, img_y = predict_img(Config, model, data_loader, probs=True)
+        # img_probs_xyz, img_y = DirectionMerger.get_seg_single_img_3_directions(Config, model, subject=subject)
+        # img_probs = DirectionMerger.mean_fusion(Config.THRESHOLD, img_probs_xyz, probs=True)
+
+        print("Took {}s".format(round(time.time() - start_time, 2)))
+
+        if Config.EXPERIMENT_TYPE == "peak_regression":
+            f1 = metric_utils.calc_peak_length_dice(Config, img_probs, img_y,
+                                                    max_angle_error=Config.PEAK_DICE_THR,
+                                                    max_length_error=Config.PEAK_DICE_LEN_THR)
+            peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
+            metrics = metric_utils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean,
+                                                     type=type, threshold=Config.THRESHOLD)
+            metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, None, None,
+                                                                         exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                                         f1, threshold=Config.THRESHOLD)
+        else:
+            img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
+            img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
+            metrics = metric_utils.calculate_metrics(metrics, img_y, img_probs, 0,
+                                                     type=type, threshold=Config.THRESHOLD)
+            metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs,
+                                                                         exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                                         threshold=Config.THRESHOLD)
+
+    metrics = metric_utils.normalize_last_element(metrics, len(subjects), type=type)
+    metrics_bundles = metric_utils.normalize_last_element_general(metrics_bundles, len(subjects))
+
+    print("WHOLE SUBJECT:")
+    pprint(metrics)
+    print("WHOLE SUBJECT BUNDLES:")
+    pprint(metrics_bundles)
+
+    with open(join(Config.EXP_PATH, "score_" + type + "-set.txt"), "w") as f:
+        pprint(metrics, f)
+        f.write("\n\nWeights: {}\n".format(Config.WEIGHTS_PATH))
+        f.write("type: {}\n\n".format(type))
+        pprint(metrics_bundles, f)
+    pickle.dump(metrics, open(join(Config.EXP_PATH, "score_" + type + ".pkl"), "wb"))
+    return metrics
