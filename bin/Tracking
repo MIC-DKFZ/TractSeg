@@ -9,21 +9,16 @@ import argparse
 import importlib
 import os
 from os.path import join
-import sys
 from tqdm import tqdm
-import nibabel as nib
 
 from tractseg.libs.system_config import get_config_name
 from tractseg.libs import exp_utils
-from tractseg.libs import img_utils
 from tractseg.libs import mrtrix
-from tractseg.libs import plot_utils
-from tractseg.python_api import run_tractseg
 
-warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
-warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
-warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
-warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
+warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)  # hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")  # hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")  # hide Cython benign warning
 
 
 def main():

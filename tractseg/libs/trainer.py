@@ -159,9 +159,7 @@ def train_model(Config, model, data_loader):
                     plot_utils.plot_result_trixi(trixi, x, y, probs, metr_batch["loss"], metr_batch["f1_macro"], epoch_nr)
 
 
-        ###################################
-        # Post Training tasks (each epoch)
-        ###################################
+        ################################### Post Training tasks (each epoch) ###################################
 
         if Config.ONLY_VAL:
             metrics = metric_utils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
@@ -257,8 +255,8 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
 
     """
 
-    #todo add _ to helper function
-    def finalize_data(layers):
+    #todo add _ to helper functions
+    def _finalize_data(layers):
         layers = np.array(layers)
 
         if Config.DIM == "2D":
@@ -273,7 +271,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                 layers = layers.transpose(1, 2, 0, 3)
 
         if scale_to_world_shape:
-            layers = dataset_utils.scale_input_to_world_shape(layers, Config.DATASET, Config.RESOLUTION)
+            layers = dataset_utils.scale_input_to_original_shape(layers, Config.DATASET, Config.RESOLUTION)
 
         #todo: move to top of function
         assert (layers.dtype == np.float32)  # .astype() quite slow -> use assert to make sure type is right
@@ -331,9 +329,9 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
 
         idx += 1
 
-    layers_seg = finalize_data(layers_seg)
+    layers_seg = _finalize_data(layers_seg)
     if not only_prediction:
-        layers_y = finalize_data(layers_y)
+        layers_y = _finalize_data(layers_y)
     return layers_seg, layers_y   # (Prediction, Groundtruth)
 
 

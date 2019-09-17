@@ -142,20 +142,6 @@ def load_training_data(Config, subject):
 
     seg = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.LABELS_FILENAME))
 
-    # Not needed anymore when using preprocessed input data
-    # data = np.nan_to_num(data)
-    # seg = np.nan_to_num(seg)
-
-    # This no needed anymore because padding/cropping is done automatically. Only downsampling is not done automatically
-    # if Config.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
-    #                                        "bundle_masks_20_808080", "bundle_masks_72_808080", "bundle_peaks_Part1_808080",
-    #                                        "bundle_peaks_Part2_808080", "bundle_peaks_Part3_808080", "bundle_peaks_Part4_808080"]:
-    #     if Config.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
-    #         # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
-    #         seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", Config.RESOLUTION)
-    #     else:
-    #         seg = dataset_utils.scale_input_to_unet_shape(seg, Config.DATASET, Config.RESOLUTION)  # (x, y, z, classes)
-
     return data, seg
 
 

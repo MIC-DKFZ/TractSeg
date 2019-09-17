@@ -39,10 +39,10 @@ from tractseg.data.data_loader_training_3D import DataLoaderTraining as DataLoad
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.models.base_model import BaseModel
 
-warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
-warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
-warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
-warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
+warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)  # hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")  # hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")  # hide Cython benign warning
 
 
 def main():
@@ -64,8 +64,6 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)
     args = parser.parse_args()
 
-
-    #####
 
     Config = getattr(importlib.import_module("tractseg.experiments.base"), "Config")()
     if args.config:

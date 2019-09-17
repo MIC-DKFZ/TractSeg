@@ -163,7 +163,6 @@ def main():
     dropout_sampling = args.uncertainty
     threshold = 0.5          # specificity (tract_segmentation and endings_segmentation)
     peak_threshold = 0.3     # specificity (TOM)
-    automatically_flip_peaks = False
     blob_size_thr = 25  # default: 50
     manual_exp_name = args.exp_name
     # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB

@@ -113,7 +113,8 @@ def main():
     # - map_coordinates, QuickBundles and cKDTree are deterministic for the same input streamlines
     # - Variance in final Tractometry results when running 2 probabilistic trackings (10k fibers and 100 points):
     #   - Max difference ~0.01, but on average difference around 0.004
-    #   - When plotting the differences: very minor; might get averaged out in group analysis
+    #   - When plotting the differences: very minor
+    #   - Will get averaged out in group analysis
 
 
 if __name__ == '__main__':
