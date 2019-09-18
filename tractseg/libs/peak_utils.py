@@ -7,8 +7,10 @@ from os.path import join
 from os.path import dirname
 from os.path import exists
 
+import psutil
 import numpy as np
 import nibabel as nib
+from joblib import Parallel, delayed
 
 from scipy.ndimage.morphology import binary_dilation
 
@@ -86,7 +88,7 @@ def peak_image_to_binary_mask_path(path_in, path_out, peak_length_threshold=0.1)
         peak_length_threshold:
 
     Returns:
-
+        void
     """
     peak_img = nib.load(path_in)
     peak_data = peak_img.get_data()
@@ -141,7 +143,7 @@ def tensors_to_peaks(tensors):
         peaks with shape: [x,y,z, nr_peaks*3]
     """
 
-    def tensor_to_peak(tensor):
+    def _tensor_to_peak(tensor):
         t_matrix = flat_tensor_to_matrix_tensor(tensor)
 
         val, vec = np.linalg.eig(t_matrix)  # get eigenvalues and eigenvectors
@@ -161,7 +163,7 @@ def tensors_to_peaks(tensors):
     nr_tensors = int(tensors.shape[3] / 6)
     peaks = np.zeros(tensors.shape[:3] + (nr_tensors * 3,), dtype=np.float32)
     for idx in range(nr_tensors):
-        peak = tensor_to_peak(tensors[..., idx * 6:(idx * 6) + 6])
+        peak = _tensor_to_peak(tensors[..., idx * 6:(idx * 6) + 6])
 
         # filter small peaks
         mask = np.linalg.norm(peak, axis=-1) < 0.001  # 0.001 does not really filter anything
@@ -182,7 +184,7 @@ def peaks_to_tensors(peaks):
         tensor with shape: [x,y,z, nr_peaks*6]
     """
 
-    def peak_to_tensor(peak):
+    def _peak_to_tensor(peak):
         tensor = np.zeros(peak.shape[:3] + (6,), dtype=np.float32)
         tensor[..., 0] = peak[..., 0] * peak[..., 0]
         tensor[..., 1] = peak[..., 0] * peak[..., 1]
@@ -195,7 +197,7 @@ def peaks_to_tensors(peaks):
     nr_peaks = int(peaks.shape[3] / 3)
     tensor = np.zeros(peaks.shape[:3] + (nr_peaks * 6,), dtype=np.float32)
     for idx in range(nr_peaks):
-        tensor[..., idx*6:(idx*6)+6] = peak_to_tensor(peaks[..., idx*3:(idx*3)+3])
+        tensor[..., idx*6:(idx*6)+6] = _peak_to_tensor(peaks[..., idx*3:(idx*3)+3])
     return tensor
 
 
@@ -213,6 +215,9 @@ def load_bedpostX_dyads(path_dyads1, scale=True, tensor_model=False):
 
     Args:
         path_dyads1: path to dyads1.nii.gz
+        scale: Scale length of vectors
+        tensor_model: Make True if model was directly trained on tensors
+                      (not needed if tensors are created on the fly from peaks with are flipped like mrtrix)
 
     Returns:
         peaks with shape: [x,y,z,9]
@@ -240,8 +245,6 @@ def load_bedpostX_dyads(path_dyads1, scale=True, tensor_model=False):
     # Flip x axis to make BedpostX compatible with mrtrix CSD
     #  Flipping not needed if model was trained on BX tensors (because then already trained on BX orientation)
 
-    # todo: remove "tensor_model" flag in future when no more models which were directly trained on Tensors (only
-    # trained on tensors derived from peaks on the fly (peaks which are flipped like mrtrix peaks)
     if not tensor_model:
         dyads[:, :, :, 0] *= -1
         dyads[:, :, :, 3] *= -1
@@ -252,12 +255,10 @@ def load_bedpostX_dyads(path_dyads1, scale=True, tensor_model=False):
 
 
 def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation, nr_cpus=-1):
-    # runtime TOM: 2min 40s  (~8.5GB)
-
-    from joblib import Parallel, delayed
-    import psutil
-
-    def process_bundle(idx, bundle):
+    """
+    runtime TOM: 2min 40s  (~8.5GB)
+    """
+    def _process_bundle(idx, bundle):
         bundle_peaks = np.copy(peaks[:, :, :, idx * 3:idx * 3 + 3])
         mask = nib.load(join(tract_seg_path, bundle + ".nii.gz")).get_data()
         mask = binary_dilation(mask, iterations=dilation).astype(np.uint8)
@@ -266,24 +267,10 @@ def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation, nr_cpus=-
         return bundle_peaks
 
     nr_cpus = psutil.cpu_count() if nr_cpus == -1 else nr_cpus
-    results_peaks = Parallel(n_jobs=nr_cpus)(delayed(process_bundle)(idx, bundle) for idx, bundle in enumerate(bundles))
+    results_peaks = Parallel(n_jobs=nr_cpus)(delayed(_process_bundle)(idx, bundle)
+                                             for idx, bundle in enumerate(bundles))
 
     results_peaks = np.array(results_peaks).transpose(1, 2, 3, 0, 4)
     s = results_peaks.shape
     results_peaks = results_peaks.reshape([s[0], s[1], s[2], s[3] * s[4]])
     return results_peaks
-
-
-# def mask_and_normalize_peaks_SINGLE_CORE(peaks, tract_seg_path, bundles):
-#     # runtime TOM: 3min 8s
-#
-#     results_peaks = np.zeros(peaks.shape)
-#     for idx, bundle in enumerate(bundles):
-#         bundle_peaks = peaks[:, :, :, idx * 3:idx * 3 + 3]
-#         mask = nib.load(join(tract_seg_path, bundle + ".nii.gz")).get_data()
-#         bundle_peaks[mask == 0] = 0
-#         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)
-#         results_peaks[:,:,:, idx * 3:idx * 3 + 3] = bundle_peaks
-#
-#     return results_peaks
-#
