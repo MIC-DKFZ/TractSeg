@@ -4,27 +4,35 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
+import joblib
+from joblib import Parallel, delayed
 from os.path import join
-from os.path import dirname
-from os.path import exists
 from pkg_resources import resource_filename
+
+import psutil
 import numpy as np
 import nibabel as nib
 from scipy import ndimage
 from scipy.ndimage.morphology import binary_dilation
-import joblib
+from dipy.align.imaffine import AffineMap
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
 
 
 def pad_3d_image(image, pad_size, pad_value=None):
-    '''
-    :param pad_size: must be a np array with 3 entries, one for each dimension of the image
-
+    """
     IMPORTANT: numbers in pad_size should be even numbers; they are always divided by 2 and then rounded to floor !
-        -> pad 3 -> would result in padding_left: 1 and padding_right: 1  => 1 gets lost
-    '''
+    -> pad 3 -> would result in padding_left: 1 and padding_right: 1  => 1 gets lost
+
+    Args:
+        image: 3D array
+        pad_size: must be a np array with 3 entries, one for each dimension of the image
+        pad_value: value for padding. Use 0 if None.
+
+    Returns:
+        padded array
+    """
     image_shape = image.shape
     new_shape = np.array(list(image_shape)) + pad_size
     if pad_value is None:
@@ -37,12 +45,18 @@ def pad_3d_image(image, pad_size, pad_value=None):
 
 
 def pad_4d_image(image, pad_size, pad_value=None):
-    '''
-    :param pad_size: must be a np array with 4 entries, one for each dimension of the image
-
-    IMPORTANT: numbers in pad_size should be even numbers; they are always divided by 2 and then rounded to floor !
+    """
+        IMPORTANT: numbers in pad_size should be even numbers; they are always divided by 2 and then rounded to floor !
         -> pad 3 -> would result in padding_left: 1 and padding_right: 1  => 1 gets lost
-    '''
+
+        Args:
+            image: 4D array
+            pad_size: must be a np array with 4 entries, one for each dimension of the image
+            pad_value: value for padding. Use 0 if None.
+
+        Returns:
+            padded array
+    """
     image_shape = image.shape
     new_shape = np.array(list(image_shape)) + pad_size
     if pad_value is None:
@@ -56,12 +70,19 @@ def pad_4d_image(image, pad_size, pad_value=None):
 
 
 def pad_4d_image_left(image, pad_size, new_shape, pad_value=None):
-    '''
+    """
     This can be used if we want to pad by uneven numbers; you specify padding on the right side of
     each dimension (left is then automatically filled up).
 
-    :param pad_size: must be a np array with 4 entries, one for each dimension of the image
-    '''
+    Args:
+        image: 4D array
+        pad_size: must be a np array with 4 entries, one for each dimension of the image
+        new_shape:
+        pad_value: value for padding. Use 0 if None.
+
+    Returns:
+        padded array
+    """
     image_shape = image.shape
     # new_shape = np.array(list(image_shape)) + pad_size
     new_shape = np.array(new_shape)
@@ -76,50 +97,44 @@ def pad_4d_image_left(image, pad_size, new_shape, pad_value=None):
 
 
 def get_dwi_affine(dataset, resolution):
-    #Info: Minus bei x und y invers gegenüber dem finalen Ergebnis (wie in MITK sehe), weil Dipy x und y mit -1 noch
-    #       multipliziert
 
     if dataset == "HCP" and resolution == "1.25mm":
-        # Size (145,174,145)
+        # shape (145,174,145)
         return np.array([[-1.25, 0.,  0.,   90.],
                          [0., 1.25,   0.,  -126.],
                          [0.,    0., 1.25, -72.],
                          [0.,    0.,  0.,   1.]])
 
     elif dataset == "HCP_32g" and resolution == "1.25mm":
-        # Size (145,174,145)
+        # shape (145,174,145)
         return np.array([[-1.25, 0.,  0.,   90.],
                          [0., 1.25,   0.,  -126.],
                          [0.,    0., 1.25, -72.],
                          [0.,    0.,  0.,   1.]])
 
     elif (dataset == "HCP_32g" or dataset == "HCP_2mm") and resolution == "2mm":
-        # Size (90,108,90)
+        # shape (90,108,90)
         return np.array([[-2., 0.,  0.,   90.],
                          [0.,  2.,  0.,  -126.],
                          [0.,  0.,  2.,  -72.],
                          [0.,  0.,  0.,   1.]])
 
     elif (dataset == "HCP" or dataset == "HCP_32g" or dataset == "HCP_2.5mm") and resolution == "2.5mm":
-        # Size (73,87,73)
+        # shape (73,87,73)
         return np.array([[-2.5, 0.,  0.,   90.],
                          [0.,  2.5,  0.,  -126.],
                          [0.,  0.,  2.5,  -72.],
                          [0.,  0.,  0.,    1.]])
 
     else:
-        raise ValueError("No Affine defined for this dataset and resolution !!")
+        raise ValueError("No Affine defined for this dataset and resolution")
 
 
 def remove_small_blobs(img, threshold=1, debug=True):
-    '''
+    """
     Find blobs/clusters of same label. Only keep blobs with more than threshold elements.
     This can be used for postprocessing.
-
-    :param img: 3D Image
-    :param threshold:
-    :return:
-    '''
+    """
     # Also considers diagonal elements for determining if a element belongs to a blob
     # mask, number_of_blobs = ndimage.label(img, structure=np.ones((3, 3, 3)))
     mask, number_of_blobs = ndimage.label(img)
@@ -139,7 +154,7 @@ def remove_small_blobs(img, threshold=1, debug=True):
         print(counts)
 
     remove = counts <= threshold
-    remove_idx = np.nonzero(remove)[0]  # somehow returns tupple with 1 value -> remove tupple, only keep value
+    remove_idx = np.nonzero(remove)[0]
 
     for idx in remove_idx:
         if idx != second_largest_blob_idx:  # make sure to keep at least one blob
@@ -154,21 +169,14 @@ def remove_small_blobs(img, threshold=1, debug=True):
 
 
 def postprocess_segmentations(data, bundles, blob_thr=50, hole_closing=None):
-    '''
+    """
     Postprocessing of segmentations. Fill holes and remove small blobs.
 
     hole_closing is deactivated per default because it incorrectly fills up the gyri (e.g. in AF).
-
-    :param data: 4D ndarray
-    :param blob_thr:
-    :param hole_closing:
-    :return:
-    '''
-
+    """
     skip_hole_closing = ["CST_right", "CST_left", "MCP"]
     increased_hole_closing = []  # not needed anymore because already done in bundle-specific postprocessing
 
-    # nr_classes = data.shape[3]
     data_new = []
     for idx, bundle in enumerate(bundles):
         data_single = data[:,:,:,idx]
@@ -215,10 +223,10 @@ def has_two_big_blobs(img, bundle, debug=True):
 
 
 def bundle_specific_postprocessing(data, bundles):
-    '''
+    """
     For certain bundles checks if bundle contains two big blobs. Then it reduces the threshold for conversion to
     binary and applies hole closing.
-    '''
+    """
     edit_bundles = ["CA", "FX_right", "FX_left"]
 
     bundles_thresholds = {
@@ -251,21 +259,17 @@ def bundle_specific_postprocessing(data, bundles):
 
 
 def resize_first_three_dims(img, order=0, zoom=0.62, nr_cpus=-1):
-    from joblib import Parallel, delayed
-    import psutil
 
-    def process_gradient(grad_idx):
+    def _process_gradient(grad_idx):
         return ndimage.zoom(img[:, :, :, grad_idx], zoom, order=order)
 
     nr_cpus = psutil.cpu_count() if nr_cpus == -1 else nr_cpus
-    img_sm = Parallel(n_jobs=nr_cpus)(delayed(process_gradient)(grad_idx) for grad_idx in range(img.shape[3]))
+    img_sm = Parallel(n_jobs=nr_cpus)(delayed(_process_gradient)(grad_idx) for grad_idx in range(img.shape[3]))
     return np.array(img_sm).transpose(1, 2, 3, 0)  # grads channel was in front -> put to back
 
 
 def resize_first_three_dims_singleCore(img, order=0, zoom=0.62, nr_cpus=-1):
-    """
-    Runtime 35ms
-    """
+    # Runtime 35ms
     img_sm = []
     for grad in range(img.shape[3]):
         #order: The order of the spline interpolation
@@ -291,12 +295,11 @@ def resize_first_three_dims_NUMPY(img, order=0, zoom=0.62):
         img_sm[:, :, :, grad] = grad_sm
     return img_sm
 
+
 def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
-    '''
+    """
     One-hot encoding of all bundles in one big image
-    :param subject:
-    :return: image of shape (x, y, z, nr_of_bundles + 1)
-    '''
+    """
     bundles = exp_utils.get_bundle_names(Config.CLASSES)
 
     #Masks sind immer HCP_highRes (später erst downsample)
@@ -306,9 +309,9 @@ def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder
     # first bundle is background -> already considered by setting np.ones in the beginning
     for idx, bundle in enumerate(bundles[1:]):
         mask = nib.load(join(C.HOME, dataset_folder, subject, labels_folder, bundle + ".nii.gz"))
-        mask_data = mask.get_data()     # dtype: uint8
-        mask_ml[:, :, :, idx+1] = mask_data
-        background[mask_data == 1] = 0    # remove this bundle from background
+        mask_data = mask.get_data()  # dtype: uint8
+        mask_ml[:, :, :, idx + 1] = mask_data
+        background[mask_data == 1] = 0  # remove this bundle from background
 
     mask_ml[:, :, :, 0] = background
     return mask_ml.astype(labels_type)
@@ -346,50 +349,27 @@ def save_multilabel_img_as_multiple_files_endings(Config, img, affine, path):
         nib.save(img_seg, join(path, "endings_segmentations", bundle + ".nii.gz"))
 
 
-def save_multilabel_img_as_multiple_files_endings_OLD(Config, img, affine, path, multilabel=True):
-    '''
-    multilabel True:    save as 1 and 2 without fourth dimension
-    multilabel False:   save with beginnings and endings combined
-    '''
-    # bundles = exp_utils.get_bundle_names("20")[1:]
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
-    for idx, bundle in enumerate(bundles):
-        data = img[:, :, :, (idx * 2):(idx * 2) + 2] > 0
-
-        multilabel_img = np.zeros(data.shape[:3])
-
-        if multilabel:
-            multilabel_img[data[:, :, :, 0]] = 1
-            multilabel_img[data[:, :, :, 1]] = 2
-        else:
-            multilabel_img[data[:, :, :, 0]] = 1
-            multilabel_img[data[:, :, :, 1]] = 1
-
-        img_seg = nib.Nifti1Image(multilabel_img, affine)
-        exp_utils.make_dir(join(path, "endings"))
-        nib.save(img_seg, join(path, "endings", bundle + ".nii.gz"))
-
-
 def simple_brain_mask(data):
-    '''
+    """
     Simple brain mask (for peak image). Does not matter if has holes
     because for cropping anyways only take min and max.
 
-    :param data: peak image [x,y,z,9]
-    '''
+    Args:
+        data: peak image (x, y, z, 9)
+
+    Returns:
+        brain mask (x, y, z)
+    """
     data_max = data.max(axis=3)
     mask = data_max > 0.01
     mask = binary_dilation(mask, iterations=1)
     return mask.astype(np.uint8)
 
-# This is not used anymore -> remove
-def probs_to_binary_bundle_specific(seg, bundles):
-    '''
 
-    :param seg: [x,y,z,bundles]
-    :param bundles:
-    :return:
-    '''
+def probs_to_binary_bundle_specific(seg, bundles):
+    """
+    This is not used anymore at the moment.
+    """
     assert len(bundles) == seg.shape[3], "dimensions seg and bundles do not match"
 
     bundles_thresholds = {
@@ -533,14 +513,10 @@ def flip_peaks(data, axis="x"):
 
 
 def enforce_shape(data, target_shape=(91, 109, 91, 9)):
-    '''
+    """
     Cut and pad image to have same shape as target_shape (adapts first 3 dimensions, all further dimensions
     have to be the same in data and target_shape).
-
-    :param data:
-    :param target_shape:
-    :return:
-    '''
+    """
     ss = data.shape  # source shape
     ts = target_shape  # target shape
 
@@ -562,13 +538,7 @@ def enforce_shape(data, target_shape=(91, 109, 91, 9)):
 def change_spacing_4D(img_in, new_spacing=1.25):
     """
     Note: Only works properly if affine is all 0 except for diagonal and offset (=no rotation and sheering)
-
-    :param img_in:
-    :param new_spacing:
-    :return:
     """
-    from dipy.align.imaffine import AffineMap
-
     data = img_in.get_data()
     old_shape = data.shape
     img_spacing = abs(img_in.affine[0, 0])
@@ -588,8 +558,7 @@ def change_spacing_4D(img_in, new_spacing=1.25):
                                new_shape, new_affine,
                                old_shape, img_in.affine
                                )
-        #Generally nearest a bit better results than linear interpolation
-        # res = affine_map.transform(data[:,:,:,i], interp="linear")
+        # Generally "nearest" a bit better results than "linear" interpolation
         res = affine_map.transform(data[:, :, :, i], interp="nearest")
         new_data.append(res)
 
@@ -600,7 +569,7 @@ def change_spacing_4D(img_in, new_spacing=1.25):
 
 
 def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
-    '''
+    """
     We use a pretrained random forest classifier to detect if the orientation of the peak is the same
     orientation as the peaks used for training TractSeg. Otherwise detect along which axis they
     have to be flipped to have the right orientation and return the flipped peaks.
@@ -614,10 +583,13 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
       important anymore
     => Do not use anymore
 
-    :param peaks_input: nifti peak img
-    :param do_flip: also return flipped data or only return if flip needed
-    :return: 4D numpy array (flipped peaks), boolean if flip was done
-    '''
+    Args:
+        peaks_input: nifti peak img
+        do_flip: also return flipped data or only return if flip needed
+
+    Returns:
+        (4D numpy array (flipped peaks), flip orientation)
+    """
     if sys.version_info[0] < 3:
         print("INFO: Peak orientation check not working on python 2, therefore it is skipped.")
         return peaks_input.get_data(), None
