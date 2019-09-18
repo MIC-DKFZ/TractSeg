@@ -14,10 +14,6 @@ from dipy.tracking import utils as utils_trk
 
 from tractseg.libs import utils
 
-# import logging
-# logging.basicConfig(format='%(levelname)s: %(message)s')  # set formatting of output
-# logging.getLogger().setLevel(logging.INFO)
-
 
 # Global variables needed for shared memory of parallel fiber compression
 global _COMPRESSION_ERROR_THRESHOLD
@@ -25,16 +21,17 @@ _COMPRESSION_ERROR_THRESHOLD = None
 global _FIBER_BATCHES
 _FIBER_BATCHES = None
 
+
 def compress_fibers_worker_shared_mem(idx):
     """
     Worker Functions for multithreaded compression.
 
     Function that runs in parallel must be on top level (not in class/function) otherwise it can
-    not be pickled and then error.
+    not be pickled.
     """
     streamlines_chunk = _FIBER_BATCHES[idx]  # shared memory; by using indices each worker accesses only his part
     result = compress_streamlines_dipy(streamlines_chunk, tol_error=_COMPRESSION_ERROR_THRESHOLD)
-    # logging.debug('PID {}, DONE'.format(getpid()))
+    # print('PID {}, DONE'.format(getpid()))
     return result
 
 
@@ -54,7 +51,6 @@ def compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=-1):
     chunk_size = int(number_streamlines / nr_processes)
 
     if chunk_size < 1:
-        # logging.warning("\nReturning early because chunk_size=0")
         return streamlines
     fiber_batches = list(utils.chunks(streamlines, chunk_size))
 
@@ -63,13 +59,12 @@ def compress_streamlines(streamlines, error_threshold=0.1, nr_cpus=-1):
     _COMPRESSION_ERROR_THRESHOLD = error_threshold
     _FIBER_BATCHES = fiber_batches
 
-    # logging.debug("Main program using: {} GB".format(round(Utils.mem_usage(print_usage=False), 3)))
+    # print("Main program using: {} GB".format(round(Utils.mem_usage(print_usage=False), 3)))
     pool = multiprocessing.Pool(processes=nr_processes)
 
-    #Do not pass data in (doubles amount of memory needed), but only idx of shared memory
+    #Do not pass in data (doubles amount of memory needed), but only idx of shared memory
     #  (needs only as much memory as single thread version (only main thread needs memory, others almost 0).
     #  Shared memory version also faster (around 20-30%?).
-    #  Needed otherwise memory problems when processing the raw tracking output (on disk >10GB and in memory >20GB)
     result = pool.map(compress_fibers_worker_shared_mem, range(0, len(fiber_batches)))
 
     pool.close()
@@ -93,7 +88,7 @@ def save_streamlines_as_trk_legacy(out_file, streamlines, affine, shape):
     Returns:
         void
     """
-    affine = np.abs(affine) #have to positive
+    affine = np.abs(affine)
     #offset not needed (already part of streamline coordinates?)
     affine[0, 3] = 0
     affine[1, 3] = 0
@@ -109,8 +104,6 @@ def save_streamlines_as_trk_legacy(out_file, streamlines, affine, shape):
 
 def save_streamlines(out_file, streamlines, affine=None, shape=None, vox_sizes=None, vox_order='RAS'):
     """
-    todo: use dipy.io.streamline.save_tractogram to save streamlines
-
     Saves streamlines either in .trk format or in .tck format. Depending on the ending of out_file.
 
     If using .trk: This function saves tracts in Trackvis '.trk' format.
@@ -122,6 +115,8 @@ def save_streamlines(out_file, streamlines, affine=None, shape=None, vox_sizes=N
                                      dtype=float32)
     Uses the new nib.streamlines API (streamlines are saved in voxel space and affine is applied to transform them to
     coordinate space).
+
+    todo: use dipy.io.streamline.save_tractogram to save streamlines
 
     Args:
         out_file: string with filepath of the output file
@@ -147,7 +142,7 @@ def save_streamlines(out_file, streamlines, affine=None, shape=None, vox_sizes=N
     if vox_sizes is None:
         vox_sizes = np.array([abs(affine[0,0]), abs(affine[1,1]), abs(affine[2,2])], dtype=np.float32)
 
-    # Create a new header with the correct affine and # of streamlines
+    # Create a new header with the correct affine and nr of streamlines
     hdr = {}
     hdr['voxel_sizes'] = vox_sizes
     hdr['voxel_order'] = vox_order
@@ -160,18 +155,6 @@ def save_streamlines(out_file, streamlines, affine=None, shape=None, vox_sizes=N
 
 def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_shape,
                        compress_err_thr=0.1, smooth=None, nr_cpus=-1, tracking_format="trk_legacy"):
-    '''
-    Convert tck file to trk file and compress
-
-    :param filename_in:
-    :param filename_out:
-    :param compress_err_thr: compress fibers if setting error threshold here (default: 0.1mm)
-    :param smooth: smooth streamlines (default: None)
-                   10: slight smoothing,  100: very smooth from beginning to end
-    :param nr_cpus:
-    :return:
-    '''
-    from dipy.tracking.metrics import spline
 
     streamlines = nib.streamlines.load(filename_in).streamlines  # Load Fibers (Tck)
 
@@ -201,13 +184,14 @@ def resample_fibers(streamlines, nb_points=12):
 
 def smooth_streamlines(streamlines, smoothing_factor=10):
     """
+    Smooth streamlines
 
     Args:
-        streamlines:
+        streamlines: list of streamlines
         smoothing_factor: 10: slight smoothing,  100: very smooth from beginning to end
 
     Returns:
-
+        smoothed streamlines
     """
     streamlines_smooth = []
     for sl in streamlines:
@@ -216,24 +200,24 @@ def smooth_streamlines(streamlines, smoothing_factor=10):
 
 
 def get_streamline_statistics(streamlines, subsample=False, raw=False):
-    '''
-    Returns (in mm)
-    - mean streamline length (mm)
-    - mean space between two following points (mm)
-    - max space between two following points (mm)
+    """
+    Get streamlines statistics in mm
 
-    If raw: return list of fibers length and spaces
+    Args:
+        streamlines: list of streamlines
+        subsample: Do not evaluate all points to increase runtime
+        raw: if True returns list of fibers length and spaces
 
-    :param streamlines:
-    :return:
-    '''
-    if subsample:   #subsample for faster processing
+    Returns:
+        (mean streamline length, mean space between two following points, max space between two following points)
+    """
+    if subsample:  # subsample for faster processing
         STEP_SIZE = 20
     else:
         STEP_SIZE = 1
 
     lengths = []
-    spaces = [] #spaces between 2 points
+    spaces = []  # spaces between 2 points
     for j in range(0, len(streamlines), STEP_SIZE):
         sl = streamlines[j]
         length = 0
@@ -245,18 +229,15 @@ def get_streamline_statistics(streamlines, subsample=False, raw=False):
         lengths.append(length)
 
     if raw:
-        # print("raw")
         return lengths, spaces
     else:
-        # print("mean")
         return np.array(lengths).mean(), np.array(spaces).mean(), np.array(spaces).max()
 
 
 def filter_streamlines_leaving_mask(streamlines, mask):
-    '''
+    """
     Remove all streamlines that exit the mask
-    '''
-    # max_seq_len = abs(ref_affine[0, 0] / 4)
+    """
     max_seq_len = 0.1
     streamlines = list(utils_trk.subsegment(streamlines, max_seq_len))
 
@@ -271,14 +252,14 @@ def filter_streamlines_leaving_mask(streamlines, mask):
 
 
 def angle_last_dim(a, b):
-    '''
+    """
     Calculate the angle between two nd-arrays (array of vectors) along the last dimension
 
-    without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
-    np.arccos -> returns degree in pi (90°: 0.5*pi)
+    dot product <-> degree conversion: 1->0°, 0.9->23°, 0.7->45°, 0->90°
+    By using np.arccos you could return degree in pi (90°: 0.5*pi)
 
-    return: one dimension less then input
-    '''
+    Return one dimension less than input
+    """
     return np.einsum('...i,...i', a, b) / (np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1) + 1e-7)
 
 
@@ -295,7 +276,7 @@ def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
         Image containing 1 peak [x,y,z,3]
     """
 
-    def get_most_aligned_peak(pred, orig):
+    def _get_most_aligned_peak(pred, orig):
         orig = np.array(orig)
         angle1 = abs(angle_last_dim(pred, orig[0]))
         angle2 = abs(angle_last_dim(pred, orig[1]))
@@ -314,7 +295,7 @@ def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
     #Remove all peaks where predicted peaks are too short
     peaks_orig[np.linalg.norm(peaks_pred, axis=-1) < peak_len_thr] = 0
 
-    best_orig = get_most_aligned_peak(peaks_pred,
+    best_orig = _get_most_aligned_peak(peaks_pred,
                                       [peaks_orig[:, :, :, 0:3],
                                        peaks_orig[:, :, :, 3:6],
                                        peaks_orig[:, :, :, 6:9]])
@@ -323,7 +304,7 @@ def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
 
 def get_weighted_mean_of_peaks(best_orig, tom, weight=0.5):
     """
-    Calculate weighted mean between best_orig peaks and tom peaks.
+    Calculate weighted mean between best_orig peaks and TOM peaks.
 
     Args:
         best_orig: original peaks
@@ -343,13 +324,6 @@ def get_weighted_mean_of_peaks(best_orig, tom, weight=0.5):
 def add_to_each_streamline(streamlines, scalar):
     """
     Add scalar value to each coordinate of each streamline
-
-    Args:
-        streamlines:
-        scalar:
-
-    Returns:
-
     """
     sl_new = []
     for sl in streamlines:

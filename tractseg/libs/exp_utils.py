@@ -7,9 +7,10 @@ import glob
 import os
 import re
 import ast
+import sys
 from os.path import join
 from pprint import pprint
-import sys
+
 import numpy as np
 
 from tractseg.libs.system_config import SystemConfig as C
@@ -18,12 +19,10 @@ from tractseg.libs import utils
 
 
 def create_experiment_folder(experiment_name, multi_parent_path, train):
-    '''
-    Create a new experiment folder. If it already exist, create new one with increasing number at the end.
-
+    """
+    Create a new experiment folder. If it already exists, create new one with increasing number at the end.
     If not training model (only predicting): Use existing folder
-    '''
-
+    """
     if multi_parent_path != "":
         dir = join(multi_parent_path, experiment_name)
     else:
@@ -35,11 +34,9 @@ def create_experiment_folder(experiment_name, multi_parent_path, train):
         else:
             sys.exit('Testing target directory does not exist!')
     else:
-
         for i in range(40):
             if os.path.exists(dir):
-                # tailing_numbers = re.findall('x.*?([0-9]+)$', experiment_name) #not correct
-                tailing_numbers = re.findall('x([0-9]+)$', experiment_name) #find tailing numbers that start with a x
+                tailing_numbers = re.findall('x([0-9]+)$', experiment_name)  # find tailing numbers that start with a x
                 if len(tailing_numbers) > 0:
                     num = int(tailing_numbers[0])
                     if num < 10:
@@ -65,7 +62,6 @@ def make_dir(directory):
 
 
 def print_Configs(Config):
-    # dict = copy.deepcopy(Config.__dict__)
     dict = {attr: getattr(Config, attr) for attr in dir(Config)
             if not callable(getattr(Config, attr)) and not attr.startswith("__")}
     dict.pop("TRAIN_SUBJECTS", None)
@@ -107,7 +103,6 @@ def get_brain_mask_path(Config, args):
         print("Loading brain mask from: {}".format(brain_mask_path))
         return brain_mask_path
 
-    # raise ValueError("no brainmask available")
     return None
 
 
@@ -251,10 +246,9 @@ def get_bundle_names(CLASSES):
 
     else:
         #1 tract
-        # bundles = ["CST_right"]
         bundles = [CLASSES]
 
-    return ["BG"] + bundles    #Add Background label (is always beginning of list)
+    return ["BG"] + bundles  # Add Background label (is always beginning of list)
 
 
 def get_ACT_noACT_bundle_names():
@@ -267,9 +261,7 @@ def get_ACT_noACT_bundle_names():
            'T_OCC_left', 'T_OCC_right', 'ST_FO_left', 'ST_FO_right', 'ST_PREF_left', 'ST_PREF_right', 'ST_PREM_left',
            'ST_PREM_right', 'ST_PREC_left', 'ST_PREC_right', 'ST_POSTC_left', 'ST_POSTC_right', 'ST_PAR_left',
            'ST_PAR_right', 'ST_OCC_left', 'ST_OCC_right']
-
     noACT = ["CA", "IFO_left", "IFO_right", "UF_left", "UF_right"]
-
     return ACT, noACT
 
 
@@ -397,15 +389,16 @@ def get_labels_filename(Config):
     return Config
 
 
-
 def add_background_class(data):
-    '''
-    List of 3D Array with bundle masks; shape: (nr_bundles, x,y,z)
+    """
     Calculate BG class (where no other class is 1) and add it at idx=0 to array.
-    Returns with nr_bundles shape in last dim: (x,y,z,nr_bundles)
-    :param data:
-    :return:
-    '''
+
+    Args:
+        data: 3D array with bundle masks (nr_bundles, x,y,z)
+
+    Returns:
+        (x,y,z,nr_bundles+1)
+    """
     s = data[0].shape
     mask_ml = np.zeros((s[0], s[1], s[2], len(data) + 1))
     background = np.ones((s[0], s[1], s[2]))  # everything that contains no bundle
@@ -420,20 +413,13 @@ def add_background_class(data):
 
 
 def get_cv_fold(fold, dataset="HCP"):
-    '''
-    Brauche train-validate-test wegen Best-model selection und wegen training von combined net
-    :return:
-    '''
-
     if dataset == "HCP_all":
         subjects = get_all_subjects(dataset)
         cut_point = int(len(subjects) * 0.9)
-        return subjects[:cut_point], subjects[cut_point:], ["599469", "599469"]
+        return subjects[:cut_point], subjects[cut_point:], ["599671", "599469"]
     else:
-        #For CV
         if fold == 0:
             train, validate, test = [0, 1, 2], [3], [4]
-            # train, validate, test = [0, 1, 2, 3, 4], [3], [4]
         elif fold == 1:
             train, validate, test = [1, 2, 3], [4], [0]
         elif fold == 2:
@@ -446,11 +432,10 @@ def get_cv_fold(fold, dataset="HCP"):
         subjects = get_all_subjects(dataset)
 
         if dataset.startswith("HCP"):
-            # subjects = list(Utils.chunks(subjects[:100], 10))   #10 folds
             subjects = list(utils.chunks(subjects, 21))   #5 folds a 21 subjects
-            # => 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
+            # 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
         elif dataset.startswith("Schizo"):
-            # 410 subjects
+            # ~410 subjects
             subjects = list(utils.chunks(subjects, 82))  # 5 folds a 82 subjects
         else:
             raise ValueError("Invalid dataset name")
@@ -508,13 +493,6 @@ def get_manual_exp_name_peaks(manual_exp_name, part):
     If want to use manual experiment name for peak regression, replace part nr by X:
     e.g. PeaksPartX_HR_DAug_fold2
     -> will find correct part then automatically
-
-    Args:
-        manual_exp_name:
-        part:
-
-    Returns:
-
     """
     if "PeaksPartX" in manual_exp_name:
         manual_exp_name_parts = manual_exp_name.split("X")
