@@ -17,10 +17,10 @@ def pad_and_scale_img_to_square_img(data, target_size=144, nr_cpus=-1):
     Does
     1. Pad image with 0 to make it square
         (if uneven padding -> adds one more px "behind" img; but resulting img shape will be correct)
-    2. Scale image to UNet size (144, 144, 144)
+    2. Scale image to target size
     """
     nr_dims = len(data.shape)
-    assert (nr_dims >= 3 and nr_dims <= 4)
+    assert (nr_dims >= 3 and nr_dims <= 4), "image has to be 3D or 4D"
 
     shape = data.shape
     biggest_dim = max(shape)
@@ -69,7 +69,7 @@ def cut_and_scale_img_back_to_original_img(data, t, nr_cpus=-1):
         3D or 4D image
     """
     nr_dims = len(data.shape)
-    assert (nr_dims >= 3 and nr_dims <= 4)
+    assert (nr_dims >= 3 and nr_dims <= 4), "image has to be 3D or 4D"
 
     # Back to old size
     # use order=0, otherwise image values of a DWI will be quite different after downsampling and upsampling
@@ -182,7 +182,6 @@ def sample_slices(data, seg, slice_idxs, slice_direction=0, labels_type=np.int16
         y = seg[:, :, slice_idxs].astype(labels_type)
         x = np.array(x).transpose(2, 3, 0, 1)
         y = np.array(y).transpose(2, 3, 0, 1)
-
     return x, y
 
 
@@ -191,6 +190,7 @@ def sample_Xslices(data, seg, slice_idxs, slice_direction=0, labels_type=np.int1
     Sample slices but add slices_window/2 above and below.
     """
     sw = slice_window  # slice_window (only odd numbers allowed)
+    assert sw % 2 == 1, "Slice_window has to be an odd number"
     pad = int((sw - 1) / 2)
 
     if slice_direction == 0:
@@ -216,16 +216,16 @@ def sample_Xslices(data, seg, slice_idxs, slice_direction=0, labels_type=np.int1
             batch.append(x)
         elif slice_direction == 1:
             x = data_pad[pad:-pad, s_idx:s_idx + sw, pad:-pad, :].astype(np.float32)  # (5, y, z, channels)
-            x = np.array(x).transpose(1, 3, 0, 2)  # channels dim has to be before width and height for Unet (but after batches)
+            x = np.array(x).transpose(1, 3, 0, 2)
             x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
             batch.append(x)
         elif slice_direction == 2:
             x = data_pad[pad:-pad, pad:-pad, s_idx:s_idx + sw, :].astype(np.float32)  # (5, y, z, channels)
-            x = np.array(x).transpose(2, 3, 0, 1)  # channels dim has to be before width and height for Unet (but after batches)
+            x = np.array(x).transpose(2, 3, 0, 1)
             x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))  # (5*channels, y, z)
             batch.append(x)
 
-    return np.array(batch), y  # (batch_size, channels, x, y, [z])
+    return np.array(batch), y  # (bs, channels, x, y)
 
 
 def scale_input_to_unet_shape(img4d, dataset, resolution="1.25mm"):

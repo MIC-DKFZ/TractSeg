@@ -135,7 +135,6 @@ if len(streamlines) > 0:
 else:
     print("Bundle contains 0 streamlines -> returning empty image")
 
-#Save Binary Mask
 dm_binary_img = nib.Nifti1Image(mask_start.astype("uint8"), ref_img.affine)
 nib.save(dm_binary_img, file_out + "_beginnings.nii.gz")
 dm_binary_img = nib.Nifti1Image(mask_end.astype("uint8"), ref_img.affine)
