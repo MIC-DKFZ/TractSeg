@@ -98,12 +98,12 @@ def main():
 
     #Autoset input dimensions based on settings
     Config.INPUT_DIM = dataset_specific_utils.get_correct_input_dim(Config)
-    Config = exp_utils.get_labels_filename(Config)
+    Config = dataset_specific_utils.get_labels_filename(Config)
 
     if Config.EXPERIMENT_TYPE == "peak_regression":
-        Config.NR_OF_CLASSES = 3*len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+        Config.NR_OF_CLASSES = 3*len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
     else:
-        Config.NR_OF_CLASSES = len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+        Config.NR_OF_CLASSES = len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
 
     if Config.TRAIN and not Config.ONLY_VAL:
         Config.EXP_PATH = exp_utils.create_experiment_folder(Config.EXP_NAME, Config.MULTI_PARENT_PATH, Config.TRAIN)

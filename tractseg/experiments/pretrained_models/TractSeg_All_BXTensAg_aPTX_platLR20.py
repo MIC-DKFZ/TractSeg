@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from tractseg.libs import exp_utils
+from tractseg.data import dataset_specific_utils
 from tractseg.experiments.base_legacy.tract_seg_legacy import Config as TractSegConfig
 
 
@@ -15,7 +15,7 @@ class Config(TractSegConfig):
     P_SAMP = 0.4
 
     CLASSES = "AutoPTX_42"
-    NR_OF_CLASSES = len(exp_utils.get_bundle_names(CLASSES)[1:])
+    NR_OF_CLASSES = len(dataset_specific_utils.get_bundle_names(CLASSES)[1:])
 
     DATASET = "HCP_all"
 

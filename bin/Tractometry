@@ -13,8 +13,8 @@ from nibabel import trackvis
 from dipy.tracking.streamline import transform_streamlines
 
 from tractseg.libs import fiber_utils
-from tractseg.libs import exp_utils
 from tractseg.libs import tractometry
+from tractseg.data import dataset_specific_utils
 
 
 def main():
@@ -71,14 +71,14 @@ def main():
     scalar_image = nib.load(args.scalar_img)
 
     if args.test == 1:
-        bundles = exp_utils.get_bundle_names("test")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("test")[1:]
     elif args.test == 2:
-        bundles = exp_utils.get_bundle_names("toy")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("toy")[1:]
         DILATION = 0
     elif args.test == 3:
-        bundles = exp_utils.get_bundle_names("test_single")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("test_single")[1:]
     else:
-        bundles = exp_utils.get_bundle_names("All_tractometry")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
     results = []
     for bundle in bundles:

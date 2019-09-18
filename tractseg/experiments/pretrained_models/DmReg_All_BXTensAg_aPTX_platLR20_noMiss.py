@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from tractseg.libs import exp_utils
+from tractseg.data import dataset_specific_utils
 from tractseg.experiments.base_legacy.dm_reg_legacy import Config as DmRegConfig
 
 
@@ -15,7 +15,7 @@ class Config(DmRegConfig):
     P_SAMP = 0.4
 
     CLASSES = "AutoPTX_42"
-    NR_OF_CLASSES = len(exp_utils.get_bundle_names(CLASSES)[1:])
+    NR_OF_CLASSES = len(dataset_specific_utils.get_bundle_names(CLASSES)[1:])
 
     # THRESHOLD = 0.001  # Final DM wil be thresholded at this value
     THRESHOLD = 0.0001  # use lower value so user has more choice

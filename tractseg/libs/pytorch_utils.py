@@ -7,6 +7,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from tractseg.data import dataset_specific_utils
+
 
 def save_checkpoint(path, **kwargs):
     for key, value in list(kwargs.items()):
@@ -185,7 +187,7 @@ def angle_length_loss(y_pred, y_true, weights):
     # Single threshold
 
     # score_per_bundle = {}
-    # bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+    # bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
 
     nr_of_classes = int(y_true.shape[-1] / 3.)
     scores = torch.zeros(nr_of_classes)

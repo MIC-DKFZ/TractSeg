@@ -14,6 +14,7 @@ from tqdm import tqdm
 from tractseg.libs.system_config import get_config_name
 from tractseg.libs import exp_utils
 from tractseg.libs import mrtrix
+from tractseg.data import dataset_specific_utils
 
 warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)  # hide h5py warnings
@@ -116,13 +117,13 @@ def main():
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
 
     if args.test == 1:
-        bundles = exp_utils.get_bundle_names("test")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("test")[1:]
     elif args.test == 2:
-        bundles = exp_utils.get_bundle_names("toy")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("toy")[1:]
     elif args.test == 3:
-        bundles = exp_utils.get_bundle_names("test_single")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("test_single")[1:]
     else:
-        bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+        bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
 
     for bundle in tqdm(bundles):
         mrtrix.track(bundle, input_path, Config.PREDICT_IMG_OUTPUT,

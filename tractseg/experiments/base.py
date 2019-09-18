@@ -4,9 +4,8 @@ from __future__ import division
 from __future__ import print_function
 
 from os.path import join
-import numpy as np
 
-from tractseg.libs import exp_utils
+from tractseg.data import dataset_specific_utils
 from tractseg.libs.system_config import SystemConfig as C
 
 
@@ -53,8 +52,7 @@ class Config:
     OPTIMIZER = "Adamax"
     CLASSES = "All"             # All / 11 / 20 / CST_right
     NR_OF_GRADIENTS = 9
-    NR_OF_CLASSES = len(exp_utils.get_bundle_names(CLASSES)[1:])
-    # NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(CLASSES)[1:])
+    NR_OF_CLASSES = len(dataset_specific_utils.get_bundle_names(CLASSES)[1:])
 
     INPUT_DIM = None  # (80, 80) / (144, 144)
     LOSS_WEIGHT = None  # None: no weighting

@@ -146,7 +146,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     if Config.EXPERIMENT_TYPE == "tract_segmentation" or Config.EXPERIMENT_TYPE == "endings_segmentation" or \
             Config.EXPERIMENT_TYPE == "dm_regression":
         print("Loading weights from: {}".format(Config.WEIGHTS_PATH))
-        Config.NR_OF_CLASSES = len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+        Config.NR_OF_CLASSES = len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
         utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
                                           dropout_sampling=Config.DROPOUT_SAMPLING)
         model = BaseModel(Config, inference=True)
@@ -184,7 +184,7 @@ def run_tractseg(data, output_type="tract_segmentation",
         else:
             parts = [peak_regression_part]
             Config.CLASSES = "All_" + peak_regression_part
-            Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+            Config.NR_OF_CLASSES = 3 * len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
 
         for idx, part in enumerate(parts):
             if manual_exp_name is not None:
@@ -195,7 +195,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                 Config.WEIGHTS_PATH = join(C.TRACT_SEG_HOME, weights[part])
             print("Loading weights from: {}".format(Config.WEIGHTS_PATH))
             Config.CLASSES = "All_" + part
-            Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+            Config.NR_OF_CLASSES = 3 * len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
             utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
                                               dropout_sampling=Config.DROPOUT_SAMPLING, part=part)
             model = BaseModel(Config, inference=True)
@@ -218,13 +218,13 @@ def run_tractseg(data, output_type="tract_segmentation",
 
         if peak_regression_part == "All":
             Config.CLASSES = "All"
-            Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+            Config.NR_OF_CLASSES = 3 * len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
             seg = seg_all
 
 
     if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing:
         # Runtime ~4s
-        seg = img_utils.bundle_specific_postprocessing(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])
+        seg = img_utils.bundle_specific_postprocessing(seg, dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
 
     # runtime on HCP data: 5.1s
     seg = data_utils.cut_and_scale_img_back_to_original_img(seg, transformation, nr_cpus=nr_cpus)
@@ -233,14 +233,14 @@ def run_tractseg(data, output_type="tract_segmentation",
 
     if Config.EXPERIMENT_TYPE == "peak_regression":
         seg = peak_utils.mask_and_normalize_peaks(seg, tract_segmentations_path,
-                                                  exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                  dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:],
                                                   TOM_dilation, nr_cpus=nr_cpus)
 
     if Config.EXPERIMENT_TYPE == "tract_segmentation" and postprocess:
         # Runtime ~7s for 1.25mm resolution
         # Runtime ~1.5s for  2mm resolution
         st = time.time()
-        seg = img_utils.postprocess_segmentations(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:],
+        seg = img_utils.postprocess_segmentations(seg, dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:],
                                                   blob_thr=blob_size_thr, hole_closing=None)
 
     exp_utils.print_verbose(Config, "Took {}s".format(round(time.time() - start_time, 2)))

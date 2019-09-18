@@ -8,7 +8,7 @@ from sklearn.metrics import f1_score
 # from medpy import metric
 
 from tractseg.libs import exp_utils
-
+from tractseg.data import dataset_specific_utils
 
 def my_f1_score(y_true, y_pred):
     '''
@@ -228,7 +228,7 @@ def calc_peak_dice_onlySeg(Config, y_pred, y_true):
     '''
 
     score_per_bundle = {}
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
         y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -276,7 +276,7 @@ def calc_peak_dice(Config, y_pred, y_true, max_angle_error=[0.9]):
 
 
     score_per_bundle = {}
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
         y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -332,7 +332,7 @@ def calc_peak_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9]):
     #Single threshold
     if len(max_angle_error) == 1:
         score_per_bundle = {}
-        bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+        bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             # if bundle == "CST_right":
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
@@ -353,7 +353,7 @@ def calc_peak_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9]):
     #multiple thresholds
     else:
         score_per_bundle = {}
-        bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+        bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
             # if bundle == "CST_right":
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
@@ -397,7 +397,7 @@ def calc_peak_length_dice(Config, y_pred, y_true, max_angle_error=[0.9], max_len
 
 
     score_per_bundle = {}
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
         y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
@@ -459,7 +459,7 @@ def calc_peak_length_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9],
 
     #Single threshold
     score_per_bundle = {}
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[..., (idx * 3):(idx * 3) + 3].contiguous()
         y_true_bund = y_true[..., (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]

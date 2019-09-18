@@ -1,5 +1,5 @@
 
-from tractseg.libs import exp_utils
+from tractseg.data import dataset_specific_utils
 from tractseg.experiments.base import Config as BaseConfig
 
 

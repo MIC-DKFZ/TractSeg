@@ -8,6 +8,7 @@ import math
 import numpy as np
 
 from tractseg.libs import exp_utils
+from tractseg.data import dataset_specific_utils
 
 import matplotlib
 matplotlib.use('Agg') #Solves error with ssh and plotting
@@ -77,7 +78,7 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
     for j, bundle in enumerate(bundles):
         i = 0  #only one method
 
-        bundle_idx = exp_utils.get_bundle_names(classes)[1:].index(bundle)
+        bundle_idx = dataset_specific_utils.get_bundle_names(classes)[1:].index(bundle)
         mask_data = bundle_segmentations[:,:,:,bundle_idx]
 
         if bundle == "CST_right":
@@ -181,7 +182,7 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
         else:
             raise ValueError("invalid bundle")
 
-        bundle_idx = exp_utils.get_bundle_names(classes)[1:].index(bundle)
+        bundle_idx = dataset_specific_utils.get_bundle_names(classes)[1:].index(bundle)
         mask_data = bundle_segmentations[:, :, :, bundle_idx]
         mask_data = np.copy(mask_data)  # copy data otherwise will also threshold data outside of plot function
         # mask_data[mask_data < threshold] = 0

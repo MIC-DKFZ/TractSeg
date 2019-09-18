@@ -21,6 +21,7 @@ from tractseg.libs import peak_utils
 from tractseg.python_api import run_tractseg
 from tractseg.libs.utils import bcolors
 from tractseg.libs.system_config import SystemConfig as C
+from tractseg.data import dataset_specific_utils
 
 warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
 warnings.simplefilter("ignore", FutureWarning)  # hide h5py warnings
@@ -278,7 +279,7 @@ def main():
     for part in parts:
         if part.startswith("Part"):
             Config.CLASSES = "All_" + part
-            Config.NR_OF_CLASSES = 3 * len(exp_utils.get_bundle_names(Config.CLASSES)[1:])
+            Config.NR_OF_CLASSES = 3 * len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
 
         seg = run_tractseg(data, args.output_type,
                            single_orientation=single_orientation,

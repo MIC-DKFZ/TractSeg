@@ -18,6 +18,7 @@ from dipy.align.imaffine import AffineMap
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
+from tractseg.data import dataset_specific_utils
 
 
 def pad_3d_image(image, pad_size, pad_value=None):
@@ -266,7 +267,7 @@ def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder
     """
     One-hot encoding of all bundles in one big image
     """
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)
+    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)
 
     #Masks sind immer HCP_highRes (später erst downsample)
     mask_ml = np.zeros((145, 174, 145, len(bundles)))
@@ -284,7 +285,7 @@ def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder
 
 
 def save_multilabel_img_as_multiple_files(Config, img, affine, path, name="bundle_segmentations"):
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
         exp_utils.make_dir(join(path, name))
@@ -292,7 +293,7 @@ def save_multilabel_img_as_multiple_files(Config, img, affine, path, name="bundl
 
 
 def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path, name="TOM"):
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         data = img[:, :, :, (idx*3):(idx*3)+3]
 
@@ -308,7 +309,7 @@ def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path, name=
 
 
 def save_multilabel_img_as_multiple_files_endings(Config, img, affine, path):
-    bundles = exp_utils.get_bundle_names(Config.CLASSES)[1:]
+    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
         exp_utils.make_dir(join(path, "endings_segmentations"))

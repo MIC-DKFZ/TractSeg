@@ -14,7 +14,6 @@ from pprint import pprint
 
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
-from tractseg.libs import data_utils
 from tractseg.libs import plot_utils
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.data import dataset_specific_utils
@@ -345,7 +344,7 @@ def test_whole_subject(Config, model, subjects, type):
 
     # Metrics per bundle
     metrics_bundles = {}
-    for bundle in exp_utils.get_bundle_names(Config.CLASSES)[1:]:
+    for bundle in dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]:
         metrics_bundles[bundle] = [0]
 
     for subject in subjects:
@@ -367,7 +366,7 @@ def test_whole_subject(Config, model, subjects, type):
             metrics = metric_utils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean,
                                                      type=type, threshold=Config.THRESHOLD)
             metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, None, None,
-                                                                         exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                                         dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:],
                                                                          f1, threshold=Config.THRESHOLD)
         else:
             img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
@@ -375,7 +374,7 @@ def test_whole_subject(Config, model, subjects, type):
             metrics = metric_utils.calculate_metrics(metrics, img_y, img_probs, 0,
                                                      type=type, threshold=Config.THRESHOLD)
             metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs,
-                                                                         exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                                         dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:],
                                                                          threshold=Config.THRESHOLD)
 
     metrics = metric_utils.normalize_last_element(metrics, len(subjects), type=type)

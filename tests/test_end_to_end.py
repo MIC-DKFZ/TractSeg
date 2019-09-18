@@ -8,6 +8,8 @@ import nibabel as nib
 import numpy as np
 
 from tractseg.libs import exp_utils
+from tractseg.data import dataset_specific_utils
+
 
 class test_end_to_end(unittest.TestCase):
 
@@ -21,7 +23,7 @@ class test_end_to_end(unittest.TestCase):
     #     self.assertTrue(images_equal, "CSD peaks not correct")
 
     def test_tractseg_output(self):
-        bundles = exp_utils.get_bundle_names("All")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_data()
             img_new = nib.load("examples/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
@@ -29,7 +31,7 @@ class test_end_to_end(unittest.TestCase):
             self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
 
     def test_tractseg_output_SR_noPP(self):
-        bundles = exp_utils.get_bundle_names("All")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
             # IFO very different on travis than locally. Unclear why. All other bundles are fine.
             if bundle != "IFO_right":
@@ -45,7 +47,7 @@ class test_end_to_end(unittest.TestCase):
                                               "(nr of differing voxels: " + str(nr_differing_voxels) + ")")
 
     def test_endingsseg_output(self):
-        bundles = exp_utils.get_bundle_names("All")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
             img_new = nib.load("examples/tractseg_output/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
@@ -58,7 +60,7 @@ class test_end_to_end(unittest.TestCase):
             self.assertTrue(images_equal, "Bundle endings are not correct (bundle: " + bundle + "_e)")
 
     def test_peakreg_output(self):
-        bundles = exp_utils.get_bundle_names("All")[1:]
+        bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
             img_ref = nib.load("tests/reference_files/TOM/" + bundle + ".nii.gz").get_data()
             img_new = nib.load("examples/tractseg_output/TOM/" + bundle + ".nii.gz").get_data()
