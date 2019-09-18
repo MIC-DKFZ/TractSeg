@@ -21,14 +21,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
 from os.path import join
 import nibabel as nib
-import numpy as np
 from joblib import Parallel, delayed
 
 from tractseg.libs.system_config import SystemConfig as C
-from tractseg.libs.subjects import get_all_subjects
+from tractseg.data.subjects import get_all_subjects
 from tractseg.libs import img_utils
 
 

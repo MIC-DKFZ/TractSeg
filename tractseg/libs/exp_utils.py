@@ -14,8 +14,6 @@ from pprint import pprint
 import numpy as np
 
 from tractseg.libs.system_config import SystemConfig as C
-from tractseg.libs.subjects import get_all_subjects
-from tractseg.libs import utils
 
 
 def create_experiment_folder(experiment_name, multi_parent_path, train):
@@ -127,38 +125,6 @@ def add_background_class(data):
 
     mask_ml[:, :, :, 0] = background
     return mask_ml
-
-
-def get_cv_fold(fold, dataset="HCP"):
-    if dataset == "HCP_all":
-        subjects = get_all_subjects(dataset)
-        cut_point = int(len(subjects) * 0.9)
-        return subjects[:cut_point], subjects[cut_point:], ["599671", "599469"]
-    else:
-        if fold == 0:
-            train, validate, test = [0, 1, 2], [3], [4]
-        elif fold == 1:
-            train, validate, test = [1, 2, 3], [4], [0]
-        elif fold == 2:
-            train, validate, test = [2, 3, 4], [0], [1]
-        elif fold == 3:
-            train, validate, test = [3, 4, 0], [1], [2]
-        elif fold == 4:
-            train, validate, test = [4, 0, 1], [2], [3]
-
-        subjects = get_all_subjects(dataset)
-
-        if dataset.startswith("HCP"):
-            subjects = list(utils.chunks(subjects, 21))   #5 folds a 21 subjects
-            # 5 fold CV ok (score only 1%-point worse than 10 folds (80 vs 60 train subjects) (10 Fold CV impractical!)
-        elif dataset.startswith("Schizo"):
-            # ~410 subjects
-            subjects = list(utils.chunks(subjects, 82))  # 5 folds a 82 subjects
-        else:
-            raise ValueError("Invalid dataset name")
-
-        subjects = np.array(subjects)
-        return list(subjects[train].flatten()), list(subjects[validate].flatten()), list(subjects[test].flatten())
 
 
 def print_and_save(Config, text, only_log=False):

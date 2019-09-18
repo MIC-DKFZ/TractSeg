@@ -90,7 +90,7 @@ def main():
 
     Config.MULTI_PARENT_PATH = join(C.EXP_PATH, Config.EXP_MULTI_NAME)
     Config.EXP_PATH = join(C.EXP_PATH, Config.EXP_MULTI_NAME, Config.EXP_NAME)
-    Config.TRAIN_SUBJECTS, Config.VALIDATE_SUBJECTS, Config.TEST_SUBJECTS = exp_utils.get_cv_fold(Config.CV_FOLD,
+    Config.TRAIN_SUBJECTS, Config.VALIDATE_SUBJECTS, Config.TEST_SUBJECTS = dataset_specific_utils.get_cv_fold(Config.CV_FOLD,
                                                                                                   dataset=Config.DATASET)
 
     if Config.WEIGHTS_PATH == "":

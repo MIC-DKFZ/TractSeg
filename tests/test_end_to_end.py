@@ -7,7 +7,6 @@ import unittest
 import nibabel as nib
 import numpy as np
 
-from tractseg.libs import exp_utils
 from tractseg.data import dataset_specific_utils
 
 

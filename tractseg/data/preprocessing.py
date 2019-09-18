@@ -29,7 +29,7 @@ from joblib import Parallel, delayed
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import data_utils
-from tractseg.libs.subjects import get_all_subjects
+from tractseg.data.subjects import get_all_subjects
 from tractseg.libs import exp_utils
 
 #todo: adapt
