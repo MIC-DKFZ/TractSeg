@@ -1,35 +1,15 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 import warnings
-warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
-warnings.simplefilter("ignore", FutureWarning)  # hide h5py warnings
-warnings.filterwarnings("ignore", message="numpy.dtype size changed")  # hide Cython benign warning
-warnings.filterwarnings("ignore", message="numpy.ufunc size changed")  # hide Cython benign warning
 import argparse
 import importlib
 import os
 from os.path import join
 import sys
-from tqdm import tqdm
 import nibabel as nib
 
 from tractseg.libs.system_config import get_config_name
@@ -41,6 +21,11 @@ from tractseg.libs import peak_utils
 from tractseg.python_api import run_tractseg
 from tractseg.libs.utils import bcolors
 from tractseg.libs.system_config import SystemConfig as C
+
+warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)  # hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")  # hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")  # hide Cython benign warning
 
 
 def main():
@@ -173,21 +158,21 @@ def main():
     args = parser.parse_args()
 
 
-    #Private parameters
-    input_type = "peaks"  # peaks / T1
-    dropout_sampling = args.uncertainty
-    threshold = 0.5          # specificity (tract_segmentation and endings_segmentation)
-    peak_threshold = 0.3     # specificity (TOM)
-    automatically_flip_peaks = False
+    # More parameters
+    input_type = "peaks"  # peaks|T1
+    threshold = 0.5          # specificity (for tract_segmentation and endings_segmentation)
+    peak_threshold = 0.3     # specificity (for TOM)
     blob_size_thr = 25  # default: 50
     manual_exp_name = args.exp_name
-    # if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
-    # if using 5 -> 12% faster runtime on CPU
+    # inference_batch_size:
+    #   if using 48 -> 30% faster runtime on CPU but needs 30GB RAM instead of 4.5GB
+    #   if using 5 -> 12% faster runtime on CPU
     inference_batch_size = 1
     TOM_dilation = 1  # 1 also ok for HCP because in tracking again filtered by mask
     bedpostX_input = False
     postprocess = not args.no_postprocess
     bundle_specific_postprocessing = True
+    dropout_sampling = args.uncertainty
     input_path = args.input
     single_orientation = args.single_orientation
     if args.output_type == "TOM":
@@ -241,6 +226,8 @@ def main():
         mrtrix.create_fods(input_path, Config.PREDICT_IMG_OUTPUT, bvals, bvecs,
                            brain_mask, Config.CSD_TYPE, nr_cpus=args.nr_cpus)
 
+    #todo: more comments? Also for bigger blocks
+
     if args.raw_diffusion_input:
         peak_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
         data_img = nib.load(peak_path)
@@ -271,7 +258,7 @@ def main():
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
     data_affine = data_img.affine
     data = data_img.get_data()
-    data_img = None     # free memory
+    del data_img     # free memory
 
     #Use Peaks + T1
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
@@ -286,7 +273,6 @@ def main():
             print("INFO: Only using Part1")
             parts = ["Part1"]
     else:
-        # parts = ["All"]
         parts = [Config.CLASSES]
 
     for part in parts:
@@ -308,7 +294,6 @@ def main():
 
         if args.preview and Config.CLASSES not in ["All_Part2", "All_Part3", "All_Part4"]:
             print("Saving preview...")
-            # plot_utils.plot_tracts(Config.CLASSES, seg, data_affine, Config.PREDICT_IMG_OUTPUT, brain_mask=None)
             plot_utils.plot_tracts_matplotlib(Config.CLASSES, seg, data, Config.PREDICT_IMG_OUTPUT,
                                               threshold=Config.THRESHOLD, exp_type=Config.EXPERIMENT_TYPE)
 
@@ -319,7 +304,7 @@ def main():
 
         if Config.SINGLE_OUTPUT_FILE:
             img = nib.Nifti1Image(seg, data_affine)
-            seg = None
+            del seg
             if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
                 nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
             elif Config.EXPERIMENT_TYPE == "tract_segmentation":
@@ -330,7 +315,7 @@ def main():
                 nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
             elif Config.EXPERIMENT_TYPE == "dm_regression":
                 nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
-            img = None  # Free memory (before we run tracking)
+            del img  # Free memory (before we run tracking)
         else:
             if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
                 img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
@@ -350,7 +335,7 @@ def main():
             elif Config.EXPERIMENT_TYPE == "dm_regression":
                 img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
                                                                 Config.PREDICT_IMG_OUTPUT, name="dm_regression")
-            seg = None  # Free memory (before we run tracking)
+            del seg  # Free memory (before we run tracking)
 
         if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
             mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
@@ -358,8 +343,6 @@ def main():
     Config.CLASSES = "All"
 
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
-
-    # print(bcolors.GREEN + "Finished " + u'\u2713' + bcolors.ENDC)  # Color coding does not working in travis
 
 
 if __name__ == '__main__':

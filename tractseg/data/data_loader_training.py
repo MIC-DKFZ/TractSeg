@@ -1,19 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 """
 Code to load data and to create batches of 2D slices from 3D images.
@@ -60,7 +44,6 @@ from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
 from tractseg.libs import peak_utils
 
-# warnings.simplefilter("ignore", UserWarning)  # hide batchgenerator warnings
 
 def load_training_data(Config, subject):
     """
@@ -158,20 +141,6 @@ def load_training_data(Config, subject):
 
 
     seg = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.LABELS_FILENAME))
-
-    # Not needed anymore when using preprocessed input data
-    # data = np.nan_to_num(data)
-    # seg = np.nan_to_num(seg)
-
-    # This no needed anymore because padding/cropping is done automatically. Only downsampling is not done automatically
-    # if Config.LABELS_FILENAME not in ["bundle_peaks_11_808080", "bundle_peaks_20_808080", "bundle_peaks_808080",
-    #                                        "bundle_masks_20_808080", "bundle_masks_72_808080", "bundle_peaks_Part1_808080",
-    #                                        "bundle_peaks_Part2_808080", "bundle_peaks_Part3_808080", "bundle_peaks_Part4_808080"]:
-    #     if Config.DATASET in ["HCP_2mm", "HCP_2.5mm", "HCP_32g"]:
-    #         # By using "HCP" but lower resolution scale_input_to_unet_shape will automatically downsample the HCP sized seg_mask to the lower resolution
-    #         seg = dataset_utils.scale_input_to_unet_shape(seg, "HCP", Config.RESOLUTION)
-    #     else:
-    #         seg = dataset_utils.scale_input_to_unet_shape(seg, Config.DATASET, Config.RESOLUTION)  # (x, y, z, classes)
 
     return data, seg
 

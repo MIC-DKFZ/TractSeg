@@ -1,33 +1,14 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 """
 This module is for training the model. See Readme.md for more details about training your own model.
 
-How to use this module:
+Examples:
+    Run local:
+    $ ExpRunner --config=XXX
 
-#Run local:
-ExpRunner --config=XXX
-
-#Run slurm cluster:
-sbatch --job-name=XXX ~/runner.sh   (runner.sh not provided)
-
-#Predicting with new config setup:
-ExpRunner --train=False --test=True --lw --config=XXX
+    Predicting with new config setup:
+    $ ExpRunner --train=False --test=True --lw --config=XXX
 """
 
 from __future__ import absolute_import
@@ -35,26 +16,21 @@ from __future__ import division
 from __future__ import print_function
 
 import warnings
-warnings.simplefilter("ignore", UserWarning)    #hide scipy warnings
-warnings.simplefilter("ignore", FutureWarning)    #hide h5py warnings
-warnings.filterwarnings("ignore", message="numpy.dtype size changed") #hide Cython benign warning
-warnings.filterwarnings("ignore", message="numpy.ufunc size changed") #hide Cython benign warning
 import os
 import importlib
 import argparse
-import pickle
-import time
+import pickle as pkl
 from pprint import pprint
 import distutils.util
 from os.path import join
+
 import nibabel as nib
 import numpy as np
-import pickle as pkl
+import torch
 
 from tractseg.libs import direction_merger
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
-from tractseg.libs import metric_utils
 from tractseg.libs import peak_utils
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import trainer
@@ -62,6 +38,11 @@ from tractseg.data.data_loader_training import DataLoaderTraining as DataLoaderT
 from tractseg.data.data_loader_training_3D import DataLoaderTraining as DataLoaderTraining3D
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.models.base_model import BaseModel
+
+warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
+warnings.simplefilter("ignore", FutureWarning)  # hide h5py warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")  # hide Cython benign warning
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")  # hide Cython benign warning
 
 
 def main():
@@ -83,9 +64,10 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output", default=True)
     args = parser.parse_args()
 
+
     Config = getattr(importlib.import_module("tractseg.experiments.base"), "Config")()
     if args.config:
-        # Config.__dict__ does not work properly
+        # Config.__dict__ does not work properly therefore use this approach
         Config = getattr(importlib.import_module("tractseg.experiments.custom." + args.config), "Config")()
 
     if args.en:
@@ -127,8 +109,6 @@ def main():
 
     if Config.DIM != "2D":
         Config.EPOCH_MULTIPLIER = 3
-    # else:
-    #     Config.EPOCH_MULTIPLIER = 1
 
     if Config.VERBOSE:
         print("Hyperparameters:")
@@ -143,65 +123,6 @@ def main():
 
     pkl.dump(Config, open(join(Config.EXP_PATH, "Hyperparameters.pkl"), "wb"))
 
-    def test_whole_subject(Config, model, subjects, type):
-
-        metrics = {
-            "loss_" + type: [0],
-            "f1_macro_" + type: [0],
-        }
-
-        # Metrics per bundle
-        metrics_bundles = {}
-        for bundle in exp_utils.get_bundle_names(Config.CLASSES)[1:]:
-            metrics_bundles[bundle] = [0]
-
-        for subject in subjects:
-            print("{} subject {}".format(type, subject))
-            start_time = time.time()
-
-            data_loader = DataLoaderInference(Config, subject=subject)
-            img_probs, img_y = trainer.predict_img(Config, model, data_loader, probs=True)
-            # img_probs_xyz, img_y = DirectionMerger.get_seg_single_img_3_directions(Config, model, subject=subject)
-            # img_probs = DirectionMerger.mean_fusion(Config.THRESHOLD, img_probs_xyz, probs=True)
-
-            print("Took {}s".format(round(time.time() - start_time, 2)))
-
-            if Config.EXPERIMENT_TYPE == "peak_regression":
-                f1 = metric_utils.calc_peak_length_dice(Config, img_probs, img_y,
-                                                        max_angle_error=Config.PEAK_DICE_THR,
-                                                        max_length_error=Config.PEAK_DICE_LEN_THR)
-                peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
-                metrics = metric_utils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean,
-                                                         type=type, threshold=Config.THRESHOLD)
-                metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, None, None,
-                                                                             exp_utils.get_bundle_names(Config.CLASSES)[1:],
-                                                                             f1, threshold=Config.THRESHOLD)
-            else:
-                img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
-                img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
-                metrics = metric_utils.calculate_metrics(metrics, img_y, img_probs, 0,
-                                                         type=type, threshold=Config.THRESHOLD)
-                metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs,
-                                                                             exp_utils.get_bundle_names(Config.CLASSES)[1:],
-                                                                             threshold=Config.THRESHOLD)
-
-        metrics = metric_utils.normalize_last_element(metrics, len(subjects), type=type)
-        metrics_bundles = metric_utils.normalize_last_element_general(metrics_bundles, len(subjects))
-
-        print("WHOLE SUBJECT:")
-        pprint(metrics)
-        print("WHOLE SUBJECT BUNDLES:")
-        pprint(metrics_bundles)
-
-        with open(join(Config.EXP_PATH, "score_" + type + "-set.txt"), "w") as f:
-            pprint(metrics, f)
-            f.write("\n\nWeights: {}\n".format(Config.WEIGHTS_PATH))
-            f.write("type: {}\n\n".format(type))
-            pprint(metrics_bundles, f)
-        pickle.dump(metrics, open(join(Config.EXP_PATH, "score_" + type + ".pkl"), "wb"))
-        return metrics
-
-
     model = BaseModel(Config)
     if Config.DIM == "2D":
         data_loader = DataLoaderTraining2D(Config)
@@ -210,7 +131,7 @@ def main():
 
     if Config.TRAIN:
         print("Training...")
-        model = trainer.train_model(Config, model, data_loader)
+        trainer.train_model(Config, model, data_loader)
 
     # After Training
     if Config.TRAIN and not Config.ONLY_VAL:
@@ -226,8 +147,7 @@ def main():
 
     if Config.SEGMENT:
         exp_utils.make_dir(join(Config.EXP_PATH, "segmentations"))
-        # all_subjects = Config.VALIDATE_SUBJECTS + Config.TEST_SUBJECTS
-        all_subjects = ["599469"]
+        all_subjects = Config.VALIDATE_SUBJECTS
         for subject in all_subjects:
             print("Get_segmentation subject {}".format(subject))
 
@@ -242,47 +162,25 @@ def main():
                 img_seg, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject)
                 img_seg = direction_merger.mean_fusion(Config.THRESHOLD, img_seg, probs=False)
 
-            #TractSeg
-            # img_utils.save_multilabel_img_as_multiple_files(Config, img_seg,
-            #                                              img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
-            #                                              join(Config.EXP_PATH, "segmentations_" + subject))
-
-            #Tract Beginnings and Endings
-            # img_utils.save_multilabel_img_as_multiple_files_endings(Config, img_seg,
-            #                                               img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
-            #                                               join(Config.EXP_PATH, "segmentations_" + subject))
-
             img = nib.Nifti1Image(img_seg.astype(np.uint8), img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
             nib.save(img, join(Config.EXP_PATH, "segmentations", subject + "_segmentation.nii.gz"))
 
     if Config.TEST:
-        test_whole_subject(Config, model_test, Config.VALIDATE_SUBJECTS, "validate")
-        # test_whole_subject(Config, model_test, Config.TEST_SUBJECTS, "test")
+        trainer.test_whole_subject(Config, model_test, Config.VALIDATE_SUBJECTS, "validate")
 
     if Config.GET_PROBS:
         exp_utils.make_dir(join(Config.EXP_PATH, "probmaps"))
-        # all_subjects = Config.TRAIN_SUBJECTS + Config.VALIDATE_SUBJECTS + Config.TEST_SUBJECTS
-        all_subjects = ["599469", "992774", "994273"]
+        all_subjects = Config.VALIDATE_SUBJECTS
         for subject in all_subjects:
             print("Get_probs subject {}".format(subject))
-
             data_loader = DataLoaderInference(Config, subject=subject)
 
             if Config.EXPERIMENT_TYPE == "peak_regression":
-                # trainerSingle = Trainer(model_test, dataManagerSingle)
                 img_probs, img_y = trainer.predict_img(Config, model_test, data_loader, probs=True)
                 img_probs = peak_utils.remove_small_peaks(img_probs, len_thr=0.4)
             else:
                 img_probs, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject=subject)
                 img_probs = direction_merger.mean_fusion(Config.THRESHOLD, img_probs, probs=True)
-
-            # img_utils.save_multilabel_img_as_multiple_files_peaks(Config, img_probs,
-            #                                               img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
-            #                                               join(Config.EXP_PATH, "probmaps_" + subject))
-
-            # img_utils.save_multilabel_img_as_multiple_files(Config, img_probs,
-            #                                             img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION),
-            #                                             join(Config.EXP_PATH, "probmaps_" + subject))
 
             img = nib.Nifti1Image(img_probs, img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
             nib.save(img, join(Config.EXP_PATH, "probmaps", subject + "_peak.nii.gz"))
@@ -290,10 +188,8 @@ def main():
     eval_script_path = join(os.path.expanduser("~"), "dev/bsp/eval_nonHCP.py")
     if os.path.exists(eval_script_path) and not Config.ONLY_VAL and not Config.TEST:
         print("Evaluating on non HCP data...")
-        # Free GPU memory  (somehow 2.5GB remaining)
-        import torch
-        model = None
-        model_test = None
+        # Free GPU memory  (2.5GB remaining otherwise)
+        del model, model_test
         torch.cuda.empty_cache()
         os.system("python " + eval_script_path + " " + Config.EXP_NAME)
 

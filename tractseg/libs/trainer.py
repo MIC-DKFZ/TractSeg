@@ -1,19 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from __future__ import absolute_import
 from __future__ import division
@@ -26,12 +10,13 @@ import socket
 import datetime
 import numpy as np
 from tqdm import tqdm
+from pprint import pprint
 
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 from tractseg.libs import dataset_utils
 from tractseg.libs import plot_utils
-
+from tractseg.data.data_loader_inference import DataLoaderInference
 
 def train_model(Config, model, data_loader):
 
@@ -49,11 +34,14 @@ def train_model(Config, model, data_loader):
 
     metrics = {}
     for type in ["train", "test", "validate"]:
-        metrics_new = {}
+        # metrics_new = {}
         for metric in Config.METRIC_TYPES:
-            metrics_new[metric + "_" + type] = [0]
-
-        metrics = dict(list(metrics.items()) + list(metrics_new.items()))
+            #todo: metrics.update(....) ?
+            # metrics_new[metric + "_" + type] = [0]
+            #todo: This should work
+            metrics[metric + "_" + type] = [0]
+        #todo: document
+        # metrics = dict(list(metrics.items()) + list(metrics_new.items()))
 
     batch_gen_train = data_loader.get_batch_generator(batch_size=Config.BATCH_SIZE, type="train",
                                                       subjects=getattr(Config, "TRAIN_SUBJECTS"))
@@ -65,18 +53,21 @@ def train_model(Config, model, data_loader):
         # current_lr = Config.LEARNING_RATE * (Config.LR_DECAY ** epoch_nr)
         # current_lr = Config.LEARNING_RATE
 
+        # todo: use time default dict?
         data_preparation_time = 0
         network_time = 0
         metrics_time = 0
         saving_time = 0
         plotting_time = 0
 
+        # todo: use defaultdict ?
         batch_nr = {
             "train": 0,
             "test": 0,
             "validate": 0
         }
 
+        # todo: move to own function
         if Config.LOSS_WEIGHT is None:
             weight_factor = None
         elif Config.LOSS_WEIGHT_LEN == -1:
@@ -121,9 +112,6 @@ def train_model(Config, model, data_loader):
                 x = batch["data"]  # (bs, nr_of_channels, x, y)
                 y = batch["seg"]  # (bs, nr_of_classes, x, y)
 
-                # print("x.shape: {}".format(x.shape))
-                # print("y.shape: {}".format(y.shape))
-
                 data_preparation_time += time.time() - start_time_data_preparation
                 start_time_network = time.time()
                 if type == "train":
@@ -137,6 +125,7 @@ def train_model(Config, model, data_loader):
 
                 start_time_metrics = time.time()
 
+                # move to extra function?
                 if Config.CALC_F1:
                     if Config.EXPERIMENT_TYPE == "peak_regression":
                         peak_f1_mean = np.array([s.to('cpu') for s in list(metr_batch["f1_macro"].values())]).mean()
@@ -170,9 +159,7 @@ def train_model(Config, model, data_loader):
                     plot_utils.plot_result_trixi(trixi, x, y, probs, metr_batch["loss"], metr_batch["f1_macro"], epoch_nr)
 
 
-        ###################################
-        # Post Training tasks (each epoch)
-        ###################################
+        ################################### Post Training tasks (each epoch) ###################################
 
         if Config.ONLY_VAL:
             metrics = metric_utils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
@@ -244,8 +231,6 @@ def train_model(Config, model, data_loader):
         f.write("\n\n")
         f.write("Average Epoch time: {}s".format(sum(epoch_times) / float(len(epoch_times))))
 
-    return model
-
 
 def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=True, only_prediction=False,
                 batch_size=1):
@@ -270,7 +255,8 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
 
     """
 
-    def finalize_data(layers):
+    #todo add _ to helper functions
+    def _finalize_data(layers):
         layers = np.array(layers)
 
         if Config.DIM == "2D":
@@ -285,8 +271,9 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                 layers = layers.transpose(1, 2, 0, 3)
 
         if scale_to_world_shape:
-            layers = dataset_utils.scale_input_to_world_shape(layers, Config.DATASET, Config.RESOLUTION)
+            layers = dataset_utils.scale_input_to_original_shape(layers, Config.DATASET, Config.RESOLUTION)
 
+        #todo: move to top of function
         assert (layers.dtype == np.float32)  # .astype() quite slow -> use assert to make sure type is right
         return layers
 
@@ -318,13 +305,10 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                 samples.append(layer_probs)
 
             samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
-            # samples = np.squeeze(samples) # (NR_SAMPLING, x, y, nrClasses)
-            # layer_probs = np.mean(samples, axis=0)
             layer_probs = np.std(samples, axis=0)    # (bs,x,y,nrClasses)
         else:
             # For normal prediction
             layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
-            # layer_probs = np.squeeze(layer_probs)  # remove bs dimension which is only 1 -> (x, y, nrClasses)
 
         if probs:
             seg = layer_probs   # (x, y, nrClasses)
@@ -332,7 +316,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
             seg = layer_probs
             seg[seg >= Config.THRESHOLD] = 1
             seg[seg < Config.THRESHOLD] = 0
-            seg = seg.astype(np.int16)
+            seg = seg.astype(np.uint8)
 
         if Config.DIM == "2D":
             layers_seg[idx*batch_size:(idx+1)*batch_size, :, :, :] = seg
@@ -345,7 +329,66 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
 
         idx += 1
 
-    layers_seg = finalize_data(layers_seg)
+    layers_seg = _finalize_data(layers_seg)
     if not only_prediction:
-        layers_y = finalize_data(layers_y)
+        layers_y = _finalize_data(layers_y)
     return layers_seg, layers_y   # (Prediction, Groundtruth)
+
+
+def test_whole_subject(Config, model, subjects, type):
+
+    metrics = {
+        "loss_" + type: [0],
+        "f1_macro_" + type: [0],
+    }
+
+    # Metrics per bundle
+    metrics_bundles = {}
+    for bundle in exp_utils.get_bundle_names(Config.CLASSES)[1:]:
+        metrics_bundles[bundle] = [0]
+
+    for subject in subjects:
+        print("{} subject {}".format(type, subject))
+        start_time = time.time()
+
+        data_loader = DataLoaderInference(Config, subject=subject)
+        img_probs, img_y = predict_img(Config, model, data_loader, probs=True)
+        # img_probs_xyz, img_y = DirectionMerger.get_seg_single_img_3_directions(Config, model, subject=subject)
+        # img_probs = DirectionMerger.mean_fusion(Config.THRESHOLD, img_probs_xyz, probs=True)
+
+        print("Took {}s".format(round(time.time() - start_time, 2)))
+
+        if Config.EXPERIMENT_TYPE == "peak_regression":
+            f1 = metric_utils.calc_peak_length_dice(Config, img_probs, img_y,
+                                                    max_angle_error=Config.PEAK_DICE_THR,
+                                                    max_length_error=Config.PEAK_DICE_LEN_THR)
+            peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles
+            metrics = metric_utils.calculate_metrics(metrics, None, None, 0, f1=peak_f1_mean,
+                                                     type=type, threshold=Config.THRESHOLD)
+            metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, None, None,
+                                                                         exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                                         f1, threshold=Config.THRESHOLD)
+        else:
+            img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
+            img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
+            metrics = metric_utils.calculate_metrics(metrics, img_y, img_probs, 0,
+                                                     type=type, threshold=Config.THRESHOLD)
+            metrics_bundles = metric_utils.calculate_metrics_each_bundle(metrics_bundles, img_y, img_probs,
+                                                                         exp_utils.get_bundle_names(Config.CLASSES)[1:],
+                                                                         threshold=Config.THRESHOLD)
+
+    metrics = metric_utils.normalize_last_element(metrics, len(subjects), type=type)
+    metrics_bundles = metric_utils.normalize_last_element_general(metrics_bundles, len(subjects))
+
+    print("WHOLE SUBJECT:")
+    pprint(metrics)
+    print("WHOLE SUBJECT BUNDLES:")
+    pprint(metrics_bundles)
+
+    with open(join(Config.EXP_PATH, "score_" + type + "-set.txt"), "w") as f:
+        pprint(metrics, f)
+        f.write("\n\nWeights: {}\n".format(Config.WEIGHTS_PATH))
+        f.write("type: {}\n\n".format(type))
+        pprint(metrics_bundles, f)
+    pickle.dump(metrics, open(join(Config.EXP_PATH, "score_" + type + ".pkl"), "wb"))
+    return metrics

@@ -1,19 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from __future__ import absolute_import
 from __future__ import division
@@ -40,33 +25,43 @@ def main():
     parser.add_argument("-i", metavar="tracking_dir", dest="tracking_dir",
                         help="Folder containing the TractSeg tractograms (normally '.../tractseg_output/TOM_tracking')",
                         required=True)
+
     parser.add_argument("-o", metavar="csv_output", dest="csv_file_out",
                         help="CSV output file containing the results", required=True)
+
     parser.add_argument("-e", metavar="endings_dir", dest="endings_dir",
                         help="Folder containing the TractSeg bundle endings segmentations "
                              "(normally '.../tractseg_output/endings_segmentations'). "
                              "Needed to ensure that all fibers are starting from the same side.", required=True)
+
     parser.add_argument("-s", metavar="scalar_img", dest="scalar_img",
                         help="Scalar image (e.g. FA) or peak image (MRtrix peaks) if using '--peak_length'",
                         required=True)
+
     parser.add_argument("--nr_points", metavar="n", dest="nr_points",
-                        help="Number of points along streamline to evaluate (default: 100)", default="100")
+                        help="Number of points along streamline to evaluate (default: 100)",
+                        default="100")
+
     parser.add_argument("--peak_length", action="store_true",
                         help="Instead of taking values of scalar image along streamlines (e.g. FA) take the length "
                              "of the peak pointing in the same direction as the respective bundle. Gives better "
                              "results in areas of crossing fibers than FA.",
                         default=False)
+
     parser.add_argument("--TOM", metavar="TOM_dir", dest="TOM_dir",
                         help="Folder containing Tract Orientation Maps (TOMs) (normally '.../tractseg_output/TOM'). "
                              "Needed if using the '--peak_length' option.")
+
     parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
                         help="Set output format of tracking. For trk also the option trk_legacy is available. This "
                              "uses the older trk convention (streamlines are stored in coordinate space and affine is "
                              "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
                         default="trk_legacy")
+
     parser.add_argument("--test", metavar="0|1|2", choices=[0, 1, 2, 3], type=int,
                         help="Only needed for unittesting.",
                         default=0)
+
     args = parser.parse_args()
 
     NR_POINTS = int(args.nr_points)
@@ -128,7 +123,8 @@ def main():
     # - map_coordinates, QuickBundles and cKDTree are deterministic for the same input streamlines
     # - Variance in final Tractometry results when running 2 probabilistic trackings (10k fibers and 100 points):
     #   - Max difference ~0.01, but on average difference around 0.004
-    #   - When plotting the differences: very minor; might get averaged out in group analysis
+    #   - When plotting the differences: very minor
+    #   - Will get averaged out in group analysis
 
 
 if __name__ == '__main__':
