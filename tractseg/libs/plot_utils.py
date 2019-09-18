@@ -5,24 +5,22 @@ from __future__ import print_function
 
 from os.path import join
 import math
-import numpy as np
 
-from tractseg.libs import exp_utils
+import numpy as np
+import torch
+
 from tractseg.data import dataset_specific_utils
 
 import matplotlib
-matplotlib.use('Agg') #Solves error with ssh and plotting
-
+matplotlib.use('Agg')  # Solves error with ssh and plotting
 #https://www.quora.com/If-a-Python-program-already-has-numerous-matplotlib-plot-functions-what-is-the-quickest-way-to-convert-them-all-to-a-way-where-all-the-plots-can-be-produced-as-hard-images-with-minimal-modification-of-code
 import matplotlib.pyplot as plt
-
-#Might fix problems with matplotlib over ssh (failing after connection is open for longer)
-#   (http://stackoverflow.com/questions/2443702/problem-running-python-matplotlib-in-background-after-ending-ssh-session)
+# Might fix problems with matplotlib over ssh (failing after connection is open for longer)
+#   http://stackoverflow.com/questions/2443702/problem-running-python-matplotlib-in-background-after-ending-ssh-session
 plt.ioff()
 
 
-def plot_mask(renderer, mask_data, affine, x_current, y_current,
-              orientation="axial", smoothing=10, brain_mask=None):
+def plot_mask(renderer, mask_data, affine, x_current, y_current, orientation="axial", smoothing=10, brain_mask=None):
     from tractseg.libs import vtk_utils
 
     if brain_mask is not None:
@@ -52,7 +50,7 @@ def plot_mask(renderer, mask_data, affine, x_current, y_current,
 
 
 def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None):
-    '''
+    """
     By default this does not work on a remote server connection (ssh -X) because -X does not support OpenGL.
     On the remote Server you can do 'export DISPLAY=":0"' .
     (you should set the value you get if you do 'echo $DISPLAY' if you
@@ -62,7 +60,7 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
 
     If running on a headless server without Display using Xvfb might help:
     https://stackoverflow.com/questions/6281998/can-i-run-glu-opengl-on-a-headless-server
-    '''
+    """
     from dipy.viz import window
     from tractseg.libs import vtk_utils
 
@@ -92,19 +90,19 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
 
         #bigger: more border
         if orientation == "axial":
-            border_y = -100  #-60
+            border_y = -100
         else:
             border_y = -100
 
         x_current = X * i  # column (width)
-        y_current = rows * (Y * 2 + border_y) - (Y * 2 + border_y) * j  # row (height)  (starts from bottom?)
+        y_current = rows * (Y * 2 + border_y) - (Y * 2 + border_y) * j  # row (height)  (starts from bottom)
 
         plot_mask(renderer, mask_data, affine, x_current, y_current,
                             orientation=orientation, smoothing=SMOOTHING, brain_mask=brain_mask)
 
         #Bundle label
-        text_offset_top = -50  # 60
-        text_offset_side = -100 # -30
+        text_offset_top = -50
+        text_offset_side = -100
         position = (0 - int(X) + text_offset_side, y_current + text_offset_top, 50)
         text_actor = vtk_utils.label(text=bundle, pos=position, scale=(6, 6, 6), color=(1, 1, 1))
         renderer.add(text_actor)
@@ -140,7 +138,6 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
         # bg = matplotlib.colors.Normalize()(bg)
 
         # project 3D to 2D image
-        # todo: this kind of projection not sensible for peak images
         if aggregation == "mean":
             data = data.mean(axis=2)
         else:
@@ -254,7 +251,7 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
         plt.legend(handles=handles,
                    loc=2,
                    borderaxespad=0.,
-                   bbox_to_anchor=(1.03, 1))  # wenn weiter von Achse weg soll: 1.05 -> 1.15
+                   bbox_to_anchor=(1.03, 1))
 
         fig_name = fig_name
 
@@ -269,7 +266,7 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
         plt.legend(handles=handles,
                    loc=2,
                    borderaxespad=0.,
-                   bbox_to_anchor=(1.03, 1))  # wenn weiter von Achse weg soll: 1.05 -> 1.15
+                   bbox_to_anchor=(1.03, 1))
 
         fig_name = fig_name
 
@@ -280,7 +277,6 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
 
 
 def plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr):
-    import torch
     x_norm = (x - x.min()) / (x.max() - x.min() + 1e-7)  # for proper plotting
     trixi.show_image_grid(torch.tensor(x_norm).float()[:5, 0:1, :, :], name="input batch",
                           title="Input batch")  # all channels of one batch
@@ -288,7 +284,6 @@ def plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr):
     probs_shaped = probs[:, 15:16, :, :]  # (bs, 1, x, y)
     probs_shaped_bin = (probs_shaped > 0.5).int()
     trixi.show_image_grid(probs_shaped[:5], name="predictions", title="Predictions Probmap")
-    # nvl.show_images(probs_shaped_bin[:5], name="predictions_binary", title="Predictions Binary")
 
     # Show GT and Prediction in one image  (bundle: CST); GREEN: GT; RED: prediction (FP); YELLOW: prediction (TP)
     combined = torch.zeros((y.shape[0], 3, y.shape[2], y.shape[3]))

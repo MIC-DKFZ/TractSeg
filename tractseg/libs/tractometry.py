@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
 from __future__ import division
@@ -14,6 +12,7 @@ from dipy.segment.clustering import QuickBundles
 from dipy.segment.metric import AveragePointwiseEuclideanMetric
 from scipy.spatial import cKDTree
 from dipy.tracking.streamline import Streamlines
+
 
 def _get_length_best_orig_peak(predicted_img, orig_img, x, y, z):
     predicted = predicted_img[x, y, z, :]       # 1 peak

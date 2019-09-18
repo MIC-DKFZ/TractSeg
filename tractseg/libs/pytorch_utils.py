@@ -30,14 +30,16 @@ def load_checkpoint(path, **kwargs):
 
 
 def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
-    '''
-    Macro f1
+    """
+    Macro f1. Same results as sklearn f1 macro.
 
-    y_true: [bs, classes, x, y]
-    y_pred: [bs, classes, x, y]
+    Args:
+        y_true: [bs, classes, x, y]
+        y_pred: [bs, classes, x, y]
 
-    Tested: same results as sklearn f1 macro
-    '''
+    Returns:
+        f1
+    """
     y_true = y_true.byte()
     y_pred = y_pred > threshold
 
@@ -58,7 +60,6 @@ def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
     for i in range(y_true.size()[1]):
         intersect = torch.sum(y_true[:, i] * y_pred[:, i])  # works because all multiplied by 0 gets 0
         denominator = torch.sum(y_true[:, i]) + torch.sum(y_pred[:, i])  # works because all multiplied by 0 gets 0
-        #Have to cast to float here (for python3 (?)) otherwise always 0
         f1 = (2 * intersect.float()) / (denominator.float() + 1e-6)
         f1s.append(f1.to('cpu'))
     if per_class:
@@ -68,20 +69,16 @@ def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
 
 
 def f1_score_binary(y_true, y_pred):
-    '''
-    Binary f1
+    """
+    Binary f1. Same results as sklearn f1 binary.
 
-    y_true: [bs*x*y], binary
-    y_pred: [bs*x*y], binary
+    Args:
+        y_true: [bs*x*y], binary
+        y_pred: [bs*x*y], binary
 
-    Tested: same results as sklearn f1 binary
-    '''
-    # y_true = y_true.byte()
-    # y_pred = y_pred > 0.5
-
-    # y_true = y_true.contiguous().view(-1)  # [bs*x*y]
-    # y_pred = y_pred.contiguous().view(-1)
-
+    Returns:
+        f1
+    """
     intersect = torch.sum(y_true * y_pred)  # works because all multiplied by 0 gets 0
     denominator = torch.sum(y_true) + torch.sum(y_pred)  # works because all multiplied by 0 gets 0
     f1 = (2 * intersect.float()) / (denominator.float() + 1e-6)
@@ -136,23 +133,26 @@ def angle_last_dim(a, b):
         return torch.abs(einsum('abcde,abcde->abcd', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
 
-def angle_loss(y_pred, y_true, weights):
-    '''
+def angle_loss(y_pred, y_true):
+    """
+    Loss based on consine similarity.
+
     Does not need weighting. y_true is 0 all over background, therefore angle will also be 0 in those areas -> no
     extra masking of background needed.
-    :param y_pred:  [bs, classes, x, y, z]
-    :param y_true:  [bs, classes, x, y, z]
-    :param weights:  [bs, classes, x, y, z]
-    :return:
-    '''
+
+    Args:
+        y_pred: [bs, classes, x, y, z]
+        y_true: [bs, classes, x, y, z]
+
+    Returns:
+        (loss, None)
+    """
     if len(y_pred.shape) == 4:  # 2D
         y_true = y_true.permute(0, 2, 3, 1)
         y_pred = y_pred.permute(0, 2, 3, 1)
-        # weights = weights.permute(0, 2, 3, 1)
     else:  # 3D
         y_true = y_true.permute(0, 2, 3, 4, 1)
         y_pred = y_pred.permute(0, 2, 3, 4, 1)
-        # weights = weights.permute(0, 2, 3, 4, 1)
 
     nr_of_classes = int(y_true.shape[-1] / 3.)
     scores = torch.zeros(nr_of_classes)
@@ -160,19 +160,20 @@ def angle_loss(y_pred, y_true, weights):
     for idx in range(nr_of_classes):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
         y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
-        # weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
 
-        angles = angle_last_dim(y_pred_bund, y_true_bund)  # range 0 -> 1  (1: best)
+        angles = angle_last_dim(y_pred_bund, y_true_bund)  # range [0,1], 1 is best
 
-        # angles_weighted = angles / weights_bund   # penalize voxels of bundles more strongly
         angles_weighted = angles
         scores[idx] = torch.mean(angles_weighted)
 
     # doing 1-angle would also work, but 1 will be removed when taking derivatives anyways -> kann simply do *-1
-    return -torch.mean(scores), None  # range 0 -> -1  (-1: best)
+    return -torch.mean(scores), None  # range [0,-1], -1 is best
 
 
 def angle_length_loss(y_pred, y_true, weights):
+    """
+    Loss based on combination of cosine similarity (angle error) and peak length (length error).
+    """
     if len(y_pred.shape) == 4:  # 2D
         y_true = y_true.permute(0, 2, 3, 1)
         y_pred = y_pred.permute(0, 2, 3, 1)
@@ -187,9 +188,6 @@ def angle_length_loss(y_pred, y_true, weights):
     angles_all = torch.zeros(nr_of_classes)
 
     for idx in range(nr_of_classes):
-        # y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
-        # y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
-        # weights_bund = weights[:, :, :, (idx * 3)].contiguous()  # [x,y,z]
         y_pred_bund = y_pred[..., (idx * 3):(idx * 3) + 3].contiguous()
         y_true_bund = y_true[..., (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
         weights_bund = weights[..., (idx * 3)].contiguous()  # [x,y,z]
@@ -197,18 +195,16 @@ def angle_length_loss(y_pred, y_true, weights):
         angles = angle_last_dim(y_pred_bund, y_true_bund)
         angles_all[idx] = torch.mean(angles)
         angles_weighted = angles / weights_bund
-        #norm lengths to 0-1 to be more equal to angles?? -> peaks are already around 1 -> ok
         lengths = (torch.norm(y_pred_bund, 2., -1) - torch.norm(y_true_bund, 2, -1)) ** 2
         lenghts_weighted = lengths * weights_bund
 
-        # Divide by weights.max otherwise lens would be way bigger
+        # Divide by weights.max otherwise lengths would be way bigger
         #   Would also work: just divide by inverted weights_bund
         #   -> keeps foreground the same and penalizes the background less
         #   (weights.max just simple way of getting the current weight factor
         #   (because weights_bund is tensor, but we want scalar))
         #   Flip angles to make it a minimization problem
         combined = -angles_weighted + lenghts_weighted / weights_bund.max()
-
 
         # Loss is the same as the following:
         # combined = 1/weights_bund * -angles + weights_bund/weights_factor * lengths
@@ -223,20 +219,22 @@ def angle_length_loss(y_pred, y_true, weights):
 
         scores[idx] = torch.mean(combined)
 
-    # return torch.mean(scores)
     return torch.mean(scores), -torch.mean(angles_all).item()
 
 
-def l2_loss(y_pred, y_true, weights):
-    '''
+def l2_loss(y_pred, y_true, weights=None):
+    """
     Calculate the euclidian distance (=l2 norm / frobenius norm) between tensors.
     Expects a tensor image as input (6 channels per class).
 
-    :param y_pred: [bs, classes, x, y, z]
-    :param y_true: [bs, classes, x, y, z]
-    :param weights:  [bs, classes, x, y, z]
-    :return:
-    '''
+    Args:
+        y_pred: [bs, classes, x, y, z]
+        y_true: [bs, classes, x, y, z]
+        weights: None, just for keeping the interface the same for all loss functions
+
+    Returns:
+        loss
+    """
     if len(y_pred.shape) == 4:  # 2D
         y_true = y_true.permute(0, 2, 3, 1)
         y_pred = y_pred.permute(0, 2, 3, 1)
@@ -258,7 +256,6 @@ def l2_loss(y_pred, y_true, weights):
 
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
-    # nonlinearity = nn.ReLU()
     nonlinearity = nn.LeakyReLU(inplace=True)
 
     if batchnorm:
@@ -274,7 +271,6 @@ def conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=T
 
 
 def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, output_padding=0, bias=True):
-    # nonlinearity = nn.ReLU()
     nonlinearity = nn.LeakyReLU(inplace=True)
 
     layer = nn.Sequential(
@@ -285,7 +281,6 @@ def deconv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
 
 
 def conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, batchnorm=False):
-    # nonlinearity = nn.ReLU(inplace=True)
     nonlinearity = nn.LeakyReLU(inplace=True)
 
     if batchnorm:
@@ -301,7 +296,6 @@ def conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=T
 
 
 def deconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, output_padding=0, bias=True):
-    # nonlinearity = nn.ReLU(inplace=True)
     nonlinearity = nn.LeakyReLU(inplace=True)
 
     layer = nn.Sequential(
@@ -309,47 +303,3 @@ def deconv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=0, outp
                            padding=padding, output_padding=output_padding, bias=bias),
         nonlinearity)
     return layer
-
-
-def angle_loss_faster_BUGGY(y_pred, y_true, weights):
-    '''
-    Not working !
-    RuntimeError: invalid argument 2: input is not contiguous (and 'abcd,abcd->acd' also in numpy wrong)
-
-    :param y_pred:
-    :param y_true:
-    :param weights:
-    :return:
-    '''
-
-    def angle_second_dim(a, b):
-        '''
-        Not working !
-        RuntimeError: invalid argument 2: input is not contiguous (and
-
-        Calculate the angle between two nd-arrays (array of vectors) along the second dimension
-
-        without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
-        np.arccos -> returns degree in pi (90°: 0.5*pi)
-
-        return: one dimension less then input
-        '''
-        from tractseg.libs.pytorch_einsum import einsum
-
-        return torch.abs(einsum('abcd,abcd->acd', a, b) / (torch.norm(a, 2., 1) * torch.norm(b, 2, 1) + 1e-7))
-
-    scores = []
-    nr_of_classes = int(y_true.shape[-1] / 3.)
-
-    for idx in range(nr_of_classes):
-        y_pred_bund = y_pred[:, (idx * 3):(idx * 3) + 3, :, :].contiguous()
-        y_true_bund = y_true[:, (idx * 3):(idx * 3) + 3, :, :].contiguous()  # [x,y,z,3]
-        weights_bund = weights[:, (idx * 3), :, :].contiguous()  # [x,y,z]
-
-        angles = angle_second_dim(y_pred_bund, y_true_bund)
-
-        angles_weighted = angles / weights_bund
-        scores.append(torch.mean(angles_weighted))
-
-    # BUG: in pytorch 0.4 this does not work anymore: have to use torch for taking mean which is derivable
-    return -np.mean(scores)

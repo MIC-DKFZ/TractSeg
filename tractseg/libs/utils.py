@@ -13,16 +13,16 @@ from tractseg.libs.system_config import SystemConfig as C
 try:
     from urllib.request import urlopen     # For Python 3.0 and later
 except ImportError:
-    from urllib2 import urlopen     # Fall back to Python 2's urllib2
+    from urllib2 import urlopen            # Fall back to Python 2's urllib2
 
 
 def invert_x_and_y(affineMatrix):
-    '''
+    """
     Change sign of x and y transformation (rotation, scaling and transformation)
 
     IMPORTANT note: only done for diagonal elements (if we need rotation (not only scaling) we may also need
     to do it for non-diagonal elements) -> not done yet
-    '''
+    """
     newAffine = affineMatrix.copy()
     newAffine[0,0] = newAffine[0,0] * -1
     newAffine[1,1] = newAffine[1,1] * -1
@@ -31,45 +31,15 @@ def invert_x_and_y(affineMatrix):
     return newAffine
 
 
-def normalize_data(data, where_b0, min_signal=1., out=None):
+def normalize_mean0_std1(data):
     """
-    Normalizes the data with respect to the mean b0 (mean of b0 along z Axis)
-
-    method from: https://github.com/nipy/dipy/blob/d0bee8c811daf00c5f9c153168ccbc82fa3b5557/dipy/reconst/shm.py#L741
-
-    Ergebnisse schauen mehr verändert aus, als wenn normalize_mean0_std0 mache => besser normalize_mean0_std0 verwenden
-    """
-    if out is None:
-        out = np.array(data, dtype='float32', copy=True)
-    else:
-        if out.dtype.kind != 'f':
-            raise ValueError("out must be floating point")
-        out[:] = data
-
-    #out.clip(min_signal, out=out)
-    b0 = out[..., where_b0].mean(-1) #mean(-1) -> mean along the last axis (here: z)
-    #print(b0.shape)
-    #print(b0[..., None].shape)
-    #print(out.shape)
-    out /= b0[..., None, None] # original: out /= b0[..., None]  -> error dim mismatch
-    return out
-
-
-def normalize_mean0_std0(data):
-    '''
     Normalizes along all axis for mean=0 and stddev=1
-
-    :param data: ndarray, 4D
-    :return: ndarray, 4D
-    '''
+    """
     out = np.array(data, dtype='float32', copy=True)
 
-    #mean = 0
-    # mean = data.mean((0,1,2,3)) #mean over axis 0,1,2,3
-    mean = data.mean() #mean over all axis / over flattened array
+    mean = data.mean()  # mean over all axis / over flattened array
     out -= mean
 
-    #std = 1
     std = data.std()
     out /= std
 
@@ -77,40 +47,35 @@ def normalize_mean0_std0(data):
 
 
 def to_unit_length(vec):
-    '''
-    :param vec: 3D vector ("point")
-    :return: 3D vector with len=1, but same direction as original vector
-    '''
+    """
+    Vector to unit length
+
+    Args:
+        vec: 3D vector (x, y, z)
+
+    Returns:
+            3D vector with len=1, but same direction as original vector
+    """
     vec_length = np.sqrt(np.sum(np.square(vec)))
     return vec / vec_length  # divide elementwise
 
 
 def to_unit_length_batch(vec):
-    '''
-    :param vec: array of 3D vectors
-    :return: array of 3D vectors with len=1, but same direction as original vector
-    '''
     vec_length = np.sqrt(np.sum(np.square(vec), axis=1))
     return vec / vec_length[:, np.newaxis]  # divide elementwise (only along one axis)
 
 
 def get_lr_decay(epoch_nr):
-    '''
+    """
     Calc what lr_decay is need to make lr be 1/10 of original lr after epoch_nr number of epochs
-    :return: lr_decay
-    '''
-    target_lr = 0.1 #should be reduced to 1/10 of original
+    """
+    target_lr = 0.1  # should be reduced to 1/10 of original
     return target_lr ** (1 / float(epoch_nr))
 
 
 def save_pkl_compressed(filename, myobj):
     """
-    save object to file using pickle
-
-    @param filename: name of destination file
-    @type filename: str
-    @param myobj: object to save (has to be pickleable)
-    @type myobj: obj
+    Save object to file using pickle
     """
     try:
         f = bz2.BZ2File(filename, 'wb')
@@ -126,9 +91,6 @@ def save_pkl_compressed(filename, myobj):
 def load_pkl_compressed(filename):
     """
     Load from filename using pickle
-
-    @param filename: name of file to load from
-    @type filename: str
     """
     try:
         f = bz2.BZ2File(filename, 'rb')
@@ -143,10 +105,10 @@ def load_pkl_compressed(filename):
 
 
 def chunks(l, n):
-    '''
+    """
     Yield successive n-sized chunks from l.
     Last chunk can be smaller.
-    '''
+    """
     for i in range(0, len(l), n):
         yield l[i:i + n]
 

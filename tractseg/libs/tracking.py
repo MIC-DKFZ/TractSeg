@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
+import psutil
 import numpy as np
-from random import randint
 import multiprocessing
 from functools import partial
 
@@ -11,7 +9,6 @@ from scipy.ndimage.morphology import binary_dilation
 from dipy.tracking.streamline import Streamlines
 
 from tractseg.libs import fiber_utils
-from tractseg.libs import data_utils
 from tractseg.libs import img_utils
 
 global _PEAKS
@@ -32,17 +29,17 @@ _TRACKING_UNCERTAINTIES = None
 
 def process_seedpoint(seed_point, spacing, next_step_displacement_std):
     """
+    Create one streamline from one seed point.
 
     Args:
-        seed_point:
+        seed_point: 3d point
         spacing: Only one value. Assumes isotropic images.
-
+        next_step_displacement_std: stddev for gaussian distribution
     Returns:
-
+        (streamline, streamline_length)
     """
     def get_at_idx(img, idx):
         return img[int(idx[0]), int(idx[1]), int(idx[2])]
-        # return img[int(idx[0]+0.5), int(idx[1]+0.5), int(idx[2]+0.5)]
 
     # Has to be sub-method otherwise not working
     def process_one_way(peaks, streamline, max_nr_steps, step_size, probabilistic, next_step_displacement_std,
@@ -61,8 +58,7 @@ def process_seedpoint(seed_point, spacing, next_step_displacement_std):
             dir_scaled = np.nan_to_num(dir_scaled)
 
             if i > 0:
-                angle = np.dot(dir_scaled,
-                               last_dir)  # not needed: (np.linalg.norm(dir_scaled) * np.linalg.norm(last_dir))
+                angle = np.dot(dir_scaled, last_dir)
                 if angle < 0:  # flip dir if not aligned with the direction of the streamline
                     dir_scaled = -dir_scaled
 
@@ -78,7 +74,7 @@ def process_seedpoint(seed_point, spacing, next_step_displacement_std):
                 dir_scaled = dir_scaled + displacement
 
                 # If step_size too small and next_step_displacement_std too big: sometimes even goes back
-                #  -> ends up in random places (better since normalizing peak length after random displacing,
+                #  -> ends up in random places (better when normalizing peak length after random displacing,
                 #  but still happens if step_size to small)
                 # dir_scaled = (dir_scaled / (np.linalg.norm(dir_scaled) + 1e-20)) * step_size
 
@@ -117,21 +113,14 @@ def process_seedpoint(seed_point, spacing, next_step_displacement_std):
 
         return False
 
-
-    # Good setting
-    #  1.  step_size=0.7 and next_step_displacement_std=0.2   (8s)
-    #  2.  step_size=0.5 and next_step_displacement_std=0.15  (10s)
-    #  3.  step_size=0.5 and next_step_displacement_std=0.11  (11s)  -> not complete enough
-    #   -> results very similar, but 1. a bit more complete + faster
-
     # Parameters
     probabilistic = True
     max_nr_steps = 1000
-    min_tract_len = 50      # mm
-    max_tract_len = 200     # mm
+    min_tract_len = 50  # mm
+    max_tract_len = 200  # mm
     peak_len_thr = 0.1
     # If step_size too small and next_step_displacement_std too big: sometimes even goes back -> ends up in random
-    # places (better since normalizing peak length after random displacing, but still happens if step_size to small)
+    # places (better when normalizing peak length after random displacing, but still happens if step_size to small)
     step_size = 0.7  # relative to voxel size (=spacing)
 
     # transform length to voxel space
@@ -139,12 +128,10 @@ def process_seedpoint(seed_point, spacing, next_step_displacement_std):
     max_tract_len = int(max_tract_len / spacing)
 
     # Displacements are relative to voxel size. If you have bigger voxel size displacement is higher. Depends on
-    #   application if this is desired. Keep in mind.
+    # application if this is desired. Keep in mind.
     seedpoint_displacement_std = 0.15
-    # next_step_displacement_std = 0.15
+
     # If we want to set displacement in mm use this code:
-    # seedpoint_displacement_std = 0.3    # mm
-    # next_step_displacement_std = 0.4    # mm
     # seedpoint_displacement_std = seedpoint_displacement_std / spacing
     # next_step_displacement_std = next_step_displacement_std / spacing
 
@@ -171,13 +158,13 @@ def process_seedpoint(seed_point, spacing, next_step_displacement_std):
                                                  tracking_uncertainties, reverse=False)
 
     # Roughly doubles execution time but also roughly doubles number of resulting streamlines
-    #   Makes sense because many too short if seeding in middle of streamline
+    # Makes sense because many too short if seeding in middle of streamline.
     streamline_part2, length_2 = process_one_way(peaks, streamline2, max_nr_steps, step_size, probabilistic,
                                                  next_step_displacement_std, max_tract_len, peak_len_thr, bundle_mask,
                                                  tracking_uncertainties, reverse=True)
 
     if len(streamline_part2) > 0:
-        # remove first element of part2 otherwise have seed_point 2 times
+        # remove first element of part2 otherwise we have seed_point 2 times
         streamline = list(reversed(streamline_part2[1:])) + streamline_part1
     else:
         streamline = streamline_part1
@@ -198,13 +185,6 @@ def process_seedpoint(seed_point, spacing, next_step_displacement_std):
 def seed_generator(mask_coords, nr_seeds):
     """
     Randomly select #nr_seeds voxels from mask.
-
-    Args:
-        mask_coords:
-        nr_seeds:
-
-    Returns:
-
     """
     nr_voxels = mask_coords.shape[0]
     random_indices = np.random.choice(nr_voxels, nr_seeds, replace=True)
@@ -216,29 +196,13 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
           start_mask=None, end_mask=None, tracking_uncertainties=None, dilation=0,
           next_step_displacement_std=0.15, nr_cpus=-1, verbose=True):
     """
+    Generate streamlines.
+
     Great speedup was archived by:
     - only seeding in bundle_mask instead of entire image (seeding took very long)
     - calculating fiber length on the fly instead of using extra function which has to iterate over entire fiber a
     second time
-
-    Args:
-        peaks:
-        seed_image:
-        max_nr_fibers:
-        peak_threshold:
-        smooth:
-        compress:
-        bundle_mask:
-        start_mask:
-        end_mask:
-        dilation:
-        nr_cpus:
-        verbose:
-
-    Returns:
-
     """
-    import psutil
 
     peaks[:, :, :, 0] *= -1  # how to flip along x axis to work properly
     # Add +1 dilation for start and end mask to be more robust
@@ -263,10 +227,8 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
 
     # Get list of coordinates of each voxel in mask to seed from those
     mask_coords = np.array(np.where(bundle_mask == 1)).transpose()
-    nr_voxels = mask_coords.shape[0]
     spacing = seed_image.header.get_zooms()[0]
 
-    # max_nr_seeds = 250 * max_nr_fibers
     max_nr_seeds = 100 * max_nr_fibers  # after how many seeds to abort (to avoid endless runtime)
     # How many seeds to process in each pool.map iteration
     seeds_per_batch = 5000
@@ -287,11 +249,11 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
                                            spacing=spacing),
                                    seed_generator(mask_coords, seeds_per_batch))
         # streamlines_tmp = [process_seedpoint(seed, spacing=spacing) for seed in
-        #                    seed_generator(mask_coords, seeds_per_batch)] # single threaded for debug
+        #                    seed_generator(mask_coords, seeds_per_batch)] # single threaded for debugging
         pool.close()
         pool.join()
 
-        streamlines_tmp = [sl for sl in streamlines_tmp if len(sl) > 0]  # filter empty
+        streamlines_tmp = [sl for sl in streamlines_tmp if len(sl) > 0]  # filter empty ones
         streamlines += streamlines_tmp
         fiber_ctr = len(streamlines)
         if verbose:
@@ -308,7 +270,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     streamlines = streamlines[:max_nr_fibers]   # remove surplus of fibers (comes from multiprocessing)
     streamlines = Streamlines(streamlines)  # Generate streamlines object
 
-    # Move from convention "0mm is in voxel corner" to convention "0mm is in voxel center". Most toolkit use the
+    # Move from convention "0mm is in voxel corner" to convention "0mm is in voxel center". Most toolkits use the
     # convention "0mm is in voxel center".
     streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
