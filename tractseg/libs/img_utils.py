@@ -96,40 +96,6 @@ def pad_4d_image_left(image, pad_size, new_shape, pad_value=None):
     return new_image
 
 
-def get_dwi_affine(dataset, resolution):
-
-    if dataset == "HCP" and resolution == "1.25mm":
-        # shape (145,174,145)
-        return np.array([[-1.25, 0.,  0.,   90.],
-                         [0., 1.25,   0.,  -126.],
-                         [0.,    0., 1.25, -72.],
-                         [0.,    0.,  0.,   1.]])
-
-    elif dataset == "HCP_32g" and resolution == "1.25mm":
-        # shape (145,174,145)
-        return np.array([[-1.25, 0.,  0.,   90.],
-                         [0., 1.25,   0.,  -126.],
-                         [0.,    0., 1.25, -72.],
-                         [0.,    0.,  0.,   1.]])
-
-    elif (dataset == "HCP_32g" or dataset == "HCP_2mm") and resolution == "2mm":
-        # shape (90,108,90)
-        return np.array([[-2., 0.,  0.,   90.],
-                         [0.,  2.,  0.,  -126.],
-                         [0.,  0.,  2.,  -72.],
-                         [0.,  0.,  0.,   1.]])
-
-    elif (dataset == "HCP" or dataset == "HCP_32g" or dataset == "HCP_2.5mm") and resolution == "2.5mm":
-        # shape (73,87,73)
-        return np.array([[-2.5, 0.,  0.,   90.],
-                         [0.,  2.5,  0.,  -126.],
-                         [0.,  0.,  2.5,  -72.],
-                         [0.,  0.,  0.,    1.]])
-
-    else:
-        raise ValueError("No Affine defined for this dataset and resolution")
-
-
 def remove_small_blobs(img, threshold=1, debug=True):
     """
     Find blobs/clusters of same label. Only keep blobs with more than threshold elements.

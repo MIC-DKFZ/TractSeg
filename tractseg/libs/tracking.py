@@ -11,7 +11,7 @@ from scipy.ndimage.morphology import binary_dilation
 from dipy.tracking.streamline import Streamlines
 
 from tractseg.libs import fiber_utils
-from tractseg.libs import dataset_utils
+from tractseg.libs import data_utils
 from tractseg.libs import img_utils
 
 global _PEAKS

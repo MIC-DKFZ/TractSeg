@@ -28,7 +28,7 @@ import numpy as np
 from joblib import Parallel, delayed
 
 from tractseg.libs.system_config import SystemConfig as C
-from tractseg.libs import dataset_utils
+from tractseg.libs import data_utils
 from tractseg.libs.subjects import get_all_subjects
 from tractseg.libs import exp_utils
 
@@ -64,7 +64,7 @@ def create_preprocessed_files(subject):
 
     # Get bounding box
     data = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, bb_file + ".nii.gz")).get_data()
-    _, _, bbox, _ = dataset_utils.crop_to_nonzero(np.nan_to_num(data))
+    _, _, bbox, _ = data_utils.crop_to_nonzero(np.nan_to_num(data))
 
     for idx, filename in enumerate(filenames_data):
         path = join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")
@@ -78,7 +78,7 @@ def create_preprocessed_files(subject):
             if len(data.shape) == 3:
                 data = data[..., None]
 
-            data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
+            data, _, _, _ = data_utils.crop_to_nonzero(data, bbox=bbox)
 
             # if idx > 0:
             # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
@@ -91,7 +91,7 @@ def create_preprocessed_files(subject):
     for filename in filenames_seg:
         img = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz"))
         data = img.get_data()
-        data, _, _, _ = dataset_utils.crop_to_nonzero(data, bbox=bbox)
+        data, _, _, _ = data_utils.crop_to_nonzero(data, bbox=bbox)
         # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
         nib.save(nib.Nifti1Image(data, img.affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename +
                                                      ".nii.gz"))

@@ -37,6 +37,7 @@ from tractseg.libs import trainer
 from tractseg.data.data_loader_training import DataLoaderTraining as DataLoaderTraining2D
 from tractseg.data.data_loader_training_3D import DataLoaderTraining as DataLoaderTraining3D
 from tractseg.data.data_loader_inference import DataLoaderInference
+from tractseg.data import dataset_specific_utils
 from tractseg.models.base_model import BaseModel
 
 warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
@@ -96,7 +97,7 @@ def main():
         Config.WEIGHTS_PATH = exp_utils.get_best_weights_path(Config.EXP_PATH, Config.LOAD_WEIGHTS)
 
     #Autoset input dimensions based on settings
-    Config.INPUT_DIM = exp_utils.get_correct_input_dim(Config)
+    Config.INPUT_DIM = dataset_specific_utils.get_correct_input_dim(Config)
     Config = exp_utils.get_labels_filename(Config)
 
     if Config.EXPERIMENT_TYPE == "peak_regression":
@@ -162,7 +163,8 @@ def main():
                 img_seg, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject)
                 img_seg = direction_merger.mean_fusion(Config.THRESHOLD, img_seg, probs=False)
 
-            img = nib.Nifti1Image(img_seg.astype(np.uint8), img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
+            img = nib.Nifti1Image(img_seg.astype(np.uint8),
+                                  dataset_specific_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
             nib.save(img, join(Config.EXP_PATH, "segmentations", subject + "_segmentation.nii.gz"))
 
     if Config.TEST:
@@ -182,7 +184,7 @@ def main():
                 img_probs, img_y = direction_merger.get_seg_single_img_3_directions(Config, model, subject=subject)
                 img_probs = direction_merger.mean_fusion(Config.THRESHOLD, img_probs, probs=True)
 
-            img = nib.Nifti1Image(img_probs, img_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
+            img = nib.Nifti1Image(img_probs, dataset_specific_utils.get_dwi_affine(Config.DATASET, Config.RESOLUTION))
             nib.save(img, join(Config.EXP_PATH, "probmaps", subject + "_peak.nii.gz"))
 
     eval_script_path = join(os.path.expanduser("~"), "dev/bsp/eval_nonHCP.py")

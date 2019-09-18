@@ -14,11 +14,12 @@ from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs.system_config import get_config_name
 from tractseg.libs import exp_utils
 from tractseg.libs import utils
-from tractseg.libs import dataset_utils
+from tractseg.libs import data_utils
 from tractseg.libs import direction_merger
 from tractseg.libs import peak_utils
 from tractseg.libs import img_utils
 from tractseg.data.data_loader_inference import DataLoaderInference
+from tractseg.data import dataset_specific_utils
 from tractseg.libs import trainer
 from tractseg.models.base_model import BaseModel
 
@@ -93,7 +94,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     Config.DROPOUT_SAMPLING = dropout_sampling
     Config.THRESHOLD = threshold
     Config.NR_CPUS = nr_cpus
-    Config.INPUT_DIM = exp_utils.get_correct_input_dim(Config)
+    Config.INPUT_DIM = dataset_specific_utils.get_correct_input_dim(Config)
 
     if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing:
         Config.GET_PROBS = True
@@ -137,10 +138,10 @@ def run_tractseg(data, output_type="tract_segmentation",
     data = np.nan_to_num(data)
 
     #runtime on HCP data: 0.9s
-    data, seg_None, bbox, original_shape = dataset_utils.crop_to_nonzero(data)
+    data, seg_None, bbox, original_shape = data_utils.crop_to_nonzero(data)
     # runtime on HCP data: 0.5s
-    data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data, target_size=Config.INPUT_DIM[0],
-                                                                         nr_cpus=nr_cpus)
+    data, transformation = data_utils.pad_and_scale_img_to_square_img(data, target_size=Config.INPUT_DIM[0],
+                                                                      nr_cpus=nr_cpus)
 
     if Config.EXPERIMENT_TYPE == "tract_segmentation" or Config.EXPERIMENT_TYPE == "endings_segmentation" or \
             Config.EXPERIMENT_TYPE == "dm_regression":
@@ -226,9 +227,9 @@ def run_tractseg(data, output_type="tract_segmentation",
         seg = img_utils.bundle_specific_postprocessing(seg, exp_utils.get_bundle_names(Config.CLASSES)[1:])
 
     # runtime on HCP data: 5.1s
-    seg = dataset_utils.cut_and_scale_img_back_to_original_img(seg, transformation, nr_cpus=nr_cpus)
+    seg = data_utils.cut_and_scale_img_back_to_original_img(seg, transformation, nr_cpus=nr_cpus)
     # runtime on HCP data: 1.6s
-    seg = dataset_utils.add_original_zero_padding_again(seg, bbox, original_shape, Config.NR_OF_CLASSES)
+    seg = data_utils.add_original_zero_padding_again(seg, bbox, original_shape, Config.NR_OF_CLASSES)
 
     if Config.EXPERIMENT_TYPE == "peak_regression":
         seg = peak_utils.mask_and_normalize_peaks(seg, tract_segmentations_path,

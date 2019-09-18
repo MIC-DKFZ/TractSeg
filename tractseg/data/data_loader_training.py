@@ -1,4 +1,3 @@
-
 """
 Code to load data and to create batches of 2D slices from 3D images.
 
@@ -10,16 +9,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
 from os.path import join
 import random
-import warnings
-import multiprocessing
-from time import sleep
 import numpy as np
 import nibabel as nib
 
-from batchgenerators.transforms.color_transforms import ContrastAugmentationTransform, BrightnessMultiplicativeTransform
 from batchgenerators.transforms.resample_transforms import ResampleTransform
 from batchgenerators.transforms.resample_transforms import SimulateLowResolutionTransform
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
@@ -39,9 +33,7 @@ from tractseg.data.custom_transformations import ResampleTransformLegacy
 from tractseg.data.custom_transformations import FlipVectorAxisTransform
 from tractseg.data.spatial_transform_peaks import SpatialTransformPeaks
 from tractseg.libs.system_config import SystemConfig as C
-from tractseg.libs import dataset_utils
-from tractseg.libs import exp_utils
-from tractseg.libs import img_utils
+from tractseg.libs import data_utils
 from tractseg.libs import peak_utils
 
 
@@ -173,15 +165,15 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
         if self.Config.NR_OF_GRADIENTS == 18*self.Config.NR_SLICES:
             data = peak_utils.peaks_to_tensors(data)
 
-        slice_direction = dataset_utils.slice_dir_to_int(self.Config.TRAINING_SLICE_DIRECTION)
+        slice_direction = data_utils.slice_dir_to_int(self.Config.TRAINING_SLICE_DIRECTION)
         slice_idxs = np.random.choice(data.shape[slice_direction], self.batch_size, False, None)
 
         if self.Config.NR_SLICES > 1:
-            x, y = dataset_utils.sample_Xslices(data, seg, slice_idxs, slice_direction=slice_direction,
-                                               labels_type=self.Config.LABELS_TYPE, slice_window=self.Config.NR_SLICES)
+            x, y = data_utils.sample_Xslices(data, seg, slice_idxs, slice_direction=slice_direction,
+                                             labels_type=self.Config.LABELS_TYPE, slice_window=self.Config.NR_SLICES)
         else:
-            x, y = dataset_utils.sample_slices(data, seg, slice_idxs, slice_direction=slice_direction,
-                                               labels_type=self.Config.LABELS_TYPE)
+            x, y = data_utils.sample_slices(data, seg, slice_idxs, slice_direction=slice_direction,
+                                            labels_type=self.Config.LABELS_TYPE)
 
 
         # Can be replaced by crop
@@ -245,10 +237,10 @@ class BatchGenerator2D_Npy_random(SlimDataLoaderBase):
         seg = np.nan_to_num(seg)
 
         slice_idxs = np.random.choice(data.shape[0], self.batch_size, False, None)
-        slice_direction = dataset_utils.slice_dir_to_int(self.Config.TRAINING_SLICE_DIRECTION)
-        x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
-                                           slice_direction=slice_direction,
-                                           labels_type=self.Config.LABELS_TYPE)
+        slice_direction = data_utils.slice_dir_to_int(self.Config.TRAINING_SLICE_DIRECTION)
+        x, y = data_utils.sample_slices(data, seg, slice_idxs,
+                                        slice_direction=slice_direction,
+                                        labels_type=self.Config.LABELS_TYPE)
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])

@@ -14,9 +14,10 @@ from pprint import pprint
 
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
-from tractseg.libs import dataset_utils
+from tractseg.libs import data_utils
 from tractseg.libs import plot_utils
 from tractseg.data.data_loader_inference import DataLoaderInference
+from tractseg.data import dataset_specific_utils
 
 def train_model(Config, model, data_loader):
 
@@ -271,7 +272,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
                 layers = layers.transpose(1, 2, 0, 3)
 
         if scale_to_world_shape:
-            layers = dataset_utils.scale_input_to_original_shape(layers, Config.DATASET, Config.RESOLUTION)
+            layers = dataset_specific_utils.scale_input_to_original_shape(layers, Config.DATASET, Config.RESOLUTION)
 
         #todo: move to top of function
         assert (layers.dtype == np.float32)  # .astype() quite slow -> use assert to make sure type is right

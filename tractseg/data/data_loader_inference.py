@@ -10,7 +10,7 @@ import numpy as np
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
-from tractseg.libs import dataset_utils
+from tractseg.libs import data_utils
 from tractseg.libs import peak_utils
 from tractseg.data.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 from tractseg.data.DLDABG_standalone import SingleThreadedAugmenter
@@ -64,15 +64,15 @@ class BatchGenerator2D_data_ordered_standalone(object):
             new_global_idx = end  # not end-1, because this goes into range, and there automatically -1
 
         slice_idxs = list(range(self.global_idx, new_global_idx))
-        slice_direction = dataset_utils.slice_dir_to_int(self.Config.SLICE_DIRECTION)
+        slice_direction = data_utils.slice_dir_to_int(self.Config.SLICE_DIRECTION)
 
         if self.Config.NR_SLICES > 1:
-            x, y = dataset_utils.sample_Xslices(data, seg, slice_idxs, slice_direction=slice_direction,
-                                               labels_type=self.Config.LABELS_TYPE, slice_window=self.Config.NR_SLICES)
+            x, y = data_utils.sample_Xslices(data, seg, slice_idxs, slice_direction=slice_direction,
+                                             labels_type=self.Config.LABELS_TYPE, slice_window=self.Config.NR_SLICES)
         else:
-            x, y = dataset_utils.sample_slices(data, seg, slice_idxs,
-                                               slice_direction=slice_direction,
-                                               labels_type=self.Config.LABELS_TYPE)
+            x, y = data_utils.sample_slices(data, seg, slice_idxs,
+                                            slice_direction=slice_direction,
+                                            labels_type=self.Config.LABELS_TYPE)
 
         data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
                      "seg": y}      # (batch_size, channels, x, y, [z])
@@ -186,12 +186,12 @@ class DataLoaderInference():
                 if self.Config.NR_OF_GRADIENTS == 18 * self.Config.NR_SLICES:
                     data = peak_utils.peaks_to_tensors(data)
 
-                data, transformation = dataset_utils.pad_and_scale_img_to_square_img(data,
-                                                                                     target_size=self.Config.INPUT_DIM[0],
-                                                                                     nr_cpus=1)
-                seg, transformation = dataset_utils.pad_and_scale_img_to_square_img(seg,
-                                                                                    target_size=self.Config.INPUT_DIM[0],
-                                                                                    nr_cpus=1)
+                data, transformation = data_utils.pad_and_scale_img_to_square_img(data,
+                                                                                  target_size=self.Config.INPUT_DIM[0],
+                                                                                  nr_cpus=1)
+                seg, transformation = data_utils.pad_and_scale_img_to_square_img(seg,
+                                                                                 target_size=self.Config.INPUT_DIM[0],
+                                                                                 nr_cpus=1)
         else:
             raise ValueError("Neither 'data' nor 'subject' set.")
 
