@@ -13,6 +13,18 @@ import nibabel as nib
 from scipy.ndimage.morphology import binary_dilation
 
 
+def angle_last_dim(a, b):
+    """
+    Calculate the angle between two nd-arrays (array of vectors) along the last dimension
+
+    dot product <-> degree conversion: 1->0°, 0.9->23°, 0.7->45°, 0->90°
+    By using np.arccos you could return degree in pi (90°: 0.5*pi)
+
+    Return one dimension less than input
+    """
+    return np.einsum('...i,...i', a, b) / (np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1) + 1e-7)
+
+
 def peak_image_to_binary_mask(img, len_thr=0.1):
     '''
 

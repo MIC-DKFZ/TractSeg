@@ -5,17 +5,14 @@ from __future__ import print_function
 
 import numpy as np
 from sklearn.metrics import f1_score
-# from medpy import metric
 
-from tractseg.libs import exp_utils
 from tractseg.data import dataset_specific_utils
+from tractseg.libs import peak_utils
 
 def my_f1_score(y_true, y_pred):
-    '''
-    Binary f1
-
-    Tested: same results as sklearn f1 binary
-    '''
+    """
+    Binary f1. Same results as sklearn f1 binary.
+    """
     intersect = np.sum(y_true * y_pred)  # works because all multiplied by 0 gets 0
     denominator = np.sum(y_true) + np.sum(y_pred)  # works because all multiplied by 0 gets 0
     f1 = (2 * intersect) / (denominator + 1e-6)
@@ -23,14 +20,16 @@ def my_f1_score(y_true, y_pred):
 
 
 def my_f1_score_macro(y_true, y_pred):
-    '''
-    Macro f1
+    """
+    Macro f1. Same results as sklearn f1 macro.
 
-    y_true: [n_samples, n_classes]
-    y_pred: [n_samples, n_classes]
+    Args:
+        y_true: (n_samples, n_classes)
+        y_pred: (n_samples, n_classes)
 
-    Tested: same results as sklearn f1 macro
-    '''
+    Returns:
+
+    """
     f1s = []
     for i in range(y_true.shape[1]):
         intersect = np.sum(y_true[:, i] * y_pred[:, i])  # works because all multiplied by 0 gets 0
@@ -41,10 +40,10 @@ def my_f1_score_macro(y_true, y_pred):
 
 
 def convert_seg_image_to_one_hot_encoding(image):
-    '''
+    """
     Takes as input an nd array of a label map (any dimension). Outputs a one hot encoding of the label map.
     Example (3D): if input is of shape (x, y, z), the output will ne of shape (x, y, z, n_classes)
-    '''
+    """
     classes = np.unique(image)
     out_image = np.zeros([len(classes)] + list(image.shape), dtype=image.dtype)
     for i, c in enumerate(classes):
@@ -57,58 +56,47 @@ def convert_seg_image_to_one_hot_encoding(image):
 
 
 def calc_overlap(groundtruth, prediction):
-    '''
+    """
     Expects 2 classes: 0 and 1  (otherwise not working)
 
-    IMPORTANT: Because we can not calc this, when no 1 in sample, we do not get 1.0 even if
-    we compare groundtruth with groundtruth (when I tried that, I got 0.89)
+    IMPORTANT: Because we can not calc this when no 1 in sample, we do not get 1.0 even if
+    we compare groundtruth with groundtruth.
 
-    Identical with recall with average="binary"
+    Identical with sklearn recall with average="binary"
 
-    :param groundtruth: 1D array
-    :param prediction: 1D array
-    :return:
-    '''
-    # ensure int type
+    Args:
+        groundtruth: 1D array
+        prediction: 1D array
+
+    Returns:
+        overlap
+    """
     groundtruth = groundtruth.astype(np.int32)
     prediction = prediction.astype(np.int32)
     overlap_mask = np.logical_and(prediction == 1, groundtruth == 1)
     if np.count_nonzero(groundtruth) == 0:
         # print("WARNING: could not calc overlap, because division by 0 -> return 0")
-        return 0  # ok, because we sum these up -> do not change sum  -> not quite right
+        return 0
     else:
         return np.count_nonzero(overlap_mask) / np.count_nonzero(groundtruth)
 
 
 def calc_overreach(groundtruth, prediction):
-    '''
+    """
     Expects 2 classes: 0 and 1  (otherwise not working)
-
-    :param groundtruth: 1D array
-    :param prediction: 1D array
-    :return:
-    '''
-    # ensure int type
+    """
     groundtruth = groundtruth.astype(np.int32)
     prediction = prediction.astype(np.int32)
     overreach_mask = np.logical_and(groundtruth == 0, prediction == 1)
 
     if np.count_nonzero(groundtruth) == 0:
         # print("WARNING: could not calc overreach, because division by 0 -> return 0")
-        return 0   # ok, because we sum these up -> do not change sum  -> not quite right
+        return 0
     else:
-        # return np.count_nonzero(overreach_mask) / np.count_nonzero(prediction)  # FALSCH!!
         return np.count_nonzero(overreach_mask) / np.count_nonzero(groundtruth)
 
 
 def normalize_last_element(metrics, length, type):
-    '''
-
-    :param metrics:
-    :param length:
-    :param type:  "train" or "test"
-    :return:
-    '''
     for key, value in metrics.items():
         if key.endswith("_" + type):
             metrics[key][-1] /= float(length)
@@ -128,32 +116,34 @@ def add_empty_element(metrics):
 
 
 def calculate_metrics(metrics, y, class_probs, loss, f1=None, f1_per_bundle=None, type="train", threshold=0.5):
-    '''
-    y -> Ground Truth
+    """
+    Add metrics to metric dict.
 
-    y: [n_samples, n_classes]
-    class_probs: [n_samples, n_classes]
+    Args:
+        metrics: metric dict
+        y: ground truth (n_samples, n_classes)
+        class_probs: predictions (n_samples, n_classes)
+        loss:
+        f1:
+        f1_per_bundle:
+        type:
+        threshold:
 
-    class_probs -> Predictions
-    '''
-
+    Returns:
+        updated metric dict
+    """
     if f1 is None:
-        class_probs[class_probs >= threshold] = 1                     # bit slow
-        class_probs[class_probs < threshold] = 0                      # bit slow
-        pred_class = class_probs.astype(np.int16)     #is float32     #slow
+        pred_class = (class_probs >= threshold).astype(np.int16)
+        y = (y >= threshold).astype(np.int16)
 
-        y[y >= threshold] = 1                         # bit slow
-        y[y < threshold] = 0                          # bit slow
-        y = y.astype(np.int16)    #is int16           #slow
-
-    metrics["loss_"+type][-1] += loss
+    metrics["loss_" + type][-1] += loss
     if f1 is None:
-        metrics["f1_macro_"+type][-1] += my_f1_score_macro(y, pred_class)
+        metrics["f1_macro_" + type][-1] += my_f1_score_macro(y, pred_class)
     else:
-        metrics["f1_macro_"+type][-1] += f1
+        metrics["f1_macro_" + type][-1] += f1
         if f1_per_bundle is not None:
             for key in f1_per_bundle:
-                if "f1_"+key+"_"+type not in metrics:
+                if "f1_" + key + "_" + type not in metrics:
                     metrics["f1_" + key + "_" + type] = [0]
                 metrics["f1_" + key + "_" + type][-1] += f1_per_bundle[key]
 
@@ -167,28 +157,17 @@ def add_to_metrics(metrics, metr_batch, type, metric_types):
 
 
 def calculate_metrics_onlyLoss(metrics, loss, type="train"):
-    metrics["loss_"+type][-1] += loss
+    metrics["loss_" + type][-1] += loss
     return metrics
 
 
 def calculate_metrics_each_bundle(metrics, y, class_probs, bundles, f1=None, threshold=0.5):
-    '''
-    bundles -> have to be in same order as classes in predictions
-    y -> Ground Truth
-    class_probs -> Predictions
-    '''
-
     if f1 is None:
-        class_probs[class_probs >= threshold] = 1
-        class_probs[class_probs < threshold] = 0
-        pred_class = class_probs.astype(np.int16)
-
-        y[y >= threshold] = 1
-        y[y < threshold] = 0
-        y = y.astype(np.int16)
+        pred_class = (class_probs >= threshold).astype(np.int16)
+        y = (y >= threshold).astype(np.int16)
 
         for idx, bundle in enumerate(bundles):
-            metrics[bundle][-1] += f1_score(y[:,idx], pred_class[:,idx], average="binary")
+            metrics[bundle][-1] += f1_score(y[:, idx], pred_class[:, idx], average="binary")
     else:
         for idx, bundle in enumerate(bundles):
             metrics[bundle][-1] += f1[bundle]
@@ -196,37 +175,10 @@ def calculate_metrics_each_bundle(metrics, y, class_probs, bundles, f1=None, thr
     return metrics
 
 
-def average_metric_all_bundles(metrics_all):
-    '''
-    For each experiment: Takes last element of each metric
-        -> then: take average
-    => Average of all metrics for all experiments
-    :param metrics_all: list of metrics dictionaries
-    :return:
-    '''
-
-    metrics_avg = {}
-
-    for metric_key in metrics_all[0]:
-
-        elems = []
-        for experiment in metrics_all:
-            elems.append(experiment[metric_key][-1])
-
-        metrics_avg[metric_key] = sum(elems) / len(elems)
-
-    return metrics_avg
-
-
 def calc_peak_dice_onlySeg(Config, y_pred, y_true):
-    '''
+    """
     Create binary mask of peaks by simple thresholding. Then calculate Dice.
-
-    :param y_pred:
-    :param y_true:
-    :return:
-    '''
-
+    """
     score_per_bundle = {}
     bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
@@ -245,43 +197,13 @@ def calc_peak_dice_onlySeg(Config, y_pred, y_true):
 
 
 def calc_peak_dice(Config, y_pred, y_true, max_angle_error=[0.9]):
-    '''
-
-    :param y_pred:
-    :param y_true:
-    :param max_angle_error:  0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
-    :return:
-    '''
-
-    def angle(a, b):
-        '''
-        Calculate the angle between two 1d-arrays (2 vectors) along the last dimension
-
-        without anything further: 1->0°, 0.7->45°, 0->90°
-        np.arccos -> returns degree in pi (90°: 0.5*pi)
-        '''
-        return abs(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
-
-    def angle_last_dim(a, b):
-        '''
-        Calculate the angle between two nd-arrays (array of vectors) along the last dimension
-
-        without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
-        np.arccos -> returns degree in pi (90°: 0.5*pi)
-
-        return: one dimension less then input
-        '''
-        # print(np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1))
-        return abs(np.einsum('...i,...i', a, b) / (np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1) + 1e-7))
-
-
     score_per_bundle = {}
     bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
-        y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
+        y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]  # (x,y,z,3)
 
-        angles = angle_last_dim(y_pred_bund, y_true_bund)
+        angles = abs(peak_utils.angle_last_dim(y_pred_bund, y_true_bund))
         angles_binary = angles > max_angle_error[0]
 
         gt_binary = y_true_bund.sum(axis=-1) > 0
@@ -293,7 +215,7 @@ def calc_peak_dice(Config, y_pred, y_true, max_angle_error=[0.9]):
 
 
 def calc_peak_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9]):
-    '''
+    """
     Calculate angle between groundtruth and prediction and keep the voxels where
     angle is smaller than MAX_ANGLE_ERROR.
 
@@ -305,29 +227,20 @@ def calc_peak_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9]):
     -> no penalty on very very small with right direction -> bad
     => Peak_dice can be high even if peaks inside of tract almost missing (almost 0)
 
-    :param y_pred:
-    :param y_true:
-    :param max_angle_error:  0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
-                             Can be list with several values -> calculate for several thresholds
-    :return:
-    '''
-    import torch
-    from tractseg.libs.pytorch_einsum import einsum
+    Args:
+        Config:
+        y_pred:
+        y_true:
+        max_angle_error: 0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
+                         Can be list with several values -> calculate for several thresholds
+
+    Returns:
+
+    """
     from tractseg.libs import pytorch_utils
 
     y_true = y_true.permute(0, 2, 3, 1)
     y_pred = y_pred.permute(0, 2, 3, 1)
-
-    def angle_last_dim(a, b):
-        '''
-        Calculate the angle between two nd-arrays (array of vectors) along the last dimension
-
-        without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
-        np.arccos -> returns degree in pi (90°: 0.5*pi)
-
-        return: one dimension less then input
-        '''
-        return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
     #Single threshold
     if len(max_angle_error) == 1:
@@ -336,9 +249,9 @@ def calc_peak_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9]):
         for idx, bundle in enumerate(bundles):
             # if bundle == "CST_right":
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
-            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]
+            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x, y, z, 3]
 
-            angles = angle_last_dim(y_pred_bund, y_true_bund)
+            angles = pytorch_utils.angle_last_dim(y_pred_bund, y_true_bund)
             gt_binary = y_true_bund.sum(dim=-1) > 0
             gt_binary = gt_binary.view(-1)  # [bs*x*y]
 
@@ -355,11 +268,10 @@ def calc_peak_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9]):
         score_per_bundle = {}
         bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
         for idx, bundle in enumerate(bundles):
-            # if bundle == "CST_right":
             y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()
-            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x,y,z,3]
+            y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3].contiguous()  # [x, y, z, 3]
 
-            angles = angle_last_dim(y_pred_bund, y_true_bund)
+            angles = pytorch_utils.angle_last_dim(y_pred_bund, y_true_bund)
             gt_binary = y_true_bund.sum(dim=-1) > 0
             gt_binary = gt_binary.view(-1)  # [bs*x*y]
 
@@ -375,34 +287,13 @@ def calc_peak_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9]):
 
 
 def calc_peak_length_dice(Config, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):
-    '''
-
-    :param y_pred:
-    :param y_true:
-    :param max_angle_error:  0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
-    :return:
-    '''
-
-    def angle_last_dim(a, b):
-        '''
-        Calculate the angle between two nd-arrays (array of vectors) along the last dimension
-
-        without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
-        np.arccos -> returns degree in pi (90°: 0.5*pi)
-
-        return: one dimension less then input
-        '''
-        # print(np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1))
-        return abs(np.einsum('...i,...i', a, b) / (np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1) + 1e-7))
-
-
     score_per_bundle = {}
     bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[:, :, :, (idx * 3):(idx * 3) + 3]
-        y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]      # [x,y,z,3]
+        y_true_bund = y_true[:, :, :, (idx * 3):(idx * 3) + 3]  # [x, y, z, 3]
 
-        angles = angle_last_dim(y_pred_bund, y_true_bund)
+        angles = abs(peak_utils.angle_last_dim(y_pred_bund, y_true_bund))
 
         lenghts_pred = np.linalg.norm(y_pred_bund, axis=-1)
         lengths_true = np.linalg.norm(y_true_bund, axis=-1)
@@ -423,17 +314,7 @@ def calc_peak_length_dice(Config, y_pred, y_true, max_angle_error=[0.9], max_len
 
 
 def calc_peak_length_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9], max_length_error=0.1):
-    '''
-    Ca
-
-    :param y_pred:
-    :param y_true:
-    :param max_angle_error:  0.7 ->  angle error of 45° or less; 0.9 ->  angle error of 23° or less
-                             Can be list with several values -> calculate for several thresholds
-    :return:
-    '''
     import torch
-    from tractseg.libs.pytorch_einsum import einsum
     from tractseg.libs import pytorch_utils
 
     if len(y_pred.shape) == 4:  # 2D
@@ -443,28 +324,15 @@ def calc_peak_length_dice_pytorch(Config, y_pred, y_true, max_angle_error=[0.9],
         y_true = y_true.permute(0, 2, 3, 4, 1)
         y_pred = y_pred.permute(0, 2, 3, 4, 1)
 
-    def angle_last_dim(a, b):
-        '''
-        Calculate the angle between two nd-arrays (array of vectors) along the last dimension
-
-        without anything further: 1->0°, 0.9->23°, 0.7->45°, 0->90°
-        np.arccos -> returns degree in pi (90°: 0.5*pi)
-
-        return: one dimension less then input
-        '''
-        if len(a.shape) == 4:
-            return torch.abs(einsum('abcd,abcd->abc', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
-        else:
-            return torch.abs(einsum('abcde,abcde->abcd', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
     #Single threshold
     score_per_bundle = {}
     bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
     for idx, bundle in enumerate(bundles):
         y_pred_bund = y_pred[..., (idx * 3):(idx * 3) + 3].contiguous()
-        y_true_bund = y_true[..., (idx * 3):(idx * 3) + 3].contiguous()      # [x,y,z,3]
+        y_true_bund = y_true[..., (idx * 3):(idx * 3) + 3].contiguous() # [x, y, z, 3]
 
-        angles = angle_last_dim(y_pred_bund, y_true_bund)
+        angles = pytorch_utils.angle_last_dim(y_pred_bund, y_true_bund)
 
         lenghts_pred = torch.norm(y_pred_bund, 2., -1)
         lengths_true = torch.norm(y_true_bund, 2, -1)

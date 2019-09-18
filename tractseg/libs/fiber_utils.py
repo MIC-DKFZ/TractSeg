@@ -13,7 +13,7 @@ from dipy.tracking.metrics import spline
 from dipy.tracking import utils as utils_trk
 
 from tractseg.libs import utils
-
+from tractseg.libs import peak_utils
 
 # Global variables needed for shared memory of parallel fiber compression
 global _COMPRESSION_ERROR_THRESHOLD
@@ -251,18 +251,6 @@ def filter_streamlines_leaving_mask(streamlines, mask):
     return [streamlines[idx] for idx in new_str_idxs]
 
 
-def angle_last_dim(a, b):
-    """
-    Calculate the angle between two nd-arrays (array of vectors) along the last dimension
-
-    dot product <-> degree conversion: 1->0°, 0.9->23°, 0.7->45°, 0->90°
-    By using np.arccos you could return degree in pi (90°: 0.5*pi)
-
-    Return one dimension less than input
-    """
-    return np.einsum('...i,...i', a, b) / (np.linalg.norm(a, axis=-1) * np.linalg.norm(b, axis=-1) + 1e-7)
-
-
 def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
     """
     Find the peak from preaks_orig which is closest to the peak in peaks_pred.
@@ -278,9 +266,9 @@ def get_best_original_peaks(peaks_pred, peaks_orig, peak_len_thr=0.1):
 
     def _get_most_aligned_peak(pred, orig):
         orig = np.array(orig)
-        angle1 = abs(angle_last_dim(pred, orig[0]))
-        angle2 = abs(angle_last_dim(pred, orig[1]))
-        angle3 = abs(angle_last_dim(pred, orig[2]))
+        angle1 = abs(peak_utils.angle_last_dim(pred, orig[0]))
+        angle2 = abs(peak_utils.angle_last_dim(pred, orig[1]))
+        angle3 = abs(peak_utils.angle_last_dim(pred, orig[2]))
         argmax = np.argmax(np.stack([angle1, angle2, angle3], axis=-1), axis=-1)
 
         x, y, z = (orig.shape[1], orig.shape[2], orig.shape[3])
@@ -314,7 +302,7 @@ def get_weighted_mean_of_peaks(best_orig, tom, weight=0.5):
     Returns:
         weighted mean
     """
-    angles = angle_last_dim(best_orig, tom)
+    angles = peak_utils.angle_last_dim(best_orig, tom)
     # make sure to take mean along smaller angle (<90 degree), not along the bigger one (>90 degree)
     tom[angles < 0] *= -1   # flip peak
     stacked = np.stack([best_orig, tom])
