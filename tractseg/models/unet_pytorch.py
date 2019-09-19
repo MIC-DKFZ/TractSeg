@@ -1,16 +1,3 @@
-# Copyright 2017 Division of Medical Image Computing, German Cancer Research Center (DKFZ)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from __future__ import absolute_import
 from __future__ import division
@@ -18,7 +5,6 @@ from __future__ import print_function
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from tractseg.libs.pytorch_utils import conv2d
 from tractseg.libs.pytorch_utils import deconv2d
@@ -54,7 +40,7 @@ class UNet_Pytorch(torch.nn.Module):
         self.encode_1 = conv2d(n_filt * 8, n_filt * 16, batchnorm=batchnorm)
         self.encode_2 = conv2d(n_filt * 16, n_filt * 16, batchnorm=batchnorm)
         self.deconv_1 = deconv2d(n_filt * 16, n_filt * 16, kernel_size=2, stride=2)
-        # self.deconv_1 = nn.Upsample(scale_factor=2)  #does only upscale width and height; Similar results to deconv2d
+        # self.deconv_1 = nn.Upsample(scale_factor=2)  # does only upscale width and height; Similar results to deconv2d
 
         self.expand_1_1 = conv2d(n_filt * 8 + n_filt * 16, n_filt * 8, batchnorm=batchnorm)
         self.expand_1_2 = conv2d(n_filt * 8, n_filt * 8, batchnorm=batchnorm)
