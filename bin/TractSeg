@@ -159,7 +159,8 @@ def main():
     args = parser.parse_args()
 
 
-    # More parameters
+    ####################################### Set more parameters #######################################
+
     input_type = "peaks"  # peaks|T1
     threshold = 0.5          # specificity (for tract_segmentation and endings_segmentation)
     peak_threshold = 0.3     # specificity (for TOM)
@@ -178,6 +179,9 @@ def main():
     single_orientation = args.single_orientation
     if args.output_type == "TOM":
         single_orientation = True
+
+
+    ####################################### Setup configuration #######################################
 
     if os.path.basename(input_path) == "dyads1.nii.gz":
         print("BedpostX dyads detected. Will automatically combine dyads1+2[+3].")
@@ -214,6 +218,9 @@ def main():
     else:
         tract_segmentations_path = join(Config.PREDICT_IMG_OUTPUT, "bundle_segmentations")  # needed for TOM angle loss
 
+
+    ####################################### Preprocessing #######################################
+
     if args.raw_diffusion_input:
         brain_mask = exp_utils.get_brain_mask_path(Config, args)
 
@@ -226,8 +233,6 @@ def main():
 
         mrtrix.create_fods(input_path, Config.PREDICT_IMG_OUTPUT, bvals, bvecs,
                            brain_mask, Config.CSD_TYPE, nr_cpus=args.nr_cpus)
-
-    #todo: more comments? Also for bigger blocks
 
     if args.raw_diffusion_input:
         peak_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
@@ -268,6 +273,9 @@ def main():
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]
     # data = np.concatenate((data, t1_data), axis=3)
 
+
+    ####################################### Process #######################################
+
     if Config.EXPERIMENT_TYPE == "peak_regression":
         parts = ["Part1", "Part2", "Part3", "Part4"]
         if manual_exp_name is not None and "PeaksPart1" in manual_exp_name:
@@ -292,6 +300,9 @@ def main():
                            inference_batch_size=inference_batch_size,
                            tract_definition=args.tract_definition, bedpostX_input=bedpostX_input,
                            tract_segmentations_path=tract_segmentations_path, TOM_dilation=TOM_dilation)
+
+
+        ####################################### Save output #######################################
 
         if args.preview and Config.CLASSES not in ["All_Part2", "All_Part3", "All_Part4"]:
             print("Saving preview...")
@@ -342,7 +353,6 @@ def main():
             mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
 
     Config.CLASSES = "All"
-
     mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
 
 

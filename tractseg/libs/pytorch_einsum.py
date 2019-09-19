@@ -230,7 +230,6 @@ def _exponential_space_einsum(equation, *inputs):
 
     # reshape, multiply
     # expanded_inputs = [array_ops.reshape(input_, shape)
-    # todo: check
     expanded_inputs = [input_.view(shape)
                        for input_, shape in zip(inputs, shapes)]
     expanded_output = 1

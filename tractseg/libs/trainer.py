@@ -11,12 +11,47 @@ import datetime
 import numpy as np
 from tqdm import tqdm
 from pprint import pprint
+from collections import defaultdict
 
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 from tractseg.libs import plot_utils
 from tractseg.data.data_loader_inference import DataLoaderInference
 from tractseg.data import dataset_specific_utils
+
+
+def _get_weights_for_this_epoch(Config, epoch_nr):
+    if Config.LOSS_WEIGHT is None:
+        weight_factor = None
+    elif Config.LOSS_WEIGHT_LEN == -1:
+        weight_factor = float(Config.LOSS_WEIGHT)
+    else:
+        # Linearly decrease from LOSS_WEIGHT to 1 over LOSS_WEIGHT_LEN epochs
+        if epoch_nr < Config.LOSS_WEIGHT_LEN:
+            weight_factor = -((Config.LOSS_WEIGHT - 1) /
+                              float(Config.LOSS_WEIGHT_LEN)) * epoch_nr + float(Config.LOSS_WEIGHT)
+        else:
+            weight_factor = 1.
+        exp_utils.print_and_save(Config, "Current weight_factor: {}".format(weight_factor))
+    return weight_factor
+
+
+def _update_metrics(Config, metrics, metr_batch, type):
+    if Config.CALC_F1:
+        if Config.EXPERIMENT_TYPE == "peak_regression":
+            peak_f1_mean = np.array([s.to('cpu') for s in list(metr_batch["f1_macro"].values())]).mean()
+            metr_batch["f1_macro"] = peak_f1_mean
+
+            metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, Config.METRIC_TYPES)
+
+        else:
+            metr_batch["f1_macro"] = np.mean(metr_batch["f1_macro"])
+            metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, Config.METRIC_TYPES)
+
+    else:
+        metrics = metric_utils.calculate_metrics_onlyLoss(metrics, metr_batch["loss"], type=type)
+    return metrics
+
 
 def train_model(Config, model, data_loader):
 
@@ -34,14 +69,8 @@ def train_model(Config, model, data_loader):
 
     metrics = {}
     for type in ["train", "test", "validate"]:
-        # metrics_new = {}
         for metric in Config.METRIC_TYPES:
-            #todo: metrics.update(....) ?
-            # metrics_new[metric + "_" + type] = [0]
-            #todo: This should work
             metrics[metric + "_" + type] = [0]
-        #todo: document
-        # metrics = dict(list(metrics.items()) + list(metrics_new.items()))
 
     batch_gen_train = data_loader.get_batch_generator(batch_size=Config.BATCH_SIZE, type="train",
                                                       subjects=getattr(Config, "TRAIN_SUBJECTS"))
@@ -50,41 +79,11 @@ def train_model(Config, model, data_loader):
 
     for epoch_nr in range(Config.NUM_EPOCHS):
         start_time = time.time()
-        # current_lr = Config.LEARNING_RATE * (Config.LR_DECAY ** epoch_nr)
-        # current_lr = Config.LEARNING_RATE
 
-        # todo: use time default dict?
-        data_preparation_time = 0
-        network_time = 0
-        metrics_time = 0
-        saving_time = 0
-        plotting_time = 0
-
-        # todo: use defaultdict ?
-        batch_nr = {
-            "train": 0,
-            "test": 0,
-            "validate": 0
-        }
-
-        # todo: move to own function
-        if Config.LOSS_WEIGHT is None:
-            weight_factor = None
-        elif Config.LOSS_WEIGHT_LEN == -1:
-            weight_factor = float(Config.LOSS_WEIGHT)
-        else:
-            # Linearly decrease from LOSS_WEIGHT to 1 over LOSS_WEIGHT_LEN epochs
-            if epoch_nr < Config.LOSS_WEIGHT_LEN:
-                weight_factor = -((Config.LOSS_WEIGHT-1) /
-                                  float(Config.LOSS_WEIGHT_LEN)) * epoch_nr + float(Config.LOSS_WEIGHT)
-            else:
-                weight_factor = 1.
-            exp_utils.print_and_save(Config, "Current weight_factor: {}".format(weight_factor))
-
-        if Config.ONLY_VAL:
-            types = ["validate"]
-        else:
-            types = ["train", "validate"]
+        timings = defaultdict(lambda: 0)
+        batch_nr = defaultdict(lambda: 0)
+        weight_factor = _get_weights_for_this_epoch(Config, epoch_nr)
+        types = ["validate"] if Config.ONLY_VAL else ["train", "validate"]
 
         for type in types:
             print_loss = []
@@ -101,10 +100,7 @@ def train_model(Config, model, data_loader):
             start_time_batch_part = time.time()
             for i in range(nr_batches):
 
-                if type == "train":
-                    batch = next(batch_gen_train)
-                else:
-                    batch = next(batch_gen_val)
+                batch = next(batch_gen_train) if type == "train" else next(batch_gen_val)
 
                 start_time_data_preparation = time.time()
                 batch_nr[type] += 1
@@ -112,7 +108,7 @@ def train_model(Config, model, data_loader):
                 x = batch["data"]  # (bs, nr_of_channels, x, y)
                 y = batch["seg"]  # (bs, nr_of_classes, x, y)
 
-                data_preparation_time += time.time() - start_time_data_preparation
+                timings["data_preparation_time"] += time.time() - start_time_data_preparation
                 start_time_network = time.time()
                 if type == "train":
                     nr_of_updates += 1
@@ -121,38 +117,19 @@ def train_model(Config, model, data_loader):
                     probs, metr_batch = model.test(x, y, weight_factor=weight_factor)
                 elif type == "test":
                     probs, metr_batch = model.test(x, y, weight_factor=weight_factor)
-                network_time += time.time() - start_time_network
+                timings["network_time"] += time.time() - start_time_network
 
                 start_time_metrics = time.time()
-
-                # move to extra function?
-                if Config.CALC_F1:
-                    if Config.EXPERIMENT_TYPE == "peak_regression":
-                        peak_f1_mean = np.array([s.to('cpu') for s in list(metr_batch["f1_macro"].values())]).mean()
-                        metr_batch["f1_macro"] = peak_f1_mean
-
-                        metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, Config.METRIC_TYPES)
-
-                    else:
-                        metr_batch["f1_macro"] = np.mean(metr_batch["f1_macro"])
-                        metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, Config.METRIC_TYPES)
-
-                else:
-                    metrics = metric_utils.calculate_metrics_onlyLoss(metrics, metr_batch["loss"], type=type)
-
-                metrics_time += time.time() - start_time_metrics
+                metrics = _update_metrics(Config, metrics, metr_batch, type)
+                timings["metrics_time"] += time.time() - start_time_metrics
 
                 print_loss.append(metr_batch["loss"])
                 if batch_nr[type] % Config.PRINT_FREQ == 0:
                     time_batch_part = time.time() - start_time_batch_part
                     start_time_batch_part = time.time()
-                    exp_utils.print_and_save(Config,
-                                             "{} Ep {}, Sp {}, loss {}, t print {}s, "
-                                             "t batch {}s".format(type, epoch_nr,
-                                                                  batch_nr[type] * Config.BATCH_SIZE,
-                                                                  round(np.array(print_loss).mean(), 6),
-                                                                  round(time_batch_part, 3),
-                                                                  round( time_batch_part / Config.PRINT_FREQ, 3)))
+                    exp_utils.print_and_save(Config, "{} Ep {}, Sp {}, loss {}, t print {}s, t batch {}s".format(
+                        type, epoch_nr, batch_nr[type] * Config.BATCH_SIZE, round(np.array(print_loss).mean(), 6),
+                        round(time_batch_part, 3), round( time_batch_part / Config.PRINT_FREQ, 3)))
                     print_loss = []
 
                 if Config.USE_VISLOGGER:
@@ -169,7 +146,6 @@ def train_model(Config, model, data_loader):
         # Average loss per batch over entire epoch
         metrics = metric_utils.normalize_last_element(metrics, batch_nr["train"], type="train")
         metrics = metric_utils.normalize_last_element(metrics, batch_nr["validate"], type="validate")
-        # metrics = metric_utils.normalize_last_element(metrics, batch_nr["test"], type="test")
 
         print("  Epoch {}, Average Epoch loss = {}".format(epoch_nr, metrics["loss_train"][-1]))
         print("  Epoch {}, nr_of_updates {}".format(epoch_nr, nr_of_updates))
@@ -186,7 +162,7 @@ def train_model(Config, model, data_loader):
         start_time_saving = time.time()
         if Config.SAVE_WEIGHTS:
             model.save_model(metrics, epoch_nr, mode=Config.BEST_EPOCH_SELECTION)
-        saving_time += time.time() - start_time_saving
+        timings["saving_time"] += time.time() - start_time_saving
 
         # Create Plots
         start_time_plotting = time.time()
@@ -208,54 +184,37 @@ def train_model(Config, model, data_loader):
                                        selected_ax=["loss", "f1"],
                                        fig_name="metrics_angle.png")
 
-        plotting_time += time.time() - start_time_plotting
+        timings["plotting_time"] += time.time() - start_time_plotting
 
         epoch_time = time.time() - start_time
         epoch_times.append(epoch_time)
 
         exp_utils.print_and_save(Config, "  Epoch {}, time total {}s".format(epoch_nr, epoch_time))
-        exp_utils.print_and_save(Config, "  Epoch {}, time UNet: {}s".format(epoch_nr, network_time))
-        exp_utils.print_and_save(Config, "  Epoch {}, time metrics: {}s".format(epoch_nr, metrics_time))
-        exp_utils.print_and_save(Config, "  Epoch {}, time saving files: {}s".format(epoch_nr, saving_time))
+        exp_utils.print_and_save(Config, "  Epoch {}, time UNet: {}s".format(epoch_nr, timings["network_time"]))
+        exp_utils.print_and_save(Config, "  Epoch {}, time metrics: {}s".format(epoch_nr, timings["metrics_time"]))
+        exp_utils.print_and_save(Config, "  Epoch {}, time saving files: {}s".format(epoch_nr, timings["saving_time"]))
         exp_utils.print_and_save(Config, str(datetime.datetime.now()))
 
         # Adding next Epoch
         if epoch_nr < Config.NUM_EPOCHS-1:
             metrics = metric_utils.add_empty_element(metrics)
 
-
-    ####################################
-    # After all epochs
-    ###################################
-    with open(join(Config.EXP_PATH, "Hyperparameters.txt"), "a") as f:  # a for append
-        f.write("\n\n")
-        f.write("Average Epoch time: {}s".format(sum(epoch_times) / float(len(epoch_times))))
+    with open(join(Config.EXP_PATH, "Hyperparameters.txt"), "a") as f:
+        f.write("\n\nAverage Epoch time: {}s".format(sum(epoch_times) / float(len(epoch_times))))
 
 
 def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=True, only_prediction=False,
                 batch_size=1):
     """
+    Return predictions for one 3D image.
+
     Runtime on CPU
     - python 2 + pytorch 0.4:
-      bs=1  -> 9min      around 4.5GB RAM (maybe even 7GB)
-      bs=48 -> 6.5min           30GB RAM
+          bs=1  -> 9min      ~7GB RAM
+          bs=48 -> 6.5min    ~30GB RAM
     - python 3 + pytorch 1.0:
-      bs=1  -> 2.7min    around 7GB RAM
-
-    Args:
-        Config:
-        model:
-        data_loader:
-        probs:
-        scale_to_world_shape:
-        only_prediction:
-        batch_size:
-
-    Returns:
-
+          bs=1  -> 2.7min    ~7GB RAM
     """
-
-    #todo add _ to helper functions
     def _finalize_data(layers):
         layers = np.array(layers)
 
@@ -273,8 +232,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
         if scale_to_world_shape:
             layers = dataset_specific_utils.scale_input_to_original_shape(layers, Config.DATASET, Config.RESOLUTION)
 
-        #todo: move to top of function
-        assert (layers.dtype == np.float32)  # .astype() quite slow -> use assert to make sure type is right
+        assert (layers.dtype == np.float32)
         return layers
 
     img_shape = [Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.NR_OF_CLASSES]
@@ -284,34 +242,33 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
     batch_generator = list(batch_generator)
     idx = 0
     for batch in tqdm(batch_generator):
-        x = batch["data"]   # (bs, nr_of_channels, x, y)
-        y = batch["seg"]    # (bs, nr_of_classes, x, y)
+        x = batch["data"]   # (bs, nr_channels, x, y)
+        y = batch["seg"]    # (bs, nr_classes, x, y)
         y = y.numpy()
 
         if not only_prediction:
             y = y.astype(Config.LABELS_TYPE)
-            # y = np.squeeze(y)   # remove bs dimension which is only 1 -> (nrClasses, x, y)
             if Config.DIM == "2D":
-                y = y.transpose(0, 2, 3, 1) # (bs, x, y, nr_of_classes)
+                y = y.transpose(0, 2, 3, 1) # (bs, x, y, nr_classes)
             else:
                 y = y.transpose(0, 2, 3, 4, 1)
 
         if Config.DROPOUT_SAMPLING:
-            #For Dropout Sampling (must set Deterministic=False in model)
+            # For Dropout Sampling (must set deterministic=False in model)
             NR_SAMPLING = 30
             samples = []
             for i in range(NR_SAMPLING):
-                layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
+                layer_probs = model.predict(x)  # (bs, x, y, nr_classes)
                 samples.append(layer_probs)
 
-            samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nrClasses)
-            layer_probs = np.std(samples, axis=0)    # (bs,x,y,nrClasses)
+            samples = np.array(samples)  # (NR_SAMPLING, bs, x, y, nr_classes)
+            layer_probs = np.std(samples, axis=0)    # (bs, x, y, nr_classes)
         else:
             # For normal prediction
-            layer_probs = model.predict(x)  # (bs, x, y, nrClasses)
+            layer_probs = model.predict(x)  # (bs, x, y, nr_classes)
 
         if probs:
-            seg = layer_probs   # (x, y, nrClasses)
+            seg = layer_probs   # (x, y, nr_classes)
         else:
             seg = layer_probs
             seg[seg >= Config.THRESHOLD] = 1
@@ -332,7 +289,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
     layers_seg = _finalize_data(layers_seg)
     if not only_prediction:
         layers_y = _finalize_data(layers_y)
-    return layers_seg, layers_y   # (Prediction, Groundtruth)
+    return layers_seg, layers_y
 
 
 def test_whole_subject(Config, model, subjects, type):
@@ -342,10 +299,7 @@ def test_whole_subject(Config, model, subjects, type):
         "f1_macro_" + type: [0],
     }
 
-    # Metrics per bundle
-    metrics_bundles = {}
-    for bundle in dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]:
-        metrics_bundles[bundle] = [0]
+    metrics_bundles = defaultdict(lambda: [0])
 
     for subject in subjects:
         print("{} subject {}".format(type, subject))
@@ -369,7 +323,7 @@ def test_whole_subject(Config, model, subjects, type):
                                                                          dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:],
                                                                          f1, threshold=Config.THRESHOLD)
         else:
-            img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  #Flatten all dims except nrClasses dim
+            img_probs = np.reshape(img_probs, (-1, img_probs.shape[-1]))  # Flatten all dims except nr_classes dim
             img_y = np.reshape(img_y, (-1, img_y.shape[-1]))
             metrics = metric_utils.calculate_metrics(metrics, img_y, img_probs, 0,
                                                      type=type, threshold=Config.THRESHOLD)
