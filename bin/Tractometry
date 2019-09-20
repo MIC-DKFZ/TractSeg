@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
 from os.path import join
 import argparse
 
@@ -88,23 +89,31 @@ def main():
             predicted_peaks = None
         beginnings = nib.load(join(args.endings_dir, bundle + "_b.nii.gz"))
 
-        if args.tracking_format == "trk_legacy":
-            streams, hdr = trackvis.read(join(args.tracking_dir, bundle + ".trk"))
-            streamlines = [s[0] for s in streams]
-        else:
-            sl_file = nib.streamlines.load(join(args.tracking_dir, bundle + "." + args.tracking_format))
-            streamlines = sl_file.streamlines
+        file_ending = "trk" if args.tracking_format == "trk_legacy" else args.tracking_format
+        trk_path = join(args.tracking_dir, bundle + "." + file_ending)
 
-        if len(streamlines) > 0:
-            streamlines = fiber_utils.resample_fibers(streamlines, nb_points=NR_POINTS)    #mean over bundles
-            streamlines = list(transform_streamlines(streamlines, np.linalg.inv(scalar_image.affine)))
-            mean, std = tractometry.evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines,
-                                                           beginnings.get_data(), NR_POINTS, dilate=DILATION,
-                                                           predicted_peaks=predicted_peaks, affine=scalar_image.affine)
-        else:
-            print("WARNING: bundle {} contains no streamlines. Saving value 0 for this bundle.".format(bundle))
+        if not os.path.exists(trk_path):
+            print("WARNING: No tracking found for bundle {}. Returning zeros.".format(bundle))
             mean = np.zeros(NR_POINTS)
             std = np.zeros(NR_POINTS)
+        else:
+            if args.tracking_format == "trk_legacy":
+                streams, hdr = trackvis.read(trk_path)
+                streamlines = [s[0] for s in streams]
+            else:
+                sl_file = nib.streamlines.load(trk_path)
+                streamlines = sl_file.streamlines
+
+            if len(streamlines) > 0:
+                streamlines = fiber_utils.resample_fibers(streamlines, nb_points=NR_POINTS)    #mean over bundles
+                streamlines = list(transform_streamlines(streamlines, np.linalg.inv(scalar_image.affine)))
+                mean, std = tractometry.evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines,
+                                                               beginnings.get_data(), NR_POINTS, dilate=DILATION,
+                                                               predicted_peaks=predicted_peaks, affine=scalar_image.affine)
+            else:
+                print("WARNING: bundle {} contains no streamlines. Saving value 0 for this bundle.".format(bundle))
+                mean = np.zeros(NR_POINTS)
+                std = np.zeros(NR_POINTS)
 
         # Remove first and last segment as those tend to be more noisy
         mean = mean[1:-1]
