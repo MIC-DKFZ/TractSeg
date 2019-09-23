@@ -194,8 +194,6 @@ def bundle_specific_postprocessing(data, bundles):
     For certain bundles checks if bundle contains two big blobs. Then it reduces the threshold for conversion to
     binary and applies hole closing.
     """
-    edit_bundles = ["CA", "FX_right", "FX_left"]
-
     bundles_thresholds = {
         "CA": 0.3,
         "FX_left": 0.4,
@@ -206,7 +204,7 @@ def bundle_specific_postprocessing(data, bundles):
     for idx, bundle in enumerate(bundles):
         data_single = data[:, :, :, idx]
 
-        if bundle in edit_bundles:
+        if bundle in list(bundles_thresholds.keys()):
             if has_two_big_blobs(data_single > 0.5, bundle, debug=False):
                 print("INFO: Using bundle specific postprocessing for {} because bundle incomplete.".format(bundle))
                 thr = bundles_thresholds[bundle]
