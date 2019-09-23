@@ -116,7 +116,7 @@ def remove_small_blobs(img, threshold=1, debug=True):
     # Find largest blob, to make sure we do not remove everything
     #   Largest blob is actually the second largest, because largest is the background
     second_largest_blob_value = np.sort(counts)[-2]
-    second_largest_blob_idx = np.where(counts==second_largest_blob_value)
+    second_largest_blob_idx = np.where(counts==second_largest_blob_value)[0][0]
     if debug:
         print(counts)
 
@@ -194,8 +194,6 @@ def bundle_specific_postprocessing(data, bundles):
     For certain bundles checks if bundle contains two big blobs. Then it reduces the threshold for conversion to
     binary and applies hole closing.
     """
-    edit_bundles = ["CA", "FX_right", "FX_left"]
-
     bundles_thresholds = {
         "CA": 0.3,
         "FX_left": 0.4,
@@ -206,7 +204,7 @@ def bundle_specific_postprocessing(data, bundles):
     for idx, bundle in enumerate(bundles):
         data_single = data[:, :, :, idx]
 
-        if bundle in edit_bundles:
+        if bundle in list(bundles_thresholds.keys()):
             if has_two_big_blobs(data_single > 0.5, bundle, debug=False):
                 print("INFO: Using bundle specific postprocessing for {} because bundle incomplete.".format(bundle))
                 thr = bundles_thresholds[bundle]
