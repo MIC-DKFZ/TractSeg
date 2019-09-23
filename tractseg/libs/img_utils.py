@@ -116,7 +116,7 @@ def remove_small_blobs(img, threshold=1, debug=True):
     # Find largest blob, to make sure we do not remove everything
     #   Largest blob is actually the second largest, because largest is the background
     second_largest_blob_value = np.sort(counts)[-2]
-    second_largest_blob_idx = np.where(counts==second_largest_blob_value)
+    second_largest_blob_idx = np.where(counts==second_largest_blob_value)[0][0]
     if debug:
         print(counts)
 
