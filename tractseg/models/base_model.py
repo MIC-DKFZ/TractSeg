@@ -14,6 +14,7 @@ from torch.optim import Adamax
 from torch.optim import Adam
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.nn.functional as F
+
 try:
     from apex import amp
     APEX_AVAILABLE = True
@@ -25,10 +26,12 @@ from tractseg.libs import pytorch_utils
 from tractseg.libs import exp_utils
 from tractseg.libs import metric_utils
 
+
 class BaseModel:
     def __init__(self, Config, inference=False):
         self.Config = Config
 
+        # Do not use during inference because uses a lot more memory
         if not inference:
             torch.backends.cudnn.benchmark = True
 
@@ -37,7 +40,6 @@ class BaseModel:
 
         if self.Config.SEG_INPUT == "Peaks" and self.Config.TYPE == "single_direction":
             NR_OF_GRADIENTS = self.Config.NR_OF_GRADIENTS
-            # NR_OF_GRADIENTS = 9 * 5    # 5 slices
         elif self.Config.SEG_INPUT == "Peaks" and self.Config.TYPE == "combined":
             self.Config.NR_OF_GRADIENTS = 3 * self.Config.NR_OF_CLASSES
         else:
@@ -58,12 +60,6 @@ class BaseModel:
             # self.criterion = nn.MSELoss()   # aggregate by mean
             self.criterion = nn.MSELoss(size_average=False, reduce=True)   # aggregate by sum
         else:
-            # weights = torch.ones((self.Config.BATCH_SIZE, self.Config.NR_OF_CLASSES,
-            #                       self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[1])).cuda()
-            # weights[:, 5, :, :] *= 10     #CA
-            # weights[:, 21, :, :] *= 10    #FX_left
-            # weights[:, 22, :, :] *= 10    #FX_right
-            # self.criterion = nn.BCEWithLogitsLoss(weight=weights)
             self.criterion = nn.BCEWithLogitsLoss()
 
         NetworkClass = getattr(importlib.import_module("tractseg.models." + self.Config.MODEL.lower()),
@@ -72,11 +68,8 @@ class BaseModel:
                                 n_filt=self.Config.UNET_NR_FILT, batchnorm=self.Config.BATCH_NORM,
                                 dropout=self.Config.USE_DROPOUT, upsample=self.Config.UPSAMPLE_TYPE)
 
-        # Somehow not really faster (max 10% speedup): GPU utility low -> why? (CPU also low)
-        # (with bigger batch_size even worse)
-        # - GPU slow connection? (but maybe same problem as before pin_memory)
-        # - Wrong setup with pin_memory, async, ...? -> should be correct
-        # - load from npy instead of nii -> will not solve entire problem
+        # MultiGPU setup
+        # (Not really faster (max 10% speedup): GPU and CPU utility low)
         # nr_gpus = torch.cuda.device_count()
         # exp_utils.print_and_save(self.Config, "nr of gpus: {}".format(nr_gpus))
         # self.net = nn.DataParallel(self.net)
@@ -84,15 +77,12 @@ class BaseModel:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         net = self.net.to(self.device)
 
-        # if self.Config.TRAIN:
-        #     exp_utils.print_and_save(self.Config, str(net), only_log=True)    # print network
-
         if self.Config.OPTIMIZER == "Adamax":
-            self.optimizer = Adamax(net.parameters(), lr=self.Config.LEARNING_RATE)
+            self.optimizer = Adamax(net.parameters(), lr=self.Config.LEARNING_RATE,
+                                    weight_decay=self.Config.WEIGHT_DECAY)
         elif self.Config.OPTIMIZER == "Adam":
-            self.optimizer = Adam(net.parameters(), lr=self.Config.LEARNING_RATE)
-            # self.optimizer = Adam(net.parameters(), lr=self.Config.LEARNING_RATE,
-            #                       weight_decay=self.Config.WEIGHT_DECAY)
+            self.optimizer = Adam(net.parameters(), lr=self.Config.LEARNING_RATE,
+                                  weight_decay=self.Config.WEIGHT_DECAY)
         else:
             raise ValueError("Optimizer not defined")
 
@@ -105,10 +95,7 @@ class BaseModel:
             if not inference:
                 print("INFO: Did not find APEX, defaulting to fp32 training")
 
-
         if self.Config.LR_SCHEDULE:
-            # Slightly better results could be archived if training for 500ep without reduction of LR
-            # -> but takes too long -> using reudceOnPlateau gives benefits if only training for 200ep
             self.scheduler = lr_scheduler.ReduceLROnPlateau(self.optimizer,
                                                             mode=self.Config.LR_SCHEDULE_MODE,
                                                             patience=self.Config.LR_SCHEDULE_PATIENCE)
@@ -118,6 +105,7 @@ class BaseModel:
                                                                                         self.Config.WEIGHTS_PATH)))
             self.load_model(join(self.Config.EXP_PATH, self.Config.WEIGHTS_PATH))
 
+        # Reset weights of last layer for transfer learning
         if self.Config.RESET_LAST_LAYER:
             self.net.conv_5 = nn.Conv2d(self.Config.UNET_NR_FILT, self.Config.NR_OF_CLASSES, kernel_size=1,
                                         stride=1, padding=0, bias=True).to(self.device)
@@ -129,7 +117,7 @@ class BaseModel:
 
         self.net.train()
         self.optimizer.zero_grad()
-        outputs = self.net(X)  # forward; outputs: (bs, classes, x, y)
+        outputs = self.net(X)  # (bs, classes, x, y)
         angle_err = None
 
         if weight_factor is not None:
@@ -149,7 +137,7 @@ class BaseModel:
         else:
             if self.Config.LOSS_FUNCTION == "soft_sample_dice" or self.Config.LOSS_FUNCTION == "soft_batch_dice":
                 loss = self.criterion(F.sigmoid(outputs), y)
-                # loss = criterion(F.sigmoid(outputs), y) + nn.BCEWithLogitsLoss()(outputs, y)
+                # loss = criterion(F.sigmoid(outputs), y) + nn.BCEWithLogitsLoss()(outputs, y)  # combined loss
             else:
                 loss = self.criterion(outputs, y)
 
@@ -172,10 +160,9 @@ class BaseModel:
                                               threshold=self.Config.THRESHOLD)
 
         if self.Config.USE_VISLOGGER:
-            # probs = F.sigmoid(outputs).detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = F.sigmoid(outputs)
         else:
-            probs = None    #faster
+            probs = None  # faster
 
         metrics = {}
         metrics["loss"] = loss.item()
@@ -186,16 +173,6 @@ class BaseModel:
 
 
     def test(self, X, y, weight_factor=None):
-        """
-
-        Args:
-            X: float torch tensor
-            y: float torch tensor
-            weight_factor:
-
-        Returns:
-
-        """
         with torch.no_grad():
             X = X.contiguous().cuda(non_blocking=True)
             y = y.contiguous().cuda(non_blocking=True)
@@ -204,7 +181,7 @@ class BaseModel:
             self.net.train()
         else:
             self.net.train(False)
-        outputs = self.net(X)  # forward
+        outputs = self.net(X)
         angle_err = None
 
         if weight_factor is not None:
@@ -239,7 +216,6 @@ class BaseModel:
                                               threshold=self.Config.THRESHOLD)
 
         if self.Config.USE_VISLOGGER:
-            # probs = F.sigmoid(outputs).detach().cpu().numpy().transpose(0,2,3,1)   # (bs, x, y, classes)
             probs = F.sigmoid(outputs)
         else:
             probs = None  # faster
@@ -283,7 +259,7 @@ class BaseModel:
             # min_loss = np.min(metrics["loss_validate"])
             do_save = epoch_nr == min_loss_idx
 
-        # saving to network drives takes 5s (to local only 0.5s) -> do not save so often
+        # saving to network drives takes 5s (to local only 0.5s) -> do not save too often
         if do_save:
             print("  Saving weights...")
             for fl in glob.glob(join(self.Config.EXP_PATH, "best_weights_ep*")):  # remove weights from previous epochs
