@@ -37,7 +37,8 @@ setup(name='TractSeg',
         ],
         scripts=[
             'bin/TractSeg', 'bin/ExpRunner', 'bin/flip_peaks', 'bin/calc_FA', 'bin/Tractometry',
-            'bin/download_all_pretrained_weights', 'bin/Tracking', 'bin/rotate_bvecs'
+            'bin/download_all_pretrained_weights', 'bin/Tracking', 'bin/rotate_bvecs',
+            'bin/plot_tractometry_results'
         ],
         package_data = {'resources': ['MNI_FA_template.nii.gz',
                                       'random_forest_peak_orientation_detection.pkl']},
