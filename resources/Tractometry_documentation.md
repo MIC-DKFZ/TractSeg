@@ -46,7 +46,9 @@ GPU: 2min ~14s)
 `cd tractseg_output`  
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
 6. Repeat step 1-4 for every subject (use a shell script for that)
-7. Plot the results with [this python code](../examples/plot_tractometry_results.ipynb)
+7. Plot the results and test for significance with  
+`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png`.  
+Adapt `subjects.txt` with your data path and subject IDs. 
 
 Tractometry is not done for the following bundles, as the geometry of these bundles makes it difficult to produce 
 consistent segments:

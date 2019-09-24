@@ -1,0 +1,14 @@
+# "SUBJECT_ID" will get replaced by each ID from the list below
+path=/my/data/path/SUBJECT_ID.csv
+
+# You can use comments if you like to:
+#   A=my_controls, B=my_patients
+
+# One group has to start with A_, the other group with B_.
+# A_/B_ will be removed before inserting the ID into the path.
+
+A_Tractometry_subject1
+# add more subjects of group A
+
+B_Tractometry_subject2
+# add more subjects of group B
