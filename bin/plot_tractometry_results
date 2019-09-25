@@ -32,7 +32,8 @@ def parse_subjects_file(file_path):
     return base_path, subjects_A, subjects_B
 
 
-def plot_tractometry_with_pvalue(values, subjects_A, subjects_B, bundles, selected_bundles, output_path):
+def plot_tractometry_with_pvalue(values, subjects_A, subjects_B, bundles, selected_bundles, output_path, alpha,
+                                 multcomp=1, nperm=1000):
 
     NR_POINTS = values[subjects_A[0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -73,11 +74,10 @@ def plot_tractometry_with_pvalue(values, subjects_A, subjects_B, bundles, select
             ax.legend_.remove()  # only show legend on first subplot
 
         ################ Significance testing ################
-        alpha = 0.05
         values_allp = [values[s][b_idx] for s in subjects_A + subjects_B]
         groups = (0,) * len(subjects_A) + (1,) * len(subjects_B)
         alphaFWE, statFWE, clusterFWE, stats = AFQ_MultiCompCorrection(np.array(values_allp), np.array(groups),
-                                                                       alpha, nperm=1000)
+                                                                       alpha, nperm=nperm)
         print("cluster size {}: {}".format(bundles[b_idx], clusterFWE))
 
         pvalues = np.zeros(NR_POINTS)
@@ -85,7 +85,7 @@ def plot_tractometry_with_pvalue(values, subjects_A, subjects_B, bundles, select
             values_controls = [values[s][b_idx][jdx] for s in subjects_A]
             values_patients = [values[s][b_idx][jdx] for s in subjects_B]
             pvalues[jdx] = scipy.stats.ttest_ind(values_controls, values_patients).pvalue
-        sig_areas = get_significant_areas(pvalues, clusterFWE, alpha)
+        sig_areas = get_significant_areas(pvalues, clusterFWE, alpha / multcomp)
         sig_areas = sig_areas * np.array(data["fa"]).max()
         sig_areas[sig_areas == 0] = np.array(data["fa"]).min()
         axes[i].plot(range(len(sig_areas)), sig_areas, color="red", linestyle=":")
@@ -122,7 +122,16 @@ def main():
         # values[subject] = np.array([raw[idx][1:-1] for idx, bundle in enumerate(bundles)])  # 100->98
         values[subject] = raw
 
-    plot_tractometry_with_pvalue(values, subjects_A, subjects_B, bundles, selected_bundles, args.output_path)
+
+    # Runtime:
+    # - 72 bundles 1000 permutations: ~4min
+    # - 72 bundles 10000 permutations: ~7min
+
+    alpha = 0.05
+    multcomp = 1  # multiple comparison between bundles correction (state number of bundles)
+    nperm = 10000
+    plot_tractometry_with_pvalue(values, subjects_A, subjects_B, bundles, selected_bundles, args.output_path,
+                                 alpha, multcomp=multcomp, nperm=nperm)
 
 
 if __name__ == '__main__':

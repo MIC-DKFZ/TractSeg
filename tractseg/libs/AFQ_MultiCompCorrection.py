@@ -120,6 +120,11 @@ def AFQ_MultiCompCorrection(data=None, y=None, alpha=0.05, cThresh=None, nperm=1
         clusterFWE: Clusters of points on a Tract Profile that are larger than
                     clusterFWE are significant at pvalue = alpha.
         stats:    A structure containing the results of each permutation
+
+    There are two ways how to use these results:
+    - p-values below alphaFWE are considered significant with multiple comparisons correction.
+    - A cluster (of at least size clusterFWE) with  p-values below alpha are considered significant with multiple
+    comparisons correction.
     """
 
     if cThresh is None:
