@@ -1,7 +1,6 @@
-
 """
 Run this script to crop images + segmentations to brain area. Then save as nifti.
-Reduces datasize and therefore IO by at least two times.
+Reduces datasize and therefore IO by at least factor of 2.
 """
 
 from __future__ import absolute_import
@@ -10,6 +9,7 @@ from __future__ import print_function
 
 import os
 from os.path import join
+
 import nibabel as nib
 import numpy as np
 from joblib import Parallel, delayed
@@ -18,6 +18,7 @@ from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import data_utils
 from tractseg.data.subjects import get_all_subjects
 from tractseg.libs import exp_utils
+
 
 #todo: adapt
 dataset = "HCP_final"
@@ -67,7 +68,6 @@ def create_preprocessed_files(subject):
 
             data, _, _, _ = data_utils.crop_to_nonzero(data, bbox=bbox)
 
-            # if idx > 0:
             # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
             nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject,
                                                          filename + ".nii.gz"))

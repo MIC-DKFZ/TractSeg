@@ -9,7 +9,6 @@ import numpy as np
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import exp_utils
-from tractseg.libs import img_utils
 from tractseg.libs import data_utils
 from tractseg.libs import peak_utils
 from tractseg.data.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
@@ -17,18 +16,17 @@ from tractseg.data.DLDABG_standalone import SingleThreadedAugmenter
 from tractseg.data.DLDABG_standalone import Compose
 from tractseg.data.DLDABG_standalone import NumpyToTensor
 
-np.random.seed(1337)  # for reproducibility
+np.random.seed(1337)
 
 
 class BatchGenerator2D_data_ordered_standalone(object):
-    '''
+    """
     Creates batch of 2D slices from one subject.
 
     Does not depend on DKFZ/BatchGenerators package. Therefore good for inference on windows
     where DKFZ/Batchgenerators do not work (because of MultiThreading problems)
-    '''
+    """
     def __init__(self, data, batch_size):
-        # super(self.__class__, self).__init__(*args, **kwargs)
         self.Config = None
         self.batch_size = batch_size
         self.global_idx = 0
@@ -53,13 +51,12 @@ class BatchGenerator2D_data_ordered_standalone(object):
 
         # Stop iterating if we reached end of data
         if self.global_idx >= end:
-            # print("Stopped because end of file")
             self.global_idx = 0
             raise StopIteration
 
         new_global_idx = self.global_idx + self.batch_size
 
-        # If we reach end, make last batch smaller, so it fits exactly into rest
+        # If we reach end, make last batch smaller, so it fits exactly for rest
         if new_global_idx >= end:
             new_global_idx = end  # not end-1, because this goes into range, and there automatically -1
 
@@ -117,43 +114,24 @@ class DataLoaderInference():
     """
     Data loader for only one subject and returning slices in ordered way.
     """
-
     def __init__(self, Config, data=None, subject=None):
         """
         Set either data or subject, not both.
 
-        :param Config: Config class
-        :param data: 4D numpy array with subject data
-        :param subject: ID for a subject from the training data (string)
+        Args:
+            Config: Config class
+            data: 4D numpy array with subject data
+            subject: ID for a subject from the training data (string)
         """
         self.Config = Config
         self.data = data
         self.subject = subject
 
     def _augment_data(self, batch_generator, type=None):
-        tfs = []  # transforms
+        tfs = []
 
         if self.Config.NORMALIZE_DATA:
             tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
-
-        # Not used, because those transformations are not easily invertible with batchgenerators framework:
-        #  Mirroring would be the only easy test time DAug, but not trained with this DAug
-        # if self.Config.TEST_TIME_DAUG:
-            # from batchgenerators.transforms.spatial_transforms import SpatialTransform
-            # center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-            # tfs.append(SpatialTransform(self.Config.INPUT_DIM,
-            #                             patch_center_dist_from_border=center_dist_from_border,
-            #                             do_elastic_deform=True, alpha=(90., 120.), sigma=(9., 11.),
-            #                             do_rotation=True, angle_x=(-0.8, 0.8), angle_y=(-0.8, 0.8),
-            #                             angle_z=(-0.8, 0.8),
-            #                             do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
-            #                             border_cval_data=0,
-            #                             order_data=3,
-            #                             border_mode_seg='constant', border_cval_seg=0, order_seg=0, random_crop=True))
-            # tfs.append(ResampleTransform(zoom_range=(0.5, 1)))
-            # tfs.append(GaussianNoiseTransform(noise_variance=(0, 0.05)))
-            # tfs.append(ContrastAugmentationTransform(contrast_range=(0.7, 1.3), preserve_range=True, per_channel=False))
-            # tfs.append(BrightnessMultiplicativeTransform(multiplier_range=(0.7, 1.3), per_channel=False))
 
         tfs.append(NumpyToTensor(keys=["data", "seg"], cast_to="float"))
 
@@ -165,12 +143,12 @@ class DataLoaderInference():
         if self.data is not None:
             exp_utils.print_verbose(self.Config, "Loading data from PREDICT_IMG input file")
             data = np.nan_to_num(self.data)
-            # Use dummy mask in case we only want to predict on some data (where we do not have Ground Truth))
+            # Use dummy mask in case we only want to predict on some data (where we do not have ground truth))
             seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0],
                             self.Config.INPUT_DIM[0], self.Config.NR_OF_CLASSES)).astype(self.Config.LABELS_TYPE)
         elif self.subject is not None:
             if self.Config.TYPE == "combined":
-                # Load from Npy file for Fusion
+                # Load from npy file for Fusion
                 data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, self.subject,
                                     self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
                 seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, self.subject,

@@ -1,4 +1,3 @@
-
 """
 Code to load data and to create batches of 2D slices from 3D images.
 
@@ -30,23 +29,21 @@ from tractseg.data.custom_transformations import FlipVectorAxisTransform
 
 
 class BatchGenerator3D_Nifti_random(SlimDataLoaderBase):
-    '''
+    """
     Randomly selects subjects and slices and creates batch of 2D slices.
 
     Takes image IDs provided via self._data, randomly selects one ID,
     loads the nifti image and randomly samples 2D slices from it.
 
     Timing:
-    About 2.5s per 54-batch 75 bundles 1.25mm. ?
     About 2s per 54-batch 45 bundles 1.25mm.
-    '''
+    """
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.Config = None
 
     def generate_train_batch(self):
         subjects = self._data[0]
-        # subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
         subject_idxs = np.random.choice(len(subjects), self.batch_size, False, None)
 
         x = []
@@ -83,8 +80,8 @@ class BatchGenerator3D_Nifti_random(SlimDataLoaderBase):
         x = x.astype(np.float32)
         y = y.astype(np.float32)
 
-        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
-                     "seg": y}      # (batch_size, channels, x, y, [z])
+        data_dict = {"data": x,  # (batch_size, channels, x, y, [z])
+                     "seg": y}  # (batch_size, channels, x, y, [z])
         return data_dict
 
 
@@ -96,21 +93,20 @@ class DataLoaderTraining:
     def _augment_data(self, batch_generator, type=None):
 
         if self.Config.DATA_AUGMENTATION:
-            num_processes = 16  # 2D: 8 is a bit faster than 16
-            # num_processes = 8
+            num_processes = 16
         else:
             num_processes = 6
 
-        tfs = []  #transforms
+        tfs = []
 
         if self.Config.NORMALIZE_DATA:
             tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
 
         if self.Config.DATA_AUGMENTATION:
             if type == "train":
-                # scale: inverted: 0.5 -> bigger; 2 -> smaller
-                # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center (brain can get off image and will be cut then)
-
+                # patch_center_dist_from_border:
+                #   if 144/2=72 -> always exactly centered; otherwise a bit off center
+                #   (brain can get off image and will be cut then)
                 if self.Config.DAUG_SCALE:
                     center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
                     tfs.append(SpatialTransform(self.Config.INPUT_DIM,
@@ -140,10 +136,10 @@ class DataLoaderTraining:
 
         tfs.append(NumpyToTensor(keys=["data", "seg"], cast_to="float"))
 
-        #num_cached_per_queue 1 or 2 does not really make a difference
+        # num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_generator, Compose(tfs), num_processes=num_processes,
                                            num_cached_per_queue=1, seeds=None, pin_memory=True)
-        return batch_gen    # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)
+        return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)
 
 
     def get_batch_generator(self, batch_size=128, type=None, subjects=None):

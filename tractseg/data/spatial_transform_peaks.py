@@ -59,11 +59,11 @@ def rotate_multiple_tensors(data, angle_x, angle_y, angle_z):
         rot_matrix = create_matrix_rotation_y_3d(angle_y, rot_matrix)
         rot_matrix = create_matrix_rotation_z_3d(angle_z, rot_matrix)
 
-        peaks = peak_utils.flat_tensor_to_matrix_tensor(peaks)  # (144, 144, 3, 3)
+        peaks = peak_utils.flat_tensor_to_matrix_tensor(peaks)  # (x, y, 3, 3)
         # rotate clockwise -> wrong
-        # peaks_rot = rot_matrix.T @ peaks @ rot_matrix  # (144, 144, 3, 3)
+        # peaks_rot = rot_matrix.T @ peaks @ rot_matrix  # (x, y, 3, 3)
         # rotate counterclockwise -> this is correct
-        peaks_rot = rot_matrix @ peaks @ rot_matrix.T  # (144, 144, 3, 3)
+        peaks_rot = rot_matrix @ peaks @ rot_matrix.T  # (x, y, 3, 3)
         peaks_rot = peak_utils.matrix_tensor_to_flat_tensor(peaks_rot)
         return peaks_rot
 
@@ -204,7 +204,7 @@ def augment_spatial_peaks(data, seg, patch_size, patch_center_dist_from_border=3
 
 
 # This is identical to batchgenerators.transforms.spatial_transforms.SpatialTransform except for another
-# augment_spatial function.
+# augment_spatial function, which also rotates the peaks when doing rotation.
 class SpatialTransformPeaks(AbstractTransform):
     """The ultimate spatial transform generator. Rotation, deformation, scaling, cropping: It has all you ever dreamed
     of. Computational time scales only with patch_size, not with input patch size or type of augmentations used.

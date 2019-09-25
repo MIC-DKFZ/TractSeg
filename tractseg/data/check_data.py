@@ -1,9 +1,3 @@
-
-"""
-Run this script to crop images + segmentations to brain area. Then save as nifti.
-Reduces datasize and therefore IO by at least two times.
-"""
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function

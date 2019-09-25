@@ -8,12 +8,12 @@ from batchgenerators.transforms.abstract_transforms import AbstractTransform
 
 
 def augment_linear_downsampling_scipy(data, zoom_range=(0.5, 1)):
-    '''
+    """
     Downsamples each sample (linearly) by a random factor and upsamples to original resolution again (nearest neighbor)
     Info:
     * Uses scipy zoom for resampling. A bit faster than nilearn.
     * Resamples all dimensions (channels, x, y, z) with same downsampling factor (like isotropic=True from linear_downsampling_generator_nilearn)
-    '''
+    """
     import random
     import scipy.ndimage
     import numpy as np
@@ -60,17 +60,19 @@ def augment_linear_downsampling_scipy(data, zoom_range=(0.5, 1)):
 
 
 class ResampleTransformLegacy(AbstractTransform):
-    '''
+    """
     This is no longer part of batchgenerators, so we have an implementation here.
     CPU always 100% when using this, but batch_time on cluster not longer (1s)
 
     Downsamples each sample (linearly) by a random factor and upsamples to original resolution again (nearest neighbor)
     Info:
     * Uses scipy zoom for resampling.
-    * Resamples all dimensions (channels, x, y, z) with same downsampling factor (like isotropic=True from linear_downsampling_generator_nilearn)
+    * Resamples all dimensions (channels, x, y, z) with same downsampling factor
+      (like isotropic=True from linear_downsampling_generator_nilearn)
+
     Args:
         zoom_range (tuple of float): Random downscaling factor in this range. (e.g.: 0.5 halfs the resolution)
-    '''
+    """
 
     def __init__(self, zoom_range=(0.5, 1)):
         self.zoom_range = zoom_range

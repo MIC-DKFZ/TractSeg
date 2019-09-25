@@ -11,6 +11,7 @@ from __future__ import print_function
 
 from os.path import join
 import random
+
 import numpy as np
 import nibabel as nib
 
@@ -42,11 +43,13 @@ def load_training_data(Config, subject):
     Load data and labels for one subject from the training set. Cut and scale to make them have
     correct size.
 
-    :param Config: config class
-    :param subject: subject id (string)
-    :return:
-    """
+    Args:
+        Config: config class
+        subject: subject id (string)
 
+    Returns:
+        data and labels as 3D array
+    """
     def load(filepath):
         data = nib.load(filepath + ".nii.gz").get_data()
         # data = np.load(filepath + ".npy", mmap_mode="r")
@@ -104,7 +107,7 @@ def load_training_data(Config, subject):
     elif Config.FEATURES_FILENAME == "32g270g_BX":
         rnd_choice = np.random.random()
         path_32g = join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "32g_125mm_bedpostx_peaks_scaled")
-        if rnd_choice < 0.5:  # and os.path.exists(path_32g + ".nii.gz"):
+        if rnd_choice < 0.5:
             data = load(path_32g)
             rnd_choice_2 = np.random.random()
             if rnd_choice_2 < 0.5:
@@ -138,30 +141,27 @@ def load_training_data(Config, subject):
 
 
 class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
-    '''
+    """
     Randomly selects subjects and slices and creates batch of 2D slices.
 
     Takes image IDs provided via self._data, randomly selects one ID,
     loads the nifti image and randomly samples 2D slices from it.
 
     Timing:
-    About 2.5s per 54-batch 75 bundles 1.25mm. ?
     About 2s per 54-batch 45 bundles 1.25mm.
-    '''
+    """
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.Config = None
 
     def generate_train_batch(self):
 
-        # np.random.seed(1234)
-
         subjects = self._data[0]
-        subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
+        subject_idx = int(random.uniform(0, len(subjects)))
 
         data, seg = load_training_data(self.Config, subjects[subject_idx])
 
-        #Convert peaks to tensors if tensor model
+        # Convert peaks to tensors if tensor model
         if self.Config.NR_OF_GRADIENTS == 18*self.Config.NR_SLICES:
             data = peak_utils.peaks_to_tensors(data)
 
@@ -185,34 +185,31 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
         #Crop and pad to input size
         x, y = crop(x, y, crop_size=self.Config.INPUT_DIM)  # does not work with img with batches and channels
 
-        # Works -> results as good? -> todo: make the same way for inference!
+        # Works -> results as good?
         # This is needed for Schizo dataset
         # x = pad_nd_image(x, shape_must_be_divisible_by=(16, 16), mode='constant', kwargs={'constant_values': 0})
         # y = pad_nd_image(y, shape_must_be_divisible_by=(16, 16), mode='constant', kwargs={'constant_values': 0})
 
         # Does not make it slower
         x = x.astype(np.float32)
-        y = y.astype(np.float32)  # if not doing this: during validation: ConnectionResetError: [Errno 104] Connection
-                                  # reset by peer
+        y = y.astype(np.float32)
 
-        #possible optimization: sample slices from different patients and pad all to same size (size of biggest)
+        # possible optimization: sample slices from different patients and pad all to same size (size of biggest)
 
-        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
+        data_dict = {"data": x,  # (batch_size, channels, x, y, [z])
                      "seg": y,
-                     "slice_dir": slice_direction}      # (batch_size, channels, x, y, [z])
+                     "slice_dir": slice_direction}  # (batch_size, channels, x, y, [z])
         return data_dict
 
 
 class BatchGenerator2D_Npy_random(SlimDataLoaderBase):
-    '''
+    """
     Takes image ID provided via self._data, loads the Npy (numpy array) image and randomly samples 2D slices from it.
-
     Needed for fusion training.
 
     Timing:
-    About 4s per 54-batch 75 bundles 1.25mm.
     About 2s per 54-batch 45 bundles 1.25mm.
-    '''
+    """
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.Config = None
@@ -220,18 +217,23 @@ class BatchGenerator2D_Npy_random(SlimDataLoaderBase):
     def generate_train_batch(self):
 
         subjects = self._data[0]
-        subject_idx = int(random.uniform(0, len(subjects)))     # len(subjects)-1 not needed because int always rounds to floor
+        subject_idx = int(random.uniform(0, len(subjects)))
 
         if self.Config.TYPE == "combined":
             if np.random.random() < 0.5:
-                data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_270g_125mm", subjects[subject_idx], "270g_125mm_xyz.npy"), mmap_mode="r")
+                data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_270g_125mm",
+                                    subjects[subject_idx], "270g_125mm_xyz.npy"), mmap_mode="r")
             else:
-                data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_32g_25mm", subjects[subject_idx], "32g_25mm_xyz.npy"), mmap_mode="r")
+                data = np.load(join(C.DATA_PATH, "HCP_fusion_npy_32g_25mm",
+                                    subjects[subject_idx], "32g_25mm_xyz.npy"), mmap_mode="r")
             data = np.reshape(data, (data.shape[0], data.shape[1], data.shape[2], data.shape[3] * data.shape[4]))
-            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
+            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx],
+                               self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
         else:
-            data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
-            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx], self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
+            data = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx],
+                                self.Config.FEATURES_FILENAME + ".npy"), mmap_mode="r")
+            seg = np.load(join(C.DATA_PATH, self.Config.DATASET_FOLDER, subjects[subject_idx],
+                               self.Config.LABELS_FILENAME + ".npy"), mmap_mode="r")
 
         data = np.nan_to_num(data)
         seg = np.nan_to_num(seg)
@@ -242,8 +244,8 @@ class BatchGenerator2D_Npy_random(SlimDataLoaderBase):
                                         slice_direction=slice_direction,
                                         labels_type=self.Config.LABELS_TYPE)
 
-        data_dict = {"data": x,     # (batch_size, channels, x, y, [z])
-                     "seg": y}      # (batch_size, channels, x, y, [z])
+        data_dict = {"data": x,  # (batch_size, channels, x, y, [z])
+                     "seg": y}  # (batch_size, channels, x, y, [z])
         return data_dict
 
 
@@ -260,7 +262,7 @@ class DataLoaderTraining:
         else:
             num_processes = 6
 
-        tfs = []  #transforms
+        tfs = []
 
         if self.Config.NORMALIZE_DATA:
             tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
@@ -272,9 +274,9 @@ class DataLoaderTraining:
 
         if self.Config.DATA_AUGMENTATION:
             if type == "train":
-                # scale: inverted: 0.5 -> bigger; 2 -> smaller
-                # patch_center_dist_from_border: if 144/2=72 -> always exactly centered; otherwise a bit off center
-                # (brain can get off image and will be cut then)
+                # patch_center_dist_from_border:
+                #   if 144/2=72 -> always exactly centered; otherwise a bit off center
+                #   (brain can get off image and will be cut then)
                 if self.Config.DAUG_SCALE:
                     # spatial transform automatically crops/pads to correct size
                     center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
@@ -321,7 +323,7 @@ class DataLoaderTraining:
         #num_cached_per_queue 1 or 2 does not really make a difference
         batch_gen = MultiThreadedAugmenter(batch_generator, Compose(tfs), num_processes=num_processes,
                                            num_cached_per_queue=1, seeds=None, pin_memory=True)
-        return batch_gen    # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)
+        return batch_gen  # data: (batch_size, channels, x, y), seg: (batch_size, channels, x, y)
 
 
     def get_batch_generator(self, batch_size=128, type=None, subjects=None):

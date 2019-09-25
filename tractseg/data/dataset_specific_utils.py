@@ -9,6 +9,7 @@ from tractseg.libs import img_utils
 from tractseg.data.subjects import get_all_subjects
 from tractseg.libs import utils
 
+
 def get_bundle_names(CLASSES):
 
     if CLASSES == "All":
@@ -461,7 +462,6 @@ def scale_input_to_original_shape(img4d, dataset, resolution="1.25mm"):
     Returns:
         (x_original, y_original, z_original, classes)
     """
-
     if resolution == "1.25mm":
         if dataset == "HCP":  # (144,144,144)
             # no resize needed

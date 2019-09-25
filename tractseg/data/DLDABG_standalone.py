@@ -1,21 +1,18 @@
+"""
+Copy part of code from https://github.com/MIC-DKFZ/batchgenerators needed for inference so we do not
+need this dependency during inference. This way we can become windows compatible.
+"""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-# from future import standard_library
-# standard_library.install_aliases()
 from builtins import object
 import abc
-from warnings import warn
 
 import numpy as np
+import torch
 
-
-"""
-Copy part of code from https://github.com/MIC-DKFZ/batchgenerators needed for inference so we do not
-need this dependency during inference. This way we can become windows compatible.
-"""
 
 class SingleThreadedAugmenter(object):
     """
@@ -117,13 +114,14 @@ class ZeroMeanUnitVarianceTransform(AbstractTransform):
 
 
 class NumpyToTensor(AbstractTransform):
+    """
+    Utility function for pytorch. Converts data (and seg) numpy ndarrays to pytorch tensors
+    :param keys: specify keys to be converted to tensors. If None then all keys will be converted
+    (if value id np.ndarray). Can be a key (typically string) or a list/tuple of keys
+    :param cast_to: if not None then the values will be cast to what is specified here. Currently only half, float
+    and long supported (use string)
+    """
     def __init__(self, keys=None, cast_to=None, pin_memory=False):
-        """Utility function for pytorch. Converts data (and seg) numpy ndarrays to pytorch tensors
-        :param keys: specify keys to be converted to tensors. If None then all keys will be converted
-        (if value id np.ndarray). Can be a key (typically string) or a list/tuple of keys
-        :param cast_to: if not None then the values will be cast to what is specified here. Currently only half, float
-        and long supported (use string)
-        """
         if not isinstance(keys, (list, tuple)):
             keys = [keys]
         self.keys = keys
@@ -143,8 +141,6 @@ class NumpyToTensor(AbstractTransform):
         return tensor
 
     def __call__(self, **data_dict):
-        import torch
-
         if self.keys is None:
             for key, val in data_dict.items():
                 if isinstance(val, np.ndarray):
