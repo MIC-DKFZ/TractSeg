@@ -15,7 +15,7 @@ import nibabel as nib
 from tractseg.libs.system_config import get_config_name
 from tractseg.libs import exp_utils
 from tractseg.libs import img_utils
-from tractseg.libs import mrtrix
+from tractseg.libs import preprocessing
 from tractseg.libs import plot_utils
 from tractseg.libs import peak_utils
 from tractseg.python_api import run_tractseg
@@ -225,14 +225,14 @@ def main():
         brain_mask = exp_utils.get_brain_mask_path(Config, args)
 
         if args.brain_mask is None:
-            brain_mask = mrtrix.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
+            brain_mask = preprocessing.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
 
         if args.preprocess:
-            input_path, bvals, bvecs, brain_mask = mrtrix.move_to_MNI_space(input_path, bvals, bvecs, brain_mask,
-                                                                            Config.PREDICT_IMG_OUTPUT)
+            input_path, bvals, bvecs, brain_mask = preprocessing.move_to_MNI_space(input_path, bvals, bvecs, brain_mask,
+                                                                                   Config.PREDICT_IMG_OUTPUT)
 
-        mrtrix.create_fods(input_path, Config.PREDICT_IMG_OUTPUT, bvals, bvecs,
-                           brain_mask, Config.CSD_TYPE, nr_cpus=args.nr_cpus)
+        preprocessing.create_fods(input_path, Config.PREDICT_IMG_OUTPUT, bvals, bvecs,
+                                  brain_mask, Config.CSD_TYPE, nr_cpus=args.nr_cpus)
 
     if args.raw_diffusion_input:
         peak_path = join(Config.PREDICT_IMG_OUTPUT, "peaks.nii.gz")
@@ -350,10 +350,10 @@ def main():
             del seg  # Free memory (before we run tracking)
 
         if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
-            mrtrix.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
+            preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
 
     Config.CLASSES = "All"
-    mrtrix.clean_up(Config, preprocessing_done=args.preprocess)
+    preprocessing.clean_up(Config, preprocessing_done=args.preprocess)
 
 
 if __name__ == '__main__':

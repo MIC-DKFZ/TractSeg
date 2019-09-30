@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 from tractseg.libs.system_config import get_config_name
 from tractseg.libs import exp_utils
-from tractseg.libs import mrtrix
+from tractseg.libs import tracking
 from tractseg.data import dataset_specific_utils
 
 warnings.simplefilter("ignore", UserWarning)  # hide scipy warnings
@@ -84,10 +84,6 @@ def main():
                         help="Only needed for unittesting.",
                         default=0)
 
-    parser.add_argument("--FACT", action="store_true",
-                        help="Use MRtrix FACT tracking instead of custom probabilistic tracking.",
-                        default=False)
-
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
                         default=False)
 
@@ -95,15 +91,14 @@ def main():
 
 
     #Private parameters
-    peak_prob_tracking = args.algorithm == "prob"  # Set to false if you want to use Mrtrix tracking
-    TOM_mrtrix_algorithm = "FACT"   # FACT|iFOD2  (used when peak_prob_tracking = False and tracks_FODs = False)
+    tracking_type = args.algorithm
+    prob_tracking_software = "tractseg"  # tractseg|mrtrix  (if mrtrix then use iFOD2 on TOMs)
     use_best_original_peaks = args.track_best_orig  # Use best original peak instead of TOM peak for tracking (ProbDet tracking)
     use_as_prior = False  # Track on weighted average between best original peaks and TOM
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
     dir_postfix = ""    # e.g. "_BSThr"
     tract_definition = "TractQuerier+"  # TractQuerier+|AutoPTX
     next_step_displacement_std = 0.15
-
     filter_tracking_by_endpoints = not args.no_filtering_by_endpoints
     input_path = args.input
     config_file = get_config_name("peaks", "tract_segmentation", dropout_sampling=False,
@@ -116,6 +111,25 @@ def main():
     elif Config.PREDICT_IMG:
         Config.PREDICT_IMG_OUTPUT = join(os.path.dirname(input_path), Config.TRACTSEG_DIR)
 
+    tracking_on_FODs = args.track_FODs != "False"
+
+    # Set tracking software
+    if not tracking_on_FODs and tracking_type == "prob":
+        tracking_software = prob_tracking_software
+    else:
+        tracking_software = "mrtrix"
+
+    # Set tracking algorithm
+    if tracking_on_FODs:
+        tracking_algorithm = args.track_FODs
+    elif tracking_type == "det":
+        tracking_algorithm = "FACT"
+    else:  # "prob"
+        if tracking_software == "mrtrix":
+            tracking_algorithm = "iFOD2"
+        else:
+            tracking_algorithm = "fixed_prob"
+
     if args.test == 1:
         bundles = dataset_specific_utils.get_bundle_names("test")[1:]
     elif args.test == 2:
@@ -126,13 +140,13 @@ def main():
         bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
 
     for bundle in tqdm(bundles):
-        mrtrix.track(bundle, input_path, Config.PREDICT_IMG_OUTPUT,
-                     filter_by_endpoints=filter_tracking_by_endpoints, output_format=args.tracking_format,
-                     nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus, peak_prob_tracking=peak_prob_tracking,
-                     tracking_on_FODs=args.track_FODs, tracking_folder=args.tracking_dir,
-                     dilation=args.tracking_dilation, use_best_original_peaks=use_best_original_peaks,
-                     dir_postfix=dir_postfix, use_as_prior=use_as_prior, TOM_mrtrix_algorithm=TOM_mrtrix_algorithm,
-                     next_step_displacement_std=next_step_displacement_std)
+        tracking.track(bundle, input_path, Config.PREDICT_IMG_OUTPUT,
+                       tracking_on_FODs, tracking_software, tracking_algorithm,
+                       use_best_original_peaks=use_best_original_peaks, use_as_prior=use_as_prior,
+                       filter_by_endpoints=filter_tracking_by_endpoints,
+                       tracking_folder=args.tracking_dir, dir_postfix=dir_postfix, dilation=args.tracking_dilation,
+                       next_step_displacement_std=next_step_displacement_std,
+                       output_format=args.tracking_format, nr_fibers=args.nr_fibers, nr_cpus=args.nr_cpus)
 
 
 if __name__ == '__main__':
