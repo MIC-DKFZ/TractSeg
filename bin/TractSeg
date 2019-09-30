@@ -222,7 +222,7 @@ def main():
     ####################################### Preprocessing #######################################
 
     if args.raw_diffusion_input:
-        brain_mask = exp_utils.get_brain_mask_path(Config, args)
+        brain_mask = exp_utils.get_brain_mask_path(Config.PREDICT_IMG_OUTPUT, args)
 
         if args.brain_mask is None:
             brain_mask = preprocessing.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
@@ -330,22 +330,22 @@ def main():
             del img  # Free memory (before we run tracking)
         else:
             if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
+                img_utils.save_multilabel_img_as_multiple_files(Config.CLASSES, seg, data_affine,
                                                                 Config.PREDICT_IMG_OUTPUT,
                                                                 name="bundle_uncertainties")
             elif Config.EXPERIMENT_TYPE == "tract_segmentation":
-                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
+                img_utils.save_multilabel_img_as_multiple_files(Config.CLASSES, seg, data_affine,
                                                                 Config.PREDICT_IMG_OUTPUT,
                                                                 name=args.tract_segmentation_output_dir)
             elif Config.EXPERIMENT_TYPE == "endings_segmentation":
-                img_utils.save_multilabel_img_as_multiple_files_endings(Config, seg, data_affine,
+                img_utils.save_multilabel_img_as_multiple_files_endings(Config.CLASSES, seg, data_affine,
                                                                         Config.PREDICT_IMG_OUTPUT)
             elif Config.EXPERIMENT_TYPE == "peak_regression":
-                img_utils.save_multilabel_img_as_multiple_files_peaks(Config, seg, data_affine,
-                                                                      Config.PREDICT_IMG_OUTPUT,
+                img_utils.save_multilabel_img_as_multiple_files_peaks(Config.FLIP_OUTPUT_PEAKS, Config.CLASSES, seg,
+                                                                      data_affine, Config.PREDICT_IMG_OUTPUT,
                                                                       name=args.TOM_output_dir)
             elif Config.EXPERIMENT_TYPE == "dm_regression":
-                img_utils.save_multilabel_img_as_multiple_files(Config, seg, data_affine,
+                img_utils.save_multilabel_img_as_multiple_files(Config.CLASSES, seg, data_affine,
                                                                 Config.PREDICT_IMG_OUTPUT, name="dm_regression")
             del seg  # Free memory (before we run tracking)
 
@@ -353,7 +353,8 @@ def main():
             preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
 
     Config.CLASSES = "All"
-    preprocessing.clean_up(Config, preprocessing_done=args.preprocess)
+    preprocessing.clean_up(Config.KEEP_INTERMEDIATE_FILES, Config.PREDICT_IMG_OUTPUT, Config.CSD_TYPE,
+                           preprocessing_done=args.preprocess)
 
 
 if __name__ == '__main__':

@@ -141,7 +141,7 @@ class DataLoaderInference():
     def get_batch_generator(self, batch_size=1):
 
         if self.data is not None:
-            exp_utils.print_verbose(self.Config, "Loading data from PREDICT_IMG input file")
+            exp_utils.print_verbose(self.Config.VERBOSE, "Loading data from PREDICT_IMG input file")
             data = np.nan_to_num(self.data)
             # Use dummy mask in case we only want to predict on some data (where we do not have ground truth))
             seg = np.zeros((self.Config.INPUT_DIM[0], self.Config.INPUT_DIM[0],

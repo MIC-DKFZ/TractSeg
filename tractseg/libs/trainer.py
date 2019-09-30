@@ -32,21 +32,21 @@ def _get_weights_for_this_epoch(Config, epoch_nr):
                               float(Config.LOSS_WEIGHT_LEN)) * epoch_nr + float(Config.LOSS_WEIGHT)
         else:
             weight_factor = 1.
-        exp_utils.print_and_save(Config, "Current weight_factor: {}".format(weight_factor))
+        exp_utils.print_and_save(Config.EXP_PATH, "Current weight_factor: {}".format(weight_factor))
     return weight_factor
 
 
-def _update_metrics(Config, metrics, metr_batch, type):
-    if Config.CALC_F1:
-        if Config.EXPERIMENT_TYPE == "peak_regression":
+def _update_metrics(calc_f1, experiment_type, metric_types, metrics, metr_batch, type):
+    if calc_f1:
+        if experiment_type == "peak_regression":
             peak_f1_mean = np.array([s.to('cpu') for s in list(metr_batch["f1_macro"].values())]).mean()
             metr_batch["f1_macro"] = peak_f1_mean
 
-            metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, Config.METRIC_TYPES)
+            metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, metric_types)
 
         else:
             metr_batch["f1_macro"] = np.mean(metr_batch["f1_macro"])
-            metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, Config.METRIC_TYPES)
+            metrics = metric_utils.add_to_metrics(metrics, metr_batch, type, metric_types)
 
     else:
         metrics = metric_utils.calculate_metrics_onlyLoss(metrics, metr_batch["loss"], type=type)
@@ -62,7 +62,7 @@ def train_model(Config, model, data_loader):
             pass
         trixi = PytorchVisdomLogger(port=8080, auto_start=True)
 
-    exp_utils.print_and_save(Config, socket.gethostname())
+    exp_utils.print_and_save(Config.EXP_PATH, socket.gethostname())
 
     epoch_times = []
     nr_of_updates = 0
@@ -120,14 +120,15 @@ def train_model(Config, model, data_loader):
                 timings["network_time"] += time.time() - start_time_network
 
                 start_time_metrics = time.time()
-                metrics = _update_metrics(Config, metrics, metr_batch, type)
+                metrics = _update_metrics(Config.CALC_F1, Config.EXPERIMENT_TYPE, Config.METRIC_TYPES,
+                                          metrics, metr_batch, type)
                 timings["metrics_time"] += time.time() - start_time_metrics
 
                 print_loss.append(metr_batch["loss"])
                 if batch_nr[type] % Config.PRINT_FREQ == 0:
                     time_batch_part = time.time() - start_time_batch_part
                     start_time_batch_part = time.time()
-                    exp_utils.print_and_save(Config, "{} Ep {}, Sp {}, loss {}, t print {}s, t batch {}s".format(
+                    exp_utils.print_and_save(Config.EXP_PATH, "{} Ep {}, Sp {}, loss {}, t print {}s, t batch {}s".format(
                         type, epoch_nr, batch_nr[type] * Config.BATCH_SIZE, round(np.array(print_loss).mean(), 6),
                         round(time_batch_part, 3), round( time_batch_part / Config.PRINT_FREQ, 3)))
                     print_loss = []
@@ -189,11 +190,11 @@ def train_model(Config, model, data_loader):
         epoch_time = time.time() - start_time
         epoch_times.append(epoch_time)
 
-        exp_utils.print_and_save(Config, "  Epoch {}, time total {}s".format(epoch_nr, epoch_time))
-        exp_utils.print_and_save(Config, "  Epoch {}, time UNet: {}s".format(epoch_nr, timings["network_time"]))
-        exp_utils.print_and_save(Config, "  Epoch {}, time metrics: {}s".format(epoch_nr, timings["metrics_time"]))
-        exp_utils.print_and_save(Config, "  Epoch {}, time saving files: {}s".format(epoch_nr, timings["saving_time"]))
-        exp_utils.print_and_save(Config, str(datetime.datetime.now()))
+        exp_utils.print_and_save(Config.EXP_PATH, "  Epoch {}, time total {}s".format(epoch_nr, epoch_time))
+        exp_utils.print_and_save(Config.EXP_PATH, "  Epoch {}, time UNet: {}s".format(epoch_nr, timings["network_time"]))
+        exp_utils.print_and_save(Config.EXP_PATH, "  Epoch {}, time metrics: {}s".format(epoch_nr, timings["metrics_time"]))
+        exp_utils.print_and_save(Config.EXP_PATH, "  Epoch {}, time saving files: {}s".format(epoch_nr, timings["saving_time"]))
+        exp_utils.print_and_save(Config.EXP_PATH, str(datetime.datetime.now()))
 
         # Adding next Epoch
         if epoch_nr < Config.NUM_EPOCHS-1:
@@ -313,7 +314,7 @@ def test_whole_subject(Config, model, subjects, type):
         print("Took {}s".format(round(time.time() - start_time, 2)))
 
         if Config.EXPERIMENT_TYPE == "peak_regression":
-            f1 = metric_utils.calc_peak_length_dice(Config, img_probs, img_y,
+            f1 = metric_utils.calc_peak_length_dice(Config.CLASSES, img_probs, img_y,
                                                     max_angle_error=Config.PEAK_DICE_THR,
                                                     max_length_error=Config.PEAK_DICE_LEN_THR)
             peak_f1_mean = np.array([s for s in f1.values()]).mean()  # if f1 for multiple bundles

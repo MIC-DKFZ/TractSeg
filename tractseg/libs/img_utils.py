@@ -261,11 +261,11 @@ def resize_first_three_dims_NUMPY(img, order=0, zoom=0.62):
     return img_sm
 
 
-def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
+def create_multilabel_mask(classes, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
     """
     One-hot encoding of all bundles in one big image
     """
-    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)
+    bundles = dataset_specific_utils.get_bundle_names(classes)
 
     #Masks sind immer HCP_highRes (später erst downsample)
     mask_ml = np.zeros((145, 174, 145, len(bundles)))
@@ -282,20 +282,20 @@ def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder
     return mask_ml.astype(labels_type)
 
 
-def save_multilabel_img_as_multiple_files(Config, img, affine, path, name="bundle_segmentations"):
-    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files(classes, img, affine, path, name="bundle_segmentations"):
+    bundles = dataset_specific_utils.get_bundle_names(classes)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
         exp_utils.make_dir(join(path, name))
         nib.save(img_seg, join(path, name, bundle + ".nii.gz"))
 
 
-def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path, name="TOM"):
-    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files_peaks(flip_output_peaks, classes, img, affine, path, name="TOM"):
+    bundles = dataset_specific_utils.get_bundle_names(classes)[1:]
     for idx, bundle in enumerate(bundles):
         data = img[:, :, :, (idx*3):(idx*3)+3]
 
-        if Config.FLIP_OUTPUT_PEAKS:
+        if flip_output_peaks:
             data[:, :, :, 2] *= -1  # flip z Axis for correct view in MITK
             filename = bundle + "_f.nii.gz"
         else:
@@ -306,8 +306,8 @@ def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path, name=
         nib.save(img_seg, join(path, name, filename))
 
 
-def save_multilabel_img_as_multiple_files_endings(Config, img, affine, path):
-    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files_endings(classes, img, affine, path):
+    bundles = dataset_specific_utils.get_bundle_names(classes)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
         exp_utils.make_dir(join(path, "endings_segmentations"))

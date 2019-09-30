@@ -243,6 +243,6 @@ def run_tractseg(data, output_type="tract_segmentation",
         seg = img_utils.postprocess_segmentations(seg, dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:],
                                                   blob_thr=blob_size_thr, hole_closing=None)
 
-    exp_utils.print_verbose(Config, "Took {}s".format(round(time.time() - start_time, 2)))
+    exp_utils.print_verbose(Config.VERBOSE, "Took {}s".format(round(time.time() - start_time, 2)))
     return seg
 

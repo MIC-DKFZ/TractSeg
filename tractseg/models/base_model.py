@@ -71,7 +71,7 @@ class BaseModel:
         # MultiGPU setup
         # (Not really faster (max 10% speedup): GPU and CPU utility low)
         # nr_gpus = torch.cuda.device_count()
-        # exp_utils.print_and_save(self.Config, "nr of gpus: {}".format(nr_gpus))
+        # exp_utils.print_and_save(self.Config.EXP_PATH, "nr of gpus: {}".format(nr_gpus))
         # self.net = nn.DataParallel(self.net)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -101,7 +101,7 @@ class BaseModel:
                                                             patience=self.Config.LR_SCHEDULE_PATIENCE)
 
         if self.Config.LOAD_WEIGHTS:
-            exp_utils.print_verbose(self.Config, "Loading weights ... ({})".format(join(self.Config.EXP_PATH,
+            exp_utils.print_verbose(self.Config.VERBOSE, "Loading weights ... ({})".format(join(self.Config.EXP_PATH,
                                                                                         self.Config.WEIGHTS_PATH)))
             self.load_model(join(self.Config.EXP_PATH, self.Config.WEIGHTS_PATH))
 
@@ -149,7 +149,7 @@ class BaseModel:
         self.optimizer.step()
 
         if self.Config.EXPERIMENT_TYPE == "peak_regression":
-            f1 = metric_utils.calc_peak_length_dice_pytorch(self.Config, outputs.detach(), y.detach(),
+            f1 = metric_utils.calc_peak_length_dice_pytorch(self.Config.CLASSES, outputs.detach(), y.detach(),
                                                             max_angle_error=self.Config.PEAK_DICE_THR,
                                                             max_length_error=self.Config.PEAK_DICE_LEN_THR)
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
@@ -205,7 +205,7 @@ class BaseModel:
                 loss = self.criterion(outputs, y)
 
         if self.Config.EXPERIMENT_TYPE == "peak_regression":
-            f1 = metric_utils.calc_peak_length_dice_pytorch(self.Config, outputs.detach(), y.detach(),
+            f1 = metric_utils.calc_peak_length_dice_pytorch(self.Config.CLASSES, outputs.detach(), y.detach(),
                                                             max_angle_error=self.Config.PEAK_DICE_THR,
                                                             max_length_error=self.Config.PEAK_DICE_LEN_THR)
         elif self.Config.EXPERIMENT_TYPE == "dm_regression":
@@ -279,5 +279,5 @@ class BaseModel:
 
     def print_current_lr(self):
         for param_group in self.optimizer.param_groups:
-            exp_utils.print_and_save(self.Config, "current learning rate: {}".format(param_group['lr']))
+            exp_utils.print_and_save(self.Config.EXP_PATH, "current learning rate: {}".format(param_group['lr']))
 

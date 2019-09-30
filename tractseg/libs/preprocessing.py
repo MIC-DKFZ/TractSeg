@@ -117,15 +117,15 @@ def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_c
         raise ValueError("'csd_type' contains invalid String")
 
 
-def clean_up(Config, preprocessing_done=False):
-    if not Config.KEEP_INTERMEDIATE_FILES:
-        os.chdir(Config.PREDICT_IMG_OUTPUT)
+def clean_up(keep_intermediate_files, predict_img_output, csd_type, preprocessing_done=False):
+    if not keep_intermediate_files:
+        os.chdir(predict_img_output)
 
         # os.system("rm -f nodif_brain_mask.nii.gz")
         # os.system("rm -f peaks.nii.gz")
         os.system("rm -f WM_FODs.nii.gz")
 
-        if Config.CSD_TYPE == "csd_msmt" or Config.CSD_TYPE == "csd_msmt_5tt":
+        if csd_type == "csd_msmt" or csd_type == "csd_msmt_5tt":
             os.system("rm -f 5TT.nii.gz")
             os.system("rm -f RF_WM.txt")
             os.system("rm -f RF_GM.txt")
