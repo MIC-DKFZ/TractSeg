@@ -29,7 +29,7 @@ TractSeg is the code for the following papers. Please cite the papers if you use
 * [Train your own model](#train-your-own-model)
 
 ## Install
-TractSeg only runs on Linux and OSX. It works with Python 2 and Python 3.
+TractSeg only runs on Linux and OSX. It works with Python 3.
 
 #### Install Prerequisites
 * [Pytorch](http://pytorch.org/) (v1.0)
