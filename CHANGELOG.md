@@ -8,6 +8,9 @@
 are incomplete and then applies a lower threshold.
 * **Interface change**: Postprocessing is activated by default now. If you want to deactivate is use `--no_postprocess`.
 * Python 2 not actively supported anymore (because dipy 1.0.0 does not support python 2 anymore)
+* Add rotation (now peaks are also properly rotated) to data augmentation.
+* Applies signs of affine to data if array not oriented like MNI data (needed to properly work with `fslreorient2std`)
+
 
 ## Release 2.0
 

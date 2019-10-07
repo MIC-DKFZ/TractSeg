@@ -533,6 +533,42 @@ def change_spacing_4D(img_in, new_spacing=1.25):
     return img_new
 
 
+def flip_axis_to_match_MNI_space(data, affine):
+    """
+    Checks if affine of the image has the same signs on the diagonal as MNI space. If this is not the case it will
+    invert the sign of the affine (not returned here) and invert the axis accordingly.
+    If displayed in an medical image viewer the image will look the same, but the order by the data in the image
+    array will be changed.
+    """
+    newAffine = affine.copy()  # could be returned if needed
+    flip_axis = None
+
+    if affine[0, 0] > 0:
+        flip_axis = "x"
+        data = data[::-1, :, :]
+        newAffine[0, 0] = newAffine[0, 0] * -1
+    elif affine[1, 1] < 0:
+        flip_axis = "y"
+        data = data[:, ::-1, :]
+        newAffine[1, 1] = newAffine[1, 1] * -1
+    elif affine[2, 2] < 0:
+        flip_axis = "z"
+        data = data[:, :, ::-1]
+        newAffine[2, 2] = newAffine[2, 2] * -1
+
+    return data, flip_axis
+
+
+def flip_axis(data, flip_axis):
+    if flip_axis == "x":
+        data = data[::-1, :, :]
+    elif flip_axis == "y":
+        data = data[:, ::-1, :]
+    elif flip_axis == "z":
+        data = data[:, :, ::-1]
+    return data
+
+
 def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
     """
     We use a pretrained random forest classifier to detect if the orientation of the peak is the same

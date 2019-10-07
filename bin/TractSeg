@@ -262,9 +262,16 @@ def main():
 
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
+
     data_affine = data_img.affine
     data = data_img.get_data()
     del data_img     # free memory
+
+    # Make image have the same signs of the affine as MNI space
+    data, flip_axis = img_utils.flip_axis_to_match_MNI_space(data, data_affine)
+
+    if flip_axis is not None:
+        print("Reorienting data...")
 
     #Use Peaks + T1
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
@@ -301,6 +308,9 @@ def main():
                            tract_definition=args.tract_definition, bedpostX_input=bedpostX_input,
                            tract_segmentations_path=tract_segmentations_path, TOM_dilation=TOM_dilation)
 
+        # Undo image flipping if it was applied previously
+        if flip_axis is not None:
+            seg = img_utils.flip_axis(seg, flip_axis)
 
         ####################################### Save output #######################################
 
