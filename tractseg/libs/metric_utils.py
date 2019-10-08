@@ -5,9 +5,11 @@ from __future__ import print_function
 
 import numpy as np
 from sklearn.metrics import f1_score
+from sklearn.linear_model import LinearRegression
 
 from tractseg.data import dataset_specific_utils
 from tractseg.libs import peak_utils
+
 
 def my_f1_score(y_true, y_pred):
     """
@@ -351,10 +353,30 @@ def calc_peak_length_dice_pytorch(classes, y_pred, y_true, max_angle_error=[0.9]
     return score_per_bundle
 
 
+def unconfound(y, confound, group_data=False):
+    """
+    This will remove the influence "confound" has on "y".
 
+    If the data is made up of two groups, the group label (indicating the group) must be the first column of
+    'confound'. The group label will be considered when fitting the linear model, but will not be considered when
+    calculating the residuals.
 
+    Args:
+        y: [samples, targets]
+        confound: [samples, confounds]
+        group_data: if the data is made up of two groups (e.g. for t-test) or is just
+                    one group (e.g. for correlation analysis)
+    Returns:
+        y_correct: [samples, targets]
+    """
+    # Demeaning beforehand or using intercept=True has similar effect
+    #y = demean(y)
+    #confound = demean(confound)
 
-
-
-
-
+    lr = LinearRegression(fit_intercept=True).fit(confound, y)  # lr.coef_: [targets, confounds]
+    if group_data:
+        y_predicted_by_confound = lr.coef_[1:] @ confound[:,1:].T  # [targets, samples]
+    else:
+        y_predicted_by_confound = lr.coef_ @ confound.T  # [targets, samples]
+    y_corrected = y.T - y_predicted_by_confound
+    return y_corrected.T  # [samples, targets]
