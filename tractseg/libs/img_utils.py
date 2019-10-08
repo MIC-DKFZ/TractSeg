@@ -261,11 +261,11 @@ def resize_first_three_dims_NUMPY(img, order=0, zoom=0.62):
     return img_sm
 
 
-def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
+def create_multilabel_mask(classes, subject, labels_type=np.int16, dataset_folder="HCP", labels_folder="bundle_masks"):
     """
     One-hot encoding of all bundles in one big image
     """
-    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)
+    bundles = dataset_specific_utils.get_bundle_names(classes)
 
     #Masks sind immer HCP_highRes (später erst downsample)
     mask_ml = np.zeros((145, 174, 145, len(bundles)))
@@ -282,20 +282,20 @@ def create_multilabel_mask(Config, subject, labels_type=np.int16, dataset_folder
     return mask_ml.astype(labels_type)
 
 
-def save_multilabel_img_as_multiple_files(Config, img, affine, path, name="bundle_segmentations"):
-    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files(classes, img, affine, path, name="bundle_segmentations"):
+    bundles = dataset_specific_utils.get_bundle_names(classes)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
         exp_utils.make_dir(join(path, name))
         nib.save(img_seg, join(path, name, bundle + ".nii.gz"))
 
 
-def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path, name="TOM"):
-    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files_peaks(flip_output_peaks, classes, img, affine, path, name="TOM"):
+    bundles = dataset_specific_utils.get_bundle_names(classes)[1:]
     for idx, bundle in enumerate(bundles):
         data = img[:, :, :, (idx*3):(idx*3)+3]
 
-        if Config.FLIP_OUTPUT_PEAKS:
+        if flip_output_peaks:
             data[:, :, :, 2] *= -1  # flip z Axis for correct view in MITK
             filename = bundle + "_f.nii.gz"
         else:
@@ -306,8 +306,8 @@ def save_multilabel_img_as_multiple_files_peaks(Config, img, affine, path, name=
         nib.save(img_seg, join(path, name, filename))
 
 
-def save_multilabel_img_as_multiple_files_endings(Config, img, affine, path):
-    bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
+def save_multilabel_img_as_multiple_files_endings(classes, img, affine, path):
+    bundles = dataset_specific_utils.get_bundle_names(classes)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
         exp_utils.make_dir(join(path, "endings_segmentations"))
@@ -531,6 +531,42 @@ def change_spacing_4D(img_in, new_spacing=1.25):
     img_new = nib.Nifti1Image(new_data, new_affine)
 
     return img_new
+
+
+def flip_axis_to_match_MNI_space(data, affine):
+    """
+    Checks if affine of the image has the same signs on the diagonal as MNI space. If this is not the case it will
+    invert the sign of the affine (not returned here) and invert the axis accordingly.
+    If displayed in an medical image viewer the image will look the same, but the order by the data in the image
+    array will be changed.
+    """
+    newAffine = affine.copy()  # could be returned if needed
+    flip_axis = None
+
+    if affine[0, 0] > 0:
+        flip_axis = "x"
+        data = data[::-1, :, :]
+        newAffine[0, 0] = newAffine[0, 0] * -1
+    elif affine[1, 1] < 0:
+        flip_axis = "y"
+        data = data[:, ::-1, :]
+        newAffine[1, 1] = newAffine[1, 1] * -1
+    elif affine[2, 2] < 0:
+        flip_axis = "z"
+        data = data[:, :, ::-1]
+        newAffine[2, 2] = newAffine[2, 2] * -1
+
+    return data, flip_axis
+
+
+def flip_axis(data, flip_axis):
+    if flip_axis == "x":
+        data = data[::-1, :, :]
+    elif flip_axis == "y":
+        data = data[:, ::-1, :]
+    elif flip_axis == "z":
+        data = data[:, :, ::-1]
+    return data
 
 
 def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):

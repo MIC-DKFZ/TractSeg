@@ -174,6 +174,21 @@ def convert_tck_to_trk(filename_in, filename_out, reference_affine, reference_sh
         save_streamlines(filename_out, streamlines, reference_affine, reference_shape)
 
 
+def create_empty_tractogram(filename_out, reference_file,
+                            tracking_format="trk_legacy"):
+
+    ref_img = nib.load(reference_file)
+    reference_affine = ref_img.affine
+    reference_shape = ref_img.get_data().shape[:3]
+
+    streamlines = []
+
+    if tracking_format == "trk_legacy":
+        save_streamlines_as_trk_legacy(filename_out, streamlines, reference_affine, reference_shape)
+    else:
+        save_streamlines(filename_out, streamlines, reference_affine, reference_shape)
+
+
 def resample_fibers(streamlines, nb_points=12):
     streamlines_new = []
     for sl in streamlines:

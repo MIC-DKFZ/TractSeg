@@ -88,11 +88,11 @@ def get_bvals_bvecs_path(args):
     return bvals, bvecs
 
 
-def get_brain_mask_path(Config, args):
+def get_brain_mask_path(predict_img_output, args):
     if args.brain_mask:
         return args.brain_mask
 
-    brain_mask_path = join(Config.PREDICT_IMG_OUTPUT, "nodif_brain_mask.nii.gz")
+    brain_mask_path = join(predict_img_output, "nodif_brain_mask.nii.gz")
     if os.path.isfile(brain_mask_path):
         return brain_mask_path
 
@@ -127,19 +127,19 @@ def add_background_class(data):
     return mask_ml
 
 
-def print_and_save(Config, text, only_log=False):
+def print_and_save(exp_path, text, only_log=False):
     if not only_log:
         print(text)
     try:
-        with open(join(Config.EXP_PATH, "Log.txt"), "a") as f:  # a for append
+        with open(join(exp_path, "Log.txt"), "a") as f:  # a for append
             f.write(text)
             f.write("\n")
     except IOError:
         print("WARNING: Could not write to Log.txt file")
 
 
-def print_verbose(Config, text):
-    if Config.VERBOSE:
+def print_verbose(verbose, text):
+    if verbose:
         print(text)
 
 
