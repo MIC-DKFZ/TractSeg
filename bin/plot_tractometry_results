@@ -14,19 +14,54 @@ from tractseg.libs.AFQ_MultiCompCorrection import AFQ_MultiCompCorrection
 from tractseg.libs.AFQ_MultiCompCorrection import get_significant_areas
 from tractseg.libs import metric_utils
 
+
 def parse_subjects_file(file_path):
     with open(file_path) as f:
-        lines = f.readlines()
-
-    #todo: use easier way to parse first line!
-    base_path = None
-    for line in lines:
-        l = line.strip()
+        l= f.readline().strip()
         if l.startswith("# tractometry_path="):
             base_path = l.split("=")[1]
+        else:
+            raise ValueError("Invalid first line in subjects file. Must start with '# tractometry_path='")
 
     df = pd.read_csv(file_path, sep=" ", comment="#")
     return base_path, df
+
+
+def correct_for_confounds(values, meta_data, bundles, selected_bun_indices, NR_POINTS, analysis_type, confound_names):
+    values_cor = np.zeros([len(bundles), NR_POINTS, len(meta_data)])
+    for b_idx in selected_bun_indices:
+        for jdx in range(NR_POINTS):
+            target = np.array([values[s][b_idx][jdx] for s in meta_data["subject_id"]])
+            if analysis_type == "group":
+                target_cor = metric_utils.unconfound(target, meta_data[["group"] + confound_names].values,
+                                                     group_data=True)
+            else:
+                target_cor = metric_utils.unconfound(target, meta_data[confound_names].values,
+                                                     group_data=False)
+                meta_data["target"] = metric_utils.unconfound(meta_data["target"].values,
+                                                              meta_data[confound_names].values,
+                                                              group_data=False)
+            values_cor[b_idx, jdx, :] = target_cor
+
+    # Restore original data structure
+    values_cor = values_cor.transpose(2, 0, 1)
+    # todo: nicer way: use numpy array right from beginning instead of dict !!
+    values_cor_dict = {}
+    for idx, subject in enumerate(list(meta_data["subject_id"])):
+        values_cor_dict[subject] = values_cor[idx]
+    return values_cor_dict
+
+
+def get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B, alpha, bundles, nperm, b_idx):
+    if analysis_type == "group":
+        y = np.array((0,) * len(subjects_A) + (1,) * len(subjects_B))
+    else:
+        y = meta_data["target"].values
+    alphaFWE, statFWE, clusterFWE, stats = AFQ_MultiCompCorrection(np.array(values_allp), y,
+                                                                   alpha, nperm=nperm)
+    print("cluster size {}: {}".format(bundles[b_idx], clusterFWE))
+    print("alphaFWE: {}".format(alphaFWE))
+    return alphaFWE, clusterFWE,
 
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
@@ -35,8 +70,13 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
 
-    subjects_A = list(meta_data[meta_data["group"] == 0]["subject_id"])
-    subjects_B = list(meta_data[meta_data["group"] == 1]["subject_id"])
+    if analysis_type == "group":
+        subjects_A = list(meta_data[meta_data["group"] == 0]["subject_id"])
+        subjects_B = list(meta_data[meta_data["group"] == 1]["subject_id"])
+    else:
+        subjects_A = list(meta_data["subject_id"])
+        subjects_B = []
+
     confound_names = list(meta_data.columns[2:])
 
     cols = 5
@@ -50,23 +90,8 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
     sns.set_style("whitegrid")
 
     # Correct for confounds
-    values_cor = np.zeros([len(bundles), NR_POINTS, len(meta_data)])
-    for b_idx in selected_bun_indices:
-        for jdx in range(NR_POINTS):
-            target = np.array([values[s][b_idx][jdx] for s in meta_data["subject_id"]])
-            if analysis_type == "group":
-                target_cor = metric_utils.unconfound(target, meta_data[["group"] + confound_names].values,
-                                                     group_data=True)
-            else:
-                target_cor = metric_utils.unconfound(target, meta_data[confound_names].values,
-                                                     group_data=False)
-            values_cor[b_idx, jdx, :] = target_cor
-    values_cor = values_cor.transpose(2, 0, 1)
-    #todo: nicer way: use numpy array right from beginning instead of dict !!
-    values_cor_dict = {}
-    for idx, subject in enumerate(list(meta_data["subject_id"])):
-        values_cor_dict[subject] = values_cor[idx]
-    values = values_cor_dict
+    values = correct_for_confounds(values, meta_data, bundles, selected_bun_indices, NR_POINTS, analysis_type,
+                                   confound_names)
 
     # Significance testing with multiple correction of bundles
     # values_allp = []
@@ -75,11 +100,8 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
     #     for i, b_idx in enumerate(selected_bun_indices):
     #         values_subject += list(values[s][b_idx]) # concatenate all bundles
     #     values_allp.append(values_subject)
-    # groups = (0,) * len(subjects_A) + (1,) * len(subjects_B)
-    # alphaFWE, statFWE, clusterFWE, stats = AFQ_MultiCompCorrection(np.array(values_allp), np.array(groups),
-    #                                                                alpha, nperm=nperm)
-    # print("cluster size {}: {}".format(bundles[b_idx], clusterFWE))
-    # print("alphaFWE: {}".format(alphaFWE))
+    # alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B, alpha,
+    #                                            bundles, nperm, b_idx)
 
     for i, b_idx in enumerate(selected_bun_indices):
 
@@ -103,22 +125,26 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
 
         ax.set(xlabel='position', ylabel='metric')
         ax.set_title(bundles[b_idx])
-        if i > 0:
+        if analysis_type == "group" and i > 0:
             ax.legend_.remove()  # only show legend on first subplot
+        else:
+            ax.legend_.remove()
 
         # Significance testing without multiple correction of bundles
         values_allp = [values[s][b_idx] for s in subjects_A + subjects_B]
-        groups = (0,) * len(subjects_A) + (1,) * len(subjects_B)
-        alphaFWE, statFWE, clusterFWE, stats = AFQ_MultiCompCorrection(np.array(values_allp), np.array(groups),
-                                                                       alpha, nperm=nperm)
-        print("cluster size {}: {}".format(bundles[b_idx], clusterFWE))
-        print("alphaFWE: {}".format(alphaFWE))
+        alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B, alpha,
+                                                   bundles, nperm, b_idx)
 
+        # Calc p-values
         pvalues = np.zeros(NR_POINTS)
         for jdx in range(NR_POINTS):
-            values_controls = [values[s][b_idx][jdx] for s in subjects_A]
-            values_patients = [values[s][b_idx][jdx] for s in subjects_B]
-            pvalues[jdx] = scipy.stats.ttest_ind(values_controls, values_patients).pvalue
+            if analysis_type == "group":
+                values_controls = [values[s][b_idx][jdx] for s in subjects_A]
+                values_patients = [values[s][b_idx][jdx] for s in subjects_B]
+                pvalues[jdx] = scipy.stats.ttest_ind(values_controls, values_patients).pvalue
+            else:
+                values_controls = [values[s][b_idx][jdx] for s in subjects_A]
+                _, pvalues[jdx] = scipy.stats.pearsonr(values_controls, meta_data["target"].values)
 
         if FWE_method == "alphaFWE":
             sig_areas = get_significant_areas(pvalues, 1, alphaFWE)
@@ -143,28 +169,34 @@ def main():
     args = parser.parse_args()
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
-    FWE_method = "clusterFWE"  # alphaFWE | clusterFWE
-    analysis_type = "group"  # group | correlation
+    FWE_method = "alphaFWE"  # alphaFWE | clusterFWE
 
     base_path, meta_data = parse_subjects_file(args.subjects_file)
 
-    print("Number of subjects:")
-    print("  group A: {}".format((meta_data["group"] == 0).sum()))
-    print("  group B: {}".format((meta_data["group"] == 1).sum()))
+    if meta_data.columns[1] == "group":
+        analysis_type = "group"
+        print("Number of subjects:")
+        print("  group A: {}".format((meta_data["group"] == 0).sum()))
+        print("  group B: {}".format((meta_data["group"] == 1).sum()))
+    elif meta_data.columns[1] == "target":
+        analysis_type = "correlation"
+        print("Number of subjects: {}".format(len(meta_data)))
+    else:
+        raise ValueError("Invalid second column header (only 'group' or 'target' allowed)")
 
     bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
     # Define bundles you want to plot
     #todo important: change
-    # selected_bundles = bundles
+    selected_bundles = bundles
     # selected_bundles = ["CST_right", "UF_left"]
 
     # Catatonia tracts
-    selected_bundles = ['CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6', 'CC_7',
-                        'CST_left', 'CST_right', 'ICP_left', 'ICP_right', 'SCP_left', 'SCP_right',
-                        'T_PREM_left', 'T_PREM_right',
-                        'ST_FO_left', 'ST_FO_right',
-                        'ST_PREM_left', 'ST_PREM_right']
+    # selected_bundles = ['CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6', 'CC_7',
+    #                     'CST_left', 'CST_right', 'ICP_left', 'ICP_right', 'SCP_left', 'SCP_right',
+    #                     'T_PREM_left', 'T_PREM_right',
+    #                     'ST_FO_left', 'ST_FO_right',
+    #                     'ST_PREM_left', 'ST_PREM_right']
     # 'T_PREF_left', 'T_PREF_right', 'T_PREC_left', 'T_PREC_right',
     # 'ST_PREF_left', 'ST_PREF_right', 'ST_PREC_left', 'ST_PREC_right',
 
@@ -177,8 +209,11 @@ def main():
 
 
     # Runtime:
-    # - 72 bundles 1000 permutations: ~4min
-    # - 72 bundles 10000 permutations: ~7min
+    # ttest:
+    #   - 72 bundles 1000 permutations: ~4min
+    #   - 72 bundles 10000 permutations: ~7min
+    # correlation:
+    #   -
 
     alpha = 0.05
     nperm = 10000

@@ -141,6 +141,9 @@ def AFQ_MultiCompCorrection(data=None, y=None, alpha=0.05, cThresh=None, nperm=1
         else:
             stattest = 'corr'
 
+    #todo important: change
+    print("using stattest: {}".format(stattest))
+
     p = np.zeros([nperm, data.shape[1]])
     stat = np.zeros([nperm, data.shape[1]])
     clusMax = np.zeros([nperm])
