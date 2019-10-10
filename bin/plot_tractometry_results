@@ -65,7 +65,7 @@ def get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subje
 
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
-                                 analysis_type, nperm=1000):
+                                 analysis_type, correct_mult_tract_comp, nperm=1000):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -94,14 +94,15 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                                    confound_names)
 
     # Significance testing with multiple correction of bundles
-    # values_allp = []
-    # for s in meta_data["subject_id"]:
-    #     values_subject = []
-    #     for i, b_idx in enumerate(selected_bun_indices):
-    #         values_subject += list(values[s][b_idx]) # concatenate all bundles
-    #     values_allp.append(values_subject)
-    # alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B, alpha,
-    #                                            bundles, nperm, b_idx)
+    if correct_mult_tract_comp:
+        values_allp = []
+        for s in meta_data["subject_id"]:
+            values_subject = []
+            for i, b_idx in enumerate(selected_bun_indices):
+                values_subject += list(values[s][b_idx]) # concatenate all bundles
+            values_allp.append(values_subject)
+        alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B, alpha,
+                                                   bundles, nperm, b_idx)
 
     for i, b_idx in enumerate(selected_bun_indices):
 
@@ -131,9 +132,10 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             ax.legend_.remove()
 
         # Significance testing without multiple correction of bundles
-        values_allp = [values[s][b_idx] for s in subjects_A + subjects_B]
-        alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B, alpha,
-                                                   bundles, nperm, b_idx)
+        if not correct_mult_tract_comp:
+            values_allp = [values[s][b_idx] for s in subjects_A + subjects_B]
+            alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B,
+                                                       alpha, bundles, nperm, b_idx)
 
         # Calc p-values
         pvalues = np.zeros(NR_POINTS)
@@ -155,6 +157,14 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
         sig_areas[sig_areas == 0] = np.array(data["fa"]).min()
         axes[i].plot(range(len(sig_areas)), sig_areas, color="red", linestyle=":")
 
+        if FWE_method == "alphaFWE":
+            axes[i].annotate("alphaFWE:   {}".format(round(alphaFWE, 6)),
+                             (0, 0), (0, -35), xycoords='axes fraction', textcoords='offset points', va='top',
+                             fontsize=10)
+            axes[i].annotate("min p-value: {}".format(pvalues.min().round(6)),
+                             (0, 0), (0, -45), xycoords='axes fraction', textcoords='offset points', va='top',
+                             fontsize=10)
+
     plt.tight_layout()
     plt.savefig(output_path, dpi=200)
 
@@ -166,11 +176,16 @@ def main():
                         help="txt file containing path of subjects", required=True)
     parser.add_argument("-o", metavar="plot_path", dest="output_path",
                         help="output png file containing plots", required=True)
+    parser.add_argument("--mc", action="store_true", help="correct for multiple tract comparison",
+                        default=False)
     args = parser.parse_args()
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
     FWE_method = "alphaFWE"  # alphaFWE | clusterFWE
+    # Significance testing with multiple correction for bundles
+    correct_mult_tract_comp = args.mc
 
+    print("Correcting for comparison of multiple tracts: {}".format(correct_mult_tract_comp))
     base_path, meta_data = parse_subjects_file(args.subjects_file)
 
     if meta_data.columns[1] == "group":
@@ -212,13 +227,10 @@ def main():
     # ttest:
     #   - 72 bundles 1000 permutations: ~4min
     #   - 72 bundles 10000 permutations: ~7min
-    # correlation:
-    #   -
-
+    nperm = 1000
     alpha = 0.05
-    nperm = 10000
     plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, args.output_path,
-                                 alpha, FWE_method, analysis_type, nperm=nperm)
+                                 alpha, FWE_method, analysis_type, correct_mult_tract_comp, nperm=nperm)
 
 
 if __name__ == '__main__':
