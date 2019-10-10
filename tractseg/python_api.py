@@ -222,7 +222,7 @@ def run_tractseg(data, output_type="tract_segmentation",
             seg = seg_all
 
 
-    if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing:
+    if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing and not dropout_sampling:
         # Runtime ~4s
         seg = img_utils.bundle_specific_postprocessing(seg, dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
 
@@ -236,7 +236,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                                                   dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:],
                                                   TOM_dilation, nr_cpus=nr_cpus)
 
-    if Config.EXPERIMENT_TYPE == "tract_segmentation" and postprocess:
+    if Config.EXPERIMENT_TYPE == "tract_segmentation" and postprocess and not dropout_sampling:
         # Runtime ~7s for 1.25mm resolution
         # Runtime ~1.5s for  2mm resolution
         st = time.time()
