@@ -274,9 +274,14 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     # convention "0mm is in voxel center".
     streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
+    # If the original image was not in MNI space we have to flip back to the original space
+    # before saving the streamlines
+    _, flip_axis, newAffine = img_utils.flip_axis_to_match_MNI_space(seed_image.get_data(),
+                                                             seed_image.affine, return_new_affine=True)
+
     # move streamlines to coordinate space
     #  This is doing: streamlines(coordinate_space) = affine * streamlines(voxel_space)
-    streamlines = list(transform_streamlines(streamlines, seed_image.affine))
+    streamlines = list(transform_streamlines(streamlines, newAffine))
 
     # Smoothing does not change overall results at all because is just little smoothing. Just removes small unevenness.
     if smooth:

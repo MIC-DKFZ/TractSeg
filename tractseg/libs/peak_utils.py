@@ -11,8 +11,9 @@ import psutil
 import numpy as np
 import nibabel as nib
 from joblib import Parallel, delayed
-
 from scipy.ndimage.morphology import binary_dilation
+
+from tractseg.libs import img_utils
 
 
 def angle_last_dim(a, b):
@@ -260,7 +261,8 @@ def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation, nr_cpus=-
     """
     def _process_bundle(idx, bundle):
         bundle_peaks = np.copy(peaks[:, :, :, idx * 3:idx * 3 + 3])
-        mask = nib.load(join(tract_seg_path, bundle + ".nii.gz")).get_data()
+        img = nib.load(join(tract_seg_path, bundle + ".nii.gz"))
+        mask, flip_axis = img_utils.flip_axis_to_match_MNI_space(img.get_data(), img.affine)
         mask = binary_dilation(mask, iterations=dilation).astype(np.uint8)
         bundle_peaks[mask == 0] = 0
         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)

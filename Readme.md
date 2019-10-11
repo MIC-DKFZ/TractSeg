@@ -51,7 +51,7 @@ sudo docker run -v /absolute/path/to/my/data/directory:/data \
 -t wasserth/tractseg_container:master TractSeg -i /data/my_diffusion_file.nii.gz -o /data --raw_diffusion_input
 ```
 On OSX you might have to increase the Docker memory limit from the default of 2GB to something
-like 7GB. For GPU support use the container `wasserth/tractseg_container_gpu:1.7.1` and run it with nvidia-docker.
+like 7GB.
 
 ## How to use
 
