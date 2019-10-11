@@ -466,11 +466,13 @@ def scale_input_to_original_shape(img4d, dataset, resolution="1.25mm"):
         if dataset == "HCP":  # (144,144,144)
             # no resize needed
             return img_utils.pad_4d_image_left(img4d, np.array([1, 15, 1, 0]),
-                                               [146, 174, 146, img4d.shape[3]], pad_value=0)  # (146, 174, 146, none)
+                                               [146, 174, 146, img4d.shape[3]],
+                                               pad_value=0)[:-1, :, :-1, :]  # (145, 174, 145, none)
         elif dataset == "HCP_32g":  # (144,144,144)
             # no resize needed
             return img_utils.pad_4d_image_left(img4d, np.array([1, 15, 1, 0]),
-                                               [146, 174, 146, img4d.shape[3]], pad_value=0)  # (146, 174, 146, none)
+                                               [146, 174, 146, img4d.shape[3]],
+                                               pad_value=0)[:-1, :, :-1, :]  # (145, 174, 145, none)
         elif dataset == "TRACED":  # (78,93,75)
             raise ValueError("resolution '1.25mm' not supported for dataset 'TRACED'")
         elif dataset == "Schizo":  # (144,144,144)
