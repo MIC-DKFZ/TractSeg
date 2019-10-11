@@ -46,7 +46,7 @@ GPU: 2min ~14s)
 7. To test for statistical significance and plot the results run the following command:  
 `plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png -mc`   
 (runtime on CPU for group analysis: ~4min for 100 subjects)  
-(runtime on CPU for correlation analysis: ~10min for 40 subjects)    
+(runtime on CPU for correlation analysis: ~7min for 40 subjects)
 Adapt `subjects.txt` with your data path, subject IDs and confounds. `tractseg/examples/subjects.txt` contains more 
 information on how to do this.
 8. The results will look similar to the following:

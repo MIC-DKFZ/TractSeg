@@ -1,9 +1,10 @@
 # TractSeg
- 
-![Alt text](resources/Pipeline_img_for_readme.png)
+
+![Alt text](resources/Pipeline_img_v2.png)
 
 Tool for fast and accurate white matter bundle segmentation from Diffusion MRI. It can create 
-bundle segmentations, segmentations of the endregions of bundles and Tract Orientation Maps (TOMs).
+bundle segmentations, segmentations of the endregions of bundles and Tract Orientation Maps (TOMs). Moreover, it can 
+do tracking on the TOMs creating bundle-specific tractogram and do Tractometry analysis on those.
 
 The tool works very well for data similar to the Human Connectome Project. For other MRI datasets it works well for all
 bundles except for the Commissure Anterior (CA) and the Fornix (FX) which are [incomplete sometimes](#small-bundles-like-the-ca-and-fx-are-incomplete).

@@ -228,8 +228,8 @@ def main():
     elif meta_data.columns[1] == "target":
         analysis_type = "correlation"
         print("Doing correlation analysis.")
-        nperm = nperm / 5
-        print("Using one fifth ({}) of the number of permutations for correlation analysis " +
+        nperm = int(nperm / 5)
+        print("Using one fifth ({}) of the number of permutations for correlation analysis "
               "because this has longer runtime".format(nperm))
         print("Number of subjects: {}".format(len(meta_data)))
     else:
