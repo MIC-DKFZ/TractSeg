@@ -4,6 +4,7 @@
 * FP16 training (increased training speed)
 * Tractometry more testing and bugfix
 * Tractometry now uses a far more advanced option to sample e.g. the FA along the tracts.
+* Statistical analysis for tractometry data
 * **Interface change**: The option `--bundle_specific_threshold` was removed. TractSeg checks itself now if CA or FX 
 are incomplete and then applies a lower threshold.
 * **Interface change**: Postprocessing is activated by default now. If you want to deactivate is use `--no_postprocess`.

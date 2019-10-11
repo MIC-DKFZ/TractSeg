@@ -33,6 +33,10 @@ def parse_subjects_file(file_path):
         if not np.issubdtype(df[col].dtype, np.number):
             raise IOError("Column {} contains non-numeric values".format(col))
 
+    if df.columns[1] == "group":
+        if df["group"].max() > 1:
+            raise IOError("Column 'group' may only contain 0 and 1.")
+
     return base_path, df
 
 
@@ -54,7 +58,7 @@ def correct_for_confounds(values, meta_data, bundles, selected_bun_indices, NR_P
 
     # Restore original data structure
     values_cor = values_cor.transpose(2, 0, 1)
-    # todo: nicer way: use numpy array right from beginning instead of dict !!
+    # todo: nicer way: use numpy array right from beginning instead of dict
     values_cor_dict = {}
     for idx, subject in enumerate(list(meta_data["subject_id"])):
         values_cor_dict[subject] = values_cor[idx]
@@ -199,12 +203,15 @@ def main():
                         help="output png file containing plots", required=True)
     parser.add_argument("--mc", action="store_true", help="correct for multiple tract comparison",
                         default=False)
+    parser.add_argument("--nperm", metavar="n", type=int, help="Number of permutations (default: 5000)",
+                        default=5000)
+    parser.add_argument("--alpha", metavar="a", type=float, help="The desired alpha level (default: 0.05)",
+                        default=0.05)
     args = parser.parse_args()
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
     FWE_method = "alphaFWE"  # alphaFWE | clusterFWE
-    nperm = 5000
-    alpha = 0.05
+    nperm = args.nperm
 
     # Significance testing with multiple correction for bundles
     correct_mult_tract_comp = args.mc
@@ -221,6 +228,9 @@ def main():
     elif meta_data.columns[1] == "target":
         analysis_type = "correlation"
         print("Doing correlation analysis.")
+        nperm = nperm / 5
+        print("Using one fifth ({}) of the number of permutations for correlation analysis " +
+              "because this has longer runtime".format(nperm))
         print("Number of subjects: {}".format(len(meta_data)))
     else:
         raise ValueError("Invalid second column header (only 'group' or 'target' allowed)")
@@ -231,7 +241,6 @@ def main():
     #todo important: change
     selected_bundles = bundles
     # selected_bundles = ["CST_right", "UF_left"]
-    # selected_bundles = ['CST_right', 'UF_left', 'CC_5', 'CC_6', 'SCP_left']
 
     # Catatonia tracts
     # selected_bundles = ['CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6', 'CC_7',
@@ -248,7 +257,7 @@ def main():
         values[subject] = raw
 
     plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, args.output_path,
-                                 alpha, FWE_method, analysis_type, correct_mult_tract_comp, nperm=nperm)
+                                 args.alpha, FWE_method, analysis_type, correct_mult_tract_comp, nperm=nperm)
 
 
 if __name__ == '__main__':

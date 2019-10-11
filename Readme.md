@@ -15,9 +15,9 @@ TractSeg is the code for the following papers. Please cite the papers if you use
 * Tract Orientation Mapping (TOM):   
 [Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)
 [MICCAI 2018]
-* Tracking on TOMs:   
-[Combined tract segmentation and orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1901.10271)
-[submitted to MIA]
+* Tracking on TOMs and Tractometry:
+[Combined tract segmentation and orientation mapping for bundle-specific tractography](https://www.sciencedirect.com/science/article/pii/S136184151930101X)
+[Medical Image Analysis 2019]
 
 [![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
 [![Brainlife](https://brainlife.io/api/warehouse/app/5b82d7f4e2f4f800275e020f/badge)](https://brainlife.io/app/5b82d7f4e2f4f800275e020f#)

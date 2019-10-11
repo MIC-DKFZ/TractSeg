@@ -1,8 +1,5 @@
 # Tractometry
 
-> **NOTE**: This code was not used in any paper yet. We did not evaluate if this approach of doing Tractometry is
- the best compared to other approaches. Therefore use with care.  
- 
 > **Warning**: Use TractSeg `master` because earlier versions contain small bug in Tractometry script (streamlines 
 incorrectly shifted by 0.5 voxels).  
 `pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip`
@@ -41,13 +38,15 @@ GPU: 2min ~14s)
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM` (runtime on GPU: ~1min 30s)  
 `Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 5000` (runtime on CPU: ~12min)  
  **Note**: As the streamline seeding is random, results will be slightly different everytime you run it. 
- A higher number of streamlines like 5000 will lower this variation.
+ A high number of streamlines like 5000 will lower this variation.
 5. Run tractometry:  
 `cd tractseg_output`  
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
 6. Repeat step 1-4 for every subject (use a shell script for that)
 7. To test for statistical significance and plot the results run the following command:  
-`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png -mc`.  
+`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png -mc`   
+(runtime on CPU for group analysis: ~4min for 100 subjects)  
+(runtime on CPU for correlation analysis: ~10min for 40 subjects)    
 Adapt `subjects.txt` with your data path, subject IDs and confounds. `tractseg/examples/subjects.txt` contains more 
 information on how to do this.
 8. The results will look similar to the following:
