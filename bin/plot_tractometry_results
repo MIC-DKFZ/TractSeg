@@ -2,12 +2,14 @@
 
 import argparse
 import math
+from decimal import Decimal
 
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats
 import pandas as pd
+from tqdm import tqdm
 
 from tractseg.data import dataset_specific_utils
 from tractseg.libs.AFQ_MultiCompCorrection import AFQ_MultiCompCorrection
@@ -24,6 +26,13 @@ def parse_subjects_file(file_path):
             raise ValueError("Invalid first line in subjects file. Must start with '# tractometry_path='")
 
     df = pd.read_csv(file_path, sep=" ", comment="#")
+    df["subject_id"] = df["subject_id"].astype(str)
+
+    # Check that each column (except for first one) is correctly parsed as a number
+    for col in df.columns[1:]:
+        if not np.issubdtype(df[col].dtype, np.number):
+            raise IOError("Column {} contains non-numeric values".format(col))
+
     return base_path, df
 
 
@@ -59,9 +68,17 @@ def get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subje
         y = meta_data["target"].values
     alphaFWE, statFWE, clusterFWE, stats = AFQ_MultiCompCorrection(np.array(values_allp), y,
                                                                    alpha, nperm=nperm)
-    print("cluster size {}: {}".format(bundles[b_idx], clusterFWE))
-    print("alphaFWE: {}".format(alphaFWE))
-    return alphaFWE, clusterFWE,
+    # print("Processing {}...".format(bundles[b_idx]))
+    # print("  cluster size: {}".format(clusterFWE))
+    # print("  alphaFWE: {}".format(format_number(alphaFWE)))
+    return alphaFWE, clusterFWE
+
+
+def format_number(num):
+    if num > 0.00001:
+        return round(num, 6)
+    else:
+        return '%.2e' % Decimal(num)
 
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
@@ -95,7 +112,7 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
 
     # Significance testing with multiple correction of bundles
     if correct_mult_tract_comp:
-        values_allp = []
+        values_allp = []  # [subjects, NR_POINTS * nr_bundles]
         for s in meta_data["subject_id"]:
             values_subject = []
             for i, b_idx in enumerate(selected_bun_indices):
@@ -104,8 +121,7 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
         alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B, alpha,
                                                    bundles, nperm, b_idx)
 
-    for i, b_idx in enumerate(selected_bun_indices):
-
+    for i, b_idx in enumerate(tqdm(selected_bun_indices)):
         # Bring data into right format for seaborn
         data = {"position": [],
                 "fa": [],
@@ -117,9 +133,9 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                 data["subject"].append(subject)
                 data["fa"].append(values[subject][b_idx][position])
                 if subject in subjects_A:
-                    data["group"].append("Group A")
+                    data["group"].append("Group 0")
                 else:
-                    data["group"].append("Group B")
+                    data["group"].append("Group 1")
 
         # Plot
         ax = sns.lineplot(x="position", y="fa", data=data, ax=axes[i], hue="group")
@@ -128,12 +144,12 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
         ax.set_title(bundles[b_idx])
         if analysis_type == "group" and i > 0:
             ax.legend_.remove()  # only show legend on first subplot
-        else:
+        if analysis_type == "correlation":
             ax.legend_.remove()
 
         # Significance testing without multiple correction of bundles
         if not correct_mult_tract_comp:
-            values_allp = [values[s][b_idx] for s in subjects_A + subjects_B]
+            values_allp = [values[s][b_idx] for s in subjects_A + subjects_B]  # [subjects, NR_POINTS]
             alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B,
                                                        alpha, bundles, nperm, b_idx)
 
@@ -148,21 +164,26 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                 values_controls = [values[s][b_idx][jdx] for s in subjects_A]
                 _, pvalues[jdx] = scipy.stats.pearsonr(values_controls, meta_data["target"].values)
 
+        # Plot significant areas
         if FWE_method == "alphaFWE":
             sig_areas = get_significant_areas(pvalues, 1, alphaFWE)
         else:
             sig_areas = get_significant_areas(pvalues, clusterFWE, alpha)
-
         sig_areas = sig_areas * np.array(data["fa"]).max()
         sig_areas[sig_areas == 0] = np.array(data["fa"]).min()
         axes[i].plot(range(len(sig_areas)), sig_areas, color="red", linestyle=":")
 
+        # Plot text
         if FWE_method == "alphaFWE":
-            axes[i].annotate("alphaFWE:   {}".format(round(alphaFWE, 6)),
+            axes[i].annotate("alphaFWE:   {}".format(format_number(alphaFWE)),
                              (0, 0), (0, -35), xycoords='axes fraction', textcoords='offset points', va='top',
                              fontsize=10)
-            axes[i].annotate("min p-value: {}".format(pvalues.min().round(6)),
+            axes[i].annotate("min p-value: {}".format(format_number(pvalues.min())),
                              (0, 0), (0, -45), xycoords='axes fraction', textcoords='offset points', va='top',
+                             fontsize=10)
+        else:
+            axes[i].annotate("clusterFWE:   {}".format(clusterFWE),
+                             (0, 0), (0, -35), xycoords='axes fraction', textcoords='offset points', va='top',
                              fontsize=10)
 
     plt.tight_layout()
@@ -182,6 +203,9 @@ def main():
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
     FWE_method = "alphaFWE"  # alphaFWE | clusterFWE
+    nperm = 5000
+    alpha = 0.05
+
     # Significance testing with multiple correction for bundles
     correct_mult_tract_comp = args.mc
 
@@ -190,11 +214,13 @@ def main():
 
     if meta_data.columns[1] == "group":
         analysis_type = "group"
+        print("Doing group analysis.")
         print("Number of subjects:")
-        print("  group A: {}".format((meta_data["group"] == 0).sum()))
-        print("  group B: {}".format((meta_data["group"] == 1).sum()))
+        print("  group 0: {}".format((meta_data["group"] == 0).sum()))
+        print("  group 1: {}".format((meta_data["group"] == 1).sum()))
     elif meta_data.columns[1] == "target":
         analysis_type = "correlation"
+        print("Doing correlation analysis.")
         print("Number of subjects: {}".format(len(meta_data)))
     else:
         raise ValueError("Invalid second column header (only 'group' or 'target' allowed)")
@@ -205,6 +231,7 @@ def main():
     #todo important: change
     selected_bundles = bundles
     # selected_bundles = ["CST_right", "UF_left"]
+    # selected_bundles = ['CST_right', 'UF_left', 'CC_5', 'CC_6', 'SCP_left']
 
     # Catatonia tracts
     # selected_bundles = ['CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6', 'CC_7',
@@ -218,17 +245,8 @@ def main():
     values = {}
     for subject in meta_data["subject_id"]:
         raw = np.loadtxt(base_path.replace("SUBJECT_ID", subject), delimiter=";", skiprows=1).transpose()
-        # legacy: only needed for HCP
-        # values[subject] = np.array([raw[idx][1:-1] for idx, bundle in enumerate(bundles)])  # 100->98
         values[subject] = raw
 
-
-    # Runtime:
-    # ttest:
-    #   - 72 bundles 1000 permutations: ~4min
-    #   - 72 bundles 10000 permutations: ~7min
-    nperm = 1000
-    alpha = 0.05
     plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, args.output_path,
                                  alpha, FWE_method, analysis_type, correct_mult_tract_comp, nperm=nperm)
 

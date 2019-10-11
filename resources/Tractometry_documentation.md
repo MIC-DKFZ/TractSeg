@@ -39,22 +39,34 @@ GPU: 2min ~14s)
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation` (runtime on GPU: ~42s)
 4. Create Tract Orientation Maps and use them to do bundle-specific tracking:  
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM` (runtime on GPU: ~1min 30s)  
-`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 10000` (runtime on CPU: ~23min)  
+`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 5000` (runtime on CPU: ~12min)  
  **Note**: As the streamline seeding is random, results will be slightly different everytime you run it. 
- A high number of streamlines like 10000 will keep this variation low. It is not recommendable to use a lower number.
+ A higher number of streamlines like 5000 will lower this variation.
 5. Run tractometry:  
 `cd tractseg_output`  
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
 6. Repeat step 1-4 for every subject (use a shell script for that)
-7. Plot the results and test for significance with  
-`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png`.  
-Adapt `subjects.txt` with your data path and subject IDs. 
+7. To test for statistical significance and plot the results run the following command:  
+`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png -mc`.  
+Adapt `subjects.txt` with your data path, subject IDs and confounds. `tractseg/examples/subjects.txt` contains more 
+information on how to do this.
+8. The results will look similar to the following:
 
-Tractometry is not done for the following bundles, as the geometry of these bundles makes it difficult to produce 
-consistent segments:
-`MLF, CC, T_PREF, T_PREC, T_POSTC, ST_PREF, ST_PREC, ST_POSTC, ST_PAR, ST_OCC`
+![Tractometry results_figure](Tractometry_results_example.png)  
 
-Tractometry is also not done for these bundles as they are incomplete in some cases: `CA, FX
+`alphaFWE` is the alpha value corrected for multiple comparison (multiple positions per bundle and multiple bundles).  
+`min p-value` is the minimal p-value which was calculated for each bundle.  
+So if `min p-value`<`alphaFWE` this bundle contains significant results. The red dotted line 
+indicates all areas within the bundle where `p-value`<`alphaFWE`.  
+The statistical analysis is based on the statistical analysis from 
+[Yeatman et al. (2012)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790). Please cite their 
+work if you use this.
+
+
+> **NOTE**: Tractometry is not done for the following bundles, as the geometry of these bundles makes it difficult to 
+produce consistent segments:
+`MLF, CC, T_PREF, T_PREC, T_POSTC, ST_PREF, ST_PREC, ST_POSTC, ST_PAR, ST_OCC`  
+Tractometry is also not done for the following bundles as they are incomplete in some cases: `CA, FX`
 
 ### Further options   
 Instead of analysing the FA along the tracts you can also analyze the peak length along the tracts. 

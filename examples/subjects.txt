@@ -1,14 +1,21 @@
+# tractometry_path=/my/data/path/SUBJECT_ID/Tractometry.csv
+# The first line has to start with '# tractometry_path=' and specify the path to the Tractometry files.
 # "SUBJECT_ID" will get replaced by each ID from the list below
-path=/my/data/path/SUBJECT_ID.csv
-
-# You can use comments if you like to:
-#   A=my_controls, B=my_patients
-
-# One group has to start with A_, the other group with B_.
-# A_/B_ will be removed before inserting the ID into the path.
-
-A_Tractometry_subject1
-# add more subjects of group A
-
-B_Tractometry_subject2
-# add more subjects of group B
+#
+# Apart from the first line all other lines which start with `#` will be ignored.
+# This file will get parsed as a space separated csv file.
+#
+# The first columns has to be 'subject_id' and is mandatory.
+# The second columns has to be 'group' (for a group comparison; containing only 0 or 1) or 'target' (for a correlation
+# analysis; containing the value you want to calculate the correlation for).
+# Any additional column will be treated as a confound and regressed out of the data before doing the statistical
+# analysis.
+#
+subject_id group Age Sex
+subject01 0 43.0 0
+subject02 0 26.0 0
+subject03 0 30.0 0
+subject04 1 53.0 1
+subject05 1 31.0 0
+subject06 1 36.0 1
+subject07 1 31.0 0

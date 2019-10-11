@@ -65,12 +65,6 @@ def AFQ_MultiCompCorrection(data=None, y=None, alpha=0.05, cThresh=None, nperm=1
     """
     Compute a multiple comparison correction for Tract Profile data
 
-    There are 2 multiple comparison corrections. Both account for
-    the correlation structure in the data but in different ways.
-    In python only 'permutation' is implemented. 'permutation' is also strongly
-    recommended over 'chevrud'.
-
-    method = 'permutation' (only this is implemented)
     This is an implementation of the permutation method described by Nichols
     and Holmes (2001). Nonparametric permutation tests for functional
     neuroimaging: A primer with examples. Human Brain Mapping.  This will
@@ -79,19 +73,6 @@ def AFQ_MultiCompCorrection(data=None, y=None, alpha=0.05, cThresh=None, nperm=1
     user defined alpha.  This means that significant clusters of this size or
     greater are pass the multiple comparison threshold and do not need
     further p-value adjustment.
-
-    method = 'chevrud'
-    This is an implementation of the multiple comparison correction proposed
-    in Cheverud, J. M. (2001). A simple correction for multiple comparisons
-    in interval mapping genome scans. Heredity (Edinb), 87(Pt 1), 52-58.  It
-    calculates the number of independent variables in a dataset based on the
-    varience in the eigenvalues of the correlation matrix for the data.  For
-    Tract Diffusionp Profiles, values at nearby nodes are highly correlated
-    and should not be treated as independent variables.  By taking into
-    account the correlation between values at multiple points and on multiple
-    tracts this alogorithm will determine a much more reasonable multiple
-    comparison correction than the typical, overly conservative bonferroni
-    correction
 
     Written by Jason D. Yeatman, August 2012
     Ported to python by Jakob Wasserthal, September 2019
@@ -141,8 +122,7 @@ def AFQ_MultiCompCorrection(data=None, y=None, alpha=0.05, cThresh=None, nperm=1
         else:
             stattest = 'corr'
 
-    #todo important: change
-    print("using stattest: {}".format(stattest))
+    # print("using stattest: {}".format(stattest))
 
     p = np.zeros([nperm, data.shape[1]])
     stat = np.zeros([nperm, data.shape[1]])
