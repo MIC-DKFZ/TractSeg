@@ -32,6 +32,9 @@ DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
 
 def create_preprocessed_files(subject):
 
+    # if file already exists skip it
+    check_for_existing_files = False
+
     # Estimate bounding box from this file and then apply it to all other files
     bb_file = "12g_125mm_peaks"
 
@@ -50,14 +53,22 @@ def create_preprocessed_files(subject):
     print("idx: {}".format(subjects.index(subject)))
     exp_utils.make_dir(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject))
 
+    bb_file_path = join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, bb_file + ".nii.gz")
+    if not os.path.exists(bb_file_path):
+        print("Missing file: {}-{}".format(subject, bb_file))
+        raise IOError("File missing")
+
     # Get bounding box
-    data = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, bb_file + ".nii.gz")).get_data()
+    data = nib.load(bb_file_path).get_data()
     _, _, bbox, _ = data_utils.crop_to_nonzero(np.nan_to_num(data))
 
     for idx, filename in enumerate(filenames_data):
-        path = join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")
-        if os.path.exists(path):
-            img = nib.load(path)
+        path_src = join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")
+        path_target = join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".nii.gz")
+        if os.path.exists(path_target) and check_for_existing_files:
+            print("Already done: {} - {}".format(subject, filename))
+        elif os.path.exists(path_src):
+            img = nib.load(path_src)
             data = img.get_data()
             affine = img.affine
             data = np.nan_to_num(data)
@@ -69,19 +80,25 @@ def create_preprocessed_files(subject):
             data, _, _, _ = data_utils.crop_to_nonzero(data, bbox=bbox)
 
             # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
-            nib.save(nib.Nifti1Image(data, affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject,
-                                                         filename + ".nii.gz"))
+            nib.save(nib.Nifti1Image(data, affine), path_target)
         else:
-            print("skipping file: {}-{}".format(subject, idx))
+            print("Missing file: {}-{}".format(subject, idx))
             raise IOError("File missing")
 
-    for filename in filenames_seg:
-        img = nib.load(join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz"))
-        data = img.get_data()
-        data, _, _, _ = data_utils.crop_to_nonzero(data, bbox=bbox)
-        # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
-        nib.save(nib.Nifti1Image(data, img.affine), join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename +
-                                                     ".nii.gz"))
+    for idx, filename in enumerate(filenames_seg):
+        path_src = join(C.NETWORK_DRIVE, DATASET_FOLDER, subject, filename + ".nii.gz")
+        path_target = join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".nii.gz")
+        if os.path.exists(path_target) and check_for_existing_files:
+            print("Already done: {} - {}".format(subject, filename))
+        elif os.path.exists(path_src):
+            img = nib.load(path_src)
+            data = img.get_data()
+            data, _, _, _ = data_utils.crop_to_nonzero(data, bbox=bbox)
+            # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
+            nib.save(nib.Nifti1Image(data, img.affine), path_target)
+        else:
+            print("Missing seg file: {}-{}".format(subject, idx))
+            raise IOError("File missing")
 
 
 if __name__ == "__main__":
