@@ -3,6 +3,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from os.path import join
+
+from tractseg.libs.system_config import SystemConfig as C
+
 
 # HCP_105
 # (bad subjects removed: 994273, 937160, 885975, 788876, 713239)
@@ -81,6 +85,14 @@ all_subjects_Schizo = ['CH7912a', 'A00014804', 'A00020805', 'A00010684', 'CH8301
                        'A00028885', 'CH7957', 'A00018403', 'CH7944a', 'A00036455', 'A00031249', 'A00000159', 'CH7692a',
                        'A00000300', 'A00000456', 'A00014830', 'A00012767', 'A00014607']
 
+
+def all_subjects_biobank_20k():
+    base_path = join(C.DATA_PATH, "biobank_preproc")
+    with open(join(base_path, "biobank_all_subjects_with_DWI.txt"), "r") as f:
+        lines = f.read().splitlines()
+    return lines
+
+
 def get_all_subjects(dataset="HCP"):
     if dataset == "HCP" or dataset == "HCP_final" or dataset == "HCP_32g":
         return all_subjects_FINAL
@@ -88,5 +100,7 @@ def get_all_subjects(dataset="HCP"):
         return all_subjects_HCP_all
     elif dataset.startswith("Schizo"):
         return all_subjects_Schizo
+    elif dataset.startswith("biobank_20k"):
+        return all_subjects_biobank_20k()
     else:
         raise ValueError("Invalid dataset name")
