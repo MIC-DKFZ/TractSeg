@@ -137,6 +137,11 @@ def get_bundle_names(CLASSES):
                    "or_l", "or_r", "slf1_l_kattest2_symm", "slf1_r_kattest2_symm", "slf2_l_kattest2_symm",
                    "slf2_r_kattest2_symm", "slf3_l_kattest2_symm", "slf3_r_kattest2_symm", "str_l", "str_r"]
 
+    elif CLASSES == "AutoPTX_27":
+        bundles = ["ar_l", "ar_r", "atr_l", "atr_r", "cgc_l", "cgc_r", "cgh_l", "cgh_r", "cst_l", "cst_r", "fma",
+                   "fmi", "ifo_l", "ifo_r", "ilf_l", "ilf_r", "mcp", "ml_l", "ml_r", "ptr_l", "ptr_r", "slf_l",
+                   "slf_r", "str_l", "str_r", "unc_l", "unc_r"]  # 27
+
     elif CLASSES == "AutoPTX_CST":
         bundles = ["cst_l", "cst_r"]
 
@@ -350,6 +355,10 @@ def get_cv_fold(fold, dataset="HCP"):
         subjects = get_all_subjects(dataset)
         cut_point = int(len(subjects) * 0.9)
         return subjects[:cut_point], subjects[cut_point:], ["599671", "599469"]
+    elif dataset == "biobank_20k":
+        subjects = get_all_subjects(dataset)
+        cut_point = int(len(subjects) * 0.9)
+        return subjects[:cut_point], subjects[cut_point:], ["1000013", "1000013"]
     else:
         if fold == 0:
             train, validate, test = [0, 1, 2], [3], [4]

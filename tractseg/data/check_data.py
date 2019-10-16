@@ -14,19 +14,24 @@ from tractseg.libs import img_utils
 dataset = "HCP_all"
 DATASET_FOLDER_PREPROC = "HCP_preproc_all"  # target folder
 
+# dataset = "biobank_20k"
+# DATASET_FOLDER_PREPROC = "biobank_preproc"
+
 def create_preprocessed_files(subject):
 
     filenames_data = ["270g_125mm_bedpostx_peaks_scaled", "32g_125mm_bedpostx_peaks_scaled"]
     filenames_seg = ["bundle_masks_autoPTX_dm"]
+
+    # filenames_data = ["105g_2mm_bedpostx_peaks_scaled"]
+    # filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
     print("idx: {}, subject: {}".format(subjects.index(subject), subject))
 
     for idx, filename in enumerate(filenames_data):
         # print(filename)
         path = join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".nii.gz")
-
         data = nib.load(path).get_data()
-        _ = img_utils.peak_image_to_tensor_image(data)
+        # _ = img_utils.peak_image_to_tensor_image(data)
 
     for filename in filenames_seg:
         # print(filename)

@@ -21,22 +21,27 @@ from tractseg.libs import exp_utils
 
 
 #todo: adapt
-dataset = "HCP_final"
-DATASET_FOLDER = "HCP_for_training_COPY"  # source folder
-DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
+# dataset = "HCP_final"
+# DATASET_FOLDER = "HCP_for_training_COPY"  # source folder
+# DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
 
 # dataset = "HCP_all"
-# DATASET_FOLDER = "HCP_for_training_COPY_all"  # source folder
-# DATASET_FOLDER_PREPROC = "HCP_preproc_all"  # target folder
+# DATASET_FOLDER = "HCP_for_training_COPY_all"
+# DATASET_FOLDER_PREPROC = "HCP_preproc_all"
+
+dataset = "biobank_20k"
+DATASET_FOLDER = "data/biobank_aPTX_20k_training"
+DATASET_FOLDER_PREPROC = "biobank_preproc"
 
 
 def create_preprocessed_files(subject):
 
     # if file already exists skip it
-    check_for_existing_files = False
+    check_for_existing_files = True
 
     # Estimate bounding box from this file and then apply it to all other files
-    bb_file = "12g_125mm_peaks"
+    # bb_file = "12g_125mm_peaks"
+    bb_file = "105g_2mm_bedpostx_peaks_scaled"
 
     # todo: adapt
     # filenames_data = ["12g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks",
@@ -46,8 +51,8 @@ def create_preprocessed_files(subject):
     #                  "bundle_peaks_Part1", "bundle_peaks_Part2", "bundle_peaks_Part3", "bundle_peaks_Part4",
     #                  "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
-    filenames_data = ["bundle_uncertainties"]
-    filenames_seg = []
+    filenames_data = ["105g_2mm_bedpostx_peaks_scaled"]
+    filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
 
     print("idx: {}".format(subjects.index(subject)))
