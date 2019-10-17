@@ -88,7 +88,7 @@ all_subjects_Schizo = ['CH7912a', 'A00014804', 'A00020805', 'A00010684', 'CH8301
 
 def all_subjects_biobank_20k():
     base_path = join(C.DATA_PATH, "biobank_preproc")
-    with open(join(base_path, "biobank_all_subjects_with_DWI.txt"), "r") as f:
+    with open(join(base_path, "biobank_all_subjects_with_DWI_shuffled.txt"), "r") as f:
         lines = f.read().splitlines()
     return lines
 

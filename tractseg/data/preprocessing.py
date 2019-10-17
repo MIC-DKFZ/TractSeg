@@ -37,7 +37,7 @@ DATASET_FOLDER_PREPROC = "biobank_preproc"
 def create_preprocessed_files(subject):
 
     # if file already exists skip it
-    check_for_existing_files = True
+    check_for_existing_files = False
 
     # Estimate bounding box from this file and then apply it to all other files
     # bb_file = "12g_125mm_peaks"
