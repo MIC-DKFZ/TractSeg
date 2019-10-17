@@ -142,6 +142,13 @@ def get_bundle_names(CLASSES):
                    "fmi", "ifo_l", "ifo_r", "ilf_l", "ilf_r", "mcp", "ml_l", "ml_r", "ptr_l", "ptr_r", "slf_l",
                    "slf_r", "str_l", "str_r", "unc_l", "unc_r"]  # 27
 
+    elif CLASSES == "xtract":
+        bundles = ["ac", "af_l", "af_r", "ar_l", "ar_r", "atr_l", "atr_r", "cbd_l", "cbd_r", "cbp_l", "cbp_r",
+                   "cbt_l", "cbt_r", "cst_l", "cst_r", "fa_l", "fa_r", "fma", "fmi", "fx_l", "fx_r", "ifo_l",
+                   "ifo_r", "ilf_l", "ilf_r", "mcp", "mdlf_l", "mdlf_r", "or_l", "or_r", "slf1_l", "slf1_r",
+                   "slf2_l", "slf2_r", "slf3_l", "slf3_r", "str_l", "str_r", "uf_l", "uf_r", "vof_l",
+                   "vof_r"]  # 42
+
     elif CLASSES == "AutoPTX_CST":
         bundles = ["cst_l", "cst_r"]
 
