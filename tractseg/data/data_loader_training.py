@@ -186,7 +186,11 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
             data = peak_utils.peaks_to_tensors(data)
 
         slice_direction = data_utils.slice_dir_to_int(self.Config.TRAINING_SLICE_DIRECTION)
-        slice_idxs = np.random.choice(data.shape[slice_direction], self.batch_size, False, None)
+        if data.shape[slice_direction] <= self.batch_size:
+            print("INFO: Batch size bigger than nr of slices. Therefore sampling with replacement.")
+            slice_idxs = np.random.choice(data.shape[slice_direction], self.batch_size, True, None)
+        else:
+            slice_idxs = np.random.choice(data.shape[slice_direction], self.batch_size, False, None)
 
         if self.Config.NR_SLICES > 1:
             x, y = data_utils.sample_Xslices(data, seg, slice_idxs, slice_direction=slice_direction,

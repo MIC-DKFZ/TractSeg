@@ -5,6 +5,7 @@ from __future__ import print_function
 from os.path import join
 import nibabel as nib
 from joblib import Parallel, delayed
+import numpy as np
 
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.data.subjects import get_all_subjects
