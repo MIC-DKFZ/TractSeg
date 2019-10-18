@@ -88,6 +88,7 @@ class Config:
     CALC_F1 = True
     ONLY_VAL = False
     TEST_TIME_DAUG = False
+    PAD_TO_SQUARE = True
 
     # data augmentation
     DATA_AUGMENTATION = True
