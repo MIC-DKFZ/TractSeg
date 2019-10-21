@@ -68,6 +68,19 @@ class test_end_to_end(unittest.TestCase):
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract probabilities are not correct (bundle: CA)")
 
+    def test_density_regression(self):
+        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CA.nii.gz").get_data().shape
+        img_ref = np.zeros(ref_shape).astype(np.float32)
+        img_ref[10:30, 10:30, 10:30] = 0.7  # big blob 1
+        img_ref[10:30, 10:30, 40:50] = 0.7  # big blob 2
+        img_ref[20:25, 20:25, 30:34] = 0.4  # incomplete bridge between blobs with lower probability
+        img_ref[20:25, 20:25, 36:40] = 0.4  # incomplete bridge between blobs with lower probability
+        img_ref[50:55, 50:55, 50:55] = 0.2  # below threshold
+        img_ref[60:63, 60:63, 60:63] = 0.9  # small blob -> will get removed by postprocessing
+        img_new = nib.load("examples/DM/tractseg_output/dm_regression/CA.nii.gz").get_data()
+        images_equal = np.array_equal(img_ref, img_new)
+        self.assertTrue(images_equal, "Density maps are not correct (bundle: CA)")
+
     def test_tractseg_output(self):
         bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
