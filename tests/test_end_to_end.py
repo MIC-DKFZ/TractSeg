@@ -29,6 +29,13 @@ class test_end_to_end(unittest.TestCase):
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[20:25, 20:25, 30:40] = 1  # bridge
         img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CA.nii.gz").get_data()
+        print("-----------")
+        print(img_new[10:30, 10:30, 10:30])
+        print("-----------")
+        print(img_new[10:30, 10:30, 40:50])
+        print("-----------")
+        print(img_new[20:25, 20:25, 30:40])
+        print(img_new.shape)
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CA)")
 
