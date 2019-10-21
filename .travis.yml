@@ -19,6 +19,15 @@ install:
   - pip install .
 script:
 
+  #Bundle specific postprocessing
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/BS_PP/tractseg_output --single_orientation --test
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_bundle_specific_postprocessing
+
+  #Bundle specific postprocessing
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/no_PP/tractseg_output --single_orientation
+    --no_postprocess --test
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_postprocessing
+
   #Docker
   # On python 3 building the container is too slow to avoid travis timeout -> we only test it on python 2
   - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker";

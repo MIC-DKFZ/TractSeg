@@ -33,7 +33,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                  postprocess=False, peak_regression_part="All", input_type="peaks",
                  blob_size_thr=50, nr_cpus=-1, verbose=False, manual_exp_name=None,
                  inference_batch_size=1, tract_definition="TractQuerier+", bedpostX_input=False,
-                 tract_segmentations_path=None, TOM_dilation=1):
+                 tract_segmentations_path=None, TOM_dilation=1, unit_test=False):
     """
     Run TractSeg
 
@@ -156,7 +156,7 @@ def run_tractseg(data, output_type="tract_segmentation",
             if Config.DROPOUT_SAMPLING or Config.EXPERIMENT_TYPE == "dm_regression" or Config.GET_PROBS:
                 seg, _ = trainer.predict_img(Config, model, data_loder_inference, probs=True,
                                                  scale_to_world_shape=False, only_prediction=True,
-                                                 batch_size=inference_batch_size)
+                                                 batch_size=inference_batch_size, unit_test=unit_test)
             else:
                 seg, _ = trainer.predict_img(Config, model, data_loder_inference, probs=False,
                                                  scale_to_world_shape=False, only_prediction=True,

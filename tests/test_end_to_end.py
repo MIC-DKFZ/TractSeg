@@ -21,6 +21,42 @@ class test_end_to_end(unittest.TestCase):
     #     images_equal = np.allclose(img_ref, img_new, rtol=1, atol=1)    #somehow not working; order of channels randomly changing?
     #     self.assertTrue(images_equal, "CSD peaks not correct")
 
+    def test_bundle_specific_postprocessing(self):
+        # CA
+        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CA.nii.gz").get_data().shape
+        img_ref = np.zeros(ref_shape).astype(np.uint8)
+        img_ref[10:30, 10:30, 10:30, 4] = 1  # big blob 1
+        img_ref[10:30, 10:30, 40:50, 4] = 1  # big blob 2
+        img_ref[20:25, 20:25, 30:40, 4] = 1  # bridge
+        img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CA.nii.gz").get_data()
+        images_equal = np.array_equal(img_ref, img_new)
+        self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CA)")
+
+        # CC_1
+        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CC_1.nii.gz").get_data().shape
+        img_ref = np.zeros(ref_shape).astype(np.uint8)
+        img_ref[10:30, 10:30, 10:30, 4] = 1  # big blob 1
+        img_ref[10:30, 10:30, 40:50, 4] = 1  # big blob 2
+        img_ref[20:25, 20:25, 30:34, 4] = 1  # incomplete bridge between blobs with lower probability
+        img_ref[20:25, 20:25, 36:40, 4] = 1  # incomplete bridge between blobs with lower probability
+        img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_data()
+        images_equal = np.array_equal(img_ref, img_new)
+        self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CC_1)")
+
+    def test_postprocessing(self):
+        # CC_1
+        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CC_1.nii.gz").get_data().shape
+        img_ref = np.zeros(ref_shape).astype(np.uint8)
+        img_ref[10:30, 10:30, 10:30, 4] = 1  # big blob 1
+        img_ref[10:30, 10:30, 40:50, 4] = 1  # big blob 2
+        img_ref[20:25, 20:25, 30:34, 4] = 1  # incomplete bridge between blobs with lower probability
+        img_ref[20:25, 20:25, 36:40, 4] = 1  # incomplete bridge between blobs with lower probability
+        img_ref[60:63, 60:63, 60:63, 4] = 1  # small blob
+
+        img_new = nib.load("examples/no_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_data()
+        images_equal = np.array_equal(img_ref, img_new)
+        self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CC_1)")
+
     def test_tractseg_output(self):
         bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:

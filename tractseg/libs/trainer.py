@@ -205,7 +205,7 @@ def train_model(Config, model, data_loader):
 
 
 def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=True, only_prediction=False,
-                batch_size=1):
+                batch_size=1, unit_test=False):
     """
     Return predictions for one 3D image.
 
@@ -239,6 +239,36 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
     img_shape = [Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.INPUT_DIM[0], Config.NR_OF_CLASSES]
     layers_seg = np.empty(img_shape).astype(np.float32)
     layers_y = None if only_prediction else np.empty(img_shape).astype(np.float32)
+
+    if unit_test:
+        # Return some mockup data to test different input arguments end 2 end and to test the postprocessing of the
+        # segmentations (using real segmentations on DWI test image would take too much time if we run it for
+        # different configurations)
+        probs = np.zeros(img_shape).astype(np.float32)
+
+        # CA (bundle specific postprocessing)
+        probs[10:30, 10:30, 10:30, 4] = 0.7  # big blob 1
+        probs[10:30, 10:30, 40:50, 4] = 0.7  # big blob 2
+        probs[20:25, 20:25, 30:34, 4] = 0.4  # incomplete bridge between blobs with lower probability
+        probs[20:25, 20:25, 36:40, 4] = 0.4  # incomplete bridge between blobs with lower probability
+        probs[50:55, 50:55, 50:55, 4] = 0.2  # below threshold
+        probs[60:63, 60:63, 60:63, 4] = 0.9  # small blob -> will get removed by postprocessing
+        # should restore the bridge
+
+        # CC_1
+        probs[10:30, 10:30, 10:30, 5] = 0.7  # big blob 1
+        probs[10:30, 10:30, 40:50, 5] = 0.7  # big blob 2
+        probs[20:25, 20:25, 30:34, 5] = 0.4  # incomplete bridge between blobs with lower probability
+        probs[20:25, 20:25, 36:40, 5] = 0.4  # incomplete bridge between blobs with lower probability
+        probs[50:55, 50:55, 50:55, 5] = 0.2  # below threshold
+        probs[60:63, 60:63, 60:63, 5] = 0.9  # small blob -> will get removed by postprocessing
+        # should not restore the bridge
+
+        layers_seg = _finalize_data(probs)
+        if not only_prediction:
+            layers_y = _finalize_data(layers_y)
+        return layers_seg, layers_y
+
     batch_generator = data_loader.get_batch_generator(batch_size=batch_size)
     batch_generator = list(batch_generator)
     idx = 0
