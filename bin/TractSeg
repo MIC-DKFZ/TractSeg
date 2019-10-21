@@ -97,7 +97,7 @@ def main():
                         default=False)
 
     parser.add_argument("--get_probabilities", action="store_true",
-                        help="Output probability map instead of binary segmentation",
+                        help="Output probability map instead of binary segmentation (without any postprocessing)",
                         default=False)
 
     parser.add_argument("--super_resolution", action="store_true",

@@ -85,6 +85,11 @@ def run_tractseg(data, output_type="tract_segmentation",
                                                      exp_utils.get_manual_exp_name_peaks(manual_exp_name, "Part1"),
                                                      "Hyperparameters.txt"))
 
+    # Do not do any postprocessing if returning probabilities (because postprocessing only works on binary)
+    if get_probs:
+        bundle_specific_postprocessing = False
+        postprocess = False
+
     Config = exp_utils.get_correct_labels_type(Config)
     Config.VERBOSE = verbose
     Config.TRAIN = False

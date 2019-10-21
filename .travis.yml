@@ -28,6 +28,11 @@ script:
     --no_postprocess --test
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_postprocessing
 
+  #Get probabilities
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/Probs/tractseg_output --single_orientation --test
+    --get_probabilities
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_get_probabilities
+
   #Docker
   # On python 3 building the container is too slow to avoid travis timeout -> we only test it on python 2
   - if [ "$PYTHON_VERS" == "3.5" ]; then echo "skipping docker";
