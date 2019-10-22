@@ -51,8 +51,6 @@ class test_end_to_end(unittest.TestCase):
         img_ref = np.zeros((144, 144, 144)).astype(np.uint8)
         img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
-        img_ref[20:25, 20:25, 30:34] = 1  # incomplete bridge between blobs with lower probability
-        img_ref[20:25, 20:25, 36:40] = 1  # incomplete bridge between blobs with lower probability
         img_ref = transform_to_output_space(img_ref)
         img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_data()
         images_equal = np.array_equal(img_ref, img_new)
@@ -62,8 +60,8 @@ class test_end_to_end(unittest.TestCase):
         img_ref = np.zeros((144, 144, 144)).astype(np.uint8)
         img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
-        img_ref[20:25, 20:25, 30:34] = 1  # incomplete bridge between blobs with lower probability
-        img_ref[20:25, 20:25, 36:40] = 1  # incomplete bridge between blobs with lower probability
+        # img_ref[20:25, 20:25, 30:34] = 1  # incomplete bridge between blobs with lower probability
+        # img_ref[20:25, 20:25, 36:40] = 1  # incomplete bridge between blobs with lower probability
         img_ref[60:63, 60:63, 60:63] = 1  # small blob
         img_ref = transform_to_output_space(img_ref)
         img_new = nib.load("examples/no_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_data()
