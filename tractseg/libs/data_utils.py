@@ -136,7 +136,10 @@ def crop_to_nonzero(data, seg=None, bbox=None):
 
 
 def add_original_zero_padding_again(data, bbox, original_shape, nr_of_classes):
-    data_new = np.zeros((original_shape[0], original_shape[1], original_shape[2], nr_of_classes)).astype(data.dtype)
+    if nr_of_classes > 0:
+        data_new = np.zeros(original_shape[:3] + (nr_of_classes,)).astype(data.dtype)
+    else:
+        data_new = np.zeros(original_shape[:3]).astype(data.dtype)
     data_new[bbox[0][0]:bbox[0][1], bbox[1][0]:bbox[1][1], bbox[2][0]:bbox[2][1]] = data
     return data_new
 

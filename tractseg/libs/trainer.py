@@ -264,10 +264,7 @@ def predict_img(Config, model, data_loader, probs=False, scale_to_world_shape=Tr
         probs[60:63, 60:63, 60:63, 5] = 0.9  # small blob -> will get removed by postprocessing
         # should not restore the bridge
 
-        layers_seg = _finalize_data(probs)
-        if not only_prediction:
-            layers_y = _finalize_data(layers_y)
-        return layers_seg, layers_y
+        return probs, layers_y
 
     batch_generator = data_loader.get_batch_generator(batch_size=batch_size)
     batch_generator = list(batch_generator)

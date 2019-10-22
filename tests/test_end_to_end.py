@@ -8,6 +8,21 @@ import nibabel as nib
 import numpy as np
 
 from tractseg.data import dataset_specific_utils
+from tractseg.libs import data_utils
+
+
+def transform_to_output_space(data):
+    transformation = {'original_shape': (54, 65, 53, 9),
+                      'pad_x': 5.5,
+                      'pad_y': 0.0,
+                      'pad_z': 6.0,
+                      'zoom': 2.2153846153846155}
+    bbox = [[9, 63], [13, 78], [2, 55]]
+    original_shape = (73, 87, 73)
+
+    data = data_utils.cut_and_scale_img_back_to_original_img(data, transformation)
+    data = data_utils.add_original_zero_padding_again(data, bbox, original_shape, 0)
+    return data
 
 
 class test_end_to_end(unittest.TestCase):
@@ -23,19 +38,13 @@ class test_end_to_end(unittest.TestCase):
 
     def test_bundle_specific_postprocessing(self):
         # CA
-        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CA.nii.gz").get_data().shape
+        ref_shape = (144, 144, 144)
         img_ref = np.zeros(ref_shape).astype(np.uint8)
         img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[20:25, 20:25, 30:40] = 1  # bridge
+        img_ref = transform_to_output_space(img_ref)
         img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CA.nii.gz").get_data()
-        print("-----------")
-        print(img_new[10:30, 10:30, 10:30])
-        print("-----------")
-        print(img_new[10:30, 10:30, 40:50])
-        print("-----------")
-        print(img_new[20:25, 20:25, 30:40])
-        print(img_new.shape)
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CA)")
 
@@ -46,6 +55,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[20:25, 20:25, 30:34] = 1  # incomplete bridge between blobs with lower probability
         img_ref[20:25, 20:25, 36:40] = 1  # incomplete bridge between blobs with lower probability
+        img_ref = transform_to_output_space(img_ref)
         img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_data()
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CC_1)")
@@ -58,6 +68,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[20:25, 20:25, 30:34] = 1  # incomplete bridge between blobs with lower probability
         img_ref[20:25, 20:25, 36:40] = 1  # incomplete bridge between blobs with lower probability
         img_ref[60:63, 60:63, 60:63] = 1  # small blob
+        img_ref = transform_to_output_space(img_ref)
         img_new = nib.load("examples/no_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_data()
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CC_1)")
@@ -71,6 +82,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[20:25, 20:25, 36:40] = 0.4  # incomplete bridge between blobs with lower probability
         img_ref[50:55, 50:55, 50:55] = 0.2  # below threshold
         img_ref[60:63, 60:63, 60:63] = 0.9  # small blob -> will get removed by postprocessing
+        img_ref = transform_to_output_space(img_ref)
         img_new = nib.load("examples/Probs/tractseg_output/bundle_segmentations/CA.nii.gz").get_data()
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract probabilities are not correct (bundle: CA)")
@@ -84,6 +96,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[20:25, 20:25, 36:40] = 0.4  # incomplete bridge between blobs with lower probability
         img_ref[50:55, 50:55, 50:55] = 0.2  # below threshold
         img_ref[60:63, 60:63, 60:63] = 0.9  # small blob -> will get removed by postprocessing
+        img_ref = transform_to_output_space(img_ref)
         img_new = nib.load("examples/DM/tractseg_output/dm_regression/CA.nii.gz").get_data()
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Density maps are not correct (bundle: CA)")
