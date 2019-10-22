@@ -38,8 +38,7 @@ class test_end_to_end(unittest.TestCase):
 
     def test_bundle_specific_postprocessing(self):
         # CA
-        ref_shape = (144, 144, 144)
-        img_ref = np.zeros(ref_shape).astype(np.uint8)
+        img_ref = np.zeros((144, 144, 144)).astype(np.uint8)
         img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[20:25, 20:25, 30:40] = 1  # bridge
@@ -61,8 +60,7 @@ class test_end_to_end(unittest.TestCase):
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CC_1)")
 
     def test_postprocessing(self):
-        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CC_1.nii.gz").get_data().shape
-        img_ref = np.zeros(ref_shape).astype(np.uint8)
+        img_ref = np.zeros((144, 144, 144)).astype(np.uint8)
         img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[20:25, 20:25, 30:34] = 1  # incomplete bridge between blobs with lower probability
@@ -74,8 +72,7 @@ class test_end_to_end(unittest.TestCase):
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CC_1)")
 
     def test_get_probabilities(self):
-        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CA.nii.gz").get_data().shape
-        img_ref = np.zeros(ref_shape).astype(np.float32)
+        img_ref = np.zeros((144, 144, 144)).astype(np.float32)
         img_ref[10:30, 10:30, 10:30] = 0.7  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 0.7  # big blob 2
         img_ref[20:25, 20:25, 30:34] = 0.4  # incomplete bridge between blobs with lower probability
@@ -88,8 +85,7 @@ class test_end_to_end(unittest.TestCase):
         self.assertTrue(images_equal, "Tract probabilities are not correct (bundle: CA)")
 
     def test_density_regression(self):
-        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CA.nii.gz").get_data().shape
-        img_ref = np.zeros(ref_shape).astype(np.float32)
+        img_ref = np.zeros((144, 144, 144)).astype(np.float32)
         img_ref[10:30, 10:30, 10:30] = 0.7  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 0.7  # big blob 2
         img_ref[20:25, 20:25, 30:34] = 0.4  # incomplete bridge between blobs with lower probability
