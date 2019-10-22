@@ -255,8 +255,7 @@ To enforce isotropic spacing you can replace `-applyxfm` by `-applyisoxfm <your_
 
 #### My output segmentation does not look like any bundle at all!
 Make sure your input image is in MNI space. Even if the input image is in MNI space the Mrtrix peaks might still be flipped. 
-TractSeg is automatically checking for that and printing a warning if the peaks have the wrong orientation. However, in very few cases (~2%) TractSeg fails 
-to detect the right flipping axis. In those cases you should view the peaks in `mrview` and make sure they have the proper 
+In those cases you should view the peaks in `mrview` and make sure they have the proper 
 orientation. Otherwise you might have to flip the sign along the x, y or z axis using the following command: 
 ```
 flip_peaks -i my_peaks.nii.gz -o my_peaks_flip_y.nii.gz -a y
