@@ -88,15 +88,15 @@ def get_bvals_bvecs_path(args):
     return bvals, bvecs
 
 
-def get_brain_mask_path(predict_img_output, args):
-    if args.brain_mask:
-        return args.brain_mask
+def get_brain_mask_path(predict_img_output, brain_mask, input):
+    if brain_mask:
+        return brain_mask
 
     brain_mask_path = join(predict_img_output, "nodif_brain_mask.nii.gz")
     if os.path.isfile(brain_mask_path):
         return brain_mask_path
 
-    brain_mask_path = join(os.path.dirname(args.input), "nodif_brain_mask.nii.gz")
+    brain_mask_path = join(os.path.dirname(input), "nodif_brain_mask.nii.gz")
     if os.path.isfile(brain_mask_path):
         print("Loading brain mask from: {}".format(brain_mask_path))
         return brain_mask_path

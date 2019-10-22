@@ -271,7 +271,6 @@ You can use the following options to improve your results:
 finally downsampled back to the original resolution. Using `--super_resolution` will output the image at 1.25mm. 
 Especially if image resolution is low parts of the CA can get lost during downsampling.
 
-
 #### Can I save the pretrained weights at a different location?
 Per default the pretrained weights will be downloaded to and loaded from `~/.tractseg/`. You can change this directory
 by adding `weights_dir=/absolute/path_to_where/you_want_it` to `~/.tractseg/config.txt` in a new line (if the file does 

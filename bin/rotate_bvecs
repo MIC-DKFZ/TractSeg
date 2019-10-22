@@ -10,7 +10,7 @@ def parse_fsl_affine(file):
     with open(file) as f:
         lines = f.readlines()
     entries = [l.split() for l in lines]
-
+    entries = [row for row in entries if len(row) > 0]  # remove empty rows
     return np.array(entries).astype(np.float32)
 
 

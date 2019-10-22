@@ -226,9 +226,9 @@ def main():
     ####################################### Preprocessing #######################################
 
     if args.raw_diffusion_input:
-        brain_mask = exp_utils.get_brain_mask_path(Config.PREDICT_IMG_OUTPUT, args)
+        brain_mask = exp_utils.get_brain_mask_path(Config.PREDICT_IMG_OUTPUT, args.brain_mask, args.input)
 
-        if args.brain_mask is None:
+        if brain_mask is None:
             brain_mask = preprocessing.create_brain_mask(input_path, Config.PREDICT_IMG_OUTPUT)
 
         if args.preprocess:
@@ -284,6 +284,12 @@ def main():
     # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]
     # data = np.concatenate((data, t1_data), axis=3)
 
+    output_float = False
+    if Config.EXPERIMENT_TYPE == "dm_regression" or \
+       Config.EXPERIMENT_TYPE == "peak_regression" or \
+       dropout_sampling or \
+       args.get_probabilities:
+        output_float = True
 
     ####################################### Process #######################################
 
@@ -364,8 +370,15 @@ def main():
                                                                 Config.PREDICT_IMG_OUTPUT, name="dm_regression")
             del seg  # Free memory (before we run tracking)
 
-        if args.preprocess and Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.SINGLE_OUTPUT_FILE:
-            preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT)
+        if args.preprocess:
+            is_peaks = Config.EXPERIMENT_TYPE == "peak_regression"
+            if Config.SINGLE_OUTPUT_FILE:
+                preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT, output_float=output_float,
+                                                    is_peaks=is_peaks)
+            else:
+                bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
+                preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT, bundles, output_float=output_float,
+                                                    is_peaks=is_peaks)
 
     Config.CLASSES = "All"
     preprocessing.clean_up(Config.KEEP_INTERMEDIATE_FILES, Config.PREDICT_IMG_OUTPUT, Config.CSD_TYPE,

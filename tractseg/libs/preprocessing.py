@@ -10,6 +10,33 @@ from pkg_resources import resource_filename
 from tractseg.libs import img_utils
 
 
+def reorient_to_std_space(input_file, bvals, bvecs, brain_mask, output_dir):
+    print("Reorienting input to MNI space...")
+
+    # Only working with FSL 6
+    # os.system("fslreorient2std -m " + output_dir + "/reorient2std.mat " + input_file +
+    #           " " + output_dir + "/Diffusion_MNI.nii.gz")
+
+    # Working with FSL 5 and 6
+    os.system("fslreorient2std " + input_file + " > " + output_dir + "/reorient2std.mat")
+    os.system("fslreorient2std " + input_file + " " + output_dir + "/Diffusion_MNI.nii.gz")
+
+    os.system("cp " + bvals + " " + output_dir + "/Diffusion_MNI.bvals")
+    os.system("rotate_bvecs -i " + bvecs + " -t " + output_dir + "/reorient2std.mat -o " +
+              output_dir + "/Diffusion_MNI.bvecs")
+
+    os.system("flirt -ref " + output_dir + "/Diffusion_MNI.nii.gz -in " + brain_mask +
+              " -out " + output_dir + "/nodif_brain_mask_MNI.nii.gz -applyxfm -init " +
+              output_dir + "/reorient2std.mat -dof 6")
+
+    new_input_file = join(output_dir, "Diffusion_MNI.nii.gz")
+    bvecs = join(output_dir, "Diffusion_MNI.bvecs")
+    bvals = join(output_dir, "Diffusion_MNI.bvals")
+    brain_mask = join(output_dir, "nodif_brain_mask_MNI.nii.gz")
+
+    return new_input_file, bvals, bvecs, brain_mask
+
+
 def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
     print("Moving input to MNI space...")
 
@@ -24,30 +51,61 @@ def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
               "/FA_MNI.nii.gz -omat " + output_dir + "/FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo")
 
     os.system("flirt -ref " + template_path + " -in " + input_file + " -out " + output_dir +
-              "/Diffusion_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/FA_2_MNI.mat -dof 6")
+              "/Diffusion_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir +
+              "/FA_2_MNI.mat -dof 6 -interp spline")
     os.system("cp " + bvals + " " + output_dir + "/Diffusion_MNI.bvals")
     os.system("rotate_bvecs -i " + bvecs + " -t " + output_dir + "/FA_2_MNI.mat" +
               " -o " + output_dir + "/Diffusion_MNI.bvecs")
 
+    os.system("flirt -ref " + template_path + " -in " + brain_mask +
+              " -out " + output_dir + "/nodif_brain_mask_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " +
+              output_dir + "/FA_2_MNI.mat -dof 6 -interp nearestneighbour")
+
     new_input_file = join(output_dir, "Diffusion_MNI.nii.gz")
     bvecs = join(output_dir, "Diffusion_MNI.bvecs")
     bvals = join(output_dir, "Diffusion_MNI.bvals")
-
-    brain_mask = create_brain_mask(new_input_file, output_dir)
+    brain_mask = join(output_dir, "nodif_brain_mask_MNI.nii.gz")
 
     return new_input_file, bvals, bvecs, brain_mask
 
 
-def move_to_subject_space(output_dir):
-    print("Moving input to subject space...")
+def move_to_subject_space_single_file(output_dir, output_float=False, is_peaks=False):
+    print("Moving output to subject space...")
 
-    file_path_in = output_dir + "/bundle_segmentations.nii.gz"
-    file_path_out = output_dir + "/bundle_segmentations_subjectSpace.nii.gz"
+    interp = "nearestneighbour" if is_peaks else "trilinear"
+    os.system("mv " + output_dir + "/bundle_segmentations.nii.gz " + output_dir + "/bundle_segmentations_MNI.nii.gz")
+
+    file_path_in = output_dir + "/bundle_segmentations_MNI.nii.gz"
+    file_path_out = output_dir + "/bundle_segmentations.nii.gz"
     dwi_spacing = img_utils.get_image_spacing(file_path_in)
     os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
     os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
-              " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6")
-    os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
+              " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
+              " -interp " + interp)
+    if not output_float:
+        os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
+
+
+def move_to_subject_space(output_dir, bundles, output_float=False, is_peaks=False):
+    print("Moving output to subject space...")
+
+    # For peaks we can not use linear/spline interpolation. We have to use nn or convert to tensor and then
+    # resample with linear interpolation.
+    interp = "nearestneighbour" if is_peaks else "trilinear"
+
+    os.system("mkdir -p " + output_dir + "/bundle_segmentations_MNI")
+    os.system("mv " + output_dir + "/bundle_segmentations/* " + output_dir + "/bundle_segmentations_MNI")
+    os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
+
+    for bundle in bundles:
+        file_path_in = output_dir + "/bundle_segmentations_MNI/" + bundle + ".nii.gz"
+        file_path_out = output_dir + "/bundle_segmentations/" + bundle + ".nii.gz"
+        dwi_spacing = img_utils.get_image_spacing(file_path_in)
+        os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
+                  " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
+                  " -interp " + interp)
+        if not output_float:
+            os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
 
 
 def create_brain_mask(input_file, output_dir):
@@ -142,3 +200,5 @@ def clean_up(keep_intermediate_files, predict_img_output, csd_type, preprocessin
         os.system("rm -f FA.nii.gz")
         os.system("rm -f FA_MNI.nii.gz")
         os.system("rm -f FA_2_MNI.mat")
+        os.system("rm -f MNI_2_FA.mat")
+        # os.system("rm -f reorient2std.mat")
