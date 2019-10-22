@@ -48,8 +48,7 @@ class test_end_to_end(unittest.TestCase):
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CA)")
 
         # CC_1
-        ref_shape = nib.load("tests/reference_files/bundle_segmentations/CC_1.nii.gz").get_data().shape
-        img_ref = np.zeros(ref_shape).astype(np.uint8)
+        img_ref = np.zeros((144, 144, 144)).astype(np.uint8)
         img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[20:25, 20:25, 30:34] = 1  # incomplete bridge between blobs with lower probability
