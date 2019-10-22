@@ -12,12 +12,12 @@ from tractseg.libs import data_utils
 
 
 def transform_to_output_space(data):
-    transformation = {'original_shape': (54, 65, 53, 9),
-                      'pad_x': 5.5,
+    transformation = {'original_shape': (57, 70, 59, 9),
+                      'pad_x': 6.5,
                       'pad_y': 0.0,
-                      'pad_z': 6.0,
-                      'zoom': 2.2153846153846155}
-    bbox = [[9, 63], [13, 78], [2, 55]]
+                      'pad_z': 5.5,
+                      'zoom': 2.057142857142857}
+    bbox = [[8, 65], [10, 80], [3, 62]]
     original_shape = (73, 87, 73)
 
     data = data_utils.cut_and_scale_img_back_to_original_img(data, transformation)
