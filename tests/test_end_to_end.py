@@ -89,7 +89,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[50:55, 50:55, 50:55] = 0.2  # below threshold
         img_ref[60:63, 60:63, 60:63] = 0.9  # small blob -> will get removed by postprocessing
         img_ref = transform_to_output_space(img_ref)
-        img_new = nib.load("examples/Uncert/tractseg_output/bundle_segmentations/CA.nii.gz").get_data()
+        img_new = nib.load("examples/Uncert/tractseg_output/bundle_uncertainties/CA.nii.gz").get_data()
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract uncertainties are not correct (bundle: CA)")
 
