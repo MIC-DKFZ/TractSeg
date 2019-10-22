@@ -11,6 +11,7 @@ are incomplete and then applies a lower threshold.
 * Python 2 not actively supported anymore (because dipy 1.0.0 does not support python 2 anymore)
 * Add rotation (now peaks are also properly rotated) to data augmentation.
 * Applies signs of affine to data if array not oriented like MNI data (needed to properly work with `fslreorient2std`)
+* '--preprocess' will move output back to subject space.
 
 
 ## Release 2.0
