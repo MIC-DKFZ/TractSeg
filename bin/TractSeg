@@ -339,46 +339,56 @@ def main():
             img = nib.Nifti1Image(seg, data_affine)
             del seg
             if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_uncertainties.nii.gz"))
+                output_subdir = "bundle_uncertainties"
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, output_subdir + ".nii.gz"))
             elif Config.EXPERIMENT_TYPE == "tract_segmentation":
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_segmentations.nii.gz"))
+                output_subdir = "bundle_segmentations"
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, output_subdir + ".nii.gz"))
             elif Config.EXPERIMENT_TYPE == "endings_segmentation":
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_endings.nii.gz"))
+                output_subdir = "bundle_endings"
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, output_subdir + ".nii.gz"))
             elif Config.EXPERIMENT_TYPE == "peak_regression":
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_TOMs.nii.gz"))
+                output_subdir = "bundle_TOMs"
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, output_subdir + ".nii.gz"))
             elif Config.EXPERIMENT_TYPE == "dm_regression":
-                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, "bundle_density_maps.nii.gz"))
+                output_subdir = "bundle_density_maps"
+                nib.save(img, join(Config.PREDICT_IMG_OUTPUT, output_subdir + ".nii.gz"))
             del img  # Free memory (before we run tracking)
         else:
             if Config.EXPERIMENT_TYPE == "tract_segmentation" and dropout_sampling:
+                output_subdir = "bundle_uncertainties"
                 img_utils.save_multilabel_img_as_multiple_files(Config.CLASSES, seg, data_affine,
                                                                 Config.PREDICT_IMG_OUTPUT,
-                                                                name="bundle_uncertainties")
+                                                                name=output_subdir)
             elif Config.EXPERIMENT_TYPE == "tract_segmentation":
+                output_subdir = args.tract_segmentation_output_dir
                 img_utils.save_multilabel_img_as_multiple_files(Config.CLASSES, seg, data_affine,
                                                                 Config.PREDICT_IMG_OUTPUT,
-                                                                name=args.tract_segmentation_output_dir)
+                                                                name=output_subdir)
             elif Config.EXPERIMENT_TYPE == "endings_segmentation":
+                output_subdir = "endings_segmentations"
                 img_utils.save_multilabel_img_as_multiple_files_endings(Config.CLASSES, seg, data_affine,
-                                                                        Config.PREDICT_IMG_OUTPUT)
+                                                                        Config.PREDICT_IMG_OUTPUT,
+                                                                        name=output_subdir)
             elif Config.EXPERIMENT_TYPE == "peak_regression":
+                output_subdir = args.TOM_output_dir
                 img_utils.save_multilabel_img_as_multiple_files_peaks(Config.FLIP_OUTPUT_PEAKS, Config.CLASSES, seg,
                                                                       data_affine, Config.PREDICT_IMG_OUTPUT,
-                                                                      name=args.TOM_output_dir)
+                                                                      name=output_subdir)
             elif Config.EXPERIMENT_TYPE == "dm_regression":
+                output_subdir = "dm_regression"
                 img_utils.save_multilabel_img_as_multiple_files(Config.CLASSES, seg, data_affine,
-                                                                Config.PREDICT_IMG_OUTPUT, name="dm_regression")
+                                                                Config.PREDICT_IMG_OUTPUT, name=output_subdir)
             del seg  # Free memory (before we run tracking)
 
-        if args.preprocess:
-            is_peaks = Config.EXPERIMENT_TYPE == "peak_regression"
+        if args.preprocess and not Config.EXPERIMENT_TYPE == "peak_regression":
             if Config.SINGLE_OUTPUT_FILE:
-                preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT, output_float=output_float,
-                                                    is_peaks=is_peaks)
+                preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT, Config.EXPERIMENT_TYPE, output_subdir,
+                                                    output_float=output_float)
             else:
                 bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
-                preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT, bundles, output_float=output_float,
-                                                    is_peaks=is_peaks)
+                preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT, bundles, Config.EXPERIMENT_TYPE,
+                                                    output_subdir, output_float=output_float)
 
     Config.CLASSES = "All"
     preprocessing.clean_up(Config.KEEP_INTERMEDIATE_FILES, Config.PREDICT_IMG_OUTPUT, Config.CSD_TYPE,

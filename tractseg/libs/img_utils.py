@@ -306,12 +306,12 @@ def save_multilabel_img_as_multiple_files_peaks(flip_output_peaks, classes, img,
         nib.save(img_seg, join(path, name, filename))
 
 
-def save_multilabel_img_as_multiple_files_endings(classes, img, affine, path):
+def save_multilabel_img_as_multiple_files_endings(classes, img, affine, path, name="endings_segmentations"):
     bundles = dataset_specific_utils.get_bundle_names(classes)[1:]
     for idx, bundle in enumerate(bundles):
         img_seg = nib.Nifti1Image(img[:,:,:,idx], affine)
-        exp_utils.make_dir(join(path, "endings_segmentations"))
-        nib.save(img_seg, join(path, "endings_segmentations", bundle + ".nii.gz"))
+        exp_utils.make_dir(join(path, name))
+        nib.save(img_seg, join(path, name, bundle + ".nii.gz"))
 
 
 def simple_brain_mask(data):

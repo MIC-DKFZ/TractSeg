@@ -61,8 +61,7 @@ Because of the reduced image quality the results of TractSeg will also suffer to
 produce good results for most datasets.
 
 In your folder you should have the following files: `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs`. They should rigidly be aligned to
-MNI space (and have isotropic spacing). You can either do so [manually](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) or 
-have TractSeg do it by adding the option `--preprocess`. 
+MNI space (and have isotropic spacing). See [here](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) for how to do this. 
 ```
 TractSeg -i Diffusion.nii.gz -o tractseg_output --raw_diffusion_input 
 ```

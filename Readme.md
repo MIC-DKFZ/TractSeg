@@ -66,20 +66,16 @@ TractSeg -i Diffusion.nii.gz --raw_diffusion_input
 This will create a folder `tractseg_ouput` inside of the same directory as your input file with one binary segmentation nifti image
 for each bundle.
  
-> NOTE: Your input image should have the same orientation as MNI space. 
-Using the option `--preprocess` TractSeg will automatically move your input
-image to MNI space (rigid registration). Moreover the input image should have isotropic 
-spacing. `--preprocess` will automatically resample the image to isotropic spacing 
-(using FSL `flirt -applyisoxfm`).
+> NOTE: Your input image should have the same orientation as MNI space. Moreover it should have isotropic 
+spacing. See [here](#aligning-image-to-mni-space) for more details.
 
-#### Custom input and output path and preprocessing:
+#### Custom input and output path:
 ```
 TractSeg -i my/path/my_diffusion_image.nii.gz
          -o my/output/directory
          --bvals my/other/path/my.bvals
          --bvecs yet/another/path/my.bvec
          --raw_diffusion_input
-         --preprocess
 ```
 Use `--help` to see all options.
 
@@ -230,12 +226,12 @@ filtered by the bundle mask and have to start and end in the endings masks.
 
 
 #### Aligning image to MNI space
-The input image must have the same "orientation" as the Human Connectome Project data (MNI space) (LEFT must be on the same side as 
-LEFT of the HCP data) and have isotropic spacing. If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
-you are fine. Otherwise you should rigidly register your image to MNI space (the brains
+The input image must have the same "orientation" as the Human Connectome Project data (MNI space) 
+(LEFT must be on the same side as LEFT of the HCP data) and have isotropic spacing. 
+If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
+you are fine. Otherwise you should use `fslreorient2std` or rigidly register your image to MNI space (the brains
 do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation).
-If you use the option `--preprocess` TractSeg will do this automatically for you. Otherwise
-you can use the following FSL commands to rigidly register you image to MNI space (uses 
+You can use the following FSL commands to rigidly register you image to MNI space (uses 
 the FA to calculate the transformation as this is more stable):
 ```shell
 calc_FA -i Diffusion.nii.gz -o FA.nii.gz --bvals Diffusion.bvals --bvecs Diffusion.bvecs \

@@ -69,14 +69,14 @@ def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
     return new_input_file, bvals, bvecs, brain_mask
 
 
-def move_to_subject_space_single_file(output_dir, output_float=False, is_peaks=False):
+def move_to_subject_space_single_file(output_dir, experiment_type, output_subdir, output_float=False):
     print("Moving output to subject space...")
 
-    interp = "nearestneighbour" if is_peaks else "trilinear"
-    os.system("mv " + output_dir + "/bundle_segmentations.nii.gz " + output_dir + "/bundle_segmentations_MNI.nii.gz")
+    interp = "nearestneighbour" if experiment_type == "peak_regression" else "trilinear"
+    os.system("mv " + output_dir + "/" + output_subdir + ".nii.gz " + output_dir + "/" + output_subdir + "_MNI.nii.gz")
 
-    file_path_in = output_dir + "/bundle_segmentations_MNI.nii.gz"
-    file_path_out = output_dir + "/bundle_segmentations.nii.gz"
+    file_path_in = output_dir + "/" + output_subdir + "_MNI.nii.gz"
+    file_path_out = output_dir + "/" + output_subdir + ".nii.gz"
     dwi_spacing = img_utils.get_image_spacing(file_path_in)
     os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
     os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
@@ -86,20 +86,21 @@ def move_to_subject_space_single_file(output_dir, output_float=False, is_peaks=F
         os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
 
 
-def move_to_subject_space(output_dir, bundles, output_float=False, is_peaks=False):
+def move_to_subject_space(output_dir, bundles, experiment_type, output_subdir, output_float=False):
+    #This is not working for TOM (because of processing in parts) and requirement of bundle_segmentations as input
     print("Moving output to subject space...")
 
     # For peaks we can not use linear/spline interpolation. We have to use nn or convert to tensor and then
     # resample with linear interpolation.
-    interp = "nearestneighbour" if is_peaks else "trilinear"
+    interp = "nearestneighbour" if experiment_type == "peak_regression" else "trilinear"
 
-    os.system("mkdir -p " + output_dir + "/bundle_segmentations_MNI")
-    os.system("mv " + output_dir + "/bundle_segmentations/* " + output_dir + "/bundle_segmentations_MNI")
+    os.system("mkdir -p " + output_dir + "/" + output_subdir + "_MNI")
+    os.system("mv " + output_dir + "/" + output_subdir + "/* " + output_dir + "/" + output_subdir + "_MNI")
     os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
 
     for bundle in bundles:
-        file_path_in = output_dir + "/bundle_segmentations_MNI/" + bundle + ".nii.gz"
-        file_path_out = output_dir + "/bundle_segmentations/" + bundle + ".nii.gz"
+        file_path_in = output_dir + "/" + output_subdir + "_MNI/" + bundle + ".nii.gz"
+        file_path_out = output_dir + "/" + output_subdir + "/" + bundle + ".nii.gz"
         dwi_spacing = img_utils.get_image_spacing(file_path_in)
         os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
                   " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
