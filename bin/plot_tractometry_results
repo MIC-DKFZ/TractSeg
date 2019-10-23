@@ -195,7 +195,7 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Plot tractometry results and show significant areas.",
+    parser = argparse.ArgumentParser(description="Test for significant differences and plot tractometry results.",
                                      epilog="Written by Jakob Wasserthal.")
     parser.add_argument("-i", metavar="subjects_file_path", dest="subjects_file",
                         help="txt file containing path of subjects", required=True)
