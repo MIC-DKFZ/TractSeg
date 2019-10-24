@@ -20,7 +20,6 @@ def main():
     args = parser.parse_args()
 
     utils.download_pretrained_weights("tract_segmentation")
-    utils.download_pretrained_weights("tract_segmentation", dropout_sampling=True)
     utils.download_pretrained_weights("endings_segmentation")
     utils.download_pretrained_weights("dm_regression")
     utils.download_pretrained_weights("peak_regression", part="Part1")

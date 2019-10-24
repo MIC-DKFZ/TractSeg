@@ -111,13 +111,13 @@ def run_tractseg(data, output_type="tract_segmentation",
         if tract_definition == "TractQuerier+":
             if input_type == "peaks":
                 if Config.EXPERIMENT_TYPE == "tract_segmentation" and Config.DROPOUT_SAMPLING:
-                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_dropout_v2.npz")
+                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_v3.npz")
                 elif Config.EXPERIMENT_TYPE == "tract_segmentation":
-                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_v2.npz")
+                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_v3.npz")
                 elif Config.EXPERIMENT_TYPE == "endings_segmentation":
-                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_endings_segmentation_v3.npz")
+                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_endings_segmentation_v4.npz")
                 elif Config.EXPERIMENT_TYPE == "dm_regression":
-                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_dm_regression_v1.npz")
+                    Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_dm_regression_v2.npz")
             else:  # T1
                 if Config.EXPERIMENT_TYPE == "tract_segmentation":
                     Config.WEIGHTS_PATH = join(C.NETWORK_DRIVE, "hcp_exp_nodes/x_Pretrained_TractSeg_Models",

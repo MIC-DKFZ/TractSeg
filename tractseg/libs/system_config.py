@@ -13,16 +13,16 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
     if tract_definition == "TractQuerier+":
         if input_type == "peaks":
             if output_type == "tract_segmentation" and dropout_sampling:
-                config = "TractSeg_12g90g270g_125mm_DS_DAugAll_Dropout"
+                config = "TractSeg_PeakRot4"
             elif output_type == "tract_segmentation":
-                config = "TractSeg_12g90g270g_125mm_DS_DAugAll"
+                config = "TractSeg_PeakRot4"
                 # config = "TractSeg_T1_12g90g270g_125mm_DAugAll"
             elif output_type == "endings_segmentation":
-                config = "EndingsSeg_12g90g270g_125mm_DS_DAugAll"
+                config = "EndingsSeg_PeakRot4"
             elif output_type == "TOM":
                 config = "Peaks_AngL"
             elif output_type == "dm_regression":
-                config = "DmReg_12g90g270g_125mm_DAugAll"
+                config = "DmReg"
         else:  # T1
             if output_type == "tract_segmentation":
                 config = "TractSeg_T1_125mm_DAugAll"
