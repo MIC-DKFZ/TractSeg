@@ -158,7 +158,7 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
                         default=False)
 
-    parser.add_argument('--version', action='version', version='TractSeg 2.0')
+    parser.add_argument('--version', action='version', version='TractSeg 2.1')
 
     args = parser.parse_args()
 

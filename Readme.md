@@ -41,7 +41,7 @@ option `--preprocess` this is not needed)
 #### Install TractSeg
 Latest stable version:
 ```
-pip install https://github.com/MIC-DKFZ/TractSeg/archive/v2.0.zip
+pip install https://github.com/MIC-DKFZ/TractSeg/archive/v2.1.zip
 ```
 > NOTE: See [CHANGELOG](CHANGELOG.md) for (breaking) changes of each version
 

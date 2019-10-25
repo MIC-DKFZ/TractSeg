@@ -1,8 +1,7 @@
 # Tractometry
 
-> **Warning**: Use TractSeg `master` because earlier versions contain small bug in Tractometry script (streamlines 
+> **Warning**: Use TractSeg `>= v2.1` because earlier versions contain small bug in Tractometry script (streamlines 
 incorrectly shifted by 0.5 voxels).  
-`pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip`
 
 ![Tractometry concept figure](Tractometry_concept1.png)
 

@@ -1,17 +1,24 @@
 ## Master
 
 * minor improvements
+
+
+## Release 2.1
+
+* **Interface change**: The option `--bundle_specific_threshold` was removed. TractSeg checks itself now if CA or FX 
+are incomplete and then applies a lower threshold.
+* **Interface change**: Postprocessing is activated by default now. If you want to deactivate is use `--no_postprocess`.
+* minor improvements & Bugfixes
 * FP16 training (increased training speed)
 * Tractometry more testing and bugfix
 * Tractometry now uses a far more advanced option to sample e.g. the FA along the tracts.
 * Statistical analysis for tractometry data
-* **Interface change**: The option `--bundle_specific_threshold` was removed. TractSeg checks itself now if CA or FX 
-are incomplete and then applies a lower threshold.
-* **Interface change**: Postprocessing is activated by default now. If you want to deactivate is use `--no_postprocess`.
 * Python 2 not actively supported anymore (because dipy 1.0.0 does not support python 2 anymore)
 * Add rotation (now peaks are also properly rotated) to data augmentation.
 * Applies signs of affine to data if array not oriented like MNI data (needed to properly work with `fslreorient2std`)
 * '--preprocess' will move output back to subject space.
+* Updated weights for tract segmentation, endings segmentation and density regression (slightly increased 
+performance; now also trained with rotation during data augmentation; TOM not trained with rotation yet)
 
 
 ## Release 2.0
