@@ -238,18 +238,8 @@ def main():
     bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
     # Define bundles you want to plot
-    #todo important: change
     selected_bundles = bundles
     # selected_bundles = ["CST_right", "UF_left"]
-
-    # Catatonia tracts
-    # selected_bundles = ['CC_1', 'CC_2', 'CC_3', 'CC_4', 'CC_5', 'CC_6', 'CC_7',
-    #                     'CST_left', 'CST_right', 'ICP_left', 'ICP_right', 'SCP_left', 'SCP_right',
-    #                     'T_PREM_left', 'T_PREM_right',
-    #                     'ST_FO_left', 'ST_FO_right',
-    #                     'ST_PREM_left', 'ST_PREM_right']
-    # 'T_PREF_left', 'T_PREF_right', 'T_PREC_left', 'T_PREC_right',
-    # 'ST_PREF_left', 'ST_PREF_right', 'ST_PREC_left', 'ST_PREC_right',
 
     values = {}
     for subject in meta_data["subject_id"]:
