@@ -41,7 +41,7 @@ def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
         f1
     """
     y_true = y_true.byte()
-    y_pred = y_pred > threshold
+    y_pred = (y_pred > threshold).byte()
 
     if len(y_true.size()) == 4:  # 2D
         y_true = y_true.permute(0, 2, 3, 1)
