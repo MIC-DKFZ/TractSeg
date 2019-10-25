@@ -9,7 +9,6 @@ setup(name='TractSeg',
         python_requires='>=2.7',
         license='Apache 2.0',
         packages=find_packages(),
-        #Torch/Lasagne has to be installed manually
         install_requires=[
             'future',
             'numpy',
@@ -24,9 +23,6 @@ setup(name='TractSeg',
             'joblib>=0.13.2'
             # 'batchgenerators==0.17'   #results in error (version...)
         ],
-        # dependency_links=[
-        #     'https://github.com/MIC-DKFZ/batchgenerators/archive/tractseg_stable.zip#egg=batchgenerators-0.17'
-        # ],
         zip_safe=False,
         classifiers=[
             'Intended Audience :: Science/Research',
