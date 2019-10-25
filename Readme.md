@@ -16,7 +16,7 @@ TractSeg is the code for the following papers. Please cite the papers if you use
 * Tract Orientation Mapping (TOM):   
 [Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)
 [MICCAI 2018]
-* Tracking on TOMs and Tractometry:
+* Tracking on TOMs and Tractometry:  
 [Combined tract segmentation and orientation mapping for bundle-specific tractography](https://www.sciencedirect.com/science/article/pii/S136184151930101X)
 [Medical Image Analysis 2019]
 
