@@ -7,11 +7,11 @@ matrix:
   include:
   - python: "3.5"
     env:
-      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-1.1.0-cp35-cp35m-linux_x86_64.whl
+      - PYTORCH_URL=torch==1.3.0+cpu
       - PYTHON_VERS=3.5
   - python: "3.6"
     env:
-      - PYTORCH_URL=http://download.pytorch.org/whl/cpu/torch-1.1.0-cp36-cp36m-linux_x86_64.whl
+      - PYTORCH_URL=torch==1.3.0+cpu
       - PYTHON_VERS=3.6
 before_install:
   - pip install $PYTORCH_URL
