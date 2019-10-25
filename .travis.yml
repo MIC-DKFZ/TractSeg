@@ -79,7 +79,7 @@ script:
 #    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples/tractseg_output
 #    --nr_fibers 2000 --tracking_dilation 0 --test
   - Tracking -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output
-      --nr_fibers 10000 --tracking_dilation 0 --test 3
+      --nr_fibers 10000 --test 3
 
   #Tractometry
   - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
