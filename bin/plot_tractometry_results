@@ -86,7 +86,7 @@ def format_number(num):
 
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
-                                 analysis_type, correct_mult_tract_comp, nperm=1000):
+                                 analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -169,13 +169,19 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                 _, pvalues[jdx] = scipy.stats.pearsonr(values_controls, meta_data["target"].values)
 
         # Plot significant areas
-        if FWE_method == "alphaFWE":
-            sig_areas = get_significant_areas(pvalues, 1, alphaFWE)
+        if show_detailed_p:
+            ax2 = axes[i].twinx()
+            ax2.bar(range(len(pvalues)), -np.log10(pvalues), color="gray", edgecolor="none", alpha=0.5)
+            ax2.plot([0, NR_POINTS-1], (-np.log10(alphaFWE),)*2, color="red", linestyle=":")
+            ax2.set(xlabel='position', ylabel='-log10(p)')
         else:
-            sig_areas = get_significant_areas(pvalues, clusterFWE, alpha)
-        sig_areas = sig_areas * np.array(data["fa"]).max()
-        sig_areas[sig_areas == 0] = np.array(data["fa"]).min()
-        axes[i].plot(range(len(sig_areas)), sig_areas, color="red", linestyle=":")
+            if FWE_method == "alphaFWE":
+                sig_areas = get_significant_areas(pvalues, 1, alphaFWE)
+            else:
+                sig_areas = get_significant_areas(pvalues, clusterFWE, alpha)
+            sig_areas = sig_areas * np.quantile(np.array(data["fa"]), 0.99)
+            sig_areas[sig_areas == 0] = np.quantile(np.array(data["fa"]), 0.01)
+            axes[i].plot(range(len(sig_areas)), sig_areas, color="red", linestyle=":")
 
         # Plot text
         if FWE_method == "alphaFWE":
@@ -210,7 +216,10 @@ def main():
     args = parser.parse_args()
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
+    # clusterFWE not recommended because misses highly significant areas just because cluster is not big enough.
     FWE_method = "alphaFWE"  # alphaFWE | clusterFWE
+    # Show p-value for each position, not only significant areas
+    show_detailed_p = False
     nperm = args.nperm
 
     # Significance testing with multiple correction for bundles
@@ -239,7 +248,7 @@ def main():
 
     # Define bundles you want to plot
     selected_bundles = bundles
-    # selected_bundles = ["CST_right", "UF_left"]
+    # selected_bundles = ["UF_left", "CC_6", "SCP_left", "CST_right"]
 
     values = {}
     for subject in meta_data["subject_id"]:
@@ -247,7 +256,8 @@ def main():
         values[subject] = raw
 
     plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, args.output_path,
-                                 args.alpha, FWE_method, analysis_type, correct_mult_tract_comp, nperm=nperm)
+                                 args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
+                                 show_detailed_p, nperm=nperm)
 
 
 if __name__ == '__main__':
