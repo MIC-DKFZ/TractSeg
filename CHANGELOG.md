@@ -19,6 +19,7 @@ are incomplete and then applies a lower threshold.
 * '--preprocess' will move output back to subject space.
 * Updated weights for tract segmentation, endings segmentation and density regression (slightly increased 
 performance; now also trained with rotation during data augmentation; TOM not trained with rotation yet)
+* Pretrained model also works bedpostX peaks (instead of CSD peaks) (segmentation accuracy is the same)
 
 
 ## Release 2.0

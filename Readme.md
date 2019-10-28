@@ -80,7 +80,7 @@ TractSeg -i my/path/my_diffusion_image.nii.gz
 Use `--help` to see all options.
 
 #### Use existing peaks
-To avoid generating the MRtrix CSD peaks every time you run TractSeg you can also provide them directly by skipping the 
+To avoid generating the MRtrix CSD peaks every time you `run TractSeg you can also provide them directly by skipping the 
 option `--raw_diffusion_input`.
 ```
 TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz
@@ -111,6 +111,15 @@ TractSeg -i peaks.nii.gz --output_type endings_segmentation
 TractSeg -i peaks.nii.gz --output_type TOM 
 Tracking -i peaks.nii.gz
 ```
+
+#### Use bedpostX peaks instead of CSD peaks
+TractSeg also works with bedpostX as input. You have to pass `dyads1.nii.gz` as input and TractSeg will automatically
+ find all the other necessary bedpostX files (`dyads2_thr0.05.nii.gz` & `dyads3_thr0.05.nii.gz`. `mean_f1-3samples` 
+ will be used for scaling the peaks.). This only works if you did not change the default bedpostX file naming.
+```
+Tractseg -i dyads1.nii.gz
+```
+
 
 #### Show uncertainty map
 Create map showing where the method is uncertain about its segmentation (uses monte carlo dropout: https://arxiv.org/abs/1506.02142)
