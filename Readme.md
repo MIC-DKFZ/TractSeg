@@ -117,7 +117,7 @@ TractSeg also works with bedpostX as input. You have to pass `dyads1.nii.gz` as 
  find all the other necessary bedpostX files (`dyads2_thr0.05.nii.gz` & `dyads3_thr0.05.nii.gz`. `mean_f1-3samples` 
  will be used for scaling the peaks.). This only works if you did not change the default bedpostX file naming.
 ```
-Tractseg -i dyads1.nii.gz
+TractSeg -i dyads1.nii.gz
 ```
 
 
