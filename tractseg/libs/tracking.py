@@ -176,11 +176,11 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                 beginnings_img = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz")
                 endings_img = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz")
                 tom_peaks_img = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz")
-                seed_img = bundle_mask_img
 
                 # Ensure same orientation as MNI space
-                bundle_mask, flip_axis = img_utils.flip_axis_to_match_MNI_space(bundle_mask_img.get_data(),
-                                                                                bundle_mask_img.affine)
+                bundle_mask, flip_axis, new_affine = img_utils.flip_axis_to_match_MNI_space(bundle_mask_img.get_data(),
+                                                                                bundle_mask_img.affine,
+                                                                                return_new_affine=True)
                 beginnings, flip_axis = img_utils.flip_axis_to_match_MNI_space(beginnings_img.get_data(),
                                                                                 beginnings_img.affine)
                 endings, flip_axis = img_utils.flip_axis_to_match_MNI_space(endings_img.get_data(),
@@ -217,23 +217,25 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                     tom_peaks = weighted_peaks
 
                 # Takes around 6min for 1 subject (2mm resolution)
-                streamlines = tractseg_prob_tracking.track(tom_peaks, seed_img, max_nr_fibers=nr_fibers, smooth=5,
+                streamlines = tractseg_prob_tracking.track(tom_peaks, max_nr_fibers=nr_fibers, smooth=5,
                                                            compress=0.1, bundle_mask=bundle_mask, start_mask=beginnings,
                                                            end_mask=endings,
                                                            tracking_uncertainties=tracking_uncertainties,
                                                            dilation=dilation,
                                                            next_step_displacement_std=next_step_displacement_std,
-                                                           nr_cpus=nr_cpus, verbose=False)
+                                                           nr_cpus=nr_cpus, affine=bundle_mask_img.affine,
+                                                           spacing=bundle_mask_img.header.get_zooms()[0],
+                                                           verbose=False)
 
                 if output_format == "trk_legacy":
                     fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
-                                                               streamlines, seed_img.affine,
-                                                               seed_img.get_data().shape)
+                                                               streamlines, bundle_mask_img.affine,
+                                                               bundle_mask_img.get_data().shape)
                 else:  # tck or trk (determined by file ending)
                     fiber_utils.save_streamlines(
                         output_dir + "/" + tracking_folder + "/" + bundle + "." + output_format,
-                        streamlines, seed_img.affine,
-                        seed_img.get_data().shape)
+                        streamlines, bundle_mask_img.affine,
+                        bundle_mask_img.get_data().shape)
 
 
         # No streamline filtering

@@ -541,23 +541,28 @@ def flip_axis_to_match_MNI_space(data, affine, return_new_affine=False):
     array will be changed.
     """
     newAffine = affine.copy()  # could be returned if needed
-    flip_axis = None
+    flip_axis = ""
 
     if affine[0, 0] > 0:
-        flip_axis = "x"
+        flip_axis += "x"
         data = data[::-1, :, :]
         newAffine[0, 0] = newAffine[0, 0] * -1
         newAffine[0, 3] = newAffine[0, 3] * -1  # this is needed to make it still align with unaltered fibers correctly
-    elif affine[1, 1] < 0:
-        flip_axis = "y"
+
+    if affine[1, 1] < 0:
+        flip_axis += "y"
         data = data[:, ::-1, :]
         newAffine[1, 1] = newAffine[1, 1] * -1
         newAffine[1, 3] = newAffine[1, 3] * -1
-    elif affine[2, 2] < 0:
-        flip_axis = "z"
+
+    if affine[2, 2] < 0:
+        flip_axis += "z"
         data = data[:, :, ::-1]
         newAffine[2, 2] = newAffine[2, 2] * -1
         newAffine[2, 3] = newAffine[2, 3] * -1
+
+    if flip_axis == "":
+        flip_axis = None
 
     if return_new_affine:
         return data, flip_axis, newAffine

@@ -192,9 +192,9 @@ def seed_generator(mask_coords, nr_seeds):
     return res
 
 
-def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None,
+def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None,
           start_mask=None, end_mask=None, tracking_uncertainties=None, dilation=0,
-          next_step_displacement_std=0.15, nr_cpus=-1, verbose=True):
+          next_step_displacement_std=0.15, nr_cpus=-1, affine=None, spacing=None, verbose=True):
     """
     Generate streamlines.
 
@@ -204,7 +204,7 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
     second time
     """
 
-    peaks[:, :, :, 0] *= -1  # how to flip along x axis to work properly
+    peaks[:, :, :, 0] *= -1  # have to flip along x axis to work properly
     # Add +1 dilation for start and end mask to be more robust
     start_mask = binary_dilation(start_mask, iterations=dilation + 1).astype(np.uint8)
     end_mask = binary_dilation(end_mask, iterations=dilation + 1).astype(np.uint8)
@@ -227,7 +227,6 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
 
     # Get list of coordinates of each voxel in mask to seed from those
     mask_coords = np.array(np.where(bundle_mask == 1)).transpose()
-    spacing = seed_image.header.get_zooms()[0]
 
     max_nr_seeds = 100 * max_nr_fibers  # after how many seeds to abort (to avoid endless runtime)
     # How many seeds to process in each pool.map iteration
@@ -276,8 +275,8 @@ def track(peaks, seed_image, max_nr_fibers=2000, smooth=None, compress=0.1, bund
 
     # If the original image was not in MNI space we have to flip back to the original space
     # before saving the streamlines
-    _, flip_axis, newAffine = img_utils.flip_axis_to_match_MNI_space(seed_image.get_data(),
-                                                             seed_image.affine, return_new_affine=True)
+    _, flip_axis, newAffine = img_utils.flip_axis_to_match_MNI_space(bundle_mask,
+                                                                     affine, return_new_affine=True)
 
     # move streamlines to coordinate space
     #  This is doing: streamlines(coordinate_space) = affine * streamlines(voxel_space)
