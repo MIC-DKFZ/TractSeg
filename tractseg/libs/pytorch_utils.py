@@ -29,6 +29,28 @@ def load_checkpoint(path, **kwargs):
     return kwargs
 
 
+def load_checkpoint_selectively(path, **kwargs):
+    checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
+
+    for key, value in list(kwargs.items()):
+        if key in checkpoint:
+            remove_layers = ['output_2.weight', 'output_2.bias', 'output_3.weight', 'output_3.bias',
+                             'conv_5.weight', 'conv_5.bias']
+
+            model_dict = value.state_dict()
+            pretrained_dict = checkpoint[key]
+
+            pretrained_dict_edited = {}
+            for k, v in pretrained_dict.items():
+                if k not in remove_layers:
+                    pretrained_dict_edited[k] = v
+
+            model_dict.update(pretrained_dict_edited)
+            value.load_state_dict(model_dict)
+
+    return kwargs
+
+
 def f1_score_macro(y_true, y_pred, per_class=False, threshold=0.5):
     """
     Macro f1. Same results as sklearn f1 macro.
