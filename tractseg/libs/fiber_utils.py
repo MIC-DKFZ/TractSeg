@@ -400,7 +400,15 @@ def invert_streamlines(streamlines, reference_img, affine, axis="x"):
     img_center_voxel_space = (img_shape - 1) / 2.
     img_center_mm_space = transform_point(img_center_voxel_space, affine)
 
-    affine_invert = np.eye(4)
+    # affine_invert = np.eye(4)
+    affine_invert = np.copy(affine)
+    affine_invert[0, 3] = 0
+    affine_invert[1, 3] = 0
+    affine_invert[2, 3] = 0
+
+    affine_invert[0, 0] = 1
+    affine_invert[1, 1] = 1
+    affine_invert[2, 2] = 1
 
     if axis == "x":
         affine_invert[0, 0] = -1
@@ -413,5 +421,7 @@ def invert_streamlines(streamlines, reference_img, affine, axis="x"):
         affine_invert[2, 3] = img_center_mm_space[1] * 2
     else:
         raise ValueError("invalid axis")
+
+    print(affine_invert)
 
     return list(transform_streamlines(streamlines, affine_invert))

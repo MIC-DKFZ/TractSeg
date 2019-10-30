@@ -1,8 +1,13 @@
 # tractometry_path=/my/data/path/SUBJECT_ID/Tractometry.csv
+# bundles=CST_right UF_left CC_5 CC_6 SCP_left
+#
 # The first line has to start with '# tractometry_path=' and specify the path to the Tractometry files.
 # "SUBJECT_ID" will get replaced by each ID from the list below
 #
-# Apart from the first line all other lines which start with `#` will be ignored.
+# The second line can start with '# bundles=' and then a subset of bundles can be specified which shall be
+# analyzed. If the second line is left empty all bundles will be analyzed.
+#
+# Apart from the first two lines all other lines which start with `#` will be ignored.
 # This file will get parsed as a space separated csv file.
 #
 # The first columns has to be 'subject_id' and is mandatory.

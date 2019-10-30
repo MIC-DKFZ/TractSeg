@@ -19,11 +19,26 @@ from tractseg.libs import metric_utils
 
 def parse_subjects_file(file_path):
     with open(file_path) as f:
-        l= f.readline().strip()
+        l = f.readline().strip()
         if l.startswith("# tractometry_path="):
             base_path = l.split("=")[1]
         else:
             raise ValueError("Invalid first line in subjects file. Must start with '# tractometry_path='")
+
+        # parse bundle names
+        l = f.readline().strip()
+        if l.startswith("# bundles="):
+            bundles_string = l.split("=")[1]
+            bundles = bundles_string.split(" ")
+
+            valid_bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
+            for bundle in bundles:
+                if bundle not in valid_bundles:
+                    raise ValueError("Invalid bundle name: {}".format(bundle))
+
+            print("Using {} manually specified bundles.".format(len(bundles)))
+        else:
+            bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
     df = pd.read_csv(file_path, sep=" ", comment="#")
     df["subject_id"] = df["subject_id"].astype(str)
@@ -37,7 +52,7 @@ def parse_subjects_file(file_path):
         if df["group"].max() > 1:
             raise IOError("Column 'group' may only contain 0 and 1.")
 
-    return base_path, df
+    return base_path, df, bundles
 
 
 def correct_for_confounds(values, meta_data, bundles, selected_bun_indices, NR_POINTS, analysis_type, confound_names):
@@ -143,6 +158,7 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
 
         # Plot
         ax = sns.lineplot(x="position", y="fa", data=data, ax=axes[i], hue="group")
+                          # units="subject", estimator=None, lw=1)  # each subject as single line
 
         ax.set(xlabel='position', ylabel='metric')
         ax.set_title(bundles[b_idx])
@@ -179,8 +195,8 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                 sig_areas = get_significant_areas(pvalues, 1, alphaFWE)
             else:
                 sig_areas = get_significant_areas(pvalues, clusterFWE, alpha)
-            sig_areas = sig_areas * np.quantile(np.array(data["fa"]), 0.99)
-            sig_areas[sig_areas == 0] = np.quantile(np.array(data["fa"]), 0.01)
+            sig_areas = sig_areas * np.quantile(np.array(data["fa"]), 0.98)
+            sig_areas[sig_areas == 0] = np.quantile(np.array(data["fa"]), 0.02)
             axes[i].plot(range(len(sig_areas)), sig_areas, color="red", linestyle=":")
 
         # Plot text
@@ -226,7 +242,7 @@ def main():
     correct_mult_tract_comp = args.mc
 
     print("Correcting for comparison of multiple tracts: {}".format(correct_mult_tract_comp))
-    base_path, meta_data = parse_subjects_file(args.subjects_file)
+    base_path, meta_data, selected_bundles = parse_subjects_file(args.subjects_file)
 
     if meta_data.columns[1] == "group":
         analysis_type = "group"
@@ -244,18 +260,17 @@ def main():
     else:
         raise ValueError("Invalid second column header (only 'group' or 'target' allowed)")
 
-    bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
+    all_bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
-    # Define bundles you want to plot
-    selected_bundles = bundles
-    # selected_bundles = ["UF_left", "CC_6", "SCP_left", "CST_right"]
+    # For testing: manually define subset of bundles
+    # selected_bundles = ["CST_right", "CST_left", "CG_left"]
 
     values = {}
     for subject in meta_data["subject_id"]:
         raw = np.loadtxt(base_path.replace("SUBJECT_ID", subject), delimiter=";", skiprows=1).transpose()
         values[subject] = raw
 
-    plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, args.output_path,
+    plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
                                  args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
                                  show_detailed_p, nperm=nperm)
 
