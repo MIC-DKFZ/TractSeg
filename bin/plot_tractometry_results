@@ -160,7 +160,7 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
         ax = sns.lineplot(x="position", y="fa", data=data, ax=axes[i], hue="group")
                           # units="subject", estimator=None, lw=1)  # each subject as single line
 
-        ax.set(xlabel='position', ylabel='metric')
+        ax.set(xlabel='position along tract', ylabel='metric')
         ax.set_title(bundles[b_idx])
         if analysis_type == "group" and i > 0:
             ax.legend_.remove()  # only show legend on first subplot
