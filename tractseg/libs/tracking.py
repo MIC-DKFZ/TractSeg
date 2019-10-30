@@ -178,9 +178,8 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                 tom_peaks_img = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz")
 
                 # Ensure same orientation as MNI space
-                bundle_mask, flip_axis, new_affine = img_utils.flip_axis_to_match_MNI_space(bundle_mask_img.get_data(),
-                                                                                bundle_mask_img.affine,
-                                                                                return_new_affine=True)
+                bundle_mask, flip_axis = img_utils.flip_axis_to_match_MNI_space(bundle_mask_img.get_data(),
+                                                                                bundle_mask_img.affine)
                 beginnings, flip_axis = img_utils.flip_axis_to_match_MNI_space(beginnings_img.get_data(),
                                                                                 beginnings_img.affine)
                 endings, flip_axis = img_utils.flip_axis_to_match_MNI_space(endings_img.get_data(),
@@ -197,8 +196,8 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                     orig_peaks, flip_axis = img_utils.flip_axis_to_match_MNI_space(orig_peaks_img.get_data(),
                                                                                    orig_peaks_img.affine)
                     best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks)
-                    if flip_axis is not None:
-                        best_orig_peaks = img_utils.flip_axis(best_orig_peaks, flip_axis)
+                    for axis in flip_axis:
+                        best_orig_peaks = img_utils.flip_axis(best_orig_peaks, axis)
                     nib.save(nib.Nifti1Image(best_orig_peaks, orig_peaks_img.affine),
                              output_dir + "/" + tracking_folder + "/" + bundle + ".nii.gz")
                     tom_peaks = best_orig_peaks
@@ -210,8 +209,8 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                                                                                    orig_peaks_img.affine)
                     best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks)
                     weighted_peaks = fiber_utils.get_weighted_mean_of_peaks(best_orig_peaks, tom_peaks, weight=0.5)
-                    if flip_axis is not None:
-                        weighted_peaks = img_utils.flip_axis(weighted_peaks, flip_axis)
+                    for axis in flip_axis:
+                        weighted_peaks = img_utils.flip_axis(weighted_peaks, axis)
                     nib.save(nib.Nifti1Image(weighted_peaks, orig_peaks_img.affine),
                              output_dir + "/" + tracking_folder + "/" + bundle + "_weighted.nii.gz")
                     tom_peaks = weighted_peaks

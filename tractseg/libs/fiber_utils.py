@@ -11,6 +11,7 @@ from dipy.tracking.streamline import compress_streamlines as compress_streamline
 from dipy.segment.metric import ResampleFeature
 from dipy.tracking.metrics import spline
 from dipy.tracking import utils as utils_trk
+from dipy.tracking.streamline import transform_streamlines
 
 from tractseg.libs import utils
 from tractseg.libs import peak_utils
@@ -332,3 +333,85 @@ def add_to_each_streamline(streamlines, scalar):
     for sl in streamlines:
         sl_new.append(np.array(sl) + scalar)
     return sl_new
+
+
+def add_to_each_streamline_axis(streamlines, scalar, axis="x"):
+    sl_new = []
+    for sl in streamlines:
+        s = np.array(sl)
+        if axis == "x":
+            s[:, 0] += scalar
+        elif axis == "y":
+            s[:, 1] += scalar
+        elif axis == "z":
+            s[:, 2] += scalar
+        sl_new.append(s)
+    return sl_new
+
+
+def flip(streamlines, axis="x"):
+    new_sl = []
+    for sl in streamlines:
+        tmp = np.copy(sl)
+        if axis == "x":
+            tmp[:, 0] = tmp[:, 0] * -1
+        elif axis == "y":
+            tmp[:, 1] = tmp[:, 1] * -1
+        elif axis == "z":
+            tmp[:, 2] = tmp[:, 2] * -1
+        else:
+            raise ValueError("Unsupported axis")
+        new_sl.append(tmp)
+    return new_sl
+
+
+def transform_point(p, affine):
+    """
+    Apply affine to point p
+
+    Args:
+        p: [x, y, z]
+        affine: [4x4] matrix
+
+    Returns:
+        [x, y, z]
+    """
+    M = affine[:3, :3]
+    offset = affine[:3, 3]
+    return M.dot(p) + offset
+
+
+def invert_streamlines(streamlines, reference_img, affine, axis="x"):
+    """
+    Invert streamlines. If inverting image voxel order (img[::-1]) we can do this inversion to the streamlines and
+    the result properly fits to the inverted image.
+
+    Args:
+        streamlines:
+        reference_img: 3d array
+        affine: 4x4 matrix
+        axis: x | y | z
+
+    Returns:
+        streamlines
+    """
+
+    img_shape = np.array(reference_img.shape)
+    img_center_voxel_space = (img_shape - 1) / 2.
+    img_center_mm_space = transform_point(img_center_voxel_space, affine)
+
+    affine_invert = np.eye(4)
+
+    if axis == "x":
+        affine_invert[0, 0] = -1
+        affine_invert[0, 3] = img_center_mm_space[1] * 2
+    elif axis == "y":
+        affine_invert[1, 1] = -1
+        affine_invert[1, 3] = img_center_mm_space[1] * 2
+    elif axis == "z":
+        affine_invert[2, 2] = -1
+        affine_invert[2, 3] = img_center_mm_space[1] * 2
+    else:
+        raise ValueError("invalid axis")
+
+    return list(transform_streamlines(streamlines, affine_invert))

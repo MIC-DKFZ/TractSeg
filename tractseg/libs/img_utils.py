@@ -533,41 +533,50 @@ def change_spacing_4D(img_in, new_spacing=1.25):
     return img_new
 
 
-def flip_axis_to_match_MNI_space(data, affine, return_new_affine=False):
+def flip_axis_to_match_MNI_space(data, affine):
     """
     Checks if affine of the image has the same signs on the diagonal as MNI space. If this is not the case it will
     invert the sign of the affine (not returned here) and invert the axis accordingly.
     If displayed in an medical image viewer the image will look the same, but the order by the data in the image
     array will be changed.
     """
-    newAffine = affine.copy()  # could be returned if needed
-    flip_axis = ""
+    # newAffine = affine.copy()  # could be returned if needed
+    flip_axis = []
 
     if affine[0, 0] > 0:
-        flip_axis += "x"
+        flip_axis.append("x")
         data = data[::-1, :, :]
-        newAffine[0, 0] = newAffine[0, 0] * -1
-        newAffine[0, 3] = newAffine[0, 3] * -1  # this is needed to make it still align with unaltered fibers correctly
+        # newAffine[0, 0] = newAffine[0, 0] * -1
+        # newAffine[0, 3] = newAffine[0, 3] * -1  # this is needed to make it still align with unaltered fibers correctly
 
     if affine[1, 1] < 0:
-        flip_axis += "y"
+        flip_axis.append("y")
         data = data[:, ::-1, :]
-        newAffine[1, 1] = newAffine[1, 1] * -1
-        newAffine[1, 3] = newAffine[1, 3] * -1
+        # newAffine[1, 1] = newAffine[1, 1] * -1
+        # newAffine[1, 3] = newAffine[1, 3] * -1
 
     if affine[2, 2] < 0:
-        flip_axis += "z"
+        flip_axis.append("z")
         data = data[:, :, ::-1]
-        newAffine[2, 2] = newAffine[2, 2] * -1
-        newAffine[2, 3] = newAffine[2, 3] * -1
+        # newAffine[2, 2] = newAffine[2, 2] * -1
+        # newAffine[2, 3] = newAffine[2, 3] * -1
 
-    if flip_axis == "":
-        flip_axis = None
+    return data, flip_axis
 
-    if return_new_affine:
-        return data, flip_axis, newAffine
-    else:
-        return data, flip_axis
+
+def get_flip_axis_to_match_MNI_space(affine):
+    flip_axis = []
+
+    if affine[0, 0] > 0:
+        flip_axis.append("x")
+
+    if affine[1, 1] < 0:
+        flip_axis.append("y")
+
+    if affine[2, 2] < 0:
+        flip_axis.append("z")
+
+    return flip_axis
 
 
 def flip_axis(data, flip_axis):

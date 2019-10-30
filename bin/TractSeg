@@ -274,7 +274,7 @@ def main():
     # Make image have the same signs of the affine as MNI space
     data, flip_axis = img_utils.flip_axis_to_match_MNI_space(data, data_affine)
 
-    if flip_axis is not None:
+    if len(flip_axis) > 0:
         print("Reorienting data...")
 
     #Use Peaks + T1
@@ -320,8 +320,8 @@ def main():
                            unit_test=args.test)
 
         # Undo image flipping if it was applied previously
-        if flip_axis is not None:
-            seg = img_utils.flip_axis(seg, flip_axis)
+        for axis in flip_axis:
+            seg = img_utils.flip_axis(seg, axis)
 
         ####################################### Save output #######################################
 

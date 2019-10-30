@@ -271,16 +271,19 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
 
     # Move from convention "0mm is in voxel corner" to convention "0mm is in voxel center". Most toolkits use the
     # convention "0mm is in voxel center".
+    # We have to add 0.5 before applying affine otherwise 0.5 is not half a voxel anymore. Then we would have to add
+    # half of the spacing and consider the sign of the affine (not needed here).
     streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
-
-    # If the original image was not in MNI space we have to flip back to the original space
-    # before saving the streamlines
-    _, flip_axis, newAffine = img_utils.flip_axis_to_match_MNI_space(bundle_mask,
-                                                                     affine, return_new_affine=True)
 
     # move streamlines to coordinate space
     #  This is doing: streamlines(coordinate_space) = affine * streamlines(voxel_space)
-    streamlines = list(transform_streamlines(streamlines, newAffine))
+    streamlines = list(transform_streamlines(streamlines, affine))
+
+    # If the original image was not in MNI space we have to flip back to the original space
+    # before saving the streamlines
+    flip_axes = img_utils.get_flip_axis_to_match_MNI_space(affine)
+    for axis in flip_axes:
+        streamlines = fiber_utils.invert_streamlines(streamlines, bundle_mask, affine, axis=axis)
 
     # Smoothing does not change overall results at all because is just little smoothing. Just removes small unevenness.
     if smooth:
