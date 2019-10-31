@@ -13,6 +13,8 @@ from dipy.segment.metric import AveragePointwiseEuclideanMetric
 from scipy.spatial import cKDTree
 from dipy.tracking.streamline import Streamlines
 
+from tractseg.libs import fiber_utils
+
 
 def _get_length_best_orig_peak(predicted_img, orig_img, x, y, z):
     predicted = predicted_img[x, y, z, :]       # 1 peak
@@ -81,6 +83,11 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     ###################################################################################
 
     #################################### Sampling map_coordinates #####################
+    if predicted_peaks is not None:
+        # scalar img can also be orig peaks
+        best_orig_peaks = fiber_utils.get_best_original_peaks(predicted_peaks, scalar_img, peak_len_thr=0.00001)
+        scalar_img = np.linalg.norm(best_orig_peaks, axis=-1)
+
     values = map_coordinates(scalar_img, np.array(streamlines).T, order=1)
     ###################################################################################
 

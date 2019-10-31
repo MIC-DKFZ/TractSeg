@@ -12,6 +12,7 @@ import nibabel as nib
 import numpy as np
 from nibabel import trackvis
 from dipy.tracking.streamline import transform_streamlines
+from tqdm import tqdm
 
 from tractseg.libs import fiber_utils
 from tractseg.libs import tractometry
@@ -82,7 +83,7 @@ def main():
         bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
     results = []
-    for bundle in bundles:
+    for bundle in tqdm(bundles):
         if args.peak_length:
             predicted_peaks = nib.load(join(args.TOM_dir, bundle + ".nii.gz")).get_data()
         else:
