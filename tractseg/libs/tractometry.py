@@ -31,6 +31,7 @@ def _get_length_best_orig_peak(predicted_img, orig_img, x, y, z):
 
 def _orient_to_same_start_region(streamlines, beginnings):
     # (we could also use dipy.tracking.streamline.orient_by_streamline instead)
+    streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
     streamlines_new = []
     for idx, sl in enumerate(streamlines):
         startpoint = sl[0]
@@ -38,6 +39,7 @@ def _orient_to_same_start_region(streamlines, beginnings):
         if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
             sl = sl[::-1, :]
         streamlines_new.append(sl)
+    streamlines_new = fiber_utils.add_to_each_streamline(streamlines_new, -0.5)
     return streamlines_new
 
 
@@ -54,40 +56,16 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     for i in range(dilate):
         beginnings = binary_dilation(beginnings)
     beginnings = beginnings.astype(np.uint8)
-
-    # THIS IS ONLY NEEDED FOR "MANUAL":
-    # Move from convention "0mm is in voxel center" to convention "0mm is in voxel corner". This makes it easier
-    # to calculate the voxel a streamline point is located in.
-    # (dipy is working with the convention "0mm is in voxel center" therefore this is not needed there)
-    # print("INFO: Adding 0.5 to streamlines")
-    # streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
-
     streamlines = _orient_to_same_start_region(streamlines, beginnings)
-
-    ### Sampling ###
-
-    #################################### Sampling "MANUAL" ############################
-    # values = []
-    # for i in range(nr_points):
-    #     values.append([])
-    #
-    # for idx, sl in enumerate(streamlines):
-    #     for jdx in range(sl.shape[0]):   #iterate over nr_points
-    #         point = sl[jdx]
-    #         if predicted_peaks is not None:
-    #             scalar_value = _get_length_best_orig_peak(predicted_peaks, scalar_img,
-    #                                                      int(point[0]), int(point[1]), int(point[2]))
-    #         else:
-    #             scalar_value = scalar_img[int(point[0]), int(point[1]), int(point[2])]
-    #         values[jdx].append(scalar_value)
-    ###################################################################################
-
-    #################################### Sampling map_coordinates #####################
     if predicted_peaks is not None:
         # scalar img can also be orig peaks
         best_orig_peaks = fiber_utils.get_best_original_peaks(predicted_peaks, scalar_img, peak_len_thr=0.00001)
         scalar_img = np.linalg.norm(best_orig_peaks, axis=-1)
 
+
+    ### Sampling ###
+
+    #################################### Sampling map_coordinates #####################
     values = map_coordinates(scalar_img, np.array(streamlines).T, order=1)
     ###################################################################################
 
