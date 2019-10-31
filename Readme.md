@@ -246,15 +246,16 @@ the FA to calculate the transformation as this is more stable):
 calc_FA -i Diffusion.nii.gz -o FA.nii.gz --bvals Diffusion.bvals --bvecs Diffusion.bvecs \
 --brain_mask nodif_brain_mask.nii.gz
 
-flirt -ref tractseg/resources/MNI_FA_template.nii.gz -in FA.nii.gz \
+flirt -ref tractseg/tractseg/resources/MNI_FA_template.nii.gz -in FA.nii.gz \
 -out FA_MNI.nii.gz -omat FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo
 
-flirt -ref tractseg/resources/MNI_FA_template.nii.gz -in Diffusion.nii.gz \
+flirt -ref tractseg/tractseg/resources/MNI_FA_template.nii.gz -in Diffusion.nii.gz \
 -out Diffusion_MNI.nii.gz -applyxfm -init FA_2_MNI.mat -dof 6
 cp Diffusion.bvals Diffusion_MNI.bvals
 rotate_bvecs -i Diffusion.bvecs -t FA_2_MNI.mat -o Diffusion_MNI.bvecs
 ```
 To enforce isotropic spacing you can replace `-applyxfm` by `-applyisoxfm <your_spacing>`.
+
 
 ## FAQ
 
