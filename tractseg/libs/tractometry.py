@@ -84,25 +84,66 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     ###################################################################################
 
     #################################### Aggregating by cKDTree #######################
+    # metric = AveragePointwiseEuclideanMetric()
+    # qb = QuickBundles(threshold=100., metric=metric)
+    # clusters = qb.cluster(streamlines)
+    # centroids = Streamlines(clusters.centroids)
+    # if len(centroids) > 1:
+    #     print("WARNING: number clusters > 1 ({})".format(len(centroids)))
+    # _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)  # (2000, 20)
+    #
+    # values_t = np.array(values).T  # (2000, 20)
+    #
+    # # If we want to take weighted mean like in AFQ:
+    # # weights = dsa.gaussian_weights(Streamlines(streamlines))
+    # # values_t = weights * values_t
+    # # return np.sum(values_t, 0), None
+    #
+    # results_dict = defaultdict(list)
+    # for idx, sl in enumerate(values_t):
+    #     for jdx, seg in enumerate(sl):
+    #         results_dict[segment_idxs[idx, jdx]].append(seg)
+
+
+    #####################################################################################
+
+    # Cutting Plane approach
+
     metric = AveragePointwiseEuclideanMetric()
     qb = QuickBundles(threshold=100., metric=metric)
     clusters = qb.cluster(streamlines)
-    centroids = Streamlines(clusters.centroids)
-    if len(centroids) > 1:
-        print("WARNING: number clusters > 1 ({})".format(len(centroids)))
-    _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)  # (2000, 20)
+    centroid = Streamlines(clusters.centroids)[0]
 
+    streamlines = fiber_utils.resample_to_same_distance(streamlines, max_nr_points=nr_points)
+
+    # index of the middle cluster
+    middle_idx = int(nr_points / 2)
+    middle_point = centroid[middle_idx]
+    segment_idxs = fiber_utils.get_idxs_of_closest_points(streamlines, middle_point)
+
+
+    #todo: adapt
+    # Align along the middle and assign indices
+    segment_idxs_eqlen = []
+    for idx, sl in enumerate(streamlines):
+        sl_middle_pos = segment_idxs[idx]
+        before_elems = sl_middle_pos
+        after_elems = len(sl) - sl_middle_pos
+        base_idx = 1000  # use higher index to avoid negative numbers for area below middle
+        r = range((base_idx - before_elems), (base_idx + after_elems))
+        segment_idxs_eqlen.append(r)
+    segment_idxs = segment_idxs_eqlen
+
+    # todo: adapt
     values_t = np.array(values).T  # (2000, 20)
-
-    # If we want to take weighted mean like in AFQ:
-    # weights = dsa.gaussian_weights(Streamlines(streamlines))
-    # values_t = weights * values_t
-    # return np.sum(values_t, 0), None
-
     results_dict = defaultdict(list)
     for idx, sl in enumerate(values_t):
         for jdx, seg in enumerate(sl):
             results_dict[segment_idxs[idx, jdx]].append(seg)
+
+
+
+    ###############
 
     if len(results_dict.keys()) < nr_points:
         print("WARNING: found less than required points. Filling up with centroid values.")
@@ -125,6 +166,12 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
 
     return results_mean, results_std
     ###################################################################################
+
+
+    #################################### Aggregating by cutting plane #######################
+
+    ###################################################################################
+
 
     #################################### AFQ (sampling + aggregation ##################
     # streamlines = list(transform_streamlines(streamlines, affine))  # this has to be here; not remove previous one

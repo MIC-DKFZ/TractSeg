@@ -12,6 +12,8 @@ from dipy.segment.metric import ResampleFeature
 from dipy.tracking.metrics import spline
 from dipy.tracking import utils as utils_trk
 from dipy.tracking.streamline import transform_streamlines
+from dipy.tracking.streamline import set_number_of_points
+from dipy.tracking.streamline import length as sl_length
 
 from tractseg.libs import utils
 from tractseg.libs import peak_utils
@@ -425,3 +427,33 @@ def invert_streamlines(streamlines, reference_img, affine, axis="x"):
     print(affine_invert)
 
     return list(transform_streamlines(streamlines, affine_invert))
+
+
+def resample_to_same_distance(streamlines, max_nr_points=10):
+    dist = sl_length(streamlines).max() / max_nr_points
+    new_streamlines = []
+    for sl in streamlines:
+        l = sl_length(sl)
+        nr_segments = int(l / dist)
+        sl_new = set_number_of_points(sl, nb_points=nr_segments)
+        new_streamlines.append(sl_new)
+    return new_streamlines
+
+
+def pad_sl_with_zeros(streamlines, target_len, pad_point):
+    new_streamlines = []
+    for sl in streamlines:
+        new_sl = list(sl) + [pad_point] * (target_len - len(sl))
+        new_streamlines.append(new_sl)
+    return new_streamlines
+
+
+def get_idxs_of_closest_points(streamlines, target_point):
+    idxs = []
+    for sl in streamlines:
+        dists = []
+        for idx, p in enumerate(sl):
+            dist = abs(np.linalg.norm(p - target_point))
+            dists.append(dist)
+        idxs.append(np.array(dists).argmin())
+    return idxs
