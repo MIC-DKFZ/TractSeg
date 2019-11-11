@@ -67,8 +67,7 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         best_orig_peaks = fiber_utils.get_best_original_peaks(predicted_peaks, scalar_img, peak_len_thr=0.00001)
         scalar_img = np.linalg.norm(best_orig_peaks, axis=-1)
 
-    #todo important: change
-    algorithm = "cutting_plane"  # equal_dist | distance_map | cutting_plane | afq
+    algorithm = "distance_map"  # equal_dist | distance_map | cutting_plane | afq
 
 
     if algorithm == "equal_dist":
@@ -94,9 +93,9 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         centroids = Streamlines(clusters.centroids)
         if len(centroids) > 1:
             print("WARNING: number clusters > 1 ({})".format(len(centroids)))
-        _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)  # (2000, 20)
+        _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)  # (2000, 100)
 
-        values_t = np.array(values).T  # (2000, 20)
+        values_t = np.array(values).T  # (2000, 100)
 
         # If we want to take weighted mean like in AFQ:
         # weights = dsa.gaussian_weights(Streamlines(streamlines))
