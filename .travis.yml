@@ -38,11 +38,10 @@ script:
     --uncertainty
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_uncertainty
 
-  #todo: uncomment
-#  #Density map regression
-#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/DM/tractseg_output --single_orientation --test
-#    --output_type dm_regression
-#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_density_regression
+  #Density map regression
+  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/DM/tractseg_output --single_orientation --test
+    --output_type dm_regression
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_density_regression
 
   #Docker
   # On python 3 building the container is too slow to avoid travis timeout -> we only test it on python 2

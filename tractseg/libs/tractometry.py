@@ -67,7 +67,7 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         best_orig_peaks = fiber_utils.get_best_original_peaks(predicted_peaks, scalar_img, peak_len_thr=0.00001)
         scalar_img = np.linalg.norm(best_orig_peaks, axis=-1)
 
-    algorithm = "distance_map"  # equal_dist | distance_map | cutting_plane | afq
+    algorithm = "afq"  # equal_dist | distance_map | cutting_plane | afq
 
 
     if algorithm == "equal_dist":
@@ -170,7 +170,6 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
                 if current_idx >= min_idx and current_idx < max_idx:
                     results_dict[current_idx].append(seg)
 
-
         if len(results_dict.keys()) < nr_points:
             print("WARNING: found less than required points. Filling up with centroid values.")
             centroid_sl = [centroids[0]]
@@ -179,7 +178,6 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
             for idx, seg_idx in enumerate(range(min_idx, max_idx)):
                 if len(results_dict[seg_idx]) == 0:
                     results_dict[seg_idx].append(np.array(centroid_values).T[0, idx])
-
 
         results_mean = []
         results_std = []
@@ -202,5 +200,5 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         streamlines = Streamlines(streamlines)
         weights = dsa.gaussian_weights(streamlines)
         results_mean = dsa.afq_profile(scalar_img, streamlines, affine=affine, weights=weights)
-        results_std = None
+        results_std = np.zeros(nr_points)
         return results_mean, results_std
