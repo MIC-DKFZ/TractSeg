@@ -103,7 +103,7 @@ def main():
                 sl_file = nib.streamlines.load(trk_path)
                 streamlines = sl_file.streamlines
 
-            if len(streamlines) >= 5:
+            if len(streamlines) >= 5 or args.test == 2:
                 mean, std = tractometry.evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines,
                                                                beginnings.get_data(), NR_POINTS, dilate=DILATION,
                                                                predicted_peaks=predicted_peaks, affine=scalar_image.affine)

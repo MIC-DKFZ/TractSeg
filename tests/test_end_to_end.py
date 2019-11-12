@@ -156,8 +156,6 @@ class test_end_to_end(unittest.TestCase):
         ref = np.array([0., 0., 0.148, 0.173, 0., 0.325, 0.319, 0.28]) # coord + tree, round(3)
         new = np.loadtxt("tractometry_toy_example/Tractometry.csv", delimiter=";", skiprows=1).transpose()
         new = new.round(3)
-        print("---new:------------")
-        print(new)
         arrays_equal = np.array_equal(ref, new)
         self.assertTrue(arrays_equal, "Tractometry toy example not correct")
 
