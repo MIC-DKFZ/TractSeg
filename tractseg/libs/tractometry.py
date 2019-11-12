@@ -67,7 +67,7 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         best_orig_peaks = fiber_utils.get_best_original_peaks(predicted_peaks, scalar_img, peak_len_thr=0.00001)
         scalar_img = np.linalg.norm(best_orig_peaks, axis=-1)
 
-    algorithm = "afq"  # equal_dist | distance_map | cutting_plane | afq
+    algorithm = "distance_map"  # equal_dist | distance_map | cutting_plane | afq
 
 
     if algorithm == "equal_dist":
@@ -129,6 +129,11 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
 
 
     elif algorithm == "cutting_plane":
+        # This will resample all streamline to have equally distant points (resulting in a different number of points
+        # in each streamline). Then the "middle" of the tract will be estimated taking the middle element of the
+        # centroid (estimated with QuickBundles). Then each streamline the point closest to the "middle" will be
+        # calculated and points will be indexed for each streamline starting from the middle. Then averaging across
+        # all streamlines will be done by taking the mean for points with same indices.
 
         ### Sampling ###
         streamlines = fiber_utils.resample_to_same_distance(streamlines, max_nr_points=nr_points)
@@ -136,7 +141,8 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         values = np.array(values_from_volume(scalar_img, streamlines, affine=np.eye(4))).T
 
         ### Aggregating by Cutting Plane approach ###
-        streamlines_resamp = fiber_utils.resample_fibers(streamlines, nb_points=nr_points)  # mean over bundles
+        # Resample to all fibers having same number of points -> needed for QuickBundles
+        streamlines_resamp = fiber_utils.resample_fibers(streamlines, nb_points=nr_points)
         metric = AveragePointwiseEuclideanMetric()
         qb = QuickBundles(threshold=100., metric=metric)
         clusters = qb.cluster(streamlines_resamp)
@@ -145,6 +151,7 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         # index of the middle cluster
         middle_idx = int(nr_points / 2)
         middle_point = centroids[0][middle_idx]
+        # For each streamline get idx for the point which is closest to the middle
         segment_idxs = fiber_utils.get_idxs_of_closest_points(streamlines, middle_point)
 
         # Align along the middle and assign indices
@@ -154,22 +161,26 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
             sl_middle_pos = segment_idxs[idx]
             before_elems = sl_middle_pos
             after_elems = len(sl) - sl_middle_pos
+            # indices for one streamline e.g. [998, 999, 1000, 1001, 1002, 1003]; 1000 is middle
             r = range((base_idx - before_elems), (base_idx + after_elems))
             segment_idxs_eqlen.append(r)
         segment_idxs = segment_idxs_eqlen
 
-        values_t = values  # (2000, X)
-
+        # Calcuate maximum number of indices to not result in more indices than nr_points.
+        # (this could be case if one streamline is very off-center and therefore has a lot of points only on one
+        # side. In this case the values too far out of this streamline will be cut off).
         max_idx = base_idx + int(nr_points / 2)
         min_idx = base_idx - int(nr_points / 2)
 
+        # Group by segment indices
         results_dict = defaultdict(list)
-        for idx, sl in enumerate(values_t):
+        for idx, sl in enumerate(values):
             for jdx, seg in enumerate(sl):
                 current_idx = segment_idxs[idx][jdx]
                 if current_idx >= min_idx and current_idx < max_idx:
                     results_dict[current_idx].append(seg)
 
+        # If values missing fill up with centroid values
         if len(results_dict.keys()) < nr_points:
             print("WARNING: found less than required points. Filling up with centroid values.")
             centroid_sl = [centroids[0]]
@@ -179,6 +190,7 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
                 if len(results_dict[seg_idx]) == 0:
                     results_dict[seg_idx].append(np.array(centroid_values).T[0, idx])
 
+        # Aggregate by mean
         results_mean = []
         results_std = []
         for key in sorted(results_dict.keys()):
@@ -194,11 +206,10 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
 
 
     elif algorithm == "afq":
-        ### AFQ (sampling + aggregation ###
+        ### sampling + aggregation ###
         streamlines = fiber_utils.resample_fibers(streamlines, nb_points=nr_points)
-        streamlines = list(transform_streamlines(streamlines, affine))  # this has to be here; not remove previous one
         streamlines = Streamlines(streamlines)
         weights = dsa.gaussian_weights(streamlines)
-        results_mean = dsa.afq_profile(scalar_img, streamlines, affine=affine, weights=weights)
+        results_mean = dsa.afq_profile(scalar_img, streamlines, affine=np.eye(4), weights=weights)
         results_std = np.zeros(nr_points)
         return results_mean, results_std

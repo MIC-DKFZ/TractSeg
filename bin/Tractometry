@@ -11,10 +11,8 @@ import argparse
 import nibabel as nib
 import numpy as np
 from nibabel import trackvis
-from dipy.tracking.streamline import transform_streamlines
 from tqdm import tqdm
 
-from tractseg.libs import fiber_utils
 from tractseg.libs import tractometry
 from tractseg.data import dataset_specific_utils
 
@@ -82,10 +80,6 @@ def main():
     else:
         bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
-    #todo important: change
-    # bundles = ["ICP_left"]
-    # bundles = ["CST_right"]
-
     results = []
     for bundle in tqdm(bundles):
         if args.peak_length:
@@ -99,11 +93,8 @@ def main():
 
         if not os.path.exists(trk_path):
             print("WARNING: No tracking found for bundle {}. Returning zeros.".format(bundle))
-            #todo important: change
             mean = np.zeros(NR_POINTS)
             std = np.zeros(NR_POINTS)
-            # mean = np.zeros(NR_POINTS - 1)
-            # std = np.zeros(NR_POINTS - 1)
         else:
             if args.tracking_format == "trk_legacy":
                 streams, hdr = trackvis.read(trk_path)
@@ -132,9 +123,6 @@ def main():
     for bundle in bundles:
         bundle_string += bundle + ";"
     bundle_string = bundle_string[:-1]
-
-    # import IPython
-    # IPython.embed()
 
     np.savetxt(args.csv_file_out, np.array(results).transpose(), delimiter=";", header=bundle_string, comments="")
 
