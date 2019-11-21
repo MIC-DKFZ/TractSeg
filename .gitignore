@@ -4,6 +4,8 @@
 .DS_Store
 *.egg-info
 .pytest_cache/*
+build/
+dist/
 
 tractseg/experiments/custom/*
 tractseg/experiments/old/*

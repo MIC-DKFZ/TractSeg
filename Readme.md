@@ -41,7 +41,7 @@ option `--preprocess` this is not needed)
 #### Install TractSeg
 Latest stable version:
 ```
-pip install https://github.com/MIC-DKFZ/TractSeg/archive/v2.1.zip
+pip install TractSeg
 ```
 > NOTE: See [CHANGELOG](CHANGELOG.md) for (breaking) changes of each version
 
@@ -303,6 +303,10 @@ You can check if you installed FSL correctly if you can run the following comman
 
 TractSeg uses these commands so they have to be available.
 
+#### How can I install the latest master branch?
+```
+pip install https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
+```
 
 ## Train your own model
 TractSeg uses a pretrained model. You can also train your own model on your own data, however TractSeg is not 

@@ -1,5 +1,11 @@
 ## Master
+* minor improvements
 
+
+## Release 2.1.1
+
+* Available on pypi
+* manually specify which bundles to track
 * minor improvements
 
 
