@@ -130,8 +130,16 @@ TractSeg -i peaks.nii.gz --uncertainty
 #### Perform Tractometry
 See [Documentation of Tractometry](resources/Tractometry_documentation.md).
 
+
 #### Tutorial
 [Best pratices for standard usecases](resources/Tutorial.md).
+
+
+#### Track subset of bundles
+You can specify to only track a subset of bundles.
+```
+Tracking -i peaks.nii.gz --bundles CST_right,CA,IFO_right
+```
 
 #### Bundle names
 The following list shows the index of each extracted bundle in the output file (if using `--single_output_file`).

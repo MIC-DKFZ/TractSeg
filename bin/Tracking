@@ -22,6 +22,17 @@ warnings.filterwarnings("ignore", message="numpy.dtype size changed")  # hide Cy
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")  # hide Cython benign warning
 
 
+def parse_bundles_string(bundles_string, classes):
+    all_bundles = dataset_specific_utils.get_bundle_names(classes)[1:]
+    if bundles_string == "all":
+        return all_bundles
+    else:
+        bundles = bundles_string.strip().split(",")
+        for bundle in bundles:
+            if bundle not in all_bundles:
+                raise ValueError("Invalid bundle name: {}".format(bundle))
+        return bundles
+
 def main():
     parser = argparse.ArgumentParser(description="Tracking on the TOMs created by TractSeg.",
                                         epilog="Written by Jakob Wasserthal. Please reference 'Wasserthal et al. "
@@ -75,6 +86,11 @@ def main():
                         help="Run tracking on TOMs without filtering results by tract mask and endpoint masks."
                              "MRtrix FACT tracking will be used instead of the 'probabilistic' tracking on peaks.",
                         default=False)
+
+    parser.add_argument("--bundles", metavar="A,B,C", dest="bundles_string",
+                        help="Comma separated list (without spaces) of bundles you want to track. " +
+                             "Leave empty if you want to track all.",
+                        default="all")
 
     parser.add_argument("--nr_cpus", metavar="n", type=int,
                         help="Number of CPUs to use. -1 means all available CPUs (default: -1)",
@@ -137,7 +153,7 @@ def main():
     elif args.test == 3:
         bundles = dataset_specific_utils.get_bundle_names("test_single")[1:]
     else:
-        bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
+        bundles = parse_bundles_string(args.bundles_string, Config.CLASSES)
 
     for bundle in tqdm(bundles):
         tracking.track(bundle, input_path, Config.PREDICT_IMG_OUTPUT,
