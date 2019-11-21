@@ -101,7 +101,8 @@ def format_number(num):
 
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
-                                 analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000):
+                                 analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000,
+                                 hide_legend=False):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -162,10 +163,11 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
 
         ax.set(xlabel='position along tract', ylabel='metric')
         ax.set_title(bundles[b_idx])
-        if analysis_type == "group" and i > 0:
-            ax.legend_.remove()  # only show legend on first subplot
-        if analysis_type == "correlation":
+        if analysis_type == "correlation" or hide_legend:
             ax.legend_.remove()
+        elif analysis_type == "group" and i > 0:
+            ax.legend_.remove()  # only show legend on first subplot
+
 
         # Significance testing without multiple correction of bundles
         if not correct_mult_tract_comp:
@@ -236,6 +238,7 @@ def main():
     FWE_method = "alphaFWE"  # alphaFWE | clusterFWE
     # Show p-value for each position, not only significant areas
     show_detailed_p = False
+    hide_legend = False
     nperm = args.nperm
 
     # Significance testing with multiple correction for bundles
@@ -272,7 +275,7 @@ def main():
 
     plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
                                  args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
-                                 show_detailed_p, nperm=nperm)
+                                 show_detailed_p, nperm=nperm, hide_legend=hide_legend)
 
 
 if __name__ == '__main__':
