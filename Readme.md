@@ -314,7 +314,7 @@ optimised to make this convenient, as most people will use the pretrained model.
 guide is quite short and you might have problems following every step. Contact the author if
 you need help training your own model.
 
-1. Use your own data or download the data from [Zenodo](https://zenodo.org/record/14779569)
+1. Use your own data or download the data from [Zenodo](https://doi.org/10.5281/zenodo.1088277)
 2. If you have streamlines you have to transform them to binary masks. 
 You can use [this](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/utility_scripts/trk_2_binary.py) 
 script for that. 
