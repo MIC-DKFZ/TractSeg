@@ -384,8 +384,8 @@ def main():
 
         if args.preprocess and not Config.EXPERIMENT_TYPE == "peak_regression":
             if Config.SINGLE_OUTPUT_FILE:
-                preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT, Config.EXPERIMENT_TYPE, output_subdir,
-                                                    output_float=output_float)
+                preprocessing.move_to_subject_space_single_file(Config.PREDICT_IMG_OUTPUT, Config.EXPERIMENT_TYPE,
+                                                                output_subdir, output_float=output_float)
             else:
                 bundles = dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:]
                 preprocessing.move_to_subject_space(Config.PREDICT_IMG_OUTPUT, bundles, Config.EXPERIMENT_TYPE,
