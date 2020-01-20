@@ -7,9 +7,24 @@ from os.path import join
 import math
 
 import numpy as np
+import seaborn as sns
+import nibabel as nib
 import torch
+from dipy.viz import actor, window
+from nibabel import trackvis
+from dipy.tracking.streamline import transform_streamlines
+from scipy.ndimage.morphology import binary_dilation
+from dipy.tracking.streamline import set_number_of_points
+from dipy.tracking.streamline import length as sl_length
+from dipy.tracking.streamline import Streamlines
+from dipy.segment.clustering import QuickBundles
+from dipy.segment.metric import AveragePointwiseEuclideanMetric
+from scipy.spatial import cKDTree
 
 from tractseg.data import dataset_specific_utils
+from tractseg.libs import vtk_utils
+from tractseg.libs import fiber_utils
+from tractseg.libs import img_utils
 
 import matplotlib
 matplotlib.use('Agg')  # Solves error with ssh and plotting
@@ -311,3 +326,138 @@ def plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr):
 
     trixi.show_value(value=float(loss), counter=epoch_nr, name="loss", tag="loss")
     trixi.show_value(value=float(np.mean(f1)), counter=epoch_nr, name="f1", tag="f1")
+
+
+def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle, metrics, output_path):
+
+    def _add_extra_point_to_last_streamline(sl):
+        # Coloring broken as soon as all streamlines have same number of points -> why???
+        # Add one number to last streamline to make it have a different number
+        sl[-1] = np.append(sl[-1], [sl[-1][-1]], axis=0)
+        return sl
+
+    # Settings
+    NR_SEGMENTS = 100
+    ANTI_INTERPOL_MULT = 2  # increase number of points to avoid interpolation to blur the colors
+    algorithm = "distance_map"  # equal_dist | distance_map | cutting_plane
+    colors = np.array(sns.color_palette("coolwarm", NR_SEGMENTS))  # colormap
+    img_size = (1000, 1000)
+
+    metrics = img_utils.scale_to_range(metrics, range=(0, 99))
+    orientation = dataset_specific_utils.get_optimal_orientation_for_bundle(bundle)
+
+    # Load mask
+    beginnings_img = nib.load(endings_path)
+    beginnings = beginnings_img.get_data()
+    for i in range(1):
+        beginnings = binary_dilation(beginnings)
+
+    # Load trackings
+    streams, hdr = trackvis.read(bundle_path)
+    streamlines = [s[0] for s in streams]
+    streamlines = list(transform_streamlines(streamlines, np.linalg.inv(beginnings_img.affine)))
+    streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
+
+    # Reduce streamline count
+    streamlines = streamlines[::2]
+
+    # Reorder to make all streamlines have same start region
+    streamlines_new = []
+    for idx, sl in enumerate(streamlines):
+        startpoint = sl[0]
+        # Flip streamline if not in right order
+        if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
+            sl = sl[::-1, :]
+        streamlines_new.append(sl)
+    streamlines = streamlines_new
+
+    if algorithm == "distance_map" or algorithm == "equal_dist":
+        streamlines = fiber_utils.resample_fibers(streamlines, NR_SEGMENTS * ANTI_INTERPOL_MULT)
+    elif algorithm == "cutting_plane":
+        streamlines = fiber_utils.resample_to_same_distance(streamlines, max_nr_points=NR_SEGMENTS,
+                                                            ANTI_INTERPOL_MULT=ANTI_INTERPOL_MULT)
+
+    # Cut start and end by percentage
+    # streamlines = FiberUtils.resample_fibers(streamlines, NR_SEGMENTS * ANTI_INTERPOL_MULT)
+    # remove = int((NR_SEGMENTS * ANTI_INTERPOL_MULT) * 0.15)  # remove X% in beginning and end
+    # streamlines = np.array(streamlines)[:, remove:-remove, :]
+    # streamlines = list(streamlines)
+
+    if algorithm == "equal_dist":
+        segment_idxs = []
+        for i in range(len(streamlines)):
+            segment_idxs.append(list(range(NR_SEGMENTS * ANTI_INTERPOL_MULT)))
+        segment_idxs = np.array(segment_idxs)
+
+    elif algorithm == "distance_map":
+        metric = AveragePointwiseEuclideanMetric()
+        qb = QuickBundles(threshold=100., metric=metric)
+        clusters = qb.cluster(streamlines)
+        centroids = Streamlines(clusters.centroids)
+        _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)
+
+    elif algorithm == "cutting_plane":
+        streamlines_resamp = fiber_utils.resample_fibers(streamlines, NR_SEGMENTS * ANTI_INTERPOL_MULT)
+        metric = AveragePointwiseEuclideanMetric()
+        qb = QuickBundles(threshold=100., metric=metric)
+        clusters = qb.cluster(streamlines_resamp)
+        centroid = Streamlines(clusters.centroids)[0]
+        # index of the middle cluster
+        middle_idx = int(NR_SEGMENTS / 2) * ANTI_INTERPOL_MULT
+        middle_point = centroid[middle_idx]
+        segment_idxs = fiber_utils.get_idxs_of_closest_points(streamlines, middle_point)
+        # Align along the middle and assign indices
+        segment_idxs_eqlen = []
+        for idx, sl in enumerate(streamlines):
+            sl_middle_pos = segment_idxs[idx]
+            before_elems = sl_middle_pos
+            after_elems = len(sl) - sl_middle_pos
+            base_idx = 1000  # use higher index to avoid negative numbers for area below middle
+            r = range((base_idx - before_elems), (base_idx + after_elems))
+            segment_idxs_eqlen.append(r)
+        segment_idxs = segment_idxs_eqlen
+
+    # Add extra point otherwise coloring BUG
+    streamlines = _add_extra_point_to_last_streamline(streamlines)
+
+    renderer = window.Renderer()
+    colors_all = []
+    for jdx, sl in enumerate(streamlines):
+        colors_sl = []
+        for idx, p in enumerate(sl):
+            if idx >= len(segment_idxs[jdx]):
+                seg_idx = segment_idxs[jdx][idx - 1]
+            else:
+                seg_idx = segment_idxs[jdx][idx]
+
+            metric = metrics[int(seg_idx / ANTI_INTERPOL_MULT)]
+            color = colors[int(metric)]
+            colors_sl.append(color)
+        colors_all.append(colors_sl)
+
+    sl_actor = actor.streamtube(streamlines, colors=colors_all, linewidth=0.2, opacity=1)
+    renderer.add(sl_actor)
+
+    mask = nib.load(brain_mask_path).get_data()
+    cont_actor = vtk_utils.contour_from_roi_smooth(mask, affine=np.eye(4), color=[.9, .9, .9], opacity=.2,
+                                                   smoothing=50)
+    renderer.add(cont_actor)
+
+    if orientation == "sagittal":
+        renderer.set_camera(position=(-242.14, 81.28, 113.61),
+                            focal_point=(109.90, 93.18, 50.86),
+                            view_up=(0.18, 0.00, 0.98))
+    elif orientation == "coronal":
+        renderer.set_camera(position=(66.82, 352.47, 132.99),
+                            focal_point=(72.17, 89.31, 60.83),
+                            view_up=(0.00, -0.26, 0.96))
+    elif orientation == "axial":
+        pass
+    else:
+        raise ValueError("Invalid orientation provided")
+
+    # Use this to interatively get new camera angle
+    # window.show(renderer, size=img_size, reset_camera=False)
+    # print(renderer.get_camera())
+
+    window.record(renderer, out_path=output_path, size=img_size)

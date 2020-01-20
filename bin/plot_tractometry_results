@@ -15,6 +15,7 @@ from tractseg.data import dataset_specific_utils
 from tractseg.libs.AFQ_MultiCompCorrection import AFQ_MultiCompCorrection
 from tractseg.libs.AFQ_MultiCompCorrection import get_significant_areas
 from tractseg.libs import metric_utils
+from tractseg.libs import plot_utils
 
 
 def parse_subjects_file(file_path):

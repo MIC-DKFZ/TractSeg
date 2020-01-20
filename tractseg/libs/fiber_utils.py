@@ -429,13 +429,13 @@ def invert_streamlines(streamlines, reference_img, affine, axis="x"):
     return list(transform_streamlines(streamlines, affine_invert))
 
 
-def resample_to_same_distance(streamlines, max_nr_points=10):
+def resample_to_same_distance(streamlines, max_nr_points=10, ANTI_INTERPOL_MULT=1):
     dist = sl_length(streamlines).max() / max_nr_points
     new_streamlines = []
     for sl in streamlines:
         l = sl_length(sl)
         nr_segments = int(l / dist)
-        sl_new = set_number_of_points(sl, nb_points=nr_segments)
+        sl_new = set_number_of_points(sl, nb_points=nr_segments * ANTI_INTERPOL_MULT)
         new_streamlines.append(sl_new)
     return new_streamlines
 
