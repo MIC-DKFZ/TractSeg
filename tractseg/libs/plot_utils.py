@@ -338,11 +338,20 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
 
     # Settings
     NR_SEGMENTS = 100
-    ANTI_INTERPOL_MULT = 2  # increase number of points to avoid interpolation to blur the colors
+    ANTI_INTERPOL_MULT = 1  # increase number of points to avoid interpolation to blur the colors
     algorithm = "distance_map"  # equal_dist | distance_map | cutting_plane
-    colors = np.array(sns.color_palette("coolwarm", NR_SEGMENTS))  # colormap
+    # colors = np.array(sns.color_palette("coolwarm", NR_SEGMENTS))  # colormap blue to red (does not fit to colorbar)
+    colors = np.array(sns.light_palette("red", NR_SEGMENTS))  # colormap only red, which fits to color_bar
     img_size = (1000, 1000)
+    show_color_bar = True
 
+    # Tractometry skips first and last element. Therefore we only have 98 instead of 100 elements.
+    # Here we duplicate the first and last element to get back to 100 elements
+    metrics = list(metrics)
+    metrics = np.array([metrics[0]] + metrics + [metrics[-1]])
+
+    metrics_max = metrics.max()
+    metrics_min = metrics.min()
     metrics = img_utils.scale_to_range(metrics, range=(0, 99))
     orientation = dataset_specific_utils.get_optimal_orientation_for_bundle(bundle)
 
@@ -421,7 +430,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     streamlines = _add_extra_point_to_last_streamline(streamlines)
 
     renderer = window.Renderer()
-    colors_all = []
+    colors_all = []  # final shape will be [nr_streamlines, nr_points, 3]
     for jdx, sl in enumerate(streamlines):
         colors_sl = []
         for idx, p in enumerate(sl):
@@ -433,7 +442,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
             metric = metrics[int(seg_idx / ANTI_INTERPOL_MULT)]
             color = colors[int(metric)]
             colors_sl.append(color)
-        colors_all.append(colors_sl)
+        colors_all.append(colors_sl)  # this can not be converted to numpy array because last element has one more elem
 
     sl_actor = actor.streamtube(streamlines, colors=colors_all, linewidth=0.2, opacity=1)
     renderer.add(sl_actor)
@@ -442,6 +451,12 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     cont_actor = vtk_utils.contour_from_roi_smooth(mask, affine=np.eye(4), color=[.9, .9, .9], opacity=.2,
                                                    smoothing=50)
     renderer.add(cont_actor)
+
+    if show_color_bar:
+        lut_cmap = actor.colormap_lookup_table(scale_range=(metrics_min, metrics_max),
+                                               hue_range=(0.0, 0.0),
+                                               saturation_range=(0.0, 1.0))
+        renderer.add(actor.scalar_bar(lut_cmap))
 
     if orientation == "sagittal":
         renderer.set_camera(position=(-242.14, 81.28, 113.61),

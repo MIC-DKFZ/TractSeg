@@ -3,6 +3,7 @@
 import argparse
 import math
 from decimal import Decimal
+from os.path import join
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,19 +27,26 @@ def parse_subjects_file(file_path):
         else:
             raise ValueError("Invalid first line in subjects file. Must start with '# tractometry_path='")
 
+        bundles = None
+        plot_3D_path = None
+
         # parse bundle names
-        l = f.readline().strip()
-        if l.startswith("# bundles="):
-            bundles_string = l.split("=")[1]
-            bundles = bundles_string.split(" ")
+        for i in range(2):
+            l = f.readline().strip()
+            if l.startswith("# bundles="):
+                bundles_string = l.split("=")[1]
+                bundles = bundles_string.split(" ")
 
-            valid_bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
-            for bundle in bundles:
-                if bundle not in valid_bundles:
-                    raise ValueError("Invalid bundle name: {}".format(bundle))
+                valid_bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
+                for bundle in bundles:
+                    if bundle not in valid_bundles:
+                        raise ValueError("Invalid bundle name: {}".format(bundle))
 
-            print("Using {} manually specified bundles.".format(len(bundles)))
-        else:
+                print("Using {} manually specified bundles.".format(len(bundles)))
+            elif l.startswith("# plot_3D="):
+                plot_3D_path = l.split("=")[1]
+
+        if bundles is None:
             bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
     df = pd.read_csv(file_path, sep=" ", comment="#")
@@ -53,7 +61,7 @@ def parse_subjects_file(file_path):
         if df["group"].max() > 1:
             raise IOError("Column 'group' may only contain 0 and 1.")
 
-    return base_path, df, bundles
+    return base_path, df, bundles, plot_3D_path
 
 
 def correct_for_confounds(values, meta_data, bundles, selected_bun_indices, NR_POINTS, analysis_type, confound_names):
@@ -103,7 +111,7 @@ def format_number(num):
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
                                  analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000,
-                                 hide_legend=False):
+                                 hide_legend=False, plot_3D_path=None):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -187,6 +195,20 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                 values_controls = [values[s][b_idx][jdx] for s in subjects_A]
                 _, pvalues[jdx] = scipy.stats.pearsonr(values_controls, meta_data["target"].values)
 
+        # metric = pvalues
+        metric = np.array([values[s][b_idx] for s in subjects_A + subjects_B]).mean(axis=0)
+
+        #todo: check if files exist
+        bundle = bundles[b_idx]
+        output_path_3D = output_path.split(".")[0] + "_" + bundle + "_3D.png"
+        plot_utils.plot_bundles_with_metric(join(plot_3D_path, "TOM_trackings_filt_prob", bundle + ".trk"),
+                                            join(plot_3D_path, "endings_segmentations", bundle + "_b.nii.gz"),
+                                            join(plot_3D_path, "..", "nodif_brain_mask.nii.gz"),
+                                            bundle,
+                                            metric,
+                                            output_path_3D)
+
+
         # Plot significant areas
         if show_detailed_p:
             ax2 = axes[i].twinx()
@@ -246,7 +268,7 @@ def main():
     correct_mult_tract_comp = args.mc
 
     print("Correcting for comparison of multiple tracts: {}".format(correct_mult_tract_comp))
-    base_path, meta_data, selected_bundles = parse_subjects_file(args.subjects_file)
+    base_path, meta_data, selected_bundles, plot_3D_path = parse_subjects_file(args.subjects_file)
 
     if meta_data.columns[1] == "group":
         analysis_type = "group"
@@ -276,7 +298,8 @@ def main():
 
     plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
                                  args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
-                                 show_detailed_p, nperm=nperm, hide_legend=hide_legend)
+                                 show_detailed_p, nperm=nperm, hide_legend=hide_legend,
+                                 plot_3D_path=plot_3D_path)
 
 
 if __name__ == '__main__':
