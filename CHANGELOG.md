@@ -1,6 +1,6 @@
 ## Master
 * minor improvements
-
+* 3D plot of streamlines with coloring according to tractometry FA
 
 ## Release 2.1.1
 
