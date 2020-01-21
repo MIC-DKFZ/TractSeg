@@ -20,7 +20,6 @@ from dipy.segment.metric import AveragePointwiseEuclideanMetric
 from scipy.spatial import cKDTree
 
 from tractseg.data import dataset_specific_utils
-from tractseg.libs import vtk_utils
 from tractseg.libs import fiber_utils
 from tractseg.libs import img_utils
 
@@ -329,6 +328,7 @@ def plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr):
 def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle, metrics, output_path):
     import seaborn as sns  # import in function to avoid error if not installed (this is only needed in this function)
     from dipy.viz import actor, window
+    from tractseg.libs import vtk_utils
 
     def _add_extra_point_to_last_streamline(sl):
         # Coloring broken as soon as all streamlines have same number of points -> why???
