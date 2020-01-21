@@ -50,16 +50,22 @@ Adapt `subjects.txt` with your data path, subject IDs and confounds. `tractseg/e
 information on how to do this.
 8. The results will look similar to the following:
 
-![Tractometry results_figure](Tractometry_results_example.png)  
+    ![Tractometry results_figure](Tractometry_results_example.png)  
 
-`alphaFWE` is the alpha value corrected for multiple comparison (multiple positions per bundle and multiple bundles).  
-`min p-value` is the minimal p-value which was calculated for each bundle.  
-So if `min p-value`<`alphaFWE` this bundle contains significant results. The red dotted line 
-indicates all areas within the bundle where `p-value`<`alphaFWE`.  
-The statistical analysis is based on the statistical analysis from 
-[Yeatman et al. (2012)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790). Please cite their 
-work if you use this.
+    `alphaFWE` is the alpha value corrected for multiple comparison (multiple positions per bundle and multiple bundles).  
+    `min p-value` is the minimal p-value which was calculated for each bundle.  
+    So if `min p-value`<`alphaFWE` this bundle contains significant results. The red dotted line 
+    indicates all areas within the bundle where `p-value`<`alphaFWE`.  
+    The statistical analysis is based on the statistical analysis from 
+    [Yeatman et al. (2012)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790). Please cite their 
+    work if you use this.
 
+9. Optionally the argument `--plot3D` can be added when calling `plot_tractometry_results`. This will generated 3D 
+plots of the streamlines of each bundle. The coloring indicates the average FA (or any other metric used for 
+Tractometry) for each segment (100 segments per default) across all subjects. For this to work `# plot_3D=...` has to
+ be added to the `subjects.txt` file (see `tractseg/examples/subjects.txt` for more details.)
+
+![Tractometry_3D_results_figure](Tractometry_results_example_3D.png)  
 
 > **NOTE**: Tractometry is not done for the following bundles, as the geometry of these bundles makes it difficult to 
 produce consistent segments:

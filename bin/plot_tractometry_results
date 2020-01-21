@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import argparse
 import math
 from decimal import Decimal
@@ -198,15 +199,23 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
         # metric = pvalues
         metric = np.array([values[s][b_idx] for s in subjects_A + subjects_B]).mean(axis=0)
 
-        #todo: check if files exist
-        bundle = bundles[b_idx]
-        output_path_3D = output_path.split(".")[0] + "_" + bundle + "_3D.png"
-        plot_utils.plot_bundles_with_metric(join(plot_3D_path, "TOM_trackings_filt_prob", bundle + ".trk"),
-                                            join(plot_3D_path, "endings_segmentations", bundle + "_b.nii.gz"),
-                                            join(plot_3D_path, "..", "nodif_brain_mask.nii.gz"),
-                                            bundle,
-                                            metric,
-                                            output_path_3D)
+
+        if plot_3D_path is not None:
+            bundle = bundles[b_idx]
+            output_path_3D = output_path.split(".")[0] + "_" + bundle + "_3D.png"
+
+            tracking_path = join(plot_3D_path, "TOM_trackings_filt_prob", bundle + ".trk")
+            ending_path = join(plot_3D_path, "endings_segmentations", bundle + "_b.nii.gz")
+            mask_path = join(plot_3D_path, "..", "nodif_brain_mask.nii.gz")
+
+            if not os.path.isfile(tracking_path):
+                raise ValueError("Could not find: " + tracking_path)
+            if not os.path.isfile(ending_path):
+                raise ValueError("Could not find: " + ending_path)
+            if not os.path.isfile(mask_path):
+                raise ValueError("Could not find: " + mask_path)
+
+            plot_utils.plot_bundles_with_metric(tracking_path, ending_path, mask_path, bundle, metric, output_path_3D)
 
 
         # Plot significant areas
@@ -254,6 +263,8 @@ def main():
                         default=5000)
     parser.add_argument("--alpha", metavar="a", type=float, help="The desired alpha level (default: 0.05)",
                         default=0.05)
+    parser.add_argument("--plot3D", action="store_true", help="Generate streamline plots of each tract with FA on top",
+                        default=False)
     args = parser.parse_args()
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
@@ -269,6 +280,12 @@ def main():
 
     print("Correcting for comparison of multiple tracts: {}".format(correct_mult_tract_comp))
     base_path, meta_data, selected_bundles, plot_3D_path = parse_subjects_file(args.subjects_file)
+
+    if args.plot3D:
+        if plot_3D_path is None:
+            raise ValueError("'# plot_3D=...' is not set in " + args.subjects_file)
+    else:
+        plot_3D_path = None
 
     if meta_data.columns[1] == "group":
         analysis_type = "group"
