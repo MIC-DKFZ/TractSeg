@@ -23,6 +23,8 @@
 # Any additional column will be treated as a confound and regressed out of the data before doing the statistical
 # analysis.
 #
+# Note: Make sure there is no trailing whitespace at any line
+#
 subject_id group Age Sex
 subject01 0 43.0 0
 subject02 0 26.0 0
