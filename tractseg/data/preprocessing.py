@@ -51,8 +51,8 @@ def create_preprocessed_files(subject):
     #                  "bundle_peaks_Part1", "bundle_peaks_Part2", "bundle_peaks_Part3", "bundle_peaks_Part4",
     #                  "bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
 
-    filenames_data = ["105g_2mm_bedpostx_peaks_scaled"]
-    filenames_seg = ["bundle_masks_autoPTX_dm", "bundle_masks_autoPTX_thr001"]
+    filenames_data = ["105g_2mm_bedpostx_peaks_scaled", "105g_2mm_peaks"]
+    filenames_seg = ["bundle_masks_xtract_dm", "bundle_masks_xtract_thr001"]
 
 
     print("idx: {}".format(subjects.index(subject)))
