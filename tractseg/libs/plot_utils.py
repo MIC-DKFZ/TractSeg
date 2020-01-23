@@ -325,7 +325,8 @@ def plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr):
     trixi.show_value(value=float(np.mean(f1)), counter=epoch_nr, name="f1", tag="f1")
 
 
-def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle, metrics, output_path):
+def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle, metrics, output_path,
+                             tracking_format="trk_legacy"):
     import seaborn as sns  # import in function to avoid error if not installed (this is only needed in this function)
     from dipy.viz import actor, window
     from tractseg.libs import vtk_utils
@@ -362,8 +363,12 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
         beginnings = binary_dilation(beginnings)
 
     # Load trackings
-    streams, hdr = trackvis.read(bundle_path)
-    streamlines = [s[0] for s in streams]
+    if tracking_format == "trk_legacy":
+        streams, hdr = trackvis.read(bundle_path)
+        streamlines = [s[0] for s in streams]
+    else:
+        sl_file = nib.streamlines.load(bundle_path)
+        streamlines = sl_file.streamlines
     streamlines = list(transform_streamlines(streamlines, np.linalg.inv(beginnings_img.affine)))
     streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
 

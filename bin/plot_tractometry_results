@@ -112,7 +112,7 @@ def format_number(num):
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
                                  analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000,
-                                 hide_legend=False, plot_3D_path=None):
+                                 hide_legend=False, plot_3D_path=None, tracking_format="trk_legacy"):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -216,7 +216,8 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             if not os.path.isfile(mask_path):
                 raise ValueError("Could not find: " + mask_path)
 
-            plot_utils.plot_bundles_with_metric(tracking_path, ending_path, mask_path, bundle, metric, output_path_3D)
+            plot_utils.plot_bundles_with_metric(tracking_path, ending_path, mask_path, bundle, metric,
+                                                output_path_3D, tracking_format)
 
 
         # Plot significant areas
@@ -266,6 +267,10 @@ def main():
                         default=0.05)
     parser.add_argument("--plot3D", action="store_true", help="Generate streamline plots of each tract with FA on top",
                         default=False)
+    parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
+                        help="If using --plot3D you have to specify the format of the trackings which will get loaded."
+                             "(default: trk_legacy)",
+                        default="trk_legacy")
     args = parser.parse_args()
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
@@ -317,7 +322,7 @@ def main():
     plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
                                  args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
                                  show_detailed_p, nperm=nperm, hide_legend=hide_legend,
-                                 plot_3D_path=plot_3D_path)
+                                 plot_3D_path=plot_3D_path, tracking_format=args.tracking_format)
 
 
 if __name__ == '__main__':

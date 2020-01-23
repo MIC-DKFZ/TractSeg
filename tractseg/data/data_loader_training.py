@@ -124,6 +124,17 @@ def load_training_data(Config, subject):
             data[:, :, :, 3] *= -1
             data[:, :, :, 6] *= -1
 
+    elif Config.FEATURES_FILENAME == "105g_CSD_BX":
+        rnd_choice_1 = np.random.random()
+        if rnd_choice_1 < 0.5:  # CSD
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "105g_2mm_peaks"))
+        else:  # BX
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "105g_2mm_bedpostx_peaks_scaled"))
+            # Flip x axis to make BedpostX compatible with mrtrix CSD
+            data[:, :, :, 0] *= -1
+            data[:, :, :, 3] *= -1
+            data[:, :, :, 6] *= -1
+
     elif Config.FEATURES_FILENAME == "32g270g_BX":
         rnd_choice = np.random.random()
         path_32g = join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "32g_125mm_bedpostx_peaks_scaled")
