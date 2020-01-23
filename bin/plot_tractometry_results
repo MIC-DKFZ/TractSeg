@@ -196,11 +196,12 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                 values_controls = [values[s][b_idx][jdx] for s in subjects_A]
                 _, pvalues[jdx] = scipy.stats.pearsonr(values_controls, meta_data["target"].values)
 
-        # metric = pvalues
-        metric = np.array([values[s][b_idx] for s in subjects_A + subjects_B]).mean(axis=0)
-
 
         if plot_3D_path is not None:
+
+            metric = np.array([values[s][b_idx] for s in subjects_A + subjects_B]).mean(axis=0)
+            # metric = pvalues  # use this code if you want to plot the pvalues instead of the FA
+
             bundle = bundles[b_idx]
             output_path_3D = output_path.split(".")[0] + "_" + bundle + "_3D.png"
 
