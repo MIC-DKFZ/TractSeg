@@ -18,6 +18,7 @@ from tractseg.libs.AFQ_MultiCompCorrection import AFQ_MultiCompCorrection
 from tractseg.libs.AFQ_MultiCompCorrection import get_significant_areas
 from tractseg.libs import metric_utils
 from tractseg.libs import plot_utils
+from tractseg.libs import tracking
 
 
 def parse_subjects_file(file_path):
@@ -112,7 +113,8 @@ def format_number(num):
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
                                  analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000,
-                                 hide_legend=False, plot_3D_path=None, tracking_format="trk_legacy"):
+                                 hide_legend=False, plot_3D_path=None, tracking_format="trk_legacy",
+                                 tracking_dir="auto"):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -205,7 +207,10 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             bundle = bundles[b_idx]
             output_path_3D = output_path.split(".")[0] + "_" + bundle + "_3D.png"
 
-            tracking_path = join(plot_3D_path, "TOM_trackings_filt_prob", bundle + ".trk")
+            if tracking_dir == "auto":
+                tracking_dir = tracking.get_tracking_folder_name("fixed_prob", False)
+
+            tracking_path = join(plot_3D_path, tracking_dir, bundle + ".trk")
             ending_path = join(plot_3D_path, "endings_segmentations", bundle + "_b.nii.gz")
             mask_path = join(plot_3D_path, "..", "nodif_brain_mask.nii.gz")
 
@@ -267,6 +272,9 @@ def main():
                         default=0.05)
     parser.add_argument("--plot3D", action="store_true", help="Generate streamline plots of each tract with FA on top",
                         default=False)
+    parser.add_argument("--tracking_dir", metavar="folder_name",
+                        help="Set name of directory containing the tracking output (see same option for 'Tracking').",
+                        default="auto")
     parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
                         help="If using --plot3D you have to specify the format of the trackings which will get loaded."
                              "(default: trk_legacy)",
@@ -322,7 +330,8 @@ def main():
     plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
                                  args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
                                  show_detailed_p, nperm=nperm, hide_legend=hide_legend,
-                                 plot_3D_path=plot_3D_path, tracking_format=args.tracking_format)
+                                 plot_3D_path=plot_3D_path, tracking_format=args.tracking_format,
+                                 tracking_dir=args.tracking_dir)
 
 
 if __name__ == '__main__':

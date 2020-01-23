@@ -26,7 +26,7 @@ def _mrtrix_tck_to_trk(output_dir, tracking_folder, dir_postfix, bundle, output_
     subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
 
 
-def _get_tracking_folder_name(tracking_algorithm, use_best_original_peaks):
+def get_tracking_folder_name(tracking_algorithm, use_best_original_peaks):
     if tracking_algorithm == "FACT":
         tracking_folder = "Peaks_FACT_trackings"
     elif tracking_algorithm == "SD_STREAM":
@@ -50,7 +50,7 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
 
     # Auto set tracking folder name
     if tracking_folder == "auto":
-        tracking_folder = _get_tracking_folder_name(tracking_algorithm, use_best_original_peaks)
+        tracking_folder = get_tracking_folder_name(tracking_algorithm, use_best_original_peaks)
     TOM_folder = "TOM" + dir_postfix
 
     # Set nr threads for MRtrix
