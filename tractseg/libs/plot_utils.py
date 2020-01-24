@@ -326,7 +326,7 @@ def plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr):
 
 
 def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle, metrics, output_path,
-                             tracking_format="trk_legacy"):
+                             tracking_format="trk_legacy", show_color_bar=True):
     import seaborn as sns  # import in function to avoid error if not installed (this is only needed in this function)
     from dipy.viz import actor, window
     from tractseg.libs import vtk_utils
@@ -344,7 +344,6 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     # colors = np.array(sns.color_palette("coolwarm", NR_SEGMENTS))  # colormap blue to red (does not fit to colorbar)
     colors = np.array(sns.light_palette("red", NR_SEGMENTS))  # colormap only red, which fits to color_bar
     img_size = (1000, 1000)
-    show_color_bar = True
 
     # Tractometry skips first and last element. Therefore we only have 98 instead of 100 elements.
     # Here we duplicate the first and last element to get back to 100 elements
@@ -353,7 +352,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
 
     metrics_max = metrics.max()
     metrics_min = metrics.min()
-    metrics = img_utils.scale_to_range(metrics, range=(0, 99))
+    metrics = img_utils.scale_to_range(metrics, range=(0, 99))  # range needs to be same as segments in colormap
     orientation = dataset_specific_utils.get_optimal_orientation_for_bundle(bundle)
 
     # Load mask
@@ -452,6 +451,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     sl_actor = actor.streamtube(streamlines, colors=colors_all, linewidth=0.2, opacity=1)
     renderer.add(sl_actor)
 
+    # plot brain mask
     mask = nib.load(brain_mask_path).get_data()
     cont_actor = vtk_utils.contour_from_roi_smooth(mask, affine=np.eye(4), color=[.9, .9, .9], opacity=.2,
                                                    smoothing=50)

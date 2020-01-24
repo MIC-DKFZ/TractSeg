@@ -105,7 +105,7 @@ def get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subje
 
 
 def format_number(num):
-    if num > 0.00001:
+    if abs(num) > 0.00001:
         return round(num, 6)
     else:
         return '%.2e' % Decimal(num)
@@ -113,8 +113,8 @@ def format_number(num):
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
                                  analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000,
-                                 hide_legend=False, plot_3D_path=None, tracking_format="trk_legacy",
-                                 tracking_dir="auto"):
+                                 hide_legend=False, plot_3D_path=None, plot_3D_type="FA",
+                                 tracking_format="trk_legacy", tracking_dir="auto", show_color_bar=True):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -189,40 +189,15 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
 
         # Calc p-values
         pvalues = np.zeros(NR_POINTS)
+        stats = np.zeros(NR_POINTS)  # for ttest: t-value, for pearson: correlation
         for jdx in range(NR_POINTS):
             if analysis_type == "group":
                 values_controls = [values[s][b_idx][jdx] for s in subjects_A]
                 values_patients = [values[s][b_idx][jdx] for s in subjects_B]
-                pvalues[jdx] = scipy.stats.ttest_ind(values_controls, values_patients).pvalue
+                stats[jdx], pvalues[jdx] = scipy.stats.ttest_ind(values_controls, values_patients)
             else:
                 values_controls = [values[s][b_idx][jdx] for s in subjects_A]
-                _, pvalues[jdx] = scipy.stats.pearsonr(values_controls, meta_data["target"].values)
-
-
-        if plot_3D_path is not None:
-
-            metric = np.array([values[s][b_idx] for s in subjects_A + subjects_B]).mean(axis=0)
-            # metric = pvalues  # use this code if you want to plot the pvalues instead of the FA
-
-            bundle = bundles[b_idx]
-            output_path_3D = output_path.split(".")[0] + "_" + bundle + "_3D.png"
-
-            if tracking_dir == "auto":
-                tracking_dir = tracking.get_tracking_folder_name("fixed_prob", False)
-
-            tracking_path = join(plot_3D_path, tracking_dir, bundle + ".trk")
-            ending_path = join(plot_3D_path, "endings_segmentations", bundle + "_b.nii.gz")
-            mask_path = join(plot_3D_path, "..", "nodif_brain_mask.nii.gz")
-
-            if not os.path.isfile(tracking_path):
-                raise ValueError("Could not find: " + tracking_path)
-            if not os.path.isfile(ending_path):
-                raise ValueError("Could not find: " + ending_path)
-            if not os.path.isfile(mask_path):
-                raise ValueError("Could not find: " + mask_path)
-
-            plot_utils.plot_bundles_with_metric(tracking_path, ending_path, mask_path, bundle, metric,
-                                                output_path_3D, tracking_format)
+                stats[jdx], pvalues[jdx] = scipy.stats.pearsonr(values_controls, meta_data["target"].values)
 
 
         # Plot significant areas
@@ -252,6 +227,40 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             axes[i].annotate("clusterFWE:   {}".format(clusterFWE),
                              (0, 0), (0, -35), xycoords='axes fraction', textcoords='offset points', va='top',
                              fontsize=10)
+
+        stats_label = "t-value:      " if analysis_type == "group" else "corr.coeff.: "
+        axes[i].annotate(stats_label + "   {}".format(format_number(stats[pvalues.argmin()])),
+                         (0, 0), (0, -55), xycoords='axes fraction', textcoords='offset points', va='top',
+                         fontsize=10)
+
+        if plot_3D_path is not None:
+
+            if plot_3D_type == "FA":
+                metric = np.array([values[s][b_idx] for s in subjects_A + subjects_B]).mean(axis=0)
+            else:
+                # metric = pvalues  # use this code if you want to plot the pvalues instead of the FA
+                metric = sig_areas
+
+            bundle = bundles[b_idx]
+            output_path_3D = output_path.split(".")[0] + "_" + bundle + "_3D.png"
+
+            if tracking_dir == "auto":
+                tracking_dir = tracking.get_tracking_folder_name("fixed_prob", False)
+
+            tracking_path = join(plot_3D_path, tracking_dir, bundle + ".trk")
+            ending_path = join(plot_3D_path, "endings_segmentations", bundle + "_b.nii.gz")
+            mask_path = join(plot_3D_path, "..", "nodif_brain_mask.nii.gz")
+
+            if not os.path.isfile(tracking_path):
+                raise ValueError("Could not find: " + tracking_path)
+            if not os.path.isfile(ending_path):
+                raise ValueError("Could not find: " + ending_path)
+            if not os.path.isfile(mask_path):
+                raise ValueError("Could not find: " + mask_path)
+
+            plot_utils.plot_bundles_with_metric(tracking_path, ending_path, mask_path, bundle, metric,
+                                                output_path_3D, tracking_format, show_color_bar)
+
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=200)
@@ -287,6 +296,8 @@ def main():
     # Show p-value for each position, not only significant areas
     show_detailed_p = False
     hide_legend = False
+    plot_3D_type = "FA"  # FA | pvalue
+    show_color_bar = True  # colorbar on 3D plot
     nperm = args.nperm
 
     # Significance testing with multiple correction for bundles
@@ -330,8 +341,9 @@ def main():
     plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
                                  args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
                                  show_detailed_p, nperm=nperm, hide_legend=hide_legend,
-                                 plot_3D_path=plot_3D_path, tracking_format=args.tracking_format,
-                                 tracking_dir=args.tracking_dir)
+                                 plot_3D_path=plot_3D_path, plot_3D_type=plot_3D_type,
+                                 tracking_format=args.tracking_format, tracking_dir=args.tracking_dir,
+                                 show_color_bar=show_color_bar)
 
 
 if __name__ == '__main__':
