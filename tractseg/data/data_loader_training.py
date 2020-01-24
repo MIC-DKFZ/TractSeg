@@ -29,6 +29,7 @@ from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
 from batchgenerators.augmentations.utils import pad_nd_image
 from batchgenerators.augmentations.utils import center_crop_2D_image_batched
 from batchgenerators.augmentations.crop_and_pad_augmentations import crop
+from batchgenerators.augmentations.spatial_transformations import augment_zoom
 
 from tractseg.data.custom_transformations import ResampleTransformLegacy
 from tractseg.data.custom_transformations import FlipVectorAxisTransform
@@ -185,6 +186,16 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.Config = None
 
+    def _zoom_x_and_y(self, x, y, zoom_factor):
+        # Very slow
+        x_new = []
+        y_new = []
+        for b in range(x.shape[0]):
+            x_tmp, y_tmp = augment_zoom(x[b], y[b], zoom_factor, order=3, order_seg=1, cval_seg=0)
+            x_new.append(x_tmp)
+            y_new.append(y_tmp)
+        return np.array(x_new), np.array(y_new)
+
     def generate_train_batch(self):
 
         subjects = self._data[0]
@@ -216,6 +227,9 @@ class BatchGenerator2D_Nifti_random(SlimDataLoaderBase):
         # y = pad_nd_image(y, self.Config.INPUT_DIM, mode='constant', kwargs={'constant_values': 0})
         # x = center_crop_2D_image_batched(x, self.Config.INPUT_DIM)
         # y = center_crop_2D_image_batched(y, self.Config.INPUT_DIM)
+
+        # If want to convert e.g. 1.25mm (HCP) image to 2mm image (bb)
+        # x, y = self._zoom_x_and_y(x, y, 0.67)  # very slow -> try spatial_transform, should be fast
 
         if self.Config.PAD_TO_SQUARE:
             #Crop and pad to input size

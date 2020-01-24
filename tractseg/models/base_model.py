@@ -274,7 +274,9 @@ class BaseModel:
 
 
     def load_model(self, path):
-        pytorch_utils.load_checkpoint(path, unet=self.net)
+        #todo important: change
+        # pytorch_utils.load_checkpoint(path, unet=self.net)
+        pytorch_utils.load_checkpoint_selectively(path, unet=self.net)
 
 
     def print_current_lr(self):
