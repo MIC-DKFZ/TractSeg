@@ -60,7 +60,8 @@ information on how to do this.
     [Yeatman et al. (2012)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0049790). Please cite their 
     work if you use this.
 
-9. Optionally the argument `--plot3D` can be added when calling `plot_tractometry_results`. This will generated 3D 
+9. Optionally the argument `--plot3D metric` can be added when calling `plot_tractometry_results`. This will generated
+ 3D 
 plots of the streamlines of each bundle. The coloring indicates the average FA (or any other metric used for 
 Tractometry) for each segment (100 segments per default) across all subjects. For this to work `# plot_3D=...` has to
  be added to the `subjects.txt` file (see `tractseg/examples/subjects.txt` for more details.)

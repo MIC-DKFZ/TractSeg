@@ -113,7 +113,7 @@ def format_number(num):
 
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
                                  analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000,
-                                 hide_legend=False, plot_3D_path=None, plot_3D_type="FA",
+                                 hide_legend=False, plot_3D_path=None, plot_3D_type="none",
                                  tracking_format="trk_legacy", tracking_dir="auto", show_color_bar=True):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
@@ -233,9 +233,9 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                          (0, 0), (0, -55), xycoords='axes fraction', textcoords='offset points', va='top',
                          fontsize=10)
 
-        if plot_3D_path is not None:
+        if plot_3D_type != "none":
 
-            if plot_3D_type == "FA":
+            if plot_3D_type == "metric":
                 metric = np.array([values[s][b_idx] for s in subjects_A + subjects_B]).mean(axis=0)
             else:
                 # metric = pvalues  # use this code if you want to plot the pvalues instead of the FA
@@ -279,8 +279,12 @@ def main():
                         default=5000)
     parser.add_argument("--alpha", metavar="a", type=float, help="The desired alpha level (default: 0.05)",
                         default=0.05)
-    parser.add_argument("--plot3D", action="store_true", help="Generate streamline plots of each tract with FA on top",
-                        default=False)
+    # parser.add_argument("--plot3D", action="store_true", help="Generate streamline plots of each tract with FA on top",
+    #                     default=False)
+    parser.add_argument("--plot3D", metavar="none|metric|pval", choices=["none", "metric", "pval"],
+                        help="Generate streamline plots of each tract with FA ('metric') or significant areas "
+                             "('pval') on top",
+                        default="none")
     parser.add_argument("--tracking_dir", metavar="folder_name",
                         help="Set name of directory containing the tracking output (see same option for 'Tracking').",
                         default="auto")
@@ -296,7 +300,6 @@ def main():
     # Show p-value for each position, not only significant areas
     show_detailed_p = False
     hide_legend = False
-    plot_3D_type = "FA"  # FA | pvalue
     show_color_bar = True  # colorbar on 3D plot
     nperm = args.nperm
 
@@ -306,11 +309,10 @@ def main():
     print("Correcting for comparison of multiple tracts: {}".format(correct_mult_tract_comp))
     base_path, meta_data, selected_bundles, plot_3D_path = parse_subjects_file(args.subjects_file)
 
-    if args.plot3D:
+    if args.plot3D != "none":
         if plot_3D_path is None:
             raise ValueError("'# plot_3D=...' is not set in " + args.subjects_file)
-    else:
-        plot_3D_path = None
+        show_color_bar = False
 
     if meta_data.columns[1] == "group":
         analysis_type = "group"
@@ -341,7 +343,7 @@ def main():
     plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
                                  args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
                                  show_detailed_p, nperm=nperm, hide_legend=hide_legend,
-                                 plot_3D_path=plot_3D_path, plot_3D_type=plot_3D_type,
+                                 plot_3D_path=plot_3D_path, plot_3D_type=args.plot3D,
                                  tracking_format=args.tracking_format, tracking_dir=args.tracking_dir,
                                  show_color_bar=show_color_bar)
 

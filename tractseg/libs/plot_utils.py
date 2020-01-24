@@ -352,7 +352,11 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
 
     metrics_max = metrics.max()
     metrics_min = metrics.min()
-    metrics = img_utils.scale_to_range(metrics, range=(0, 99))  # range needs to be same as segments in colormap
+    if metrics_max == metrics_min:
+        metrics = np.zeros(len(metrics))
+    else:
+        metrics = img_utils.scale_to_range(metrics, range=(0, 99))  # range needs to be same as segments in colormap
+
     orientation = dataset_specific_utils.get_optimal_orientation_for_bundle(bundle)
 
     # Load mask
@@ -443,8 +447,8 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
             else:
                 seg_idx = segment_idxs[jdx][idx]
 
-            metric = metrics[int(seg_idx / ANTI_INTERPOL_MULT)]
-            color = colors[int(metric)]
+            m = metrics[int(seg_idx / ANTI_INTERPOL_MULT)]
+            color = colors[int(m)]
             colors_sl.append(color)
         colors_all.append(colors_sl)  # this can not be converted to numpy array because last element has one more elem
 
