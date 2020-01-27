@@ -93,6 +93,10 @@ def all_subjects_biobank_20k():
     return lines
 
 
+all_subjects_biobank_10 = ["1000013", "1000024", "1000036", "1000048", "1000055", "1000067", "1000072", "1000080",
+                           "1000099", "1000106"]
+
+
 def get_all_subjects(dataset="HCP"):
     if dataset == "HCP" or dataset == "HCP_final" or dataset == "HCP_32g":
         return all_subjects_FINAL
@@ -102,5 +106,7 @@ def get_all_subjects(dataset="HCP"):
         return all_subjects_Schizo
     elif dataset.startswith("biobank_20k"):
         return all_subjects_biobank_20k()
+    elif dataset.startswith("biobank_10"):
+        return all_subjects_biobank_10 * 10
     else:
         raise ValueError("Invalid dataset name")

@@ -101,6 +101,7 @@ def run_tractseg(data, output_type="tract_segmentation",
     Config.THRESHOLD = threshold
     Config.NR_CPUS = nr_cpus
     Config.INPUT_DIM = dataset_specific_utils.get_correct_input_dim(Config)
+    Config.RESET_LAST_LAYER = False
 
     if Config.EXPERIMENT_TYPE == "tract_segmentation" and bundle_specific_postprocessing:
         Config.GET_PROBS = True

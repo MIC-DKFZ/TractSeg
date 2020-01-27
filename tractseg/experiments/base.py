@@ -89,6 +89,7 @@ class Config:
     ONLY_VAL = False
     TEST_TIME_DAUG = False
     PAD_TO_SQUARE = True
+    INPUT_RESCALING = False  # Resample data to different resolution (instead of doing in preprocessing))
 
     # data augmentation
     DATA_AUGMENTATION = True

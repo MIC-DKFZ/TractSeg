@@ -20,6 +20,7 @@ from batchgenerators.transforms.resample_transforms import SimulateLowResolution
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform
 from batchgenerators.transforms.noise_transforms import GaussianBlurTransform
 from batchgenerators.transforms.spatial_transforms import SpatialTransform
+from batchgenerators.transforms.spatial_transforms import ZoomTransform
 from batchgenerators.transforms.spatial_transforms import MirrorTransform
 from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.utility_transforms import NumpyToTensor
@@ -34,6 +35,7 @@ from batchgenerators.augmentations.spatial_transformations import augment_zoom
 from tractseg.data.custom_transformations import ResampleTransformLegacy
 from tractseg.data.custom_transformations import FlipVectorAxisTransform
 from tractseg.data.spatial_transform_peaks import SpatialTransformPeaks
+from tractseg.data.spatial_transform_custom import SpatialTransformCustom
 from tractseg.libs.system_config import SystemConfig as C
 from tractseg.libs import data_utils
 from tractseg.libs import peak_utils
@@ -321,6 +323,8 @@ class DataLoaderTraining:
 
         if self.Config.SPATIAL_TRANSFORM == "SpatialTransformPeaks":
             SpatialTransformUsed = SpatialTransformPeaks
+        elif self.Config.SPATIAL_TRANSFORM == "SpatialTransformCustom":
+            SpatialTransformUsed = SpatialTransformCustom
         else:
             SpatialTransformUsed = SpatialTransform
 
@@ -330,6 +334,16 @@ class DataLoaderTraining:
                 #   if 144/2=72 -> always exactly centered; otherwise a bit off center
                 #   (brain can get off image and will be cut then)
                 if self.Config.DAUG_SCALE:
+
+                    if self.Config.INPUT_RESCALING:
+                        source_mm = 2  # for bb
+                        target_mm = float(self.Config.RESOLUTION[:-2])
+                        scale_factor = target_mm / source_mm
+                        # print("scale factor: {}".format(scale_factor))
+                        scale = (scale_factor, scale_factor)
+                    else:
+                        scale = (0.9, 1.5)
+
                     # spatial transform automatically crops/pads to correct size
                     center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
                     tfs.append(SpatialTransformUsed(self.Config.INPUT_DIM,
@@ -340,7 +354,7 @@ class DataLoaderTraining:
                                                 angle_x=self.Config.DAUG_ROTATE_ANGLE,
                                                 angle_y=self.Config.DAUG_ROTATE_ANGLE,
                                                 angle_z=self.Config.DAUG_ROTATE_ANGLE,
-                                                do_scale=True, scale=(0.9, 1.5), border_mode_data='constant',
+                                                do_scale=True, scale=scale, border_mode_data='constant',
                                                 border_cval_data=0,
                                                 order_data=3,
                                                 border_mode_seg='constant', border_cval_seg=0,

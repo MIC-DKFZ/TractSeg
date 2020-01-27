@@ -106,9 +106,9 @@ class BaseModel:
             self.load_model(join(self.Config.EXP_PATH, self.Config.WEIGHTS_PATH))
 
         # Reset weights of last layer for transfer learning
-        if self.Config.RESET_LAST_LAYER:
-            self.net.conv_5 = nn.Conv2d(self.Config.UNET_NR_FILT, self.Config.NR_OF_CLASSES, kernel_size=1,
-                                        stride=1, padding=0, bias=True).to(self.device)
+        # if self.Config.RESET_LAST_LAYER:
+        #     self.net.conv_5 = nn.Conv2d(self.Config.UNET_NR_FILT, self.Config.NR_OF_CLASSES, kernel_size=1,
+        #                                 stride=1, padding=0, bias=True).to(self.device)
 
 
     def train(self, X, y, weight_factor=None):
@@ -274,10 +274,10 @@ class BaseModel:
 
 
     def load_model(self, path):
-        #todo important: change
-        # pytorch_utils.load_checkpoint(path, unet=self.net)
-        pytorch_utils.load_checkpoint_selectively(path, unet=self.net)
-
+        if self.Config.RESET_LAST_LAYER:
+            pytorch_utils.load_checkpoint_selectively(path, unet=self.net)
+        else:
+            pytorch_utils.load_checkpoint(path, unet=self.net)
 
     def print_current_lr(self):
         for param_group in self.optimizer.param_groups:
