@@ -42,13 +42,10 @@ def load_checkpoint_selectively(path, **kwargs):
             model_dict = value.state_dict()  # the new untrained model as dict
             pretrained_dict = checkpoint[key]  # the pretrained model as dict
 
-            pretrained_dict_edited = {}
             for k, v in pretrained_dict.items():
                 if k not in remove_layers:
-                    pretrained_dict_edited[k] = v
-                    # model_dict[k] = v  # this should also work!
+                    model_dict[k] = v  # this should also work!
 
-            model_dict.update(pretrained_dict_edited)  # update dict
             value.load_state_dict(model_dict)  # dict to model
 
     return kwargs
