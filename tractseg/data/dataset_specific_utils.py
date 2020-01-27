@@ -540,7 +540,7 @@ def get_optimal_orientation_for_bundle(bundle):
                            'ATR_right': 'sagittal',
                            'CA': 'coronal',
                            'CC_1': 'axial',
-                           'CC_2': 'coronal',
+                           'CC_2': 'axial',
                            'CC_3': 'coronal',
                            'CC_4': 'coronal',
                            'CC_5': 'coronal',
