@@ -110,13 +110,6 @@ def train_model(Config, model, data_loader):
                 x = batch["data"]  # (bs, nr_of_channels, x, y)
                 y = batch["seg"]  # (bs, nr_of_classes, x, y)
 
-                #todo important: change
-                # print(x.shape)
-                # print(y.shape)
-                # path = "/mnt/jakob/E130-Personal/Wasserthal/tmp/output_tmp.nii.gz"
-                # img_data = x.numpy().transpose(0,2,3,1)
-                # nib.save(nib.Nifti1Image(img_data, np.eye(4)), path)
-
                 timings["data_preparation_time"] += time.time() - start_time_data_preparation
                 start_time_network = time.time()
                 if type == "train":

@@ -339,14 +339,18 @@ class DataLoaderTraining:
                         source_mm = 2  # for bb
                         target_mm = float(self.Config.RESOLUTION[:-2])
                         scale_factor = target_mm / source_mm
-                        # print("scale factor: {}".format(scale_factor))
                         scale = (scale_factor, scale_factor)
                     else:
                         scale = (0.9, 1.5)
 
+                    if self.Config.PAD_TO_SQUARE:
+                        patch_size = self.Config.INPUT_DIM
+                    else:
+                        patch_size = None  # keeps dimensions of the data
+
                     # spatial transform automatically crops/pads to correct size
                     center_dist_from_border = int(self.Config.INPUT_DIM[0] / 2.) - 10  # (144,144) -> 62
-                    tfs.append(SpatialTransformUsed(self.Config.INPUT_DIM,
+                    tfs.append(SpatialTransformUsed(patch_size,
                                                 patch_center_dist_from_border=center_dist_from_border,
                                                 do_elastic_deform=self.Config.DAUG_ELASTIC_DEFORM,
                                                 alpha=self.Config.DAUG_ALPHA, sigma=self.Config.DAUG_SIGMA,
