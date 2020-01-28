@@ -247,7 +247,10 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             if tracking_dir == "auto":
                 tracking_dir = tracking.get_tracking_folder_name("fixed_prob", False)
 
-            tracking_path = join(plot_3D_path, tracking_dir, bundle + ".trk")
+            if tracking_format == "tck":
+                tracking_path = join(plot_3D_path, tracking_dir, bundle + ".tck")
+            else:
+                tracking_path = join(plot_3D_path, tracking_dir, bundle + ".trk")
             ending_path = join(plot_3D_path, "endings_segmentations", bundle + "_b.nii.gz")
             mask_path = join(plot_3D_path, "..", "nodif_brain_mask.nii.gz")
 
