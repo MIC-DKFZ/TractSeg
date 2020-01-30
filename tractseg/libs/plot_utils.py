@@ -163,7 +163,10 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
     if classes.startswith("AutoPTX"):
         bundles = ["cst_r", "cst_s_r", "ifo_r", "fx_l", "fx_r", "or_l", "fma"]
     else:
-        bundles = ["CST_right", "CST_s_right", "CA", "IFO_right", "FX_left", "FX_right", "OR_left", "CC_1"]
+        if exp_type == "endings_segmentation":
+            bundles = ["CST_right_b", "CST_right_e", "CST_s_right_b", "CST_s_right_e", "CA_b", "CA_e"]
+        else:
+            bundles = ["CST_right", "CST_s_right", "CA", "IFO_right", "FX_left", "FX_right", "OR_left", "CC_1"]
 
     if exp_type == "peak_regression":
         s = bundle_segmentations.shape
@@ -201,8 +204,19 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
         plt.axis("off")
         plot_single_tract(background_img, mask_data, orientation, bundle, exp_type=exp_type)
 
+    if exp_type == "tract_segmentation":
+        file_name = "preview_bundle"
+    elif exp_type == "endings_segmentation":
+        file_name = "preview_endings"
+    elif exp_type == "peak_regression":
+        file_name = "preview_TOM"
+    elif exp_type == "dm_regression":
+        file_name = "preview_dm"
+    else:
+        file_name = "preview"
+
     plt.subplots_adjust(wspace=0, hspace=0)
-    plt.savefig(join(out_dir, "preview.png"), bbox_inches='tight', dpi=300)
+    plt.savefig(join(out_dir, file_name + ".png"), bbox_inches='tight', dpi=300)
 
 
 def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
