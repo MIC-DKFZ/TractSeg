@@ -21,13 +21,13 @@ from tractseg.libs import exp_utils
 
 
 #todo: adapt
-# dataset = "HCP_final"
-# DATASET_FOLDER = "HCP_for_training_COPY"  # source folder
-# DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
+dataset = "HCP_final"
+DATASET_FOLDER = "HCP_for_training_COPY"  # source folder
+DATASET_FOLDER_PREPROC = "HCP_preproc"  # target folder
 
-dataset = "HCP_all"
-DATASET_FOLDER = "data/HCP_all_training"
-DATASET_FOLDER_PREPROC = "HCP_preproc_all"
+# dataset = "HCP_all"
+# DATASET_FOLDER = "data/HCP_all_training"
+# DATASET_FOLDER_PREPROC = "HCP_preproc_all"
 
 # dataset = "biobank_20k"
 # DATASET_FOLDER = "data/biobank_aPTX_20k_training"
@@ -40,9 +40,9 @@ def create_preprocessed_files(subject):
     check_for_existing_files = False
 
     # Estimate bounding box from this file and then apply it to all other files
-    # bb_file = "12g_125mm_peaks"
+    bb_file = "12g_125mm_peaks"
     # bb_file = "105g_2mm_bedpostx_peaks_scaled"
-    bb_file = "270g_125mm_peaks"
+    # bb_file = "270g_125mm_peaks"
 
     # todo: adapt
     # filenames_data = ["12g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks",
@@ -55,9 +55,12 @@ def create_preprocessed_files(subject):
     # filenames_data = ["105g_2mm_bedpostx_peaks_scaled", "105g_2mm_peaks"]
     # filenames_seg = ["bundle_masks_xtract_dm", "bundle_masks_xtract_thr001"]
 
-    filenames_data = ["32g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks",
-                      "32g_125mm_bedpostx_peaks_scaled", "270g_125mm_bedpostx_peaks_scaled"]
-    filenames_seg = ["bundle_masks_xtract_dm", "bundle_masks_xtract_thr001"]
+    # filenames_data = ["32g_125mm_peaks", "90g_125mm_peaks", "270g_125mm_peaks",
+    #                   "32g_125mm_bedpostx_peaks_scaled", "270g_125mm_bedpostx_peaks_scaled"]
+    # filenames_seg = ["bundle_masks_xtract_dm", "bundle_masks_xtract_thr001"]
+
+    filenames_data = ["90g_125mm_raw32g", "90g_125mm_sh", "90g_125mm_raw"]
+    filenames_seg = []
 
 
     print("idx: {}".format(subjects.index(subject)))

@@ -364,6 +364,10 @@ def get_cv_fold(fold, dataset="HCP"):
         subjects = get_all_subjects(dataset)
         cut_point = int(len(subjects) * 0.9)
         return subjects[:cut_point], subjects[cut_point:], ["599671", "599469"]
+    elif dataset == "HCP_90g":
+        subjects = get_all_subjects(dataset)
+        cut_point = int(len(subjects) * 0.7)
+        return subjects[:cut_point], subjects[cut_point:], ["599671", "599469"]
     elif dataset == "biobank_20k" or dataset == "biobank_10":
         subjects = get_all_subjects(dataset)
         cut_point = int(len(subjects) * 0.9)
