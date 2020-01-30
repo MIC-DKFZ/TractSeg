@@ -113,7 +113,7 @@ def main():
     use_as_prior = False  # Track on weighted average between best original peaks and TOM
     # use default naming scheme plus this postfix when looking for TractSeg output subfolders during tracking
     dir_postfix = ""    # e.g. "_BSThr"
-    tract_definition = "TractQuerier+"  # TractQuerier+|AutoPTX
+    tract_definition = "TractQuerier+"  # TractQuerier+|xtract
     next_step_displacement_std = 0.15
     filter_tracking_by_endpoints = not args.no_filtering_by_endpoints
     input_path = args.input

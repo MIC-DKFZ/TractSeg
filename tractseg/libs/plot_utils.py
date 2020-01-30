@@ -160,7 +160,7 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
         plt.imshow(data, cmap="autumn")  # even with cmap=autumn peaks still RGB
         plt.title(bundle, fontsize=7)
 
-    if classes.startswith("AutoPTX"):
+    if classes.startswith("xtract"):
         bundles = ["cst_r", "cst_s_r", "ifo_r", "fx_l", "fx_r", "or_l", "fma"]
     else:
         if exp_type == "endings_segmentation":

@@ -132,14 +132,14 @@ def main():
     parser.add_argument('--exp_name', metavar="folder_name", help="name of experiment - ONLY FOR TESTING",
                         default=None)
 
-    parser.add_argument('--tract_definition', metavar="TractQuerier+|AutoPTX", choices=["TractQuerier+", "AutoPTX"],
+    parser.add_argument('--tract_definition', metavar="TractQuerier+|xtract", choices=["TractQuerier+", "xtract"],
                         help="Select which tract definitions to use. 'TractQuerier+' defines tracts mainly by their"
-                             "cortical start and end region. 'AutoPTX' defines tracts mainly by ROIs in white matter. "
+                             "cortical start and end region. 'xtract' defines tracts mainly by ROIs in white matter. "
                              "Both have their advantages and disadvantages. 'TractQuerier+' referes to the dataset "
                              "described the TractSeg NeuroImage paper. "
-                             "NOTE 1: 'AutoPTX' only works for output type 'tractseg_segmentation' and "
+                             "NOTE 1: 'xtract' only works for output type 'tractseg_segmentation' and "
                              "'dm_regression'. "
-                             "NOTE 2: A pretrained 'AutoPTX' model is not available yet.",
+                             "NOTE 2: A pretrained 'xtract' model is not available yet.",
                         default="TractQuerier+")
 
     parser.add_argument("--rescale_dm", action="store_true",

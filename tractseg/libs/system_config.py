@@ -34,24 +34,23 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
             elif output_type == "dm_regression":
                 print("ERROR: For dm_regression no pretrained model available for T1")
                 sys.exit()
-    else:  # "AutoPTX"
+    else:  # "xtract"
         if input_type == "peaks":
             if output_type == "tract_segmentation" and dropout_sampling:
-                print("ERROR: tract_definition AutoPTX in combination with uncertainty not supported yet.")
-                sys.exit()
+                config = "TractSeg_All_xtract_PeakRot4"
             elif output_type == "tract_segmentation":
-                config = "TractSeg_All_BXTensAg_aPTX_platLR20"
+                config = "TractSeg_All_xtract_PeakRot4"
             elif output_type == "endings_segmentation":
-                print("ERROR: tract_definition AutoPTX in combination with output_type endings_segmentation "
+                print("ERROR: tract_definition xtract in combination with output_type endings_segmentation "
                       "not supported yet.")
                 sys.exit()
             elif output_type == "TOM":
-                print("ERROR: tract_definition AutoPTX in combination with output_type TOM not supported yet.")
+                print("ERROR: tract_definition xtract in combination with output_type TOM not supported yet.")
                 sys.exit()
             elif output_type == "dm_regression":
-                config = "DmReg_All_BXTensAg_aPTX_platLR20_noMiss"
+                config = "DmReg_All_xtract_PeakRot4"
         else:  # T1
-            print("ERROR: AutoPTX in combination with input_type T1 not supported.")
+            print("ERROR: xtract in combination with input_type T1 not supported.")
             sys.exit()
 
     return config
