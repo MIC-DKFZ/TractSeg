@@ -249,7 +249,8 @@ def main():
         else:
             data_img = nib.load(peak_path)
         data_img_shape = data_img.get_data().shape
-        if Config.NR_OF_GRADIENTS != 1 and not (len(data_img_shape) == 4 and data_img_shape[3] == 9):
+        if Config.NR_OF_GRADIENTS != 1 and not (len(data_img_shape) == 4 and
+                                                data_img_shape[3] == Config.NR_OF_GRADIENTS):
             print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
                   ": Input image must be a peak image (nifti 4D image with dimensions [x,y,z,9]). " +
                   "If you input a Diffusion image add the option '--raw_diffusion_input'." + bcolors.ENDC)
