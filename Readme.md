@@ -218,6 +218,16 @@ The following list shows the index of each extracted bundle in the output file (
 71: ST_OCC_right
 ```
 
+#### Use different tract definitions
+TractSeg was also trained on the bundles provided by [xtract](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/XTRACT). 
+These bundles are slightly differently defined. They tend to be more specific but therefore also a bit 
+less complete. Depending on your application this might be of interest for you. 
+> NOTE: This is only supported for output type `tract_segmentation` and `dm_regression`.
+```
+TractSeg -i peaks.nii.gz --tract_definition xtract
+```
+
+
 #### Use python interface
 ```python
 import nibabel as nib
