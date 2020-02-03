@@ -127,9 +127,15 @@ def mem_usage(print_usage=True):
     return gb
 
 
-def download_pretrained_weights(experiment_type, dropout_sampling=False, part="Part1"):
+def download_pretrained_weights(experiment_type, dropout_sampling=False,
+                                part="Part1", tract_definition="TractQuerier+"):
 
-    if experiment_type == "tract_segmentation":
+    if experiment_type == "tract_segmentation" and tract_definition == "xtract":
+        weights_path_old = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_tract_segmentation_xtract_v0.npz')
+        weights_path = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_tract_segmentation_xtract_v1.npz')
+        WEIGHTS_URL = "https://zenodo.org/record/3634539/files/best_weights_ep266.npz?download=1"
+
+    elif experiment_type == "tract_segmentation" and tract_definition == "TractQuerier+":
         weights_path_old = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_tract_segmentation_v2.npz')
         weights_path = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_tract_segmentation_v3.npz')
         WEIGHTS_URL = "https://zenodo.org/record/3518348/files/best_weights_ep220.npz?download=1"
@@ -139,7 +145,12 @@ def download_pretrained_weights(experiment_type, dropout_sampling=False, part="P
         weights_path = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_endings_segmentation_v4.npz')
         WEIGHTS_URL = "https://zenodo.org/record/3518331/files/best_weights_ep143.npz?download=1"
 
-    elif experiment_type == "dm_regression":
+    elif experiment_type == "dm_regression" and tract_definition == "xtract":
+        weights_path_old = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_dm_regression_xtract_v0.npz')
+        weights_path = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_dm_regression_xtract_v1.npz')
+        WEIGHTS_URL = "https://zenodo.org/record/3634549/files/best_weights_ep207.npz?download=1"
+
+    elif experiment_type == "dm_regression" and tract_definition == "TractQuerier+":
         weights_path_old = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_dm_regression_v1.npz')
         weights_path = os.path.join(C.WEIGHTS_DIR, 'pretrained_weights_dm_regression_v2.npz')
         WEIGHTS_URL = "https://zenodo.org/record/3518346/files/best_weights_ep199.npz?download=1"

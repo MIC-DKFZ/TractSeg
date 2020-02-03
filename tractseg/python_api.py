@@ -129,14 +129,11 @@ def run_tractseg(data, output_type="tract_segmentation",
                     Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_peak_regression_v1.npz")
         else:  # xtract
             if Config.EXPERIMENT_TYPE == "tract_segmentation":
-                Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_aPTX_v1.npz")
+                Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_tract_segmentation_xtract_v1.npz")
             elif Config.EXPERIMENT_TYPE == "dm_regression":
-                Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_dm_regression_aPTX_v1.npz")
+                Config.WEIGHTS_PATH = join(C.WEIGHTS_DIR, "pretrained_weights_dm_regression_xtract_v1.npz")
             else:
                 raise ValueError("bundle_definition xtract not supported in combination with this output type")
-            #todo: remove when aPTX weights are loaded automatically
-            if not os.path.exists(Config.WEIGHTS_PATH):
-                raise FileNotFoundError("Could not find weights file: {}".format(Config.WEIGHTS_PATH))
 
     if Config.VERBOSE:
         print("Hyperparameters:")
@@ -155,7 +152,8 @@ def run_tractseg(data, output_type="tract_segmentation",
         print("Loading weights from: {}".format(Config.WEIGHTS_PATH))
         Config.NR_OF_CLASSES = len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
         utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
-                                          dropout_sampling=Config.DROPOUT_SAMPLING)
+                                          dropout_sampling=Config.DROPOUT_SAMPLING,
+                                          tract_definition=tract_definition)
         model = BaseModel(Config, inference=True)
         if single_orientation:  # mainly needed for testing because of less RAM requirements
             data_loder_inference = DataLoaderInference(Config, data=data)
@@ -203,7 +201,8 @@ def run_tractseg(data, output_type="tract_segmentation",
             Config.CLASSES = "All_" + part
             Config.NR_OF_CLASSES = 3 * len(dataset_specific_utils.get_bundle_names(Config.CLASSES)[1:])
             utils.download_pretrained_weights(experiment_type=Config.EXPERIMENT_TYPE,
-                                              dropout_sampling=Config.DROPOUT_SAMPLING, part=part)
+                                              dropout_sampling=Config.DROPOUT_SAMPLING, part=part,
+                                              tract_definition=tract_definition)
             model = BaseModel(Config, inference=True)
 
             if single_orientation:

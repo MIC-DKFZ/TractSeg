@@ -138,8 +138,7 @@ def main():
                              "Both have their advantages and disadvantages. 'TractQuerier+' referes to the dataset "
                              "described the TractSeg NeuroImage paper. "
                              "NOTE 1: 'xtract' only works for output type 'tractseg_segmentation' and "
-                             "'dm_regression'. "
-                             "NOTE 2: A pretrained 'xtract' model is not available yet.",
+                             "'dm_regression'.",
                         default="TractQuerier+")
 
     parser.add_argument("--rescale_dm", action="store_true",

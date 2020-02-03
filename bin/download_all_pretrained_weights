@@ -19,6 +19,8 @@ def main():
                                         epilog="Written by Jakob Wasserthal")
     args = parser.parse_args()
 
+    utils.download_pretrained_weights("tract_segmentation", tract_definition="xtract")
+    utils.download_pretrained_weights("dm_regression", tract_definition="xtract")
     utils.download_pretrained_weights("tract_segmentation")
     utils.download_pretrained_weights("endings_segmentation")
     utils.download_pretrained_weights("dm_regression")

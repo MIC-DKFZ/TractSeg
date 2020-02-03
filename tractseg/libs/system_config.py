@@ -42,10 +42,10 @@ def get_config_name(input_type, output_type, dropout_sampling=False, tract_defin
                 config = "TractSeg_All_xtract_PeakRot4"
             elif output_type == "endings_segmentation":
                 print("ERROR: tract_definition xtract in combination with output_type endings_segmentation "
-                      "not supported yet.")
+                      "not supported.")
                 sys.exit()
             elif output_type == "TOM":
-                print("ERROR: tract_definition xtract in combination with output_type TOM not supported yet.")
+                print("ERROR: tract_definition xtract in combination with output_type TOM not supported.")
                 sys.exit()
             elif output_type == "dm_regression":
                 config = "DmReg_All_xtract_PeakRot4"
