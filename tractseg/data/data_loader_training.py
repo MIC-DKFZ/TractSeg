@@ -67,6 +67,15 @@ def load_training_data(Config, subject):
         else:
             data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_peaks"))
 
+    elif Config.FEATURES_FILENAME == "12g90g270gRaw32g":
+        rnd_choice = np.random.random()
+        if rnd_choice < 0.33:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "270g_125mm_raw32g"))
+        elif rnd_choice < 0.66:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "90g_125mm_raw32g"))
+        else:
+            data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, "12g_125mm_raw32g"))
+
     elif Config.FEATURES_FILENAME == "12g90g270g_BX":
         rnd_choice = np.random.random()
         if rnd_choice < 0.33:
