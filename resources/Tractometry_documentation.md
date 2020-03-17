@@ -43,7 +43,7 @@ GPU: 2min ~14s)
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
 6. Repeat step 1-4 for every subject (use a shell script for that)
 7. To test for statistical significance and plot the results run the following command:  
-`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png -mc`   
+`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png --mc`   
 (runtime on CPU for group analysis: ~4min for 100 subjects)  
 (runtime on CPU for correlation analysis: ~7min for 40 subjects)
 Adapt `subjects.txt` with your data path, subject IDs and confounds. `tractseg/examples/subjects.txt` contains more 
