@@ -1,0 +1,11 @@
+# tractometry_path=tests/reference_files/tractometry/Tractometry_SUBJECT_ID.csv
+# bundles=CST_right UF_left CC_5 CC_6 SCP_left
+#
+subject_id group Age Sex
+h1 0 41.0 0
+h2 0 44.0 1
+h3 0 39.0 0
+s1 1 43.0 1
+s2 1 48.0 0
+s3 1 40.0 0
+

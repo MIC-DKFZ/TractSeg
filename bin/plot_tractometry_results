@@ -114,7 +114,8 @@ def format_number(num):
 def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, output_path, alpha, FWE_method,
                                  analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000,
                                  hide_legend=False, plot_3D_path=None, plot_3D_type="none",
-                                 tracking_format="trk_legacy", tracking_dir="auto", show_color_bar=True):
+                                 tracking_format="trk_legacy", tracking_dir="auto", show_color_bar=True,
+                                 save_csv=False):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -152,6 +153,11 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             values_allp.append(values_subject)
         alphaFWE, clusterFWE = get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subjects_B, alpha,
                                                    bundles, nperm, b_idx)
+
+    if FWE_method == "alphaFWE":
+        results_df = pd.DataFrame(columns=["bundle", "alphaFWE", "min_pvalue", "t_value"])
+    else:
+        results_df = pd.DataFrame(columns=["bundle", "clusterFWE", "t_value"])
 
     for i, b_idx in enumerate(tqdm(selected_bun_indices)):
         # Bring data into right format for seaborn
@@ -216,6 +222,7 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             axes[i].plot(range(len(sig_areas)), sig_areas, color="red", linestyle=":")
 
         # Plot text
+        results_df.at[i, "bundle"] = bundles[b_idx]
         if FWE_method == "alphaFWE":
             axes[i].annotate("alphaFWE:   {}".format(format_number(alphaFWE)),
                              (0, 0), (0, -35), xycoords='axes fraction', textcoords='offset points', va='top',
@@ -223,15 +230,19 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             axes[i].annotate("min p-value: {}".format(format_number(pvalues.min())),
                              (0, 0), (0, -45), xycoords='axes fraction', textcoords='offset points', va='top',
                              fontsize=10)
+            results_df.at[i, "alphaFWE"] = format_number(alphaFWE)
+            results_df.at[i, "min_pvalue"] = format_number(pvalues.min())
         else:
             axes[i].annotate("clusterFWE:   {}".format(clusterFWE),
                              (0, 0), (0, -35), xycoords='axes fraction', textcoords='offset points', va='top',
                              fontsize=10)
+            results_df.at[i, "clusterFWE"] = clusterFWE
 
         stats_label = "t-value:      " if analysis_type == "group" else "corr.coeff.: "
         axes[i].annotate(stats_label + "   {}".format(format_number(stats[pvalues.argmin()])),
                          (0, 0), (0, -55), xycoords='axes fraction', textcoords='offset points', va='top',
                          fontsize=10)
+        results_df.at[i, "t_value"] = format_number(stats[pvalues.argmin()])
 
         if plot_3D_type != "none":
 
@@ -268,6 +279,9 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
     plt.tight_layout()
     plt.savefig(output_path, dpi=200)
 
+    if save_csv:
+        results_df.to_csv(output_path + ".csv")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Test for significant differences and plot tractometry results.",
@@ -282,12 +296,12 @@ def main():
                         default=5000)
     parser.add_argument("--alpha", metavar="a", type=float, help="The desired alpha level (default: 0.05)",
                         default=0.05)
-    # parser.add_argument("--plot3D", action="store_true", help="Generate streamline plots of each tract with FA on top",
-    #                     default=False)
     parser.add_argument("--plot3D", metavar="none|metric|pval", choices=["none", "metric", "pval"],
                         help="Generate streamline plots of each tract with FA ('metric') or significant areas "
                              "('pval') on top",
                         default="none")
+    parser.add_argument("--save_csv", action="store_true", help="save results also as csv",
+                        default=False)
     parser.add_argument("--tracking_dir", metavar="folder_name",
                         help="Set name of directory containing the tracking output (see same option for 'Tracking').",
                         default="auto")
@@ -348,7 +362,7 @@ def main():
                                  show_detailed_p, nperm=nperm, hide_legend=hide_legend,
                                  plot_3D_path=plot_3D_path, plot_3D_type=args.plot3D,
                                  tracking_format=args.tracking_format, tracking_dir=args.tracking_dir,
-                                 show_color_bar=show_color_bar)
+                                 show_color_bar=show_color_bar, save_csv=args.save_csv)
 
 
 if __name__ == '__main__':

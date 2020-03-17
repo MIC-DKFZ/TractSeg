@@ -6,6 +6,7 @@ from __future__ import print_function
 import unittest
 import nibabel as nib
 import numpy as np
+import pandas as pd
 
 from tractseg.data import dataset_specific_utils
 from tractseg.libs import data_utils
@@ -167,6 +168,30 @@ class test_end_to_end(unittest.TestCase):
         diff_max = np.abs(ref-new).max()
         arrays_equal = np.allclose(ref, new, rtol=3e-2, atol=3e-2)  # works for 10k fibers with 100 points
         self.assertTrue(arrays_equal, "Tractometry not correct (max difference: " + str(diff_max) + ")")
+
+    def test_statistical_analysis_group(self):
+        ref = pd.read_csv("tests/reference_files/tractometry/tractometry_result_group.png.csv",
+                         sep=",").values[:, 2:]  # all but index and bundle_name column
+        new = pd.read_csv("examples/tractometry_result_group.png.csv",
+                          sep=",").values[:, 2:]
+        diff_max = np.abs(ref-new).max()
+        #todo important: change
+        print("diff_max (group): {}".format(diff_max))
+        arrays_equal = np.allclose(ref, new, rtol=1e-6, atol=1e-6)
+        self.assertTrue(arrays_equal, "Statistical analysis (group) not correct (max difference: " +
+                        str(diff_max) + ")")
+
+    def test_statistical_analysis_correlation(self):
+        ref = pd.read_csv("tests/reference_files/tractometry/tractometry_result_correlation.png.csv",
+                         sep=",").values[:, 2:]  # all but index and bundle_name column
+        new = pd.read_csv("examples/tractometry_result_correlation.png.csv",
+                          sep=",").values[:, 2:]
+        diff_max = np.abs(ref-new).max()
+        #todo important: change
+        print("diff_max (correlation): {}".format(diff_max))
+        arrays_equal = np.allclose(ref, new, rtol=1e-6, atol=1e-6)
+        self.assertTrue(arrays_equal, "Statistical analysis (correlation) not correct (max difference: " +
+                        str(diff_max) + ")")
 
 
 if __name__ == '__main__':

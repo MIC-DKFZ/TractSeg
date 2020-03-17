@@ -93,6 +93,14 @@ script:
     --nr_points 10 --tracking_format trk_legacy
   - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry_toy_example
 
+  #Statistical analysis of tractometry
+  - plot_tractometry_results -i tests/reference_files/subjects_group.txt
+    -o examples/tractometry_result_group.png --mc --save_csv
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_statistical_analysis_group
+  - plot_tractometry_results -i tests/reference_files/subjects_correlation.txt
+    -o examples/tractometry_result_correlation.png --mc --save_csv
+  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_statistical_analysis_correlation
+
   #Bundles SR noPP
   - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_noPP/tractseg_output --single_orientation
     --super_resolution --no_postprocess
