@@ -17,8 +17,8 @@
 # Apart from the first three lines all other lines which start with `#` will be ignored.
 # This file will get parsed as a space separated csv file.
 #
-# The first columns has to be 'subject_id' and is mandatory.
-# The second columns has to be 'group' (for a group comparison; containing only 0 or 1) or 'target' (for a correlation
+# The first column has to be 'subject_id' and is mandatory.
+# The second column has to be 'group' (for a group comparison; containing only 0 or 1) or 'target' (for a correlation
 # analysis; containing the value you want to calculate the correlation for).
 # Any additional column will be treated as a confound and regressed out of the data before doing the statistical
 # analysis.
