@@ -175,9 +175,7 @@ class test_end_to_end(unittest.TestCase):
         new = pd.read_csv("examples/tractometry_result_group.png.csv",
                           sep=",").values[:, 2:]
         diff_max = np.abs(ref-new).max()
-        #todo important: change
-        print("diff_max (group): {}".format(diff_max))
-        arrays_equal = np.allclose(ref, new, rtol=1e-6, atol=1e-6)
+        arrays_equal = np.array_equal(ref, new)
         self.assertTrue(arrays_equal, "Statistical analysis (group) not correct (max difference: " +
                         str(diff_max) + ")")
 
@@ -187,9 +185,7 @@ class test_end_to_end(unittest.TestCase):
         new = pd.read_csv("examples/tractometry_result_correlation.png.csv",
                           sep=",").values[:, 2:]
         diff_max = np.abs(ref-new).max()
-        #todo important: change
-        print("diff_max (correlation): {}".format(diff_max))
-        arrays_equal = np.allclose(ref, new, rtol=1e-6, atol=1e-6)
+        arrays_equal = np.array_equal(ref, new)
         self.assertTrue(arrays_equal, "Statistical analysis (correlation) not correct (max difference: " +
                         str(diff_max) + ")")
 
