@@ -155,7 +155,7 @@ def angle_last_dim(a, b):
         return torch.abs(einsum('abcde,abcde->abcd', a, b) / (torch.norm(a, 2., -1) * torch.norm(b, 2, -1) + 1e-7))
 
 
-def angle_loss(y_pred, y_true):
+def angle_loss(y_pred, y_true, weights=None):
     """
     Loss based on consine similarity.
 

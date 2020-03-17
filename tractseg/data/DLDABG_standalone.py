@@ -39,18 +39,19 @@ class SingleThreadedAugmenter(object):
         return item
 
 
-def zero_mean_unit_variance_normalization(data, per_channel=True, epsilon=1e-7):
+def zero_mean_unit_variance_normalization(data, per_channel=True, epsilon=1e-8):
+    data_normalized = np.zeros(data.shape, dtype=data.dtype)
     for b in range(data.shape[0]):
         if per_channel:
             for c in range(data.shape[1]):
                 mean = data[b, c].mean()
                 std = data[b, c].std() + epsilon
-                data[b, c] = (data[b, c] - mean) / std
+                data_normalized[b, c] = (data[b, c] - mean) / std
         else:
             mean = data[b].mean()
             std = data[b].std() + epsilon
-            data[b] = (data[b] - mean) / std
-    return data
+            data_normalized[b] = (data[b] - mean) / std
+    return data_normalized
 
 
 class AbstractTransform(object):

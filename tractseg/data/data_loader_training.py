@@ -22,7 +22,6 @@ from batchgenerators.transforms.noise_transforms import GaussianBlurTransform
 from batchgenerators.transforms.spatial_transforms import SpatialTransform
 from batchgenerators.transforms.spatial_transforms import ZoomTransform
 from batchgenerators.transforms.spatial_transforms import MirrorTransform
-from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
 from batchgenerators.transforms.utility_transforms import NumpyToTensor
 from batchgenerators.transforms.abstract_transforms import Compose
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
@@ -31,6 +30,9 @@ from batchgenerators.augmentations.utils import pad_nd_image
 from batchgenerators.augmentations.utils import center_crop_2D_image_batched
 from batchgenerators.augmentations.crop_and_pad_augmentations import crop
 from batchgenerators.augmentations.spatial_transformations import augment_zoom
+
+# from batchgenerators.transforms.sample_normalization_transforms import ZeroMeanUnitVarianceTransform
+from tractseg.data.DLDABG_standalone import ZeroMeanUnitVarianceTransform as ZeroMeanUnitVarianceTransform_Standalone
 
 from tractseg.data.custom_transformations import ResampleTransformLegacy
 from tractseg.data.custom_transformations import FlipVectorAxisTransform
@@ -177,8 +179,15 @@ def load_training_data(Config, subject):
     else:
         data = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.FEATURES_FILENAME))
 
-
-    seg = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.LABELS_FILENAME))
+    if "|" in Config.LABELS_FILENAME:
+        parts = Config.LABELS_FILENAME.split("|")
+        seg = []  # [4, x, y, z, 54]
+        for part in parts:
+            seg.append(load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, part)))
+        seg = np.array(seg).transpose(1, 2, 3, 4, 0)
+        seg = seg.reshape(data.shape[:3] + (-1,))  # [x, y, z, 54*4]
+    else:
+        seg = load(join(C.DATA_PATH, Config.DATASET_FOLDER, subject, Config.LABELS_FILENAME))
 
     return data, seg
 
@@ -328,7 +337,9 @@ class DataLoaderTraining:
         tfs = []
 
         if self.Config.NORMALIZE_DATA:
-            tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
+            # todo: Use original transform as soon as bug fixed in batchgenerators
+            # tfs.append(ZeroMeanUnitVarianceTransform(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
+            tfs.append(ZeroMeanUnitVarianceTransform_Standalone(per_channel=self.Config.NORMALIZE_PER_CHANNEL))
 
         if self.Config.SPATIAL_TRANSFORM == "SpatialTransformPeaks":
             SpatialTransformUsed = SpatialTransformPeaks

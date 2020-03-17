@@ -59,7 +59,7 @@ def create_preprocessed_files(subject):
     #                   "32g_125mm_bedpostx_peaks_scaled", "270g_125mm_bedpostx_peaks_scaled"]
     # filenames_seg = ["bundle_masks_xtract_dm", "bundle_masks_xtract_thr001"]
 
-    filenames_data = ["90g_125mm_raw32g", "90g_125mm_sh", "90g_125mm_raw"]
+    filenames_data = ["12g_125mm_raw32g", "270g_125mm_raw32g"]
     filenames_seg = []
 
 

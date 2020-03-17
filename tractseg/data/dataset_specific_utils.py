@@ -191,7 +191,8 @@ def get_labels_filename(Config):
 
     if Config.CLASSES == "All" and Config.EXPERIMENT_TYPE == "peak_regression":
         if Config.RESOLUTION == "1.25mm":
-            Config.LABELS_FILENAME = "bundle_peaks"
+            # Config.LABELS_FILENAME = "bundle_peaks"
+            Config.LABELS_FILENAME = "bundle_peaks_Part1|bundle_peaks_Part2|bundle_peaks_Part3|bundle_peaks_Part4"
         else:
             Config.LABELS_FILENAME = "bundle_peaks_808080"
 
