@@ -8,7 +8,6 @@ import math
 
 import numpy as np
 import nibabel as nib
-import torch
 from nibabel import trackvis
 from dipy.tracking.streamline import transform_streamlines
 from scipy.ndimage.morphology import binary_dilation
@@ -303,6 +302,8 @@ def create_exp_plot(metrics, path, exp_name, without_first_epochs=False,
 
 
 def plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr):
+    import torch
+
     x_norm = (x - x.min()) / (x.max() - x.min() + 1e-7)  # for proper plotting
     trixi.show_image_grid(torch.tensor(x_norm).float()[:5, 0:1, :, :], name="input batch",
                           title="Input batch")  # all channels of one batch
