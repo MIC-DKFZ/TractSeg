@@ -216,7 +216,7 @@ def run_tractseg(data, output_type="tract_segmentation",
                                                                                   scale_to_world_shape=False,
                                                                                   only_prediction=True,
                                                                                   batch_size=inference_batch_size)
-                seg = direction_merger.mean_fusion_peaks(seg_xyz)
+                seg = direction_merger.mean_fusion_peaks(seg_xyz, nr_cpus=nr_cpus)
 
             if peak_regression_part == "All":
                 seg_all[:, :, :, (idx*Config.NR_OF_CLASSES) : (idx*Config.NR_OF_CLASSES+Config.NR_OF_CLASSES)] = seg

@@ -60,7 +60,7 @@ def mean_fusion(threshold, img, probs=True):
     return probs_mean
 
 
-def mean_fusion_peaks(img):
+def mean_fusion_peaks(img, nr_cpus=-1):
     """
     Calculating mean in tensor space (if simply taking mean in peak space most voxels look fine but a few are
     completely wrong (e.g. some voxels in transition to lateral projections of CST)).
@@ -86,7 +86,8 @@ def mean_fusion_peaks(img):
         merged_peak = peak_utils.tensors_to_peaks(merged_tensor)
         return merged_peak
 
-    merged_peaks_all = Parallel(n_jobs=5)(delayed(process_bundle)(idx) for idx in range(nr_classes))
+    n_jobs = 5 if nr_cpus == -1 else min(nr_cpus, 5)
+    merged_peaks_all = Parallel(n_jobs=n_jobs)(delayed(process_bundle)(idx) for idx in range(nr_classes))
 
     merged_peaks_all = np.array(merged_peaks_all).transpose(1, 2, 3, 0, 4)
     s = merged_peaks_all.shape
