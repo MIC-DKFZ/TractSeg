@@ -9,10 +9,10 @@ matrix:
     env:
       - PYTORCH_URL="torch==1.3.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
       - PYTHON_VERS=3.5
-  - python: "3.6"
+  - python: "3.7"
     env:
       - PYTORCH_URL="torch==1.3.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
-      - PYTHON_VERS=3.6
+      - PYTHON_VERS=3.7
 before_install:
   - pip install $PYTORCH_URL
 install:
