@@ -10,3 +10,5 @@ class Config(PeakRegConfig):
     METRIC_TYPES = ["loss", "f1_macro"]
     BEST_EPOCH_SELECTION = "loss"
     NUM_EPOCHS = 150
+
+    FP16 = False  # loss always NaN for Peak Reg with fp16

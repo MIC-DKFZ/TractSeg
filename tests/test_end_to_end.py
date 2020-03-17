@@ -171,9 +171,9 @@ class test_end_to_end(unittest.TestCase):
 
     def test_statistical_analysis_group(self):
         ref = pd.read_csv("tests/reference_files/tractometry/tractometry_result_group.png.csv",
-                         sep=",").values[:, 2:]  # all but index and bundle_name column
+                         sep=",").values[:, 2:].astype(np.float32)  # all but index and bundle_name column
         new = pd.read_csv("examples/tractometry_result_group.png.csv",
-                          sep=",").values[:, 2:]
+                          sep=",").values[:, 2:].astype(np.float32)
         diff_max = np.abs(ref-new).max()
         arrays_equal = np.array_equal(ref, new)
         self.assertTrue(arrays_equal, "Statistical analysis (group) not correct (max difference: " +
@@ -181,11 +181,11 @@ class test_end_to_end(unittest.TestCase):
 
     def test_statistical_analysis_correlation(self):
         ref = pd.read_csv("tests/reference_files/tractometry/tractometry_result_correlation.png.csv",
-                         sep=",").values[:, 2:]  # all but index and bundle_name column
+                         sep=",").values[:, 2:].astype(np.float32)  # all but index and bundle_name column
         new = pd.read_csv("examples/tractometry_result_correlation.png.csv",
-                          sep=",").values[:, 2:]
+                          sep=",").values[:, 2:].astype(np.float32)
         diff_max = np.abs(ref-new).max()
-        arrays_equal = np.array_equal(ref, new)
+        arrays_equal = np.allclose(ref, new, rtol=5e-4, atol=5e-4)
         self.assertTrue(arrays_equal, "Statistical analysis (correlation) not correct (max difference: " +
                         str(diff_max) + ")")
 
