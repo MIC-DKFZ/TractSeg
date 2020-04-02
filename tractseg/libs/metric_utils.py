@@ -375,7 +375,7 @@ def unconfound(y, confound, group_data=False):
 
     lr = LinearRegression(fit_intercept=True).fit(confound, y)  # lr.coef_: [targets, confounds]
     if group_data:
-        y_predicted_by_confound = lr.coef_[1:] @ confound[:,1:].T  # [targets, samples]
+        y_predicted_by_confound = lr.coef_[:, 1:] @ confound[:, 1:].T
     else:
         y_predicted_by_confound = lr.coef_ @ confound.T  # [targets, samples]
     y_corrected = y.T - y_predicted_by_confound
