@@ -92,6 +92,7 @@ def move_to_subject_space(output_dir, bundles, experiment_type, output_subdir, o
 
     # For peaks we can not use linear/spline interpolation. We have to use nn or convert to tensor and then
     # resample with linear interpolation.
+    # todo: we actually have to use vecreg for peaks. Only using NN is not sufficient.
     interp = "nearestneighbour" if experiment_type == "peak_regression" else "trilinear"
 
     os.system("mkdir -p " + output_dir + "/" + output_subdir + "_MNI")
