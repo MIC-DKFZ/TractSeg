@@ -245,7 +245,6 @@ def load_bedpostX_dyads(path_dyads1, scale=True, tensor_model=False):
 
     # Flip x axis to make BedpostX compatible with mrtrix CSD
     #  Flipping not needed if model was trained on BX tensors (because then already trained on BX orientation)
-
     if not tensor_model:
         dyads[:, :, :, 0] *= -1
         dyads[:, :, :, 3] *= -1
@@ -260,10 +259,10 @@ def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation, nr_cpus=-
     runtime TOM: 2min 40s  (~8.5GB)
     """
     def _process_bundle(idx, bundle):
-        bundle_peaks = np.copy(peaks[:, :, :, idx * 3:idx * 3 + 3])
+        bundle_peaks = np.copy(peaks[:, :, :, idx * 3:idx * 3 + 3])  # [x, y, z, 3]
         img = nib.load(join(tract_seg_path, bundle + ".nii.gz"))
         mask, flip_axis = img_utils.flip_axis_to_match_MNI_space(img.get_data(), img.affine)
-        mask = binary_dilation(mask, iterations=dilation).astype(np.uint8)
+        mask = binary_dilation(mask, iterations=dilation).astype(np.uint8)  # [x, y, z]
         bundle_peaks[mask == 0] = 0
         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)
         return bundle_peaks
