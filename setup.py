@@ -23,7 +23,6 @@ setup(name='TractSeg',
             'dipy>=1.0.0',
             'joblib>=0.13.2',
             'seaborn'
-            # 'batchgenerators==0.17'   #results in error (version...)
         ],
         zip_safe=False,
         classifiers=[

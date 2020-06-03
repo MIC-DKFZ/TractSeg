@@ -114,7 +114,8 @@ def main():
                         default=False)
 
     parser.add_argument("--preprocess", action="store_true",
-                        help="Move input image to MNI space (rigid registration of FA).",
+                        help="Move input image to MNI space (rigid registration of FA). "
+                             "(Does not work together with csd_type=csd_msmt_5tt)",
                         default=False)
 
     parser.add_argument("--nr_cpus", metavar="n", type=int,
