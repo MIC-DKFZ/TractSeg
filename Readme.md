@@ -274,6 +274,22 @@ rotate_bvecs -i Diffusion.bvecs -t FA_2_MNI.mat -o Diffusion_MNI.bvecs
 ```
 To enforce isotropic spacing you can replace `-applyxfm` by `-applyisoxfm <your_spacing>`.
 
+To move the results back to subject space you can use the following commands:
+```shell
+convert_xfm -omat MNI_2_FA.mat -inverse FA_2_MNI.mat  # invert transformation
+
+flirt -ref FA.nii.gz -in my_bundle.nii.gz -out my_bundle_subject_space.nii.gz \
+-applyxfm -init MNI_2_FA.mat -dof 6 -interp trilinear  # use -interp nearestneighbour for TOM
+
+# Do not run this line for TOM
+fslmaths my_bundle_subject_space.nii.gz -thr 0.5 -bin my_bundle_subject_space.nii.gz  # float to binary 
+```
+
+The option `--preprocess` will automatically rigidly register the input image to MNI space, run TractSeg and then 
+convert the output back to subject space. However, this does not work if you are using the option 
+`--csd_type csd_msmt_5tt`, because the T1 image will not automatically be registered to MNI space. `--preprocess` can
+also not be used if you want Tract Orientation Maps (TOMs). In this case you will have to run the registration commands 
+stated above manually.
 
 ## FAQ
 
