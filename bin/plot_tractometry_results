@@ -320,8 +320,8 @@ def main():
                         help="If using --plot3D you have to specify the format of the trackings which will get loaded."
                              "(default: trk_legacy)",
                         default="trk_legacy")
-    parser.add_argument('--range', '-r', metavar='n,n', default=None, type=two_floats,
-                        help='Range of metric (y-axis) to plot. '
+    parser.add_argument('--range', '-r', metavar='l u', default=None, type=two_floats,
+                        help='Range of metric (y-axis) to plot. Specify lower (l) and upper (u) bound'
                         'Default: None')
     args = parser.parse_args()
 
@@ -363,7 +363,7 @@ def main():
     if args.range is not None:
         if len(args.range) != 2:
             raise ValueError('Invalid range {}. Please enter lower bound and upper bound '
-                            'separated by a space. e.g. 0 1'.foramt(args.range))
+                            'separated by a space. e.g. 0.0 1.1'.format(args.range))
 
     all_bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
