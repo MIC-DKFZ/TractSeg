@@ -116,7 +116,7 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
                                  analysis_type, correct_mult_tract_comp, show_detailed_p, nperm=1000,
                                  hide_legend=False, plot_3D_path=None, plot_3D_type="none",
                                  tracking_format="trk_legacy", tracking_dir="auto", show_color_bar=True,
-                                 save_csv=False, y_range=[0, 1]):
+                                 save_csv=False, y_range=None):
 
     NR_POINTS = values[meta_data["subject_id"][0]].shape[1]
     selected_bun_indices = [bundles.index(b) for b in selected_bundles]
@@ -275,7 +275,8 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
 
             plot_utils.plot_bundles_with_metric(tracking_path, ending_path, mask_path, bundle, metric,
                                                 output_path_3D, tracking_format, show_color_bar)
-        ax.set_ylim(y_range[0], y_range[-1])
+        if y_range is not None:
+            ax.set_ylim(y_range[0], y_range[-1])
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=200)
@@ -284,10 +285,13 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
         results_df.to_csv(output_path + ".csv")
 
 def two_floats(value):
-    values = value.split()
-    if len(values) != 2:
-        raise argparse.ArgumentError
-    values = [float(x) for x in values]
+    if value is None:
+        values = None
+    else:
+        values = value.split()
+        if len(values) != 2:
+            raise argparse.ArgumentError
+        values = [float(x) for x in values]
     return values
 
 def main():
@@ -316,9 +320,9 @@ def main():
                         help="If using --plot3D you have to specify the format of the trackings which will get loaded."
                              "(default: trk_legacy)",
                         default="trk_legacy")
-    parser.add_argument('--range', '-r', metavar='n,n', default=[0, 1], type=two_floats,
+    parser.add_argument('--range', '-r', metavar='n,n', default=None, type=two_floats,
                         help='Range of metric (y-axis) to plot. '
-                        'Default: 0, 1')
+                        'Default: None')
     args = parser.parse_args()
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
@@ -356,10 +360,10 @@ def main():
         print("Number of subjects: {}".format(len(meta_data)))
     else:
         raise ValueError("Invalid second column header (only 'group' or 'target' allowed)")
-    
-    if len(args.range) != 2:
-        raise ValueError('Invalid range {}. Please enter lower bound and upper bound '
-                         'separated by a space. e.g. 0 1'.foramt(args.range))
+    if args.range is not None:
+        if len(args.range) != 2:
+            raise ValueError('Invalid range {}. Please enter lower bound and upper bound '
+                            'separated by a space. e.g. 0 1'.foramt(args.range))
 
     all_bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
