@@ -99,9 +99,6 @@ def get_corrected_alpha(values_allp, meta_data, analysis_type, subjects_A, subje
         y = meta_data["target"].values
     alphaFWE, statFWE, clusterFWE, stats = AFQ_MultiCompCorrection(np.array(values_allp), y,
                                                                    alpha, nperm=nperm)
-    # print("Processing {}...".format(bundles[b_idx]))
-    # print("  cluster size: {}".format(clusterFWE))
-    # print("  alphaFWE: {}".format(format_number(alphaFWE)))
     return alphaFWE, clusterFWE
 
 
@@ -364,9 +361,6 @@ def main():
         raise ValueError("Invalid second column header (only 'group' or 'target' allowed)")
 
     all_bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
-
-    # For testing: manually define subset of bundles
-    # selected_bundles = ["CST_right", "CST_left", "CG_left"]
 
     values = {}
     for subject in meta_data["subject_id"]:
