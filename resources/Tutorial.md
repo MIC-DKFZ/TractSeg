@@ -18,7 +18,8 @@ TractSeg -i Diffusion.nii.gz -o tractseg_output --raw_diffusion_input --csd_type
 It will internally run CSD (Constrained Spherical Deconvolution) and extract the 3 main fiber peaks.  
 * `--csd_type csd_msmt_5tt`: If we do not specify the CSD type TractSeg will use the standard MRtrix CSD. But for HCP data we can make use of
 the multiple b-value shells and the properly registered T1 image to run a more sophisticated CSD model giving slightly better results.
-NOTE: This expects the T1 image to be in the same folder as the Diffusion.nii.gz image and have the name `T1w_acpc_dc_restore_brain.nii.gz`.
+NOTE: This expects the T1 image to be in the same folder as the Diffusion.nii.gz image and have the name 
+`T1w_acpc_dc_restore_brain.nii.gz`. The T1 image must have all non-brain area removed.
 `csd_msmt_5tt` is also quite slow. You can use `csd` if you want more speed at the cost of slightly worse results.  
 * You can use the options `--bvals` and `--bvecs` if your bvals and bvecs file use a different naming convention.  
 * If you have a NVIDIA GPU and CUDA installed TractSeg will run in less than 1min. Otherwise it will fall back to CPU and run several minutes.

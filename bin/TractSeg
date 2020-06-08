@@ -53,8 +53,8 @@ def main():
                              "more than one b-value shell.\n"
                              "'csd_msmt_5tt': Multi-shell multi-tissue CSD 5TT. Slow on large images. Needs more "
                              "than one b-value shell."
-                             "Needs a T1 image (a file 'T1w_acpc_dc_restore_brain.nii.gz' must be in the input "
-                             "directory).",
+                             "Needs a T1 image with all non-brain area removed (a file "
+                             "'T1w_acpc_dc_restore_brain.nii.gz' must be in the input directory).",
                         default="csd")
 
     parser.add_argument("--output_type", metavar="tract_segmentation|endings_segmentation|TOM|dm_regression",
