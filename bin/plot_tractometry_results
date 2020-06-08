@@ -276,13 +276,14 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             plot_utils.plot_bundles_with_metric(tracking_path, ending_path, mask_path, bundle, metric,
                                                 output_path_3D, tracking_format, show_color_bar)
         if y_range is not None:
-            ax.set_ylim(y_range[0], y_range[-1])
+            ax.set_ylim(y_range[0], y_range[1])
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=200)
 
     if save_csv:
         results_df.to_csv(output_path + ".csv")
+
 
 def two_floats(value):
     if value is None:
@@ -293,6 +294,7 @@ def two_floats(value):
             raise argparse.ArgumentError
         values = [float(x) for x in values]
     return values
+
 
 def main():
     parser = argparse.ArgumentParser(description="Test for significant differences and plot tractometry results.",
@@ -322,7 +324,7 @@ def main():
                         default="trk_legacy")
     parser.add_argument('--range', '-r', metavar='l u', default=None, type=two_floats,
                         help='Range of metric (y-axis) to plot. Specify lower (l) and upper (u) bound'
-                        'Default: None')
+                        '(default: None)')
     args = parser.parse_args()
 
     # Choose how to define significance: by corrected alphaFWE or by clusters of values smaller than uncorrected alpha
@@ -360,10 +362,6 @@ def main():
         print("Number of subjects: {}".format(len(meta_data)))
     else:
         raise ValueError("Invalid second column header (only 'group' or 'target' allowed)")
-    if args.range is not None:
-        if len(args.range) != 2:
-            raise ValueError('Invalid range {}. Please enter lower bound and upper bound '
-                            'separated by a space. e.g. 0.0 1.1'.format(args.range))
 
     all_bundles = dataset_specific_utils.get_bundle_names("All_tractometry")[1:]
 
