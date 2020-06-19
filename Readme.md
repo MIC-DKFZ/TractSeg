@@ -380,3 +380,8 @@ To build a docker container with all dependencies run the following command in p
 ```
 sudo docker build -t tractseg_container -f Dockerfile_CPU .
 ```
+
+## Copyright
+Copyright © German Cancer Research Center (DKFZ), Division of Medical Image Computing (MIC).
+Please make sure that your usage of this code is in compliance with the [code license](LICENSE).
+
