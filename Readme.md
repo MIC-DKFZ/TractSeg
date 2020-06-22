@@ -344,6 +344,10 @@ you need help training your own model.
 2. If you have streamlines you have to transform them to binary masks. 
 You can use [this](https://github.com/MIC-DKFZ/TractSeg/blob/master/resources/utility_scripts/trk_2_binary.py) 
 script for that. 
+(If you want to train a TOM model you have to create peak maps from the streamlines. This can be done 
+by using the MITK Diffusion miniapp `MitkFiberDirectionExtraction`. See the following two issues for more 
+details: [82](https://github.com/MIC-DKFZ/TractSeg/issues/82), 
+[92](https://github.com/MIC-DKFZ/TractSeg/issues/92))
 3. Install TractSeg from local source code:
     ```
     git clone https://github.com/MIC-DKFZ/TractSeg.git
