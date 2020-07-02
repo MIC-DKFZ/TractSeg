@@ -252,6 +252,13 @@ Is calling Mrtrix iFOD2 tracking internally. Does not use TOM peaks but the orig
 filtered by the bundle mask and have to start and end in the endings masks.
 
 
+#### Tracking formats
+You can use the option `--tracking_format` to define the file format of the streamline files.
+The default is `trk_legacy`. The resulting streamlines are displayed correctly in MITK Diffusion. 
+If you are using TrackVis you should use the format `trk`.
+> NOTE: When calling `Tractometry` you have to set the same tracking format as was used in `Tracking`. 
+
+
 #### Aligning image to MNI space
 The input image must have the same "orientation" as the Human Connectome Project data (MNI space) 
 (LEFT must be on the same side as LEFT of the HCP data) and have isotropic spacing. 
