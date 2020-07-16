@@ -342,7 +342,6 @@ def main():
     if args.plot3D != "none":
         if plot_3D_path is None:
             raise ValueError("'# plot_3D=...' is not set in " + args.subjects_file)
-        show_color_bar = False
 
     if meta_data.columns[1] == "group":
         analysis_type = "group"
