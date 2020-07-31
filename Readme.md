@@ -86,6 +86,13 @@ option `--raw_diffusion_input`.
 TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz
 ```
 
+#### Segment bundle start and end regions
+Get segmentations of the regions were the bundles start and end (helpful for filtering fibers that do not run
+from start until end).
+```
+TractSeg -i peaks.nii.gz --output_type endings_segmentation
+```
+
 #### Create Tract Orientation Maps (TOMs)
 For each bundle create a Tract Orientation Map ([Wasserthal et al., Tract orientation mapping for bundle-specific tractography](https://arxiv.org/abs/1806.05580)). 
 This gives you one peak per voxel telling you the main orientation of the respective bundle at this voxel. 
@@ -94,14 +101,8 @@ Can be used for bundle-specific tracking later on.
 TractSeg -i peaks.nii.gz --output_type TOM
 ```
 Peaks and streamlines can be visualized using for example [MITK Diffusion](http://mitk.org/wiki/DiffusionImaging#Downloads).
-> NOTE: Peaks have to be flipped along the z-axis to be displayed correctly in MITK.
-
-#### Segment bundle start and end regions
-Get segmentations of the regions were the bundles start and end (helpful for filtering fibers that do not run
-from start until end).
-```
-TractSeg -i peaks.nii.gz --output_type endings_segmentation
-```
+> NOTE: Peaks have to be flipped along the z-axis to be displayed correctly in MITK.  
+> NOTE: `--output_type tract_segmentation` and `output_type endings_segmentation` has to be run first 
 
 #### Create bundle-specific tractograms
 Tracks on TOMs and only keeps fibers not leaving the bundle mask and starting and ending in the endpoint regions.
