@@ -100,9 +100,12 @@ Can be used for bundle-specific tracking later on.
 ```
 TractSeg -i peaks.nii.gz --output_type TOM
 ```
+> NOTE: `--output_type tract_segmentation` and `endings_segmentation` has to be run first. Same input and output 
+directories have to be used for all commands. 
+
 Peaks and streamlines can be visualized using for example [MITK Diffusion](http://mitk.org/wiki/DiffusionImaging#Downloads).
 > NOTE: Peaks have to be flipped along the z-axis to be displayed correctly in MITK.  
-> NOTE: `--output_type tract_segmentation` and `output_type endings_segmentation` has to be run first 
+
 
 #### Create bundle-specific tractograms
 Tracks on TOMs and only keeps fibers not leaving the bundle mask and starting and ending in the endpoint regions.
