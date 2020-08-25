@@ -387,7 +387,6 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     else:
         sl_file = nib.streamlines.load(bundle_path)
         streamlines = sl_file.streamlines
-    streamlines = list(transform_streamlines(streamlines, np.linalg.inv(beginnings_img.affine)))
 
     # Reduce streamline count
     streamlines = streamlines[::2]
@@ -472,7 +471,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
 
     # plot brain mask
     mask = nib.load(brain_mask_path).get_data()
-    cont_actor = vtk_utils.contour_from_roi_smooth(mask, affine=np.eye(4), color=[.9, .9, .9], opacity=.2,
+    cont_actor = vtk_utils.contour_from_roi_smooth(mask, affine=beginnings_img.affine, color=[.9, .9, .9], opacity=.2,
                                                    smoothing=50)
     renderer.add(cont_actor)
 
@@ -483,13 +482,13 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
         renderer.add(actor.scalar_bar(lut_cmap))
 
     if orientation == "sagittal":
-        renderer.set_camera(position=(-242.14, 81.28, 113.61),
-                            focal_point=(109.90, 93.18, 50.86),
-                            view_up=(0.18, 0.00, 0.98))
+        renderer.set_camera(position=(-412.95, -34.38, 80.15),
+                            focal_point=(102.46, -16.96, -11.71),
+                            view_up=(0.1806, 0.0, 0.9835))
     elif orientation == "coronal":
-        renderer.set_camera(position=(66.82, 352.47, 132.99),
-                            focal_point=(72.17, 89.31, 60.83),
-                            view_up=(0.00, -0.26, 0.96))
+        renderer.set_camera(position=(-48.63, 360.31, 98.37),
+                            focal_point=(-20.16, 92.89, 36.02),
+                            view_up=(-0.0047, -0.2275, 0.9737))
     elif orientation == "axial":
         pass
     else:

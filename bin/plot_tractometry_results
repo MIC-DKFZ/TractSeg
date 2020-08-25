@@ -249,6 +249,7 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             else:
                 # metric = pvalues  # use this code if you want to plot the pvalues instead of the FA
                 metric = sig_areas
+                show_color_bar = False  # colorbar not meaningful if showing binary significant areas
 
             bundle = bundles[b_idx]
             output_path_3D = output_path.split(".")[0] + "_" + bundle + "_3D.png"
@@ -330,7 +331,7 @@ def main():
     # Show p-value for each position, not only significant areas
     show_detailed_p = False
     hide_legend = False
-    show_color_bar = True  # colorbar on 3D plot
+    show_color_bar = True  # colorbar on 3D plot (this is only relevant for metric plot; pval will never show bar)
     nperm = args.nperm
 
     # Significance testing with multiple correction for bundles
