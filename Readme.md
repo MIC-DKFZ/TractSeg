@@ -124,7 +124,6 @@ TractSeg also works with bedpostX as input. You have to pass `dyads1.nii.gz` as 
 TractSeg -i dyads1.nii.gz
 ```
 
-
 #### Show uncertainty map
 Create map showing where the method is uncertain about its segmentation (uses monte carlo dropout: https://arxiv.org/abs/1506.02142)
 ```
@@ -290,17 +289,25 @@ To move the results back to subject space you can use the following commands:
 convert_xfm -omat MNI_2_FA.mat -inverse FA_2_MNI.mat  # invert transformation
 
 flirt -ref FA.nii.gz -in my_bundle.nii.gz -out my_bundle_subject_space.nii.gz \
--applyxfm -init MNI_2_FA.mat -dof 6 -interp trilinear  # use -interp nearestneighbour for TOM
+-applyxfm -init MNI_2_FA.mat -dof 6 -interp spline  # for TOM maps you have to use the command vecreg
 
-# Do not run this line for TOM
 fslmaths my_bundle_subject_space.nii.gz -thr 0.5 -bin my_bundle_subject_space.nii.gz  # float to binary 
 ```
 
 The option `--preprocess` will automatically rigidly register the input image to MNI space, run TractSeg and then 
-convert the output back to subject space. However, this does not work if you are using the option 
-`--csd_type csd_msmt_5tt`, because the T1 image will not automatically be registered to MNI space. `--preprocess` can
-also not be used if you want Tract Orientation Maps (TOMs). In this case you will have to run the registration commands 
-stated above manually.
+convert the output back to subject space. For TOMs and trackings the `--preprocess` option has to be used as 
+follows (currently this only works in the `master` branch):
+```shell
+# in first step --raw_diffusion_input has to be used together with --preprocess
+TractSeg -i Diffusion.nii.gz -o tractseg_output --output_type tract_segmentation --raw_diffusion_input --preprocess
+# -o has to be set in all following steps
+TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation --preprocess
+TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM --preprocess
+Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output
+```
+> NOTE: `--preprocess` does not work if you are using the option `--csd_type csd_msmt_5tt`, 
+because the T1 image will not automatically be registered to MNI space
+
 
 ## FAQ
 

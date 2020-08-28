@@ -170,7 +170,6 @@ def plot_tracts_matplotlib(classes, bundle_segmentations, background_img, out_di
     if exp_type == "peak_regression":
         s = bundle_segmentations.shape
         bundle_segmentations = bundle_segmentations.reshape([s[0], s[1], s[2], int(s[3]/3), 3])
-        print(bundle_segmentations.shape)
         bundles = ["CST_right", "CST_s_right", "CA", "CC_1", "AF_left"]  # can only use bundles from part1
 
     aggregation = "max"

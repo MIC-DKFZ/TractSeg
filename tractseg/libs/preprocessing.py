@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 from os.path import join
 from pkg_resources import resource_filename
+from tqdm import tqdm
 
 from tractseg.libs import img_utils
 
@@ -52,7 +53,7 @@ def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
 
     os.system("flirt -ref " + template_path + " -in " + input_file + " -out " + output_dir +
               "/Diffusion_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir +
-              "/FA_2_MNI.mat -dof 6 -interp spline")
+              "/FA_2_MNI.mat -dof 6 -interp trilinear")
     os.system("cp " + bvals + " " + output_dir + "/Diffusion_MNI.bvals")
     os.system("rotate_bvecs -i " + bvecs + " -t " + output_dir + "/FA_2_MNI.mat" +
               " -o " + output_dir + "/Diffusion_MNI.bvecs")
@@ -72,7 +73,6 @@ def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
 def move_to_subject_space_single_file(output_dir, experiment_type, output_subdir, output_float=False):
     print("Moving output to subject space...")
 
-    interp = "nearestneighbour" if experiment_type == "peak_regression" else "trilinear"
     os.system("mv " + output_dir + "/" + output_subdir + ".nii.gz " + output_dir + "/" + output_subdir + "_MNI.nii.gz")
 
     file_path_in = output_dir + "/" + output_subdir + "_MNI.nii.gz"
@@ -81,31 +81,33 @@ def move_to_subject_space_single_file(output_dir, experiment_type, output_subdir
     os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
     os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
               " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
-              " -interp " + interp)
+              " -interp trilinear")
     if not output_float:
         os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
 
 
 def move_to_subject_space(output_dir, bundles, experiment_type, output_subdir, output_float=False):
-    #This is not working for TOM (because of processing in parts) and requirement of bundle_segmentations as input
     print("Moving output to subject space...")
-
-    # For peaks we can not use linear/spline interpolation. We have to use nn or convert to tensor and then
-    # resample with linear interpolation.
-    # todo: we actually have to use vecreg for peaks. Only using NN is not sufficient.
-    interp = "nearestneighbour" if experiment_type == "peak_regression" else "trilinear"
 
     os.system("mkdir -p " + output_dir + "/" + output_subdir + "_MNI")
     os.system("mv " + output_dir + "/" + output_subdir + "/* " + output_dir + "/" + output_subdir + "_MNI")
     os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
 
-    for bundle in bundles:
+    for bundle in tqdm(bundles):
         file_path_in = output_dir + "/" + output_subdir + "_MNI/" + bundle + ".nii.gz"
         file_path_out = output_dir + "/" + output_subdir + "/" + bundle + ".nii.gz"
         dwi_spacing = img_utils.get_image_spacing(file_path_in)
-        os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
-                  " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
-                  " -interp " + interp)
+        if experiment_type == "peak_regression":
+            os.system("flip_peaks -i " + file_path_in + " -o " + file_path_in[:-7] + "_flip.nii.gz -a x")  # flip to fsl format
+            os.system("vecreg -i " + file_path_in[:-7] + "_flip.nii.gz -o " + file_path_out +
+                      " -r " + output_dir + "/FA.nii.gz -t " + output_dir + "/MNI_2_FA.mat")  # Use vecreg to transform peaks
+            os.system("flip_peaks -i " + file_path_out + " -o " + file_path_out + " -a x")  # flip back to mrtrix format
+            os.system("rm " + file_path_in[:-7] + "_flip.nii.gz")  # remove flipped tmp file
+        else:
+            # do not use spline interpolation because makes a lot of holes into masks
+            os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
+                      " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
+                      " -interp trilinear")
         if not output_float:
             os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
 
@@ -197,10 +199,3 @@ def clean_up(keep_intermediate_files, predict_img_output, csd_type, preprocessin
             os.system("rm -f GM_FODs.nii.gz")
         else:
             os.system("rm -f response.txt")
-
-    if preprocessing_done:
-        os.system("rm -f FA.nii.gz")
-        os.system("rm -f FA_MNI.nii.gz")
-        os.system("rm -f FA_2_MNI.mat")
-        os.system("rm -f MNI_2_FA.mat")
-        # os.system("rm -f reorient2std.mat")

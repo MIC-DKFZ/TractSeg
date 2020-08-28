@@ -424,8 +424,6 @@ def invert_streamlines(streamlines, reference_img, affine, axis="x"):
     else:
         raise ValueError("invalid axis")
 
-    print(affine_invert)
-
     return list(transform_streamlines(streamlines, affine_invert))
 
 

@@ -25,20 +25,19 @@ def main():
     img = nib.load(args.file_in)
     data = img.get_data()
 
+    nr_peaks = data.shape[3] // 3
+
     #We only flip data, not affine
     if args.axis == "x":
         # flip x Axis  (9 channel image)  (3 peaks)
-        data[ :, :, :, 0] *= -1
-        data[ :, :, :, 3] *= -1
-        data[ :, :, :, 6] *= -1
+        for i in range(nr_peaks):
+            data[ :, :, :, (i*3)+0] *= -1
     elif args.axis == "y":
-        data[ :, :, :, 1] *= -1
-        data[ :, :, :, 4] *= -1
-        data[ :, :, :, 7] *= -1
+        for i in range(nr_peaks):
+            data[ :, :, :, (i*3)+1] *= -1
     elif args.axis == "z":
-        data[ :, :, :, 2] *= -1
-        data[ :, :, :, 5] *= -1
-        data[ :, :, :, 8] *= -1
+        for i in range(nr_peaks):
+            data[ :, :, :, (i*3)+2] *= -1
 
     new_image = nib.Nifti1Image(data, img.affine)
     nib.save(new_image, args.file_out)
