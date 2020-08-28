@@ -3,6 +3,7 @@
 * 3D plot of streamlines with coloring according to tractometry FA
 * Add pretrained weights for XTRACT tract definitions
 * set range of y-axis in `plot_tractometry_results` (thanks to @elder-mama)
+* make `--preprocess` also work for endings_segmentation and TOM
 
 
 ## Release 2.1.1
