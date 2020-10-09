@@ -34,7 +34,7 @@ TractSeg only runs on Linux and OSX. It works with Python 3.
 
 #### Install Prerequisites
 * [Pytorch](http://pytorch.org/)
-* [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
+* [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html) (>= 3.0 RC3)
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask and do not use the 
 option `--preprocess` this is not needed)
 

@@ -68,7 +68,7 @@ if __name__ == '__main__':
     tracking_format = "trk"
 
     ref_img = nib.load(ref_img_path)
-    ref_affine = ref_img.get_affine()
+    ref_affine = ref_img.affine
     ref_shape = ref_img.get_data().shape
 
     streams, hdr = trackvis.read(file_in)
