@@ -3,9 +3,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os, sys
-import pickle
-import bz2
+import os
 import numpy as np
 
 from tractseg.libs.system_config import SystemConfig as C
@@ -71,37 +69,6 @@ def get_lr_decay(epoch_nr):
     """
     target_lr = 0.1  # should be reduced to 1/10 of original
     return target_lr ** (1 / float(epoch_nr))
-
-
-def save_pkl_compressed(filename, myobj):
-    """
-    Save object to file using pickle
-    """
-    try:
-        f = bz2.BZ2File(filename, 'wb')
-    except IOError as details:
-        sys.stderr.write('File ' + filename + ' cannot be written\n')
-        sys.stderr.write(details)
-        return
-
-    pickle.dump(myobj, f, protocol=2)
-    f.close()
-
-
-def load_pkl_compressed(filename):
-    """
-    Load from filename using pickle
-    """
-    try:
-        f = bz2.BZ2File(filename, 'rb')
-    except IOError as details:
-        sys.stderr.write('File ' + filename + ' cannot be read\n')
-        sys.stderr.write(details)
-        return
-
-    myobj = pickle.load(f)
-    f.close()
-    return myobj
 
 
 def chunks(l, n):
