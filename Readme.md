@@ -134,9 +134,10 @@ TractSeg -i peaks.nii.gz --uncertainty
 See [Documentation of Tractometry](resources/Tractometry_documentation.md).
 
 
-#### Tutorial
+#### Extended Tutorial
 [Best pratices for standard usecases](resources/Tutorial.md).  
-You can also check out the [tutorial from OHBM 2019](https://colab.research.google.com/github/brainhack101/IntroDL/blob/master/notebooks/2019/Wasserthal/TractSegTutorial.ipynb).
+(You can also check out the [tutorial from OHBM 2019](https://colab.research.google.com/github/brainhack101/IntroDL/blob/master/notebooks/2019/Wasserthal/TractSegTutorial.ipynb)
+[OUTDATED].)
 
 #### Track subset of bundles
 You can specify to only track a subset of bundles.
