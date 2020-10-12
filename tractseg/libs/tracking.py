@@ -8,6 +8,7 @@ import shutil
 import subprocess
 
 import nibabel as nib
+import numpy as np
 
 from tractseg.libs import fiber_utils
 from tractseg.libs import img_utils
@@ -18,7 +19,7 @@ from tractseg.libs import peak_utils
 def _mrtrix_tck_to_trk(output_dir, tracking_folder, dir_postfix, bundle, output_format, nr_cpus):
     ref_img = nib.load(output_dir + "/bundle_segmentations" + dir_postfix + "/" + bundle + ".nii.gz")
     reference_affine = ref_img.affine
-    reference_shape = ref_img.get_data().shape[:3]
+    reference_shape = ref_img.get_fdata().shape[:3]
     fiber_utils.convert_tck_to_trk(output_dir + "/" + tracking_folder + "/" + bundle + ".tck",
                                    output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
                                    reference_affine, reference_shape, compress_err_thr=0.1, smooth=None,
@@ -67,9 +68,9 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
     # Check if bundle masks are valid
     if filter_by_endpoints:
         bundle_mask_ok = nib.load(output_dir + "/bundle_segmentations" + dir_postfix
-                                  + "/" + bundle + ".nii.gz").get_data().max() > 0
-        beginnings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_data().max() > 0
-        endings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_data().max() > 0
+                                  + "/" + bundle + ".nii.gz").get_fdata().max() > 0
+        beginnings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_b.nii.gz").get_fdata().max() > 0
+        endings_mask_ok = nib.load(output_dir + "/endings_segmentations/" + bundle + "_e.nii.gz").get_fdata().max() > 0
 
         if not bundle_mask_ok:
             print("WARNING: tract mask of {} empty. Creating empty tractogram.".format(bundle))
@@ -178,22 +179,22 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                 tom_peaks_img = nib.load(output_dir + "/" + TOM_folder + "/" + bundle + ".nii.gz")
 
                 # Ensure same orientation as MNI space
-                bundle_mask, flip_axis = img_utils.flip_axis_to_match_MNI_space(bundle_mask_img.get_data(),
+                bundle_mask, flip_axis = img_utils.flip_axis_to_match_MNI_space(bundle_mask_img.get_fdata().astype(np.uint8),
                                                                                 bundle_mask_img.affine)
-                beginnings, flip_axis = img_utils.flip_axis_to_match_MNI_space(beginnings_img.get_data(),
+                beginnings, flip_axis = img_utils.flip_axis_to_match_MNI_space(beginnings_img.get_fdata().astype(np.uint8),
                                                                                 beginnings_img.affine)
-                endings, flip_axis = img_utils.flip_axis_to_match_MNI_space(endings_img.get_data(),
+                endings, flip_axis = img_utils.flip_axis_to_match_MNI_space(endings_img.get_fdata().astype(np.uint8),
                                                                                 endings_img.affine)
-                tom_peaks, flip_axis = img_utils.flip_axis_to_match_MNI_space(tom_peaks_img.get_data(),
+                tom_peaks, flip_axis = img_utils.flip_axis_to_match_MNI_space(tom_peaks_img.get_fdata(),
                                                                                   tom_peaks_img.affine)
 
-                # tracking_uncertainties = nib.load(output_dir + "/tracking_uncertainties/" + bundle + ".nii.gz").get_data()
+                # tracking_uncertainties = nib.load(output_dir + "/tracking_uncertainties/" + bundle + ".nii.gz").get_fdata()
                 tracking_uncertainties = None
 
                 #Get best original peaks
                 if use_best_original_peaks:
                     orig_peaks_img = nib.load(peaks)
-                    orig_peaks, flip_axis = img_utils.flip_axis_to_match_MNI_space(orig_peaks_img.get_data(),
+                    orig_peaks, flip_axis = img_utils.flip_axis_to_match_MNI_space(orig_peaks_img.get_fdata(),
                                                                                    orig_peaks_img.affine)
                     best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks)
                     for axis in flip_axis:
@@ -205,7 +206,7 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                 #Get weighted mean between best original peaks and TOMs
                 if use_as_prior:
                     orig_peaks_img = nib.load(peaks)
-                    orig_peaks, flip_axis = img_utils.flip_axis_to_match_MNI_space(orig_peaks_img.get_data(),
+                    orig_peaks, flip_axis = img_utils.flip_axis_to_match_MNI_space(orig_peaks_img.get_fdata(),
                                                                                    orig_peaks_img.affine)
                     best_orig_peaks = fiber_utils.get_best_original_peaks(tom_peaks, orig_peaks)
                     weighted_peaks = fiber_utils.get_weighted_mean_of_peaks(best_orig_peaks, tom_peaks, weight=0.5)
@@ -229,12 +230,12 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                 if output_format == "trk_legacy":
                     fiber_utils.save_streamlines_as_trk_legacy(output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
                                                                streamlines, bundle_mask_img.affine,
-                                                               bundle_mask_img.get_data().shape)
+                                                               bundle_mask_img.get_fdata().shape)
                 else:  # tck or trk (determined by file ending)
                     fiber_utils.save_streamlines(
                         output_dir + "/" + tracking_folder + "/" + bundle + "." + output_format,
                         streamlines, bundle_mask_img.affine,
-                        bundle_mask_img.get_data().shape)
+                        bundle_mask_img.get_fdata().shape)
 
 
         # No streamline filtering

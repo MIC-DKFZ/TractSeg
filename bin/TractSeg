@@ -259,7 +259,7 @@ def main():
             data_img = peak_utils.load_bedpostX_dyads(peak_path, scale=True, tensor_model=tensor_model)
         else:
             data_img = nib.load(peak_path)
-        data_img_shape = data_img.get_data().shape
+        data_img_shape = data_img.get_fdata().shape
         if Config.NR_OF_GRADIENTS != 1 and not (len(data_img_shape) == 4 and
                                                 data_img_shape[3] == Config.NR_OF_GRADIENTS):
             print(bcolors.ERROR + "ERROR" + bcolors.ENDC + bcolors.BOLD +
@@ -275,13 +275,13 @@ def main():
         data_img = peak_utils.peaks_to_tensors_nifti(data_img)
 
     if input_type == "T1" or Config.NR_OF_GRADIENTS == 1:
-        data_img = nib.Nifti1Image(data_img.get_data()[..., None], data_img.affine)  # add fourth dimension
+        data_img = nib.Nifti1Image(data_img.get_fdata()[..., None], data_img.affine)  # add fourth dimension
 
     if args.super_resolution:
         data_img = img_utils.change_spacing_4D(data_img, new_spacing=1.25)
 
     data_affine = data_img.affine
-    data = data_img.get_data()
+    data = data_img.get_fdata()
     del data_img     # free memory
 
     # Make image have the same signs of the affine as MNI space
@@ -291,10 +291,10 @@ def main():
         print("Reorienting data...")
 
     #Use Peaks + T1
-    # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_data()[:,:,:,None]
-    # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[:,:,:,None]
+    # # t1_data = nib.load("T1w_acpc_dc_restore_brain_DWIsize.nii.gz").get_fdata()[:,:,:,None]
+    # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_fdata()[:,:,:,None]
     # # needed if upsampling of peaks resulted in one pixel less (sometimes)
-    # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_data()[1:,1:-1,1:,None]
+    # # t1_data = nib.load("T1w_acpc_dc_restore_brain.nii.gz").get_fdata()[1:,1:-1,1:,None]
     # data = np.concatenate((data, t1_data), axis=3)
 
     output_float = False

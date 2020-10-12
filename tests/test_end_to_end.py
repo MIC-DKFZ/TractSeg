@@ -32,8 +32,8 @@ class test_end_to_end(unittest.TestCase):
         pass
 
     # def test_csd_peaks(self):
-    #     img_ref = nib.load("tests/reference_files/peaks.nii.gz").get_data()
-    #     img_new = nib.load("examples/tractseg_output/peaks.nii.gz").get_data()
+    #     img_ref = nib.load("tests/reference_files/peaks.nii.gz").get_fdata()
+    #     img_new = nib.load("examples/tractseg_output/peaks.nii.gz").get_fdata()
     #     images_equal = np.allclose(img_ref, img_new, rtol=1, atol=1)    #somehow not working; order of channels randomly changing?
     #     self.assertTrue(images_equal, "CSD peaks not correct")
 
@@ -44,7 +44,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[20:25, 20:25, 30:40] = 1  # bridge
         img_ref = transform_to_output_space(img_ref)
-        img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CA.nii.gz").get_data()
+        img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CA.nii.gz").get_fdata().astype(np.uint8)
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CA)")
 
@@ -53,7 +53,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref = transform_to_output_space(img_ref)
-        img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_data()
+        img_new = nib.load("examples/BS_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_fdata().astype(np.uint8)
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CC_1)")
 
@@ -63,7 +63,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[60:63, 60:63, 60:63] = 1  # small blob
         img_ref = transform_to_output_space(img_ref)
-        img_new = nib.load("examples/no_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_data()
+        img_new = nib.load("examples/no_PP/tractseg_output/bundle_segmentations/CC_1.nii.gz").get_fdata().astype(np.uint8)
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: CC_1)")
 
@@ -76,7 +76,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[50:55, 50:55, 50:55] = 0.2  # below threshold
         img_ref[60:63, 60:63, 60:63] = 0.9  # small blob -> will get removed by postprocessing
         img_ref = transform_to_output_space(img_ref)
-        img_new = nib.load("examples/Probs/tractseg_output/bundle_segmentations/CA.nii.gz").get_data()
+        img_new = nib.load("examples/Probs/tractseg_output/bundle_segmentations/CA.nii.gz").get_fdata()
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract probabilities are not correct (bundle: CA)")
 
@@ -90,7 +90,7 @@ class test_end_to_end(unittest.TestCase):
         img_ref[50:55, 50:55, 50:55] = 0.2  # below threshold
         img_ref[60:63, 60:63, 60:63] = 0.9  # small blob -> will get removed by postprocessing
         img_ref = transform_to_output_space(img_ref)
-        img_new = nib.load("examples/Uncert/tractseg_output/bundle_uncertainties/CA.nii.gz").get_data()
+        img_new = nib.load("examples/Uncert/tractseg_output/bundle_uncertainties/CA.nii.gz").get_fdata()
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Tract uncertainties are not correct (bundle: CA)")
 
@@ -103,15 +103,15 @@ class test_end_to_end(unittest.TestCase):
         img_ref[50:55, 50:55, 50:55] = 0.2  # below threshold
         img_ref[60:63, 60:63, 60:63] = 0.9  # small blob -> will get removed by postprocessing
         img_ref = transform_to_output_space(img_ref)
-        img_new = nib.load("examples/DM/tractseg_output/dm_regression/CA.nii.gz").get_data()
+        img_new = nib.load("examples/DM/tractseg_output/dm_regression/CA.nii.gz").get_fdata()
         images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "Density maps are not correct (bundle: CA)")
 
     def test_tractseg_output(self):
         bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
-            img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_data()
-            img_new = nib.load("examples/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
+            img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_fdata().astype(np.uint8)
+            img_new = nib.load("examples/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_fdata().astype(np.uint8)
             images_equal = np.array_equal(img_ref, img_new)
             self.assertTrue(images_equal, "Tract segmentations are not correct (bundle: " + bundle + ")")
 
@@ -120,8 +120,8 @@ class test_end_to_end(unittest.TestCase):
         for bundle in bundles:
             # IFO very different on travis than locally. Unclear why. All other bundles are fine.
             if bundle != "IFO_right":
-                img_ref = nib.load("tests/reference_files/bundle_segmentations_SR_noPP/" + bundle + ".nii.gz").get_data()
-                img_new = nib.load("examples/SR_noPP/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_data()
+                img_ref = nib.load("tests/reference_files/bundle_segmentations_SR_noPP/" + bundle + ".nii.gz").get_fdata().astype(np.uint8)
+                img_new = nib.load("examples/SR_noPP/tractseg_output/bundle_segmentations/" + bundle + ".nii.gz").get_fdata().astype(np.uint8)
                 # Processing on travis slightly different from local environment -> have to allow for small margin
                 nr_differing_voxels = np.abs(img_ref - img_new).sum()
                 if nr_differing_voxels < 5:
@@ -134,21 +134,21 @@ class test_end_to_end(unittest.TestCase):
     def test_endingsseg_output(self):
         bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
-            img_ref = nib.load("tests/reference_files/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
-            img_new = nib.load("examples/tractseg_output/endings_segmentations/" + bundle + "_b.nii.gz").get_data()
+            img_ref = nib.load("tests/reference_files/endings_segmentations/" + bundle + "_b.nii.gz").get_fdata().astype(np.uint8)
+            img_new = nib.load("examples/tractseg_output/endings_segmentations/" + bundle + "_b.nii.gz").get_fdata().astype(np.uint8)
             images_equal = np.array_equal(img_ref, img_new)
             self.assertTrue(images_equal, "Bundle endings are not correct (bundle: " + bundle + "_b)")
 
-            img_ref = nib.load("tests/reference_files/endings_segmentations/" + bundle + "_e.nii.gz").get_data()
-            img_new = nib.load("examples/tractseg_output/endings_segmentations/" + bundle + "_e.nii.gz").get_data()
+            img_ref = nib.load("tests/reference_files/endings_segmentations/" + bundle + "_e.nii.gz").get_fdata().astype(np.uint8)
+            img_new = nib.load("examples/tractseg_output/endings_segmentations/" + bundle + "_e.nii.gz").get_fdata().astype(np.uint8)
             images_equal = np.array_equal(img_ref, img_new)
             self.assertTrue(images_equal, "Bundle endings are not correct (bundle: " + bundle + "_e)")
 
     def test_peakreg_output(self):
         bundles = dataset_specific_utils.get_bundle_names("All")[1:]
         for bundle in bundles:
-            img_ref = nib.load("tests/reference_files/TOM/" + bundle + ".nii.gz").get_data()
-            img_new = nib.load("examples/tractseg_output/TOM/" + bundle + ".nii.gz").get_data()
+            img_ref = nib.load("tests/reference_files/TOM/" + bundle + ".nii.gz").get_fdata()
+            img_new = nib.load("examples/tractseg_output/TOM/" + bundle + ".nii.gz").get_fdata()
             # Because of regression small tolerance margin needed
             images_equal = np.allclose(img_ref, img_new, rtol=1e-3, atol=1e-3)
             self.assertTrue(images_equal, "TOMs are not correct (bundle: " + bundle + ")")

@@ -56,7 +56,7 @@ def load_training_data(Config, subject):
         data and labels as 3D array
     """
     def load(filepath):
-        data = nib.load(filepath + ".nii.gz").get_data()
+        data = nib.load(filepath + ".nii.gz").get_fdata()
         # data = np.load(filepath + ".npy", mmap_mode="r")
         return data
 

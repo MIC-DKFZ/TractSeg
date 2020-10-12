@@ -32,12 +32,12 @@ def create_preprocessed_files(subject):
     for idx, filename in enumerate(filenames_data):
         print(filename)
         path = join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".nii.gz")
-        data = nib.load(path).get_data()
+        data = nib.load(path).get_fdata()
         # _ = img_utils.peak_image_to_tensor_image(data)
 
     for filename in filenames_seg:
         print(filename)
-        data = nib.load(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".nii.gz")).get_data()
+        data = nib.load(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".nii.gz")).get_fdata()
 
 
 if __name__ == "__main__":

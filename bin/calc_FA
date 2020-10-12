@@ -27,12 +27,12 @@ def main():
     args = parser.parse_args()
 
     img = nib.load(args.file_in)
-    data = img.get_data()
+    data = img.get_fdata()
 
     bvals, bvecs = read_bvals_bvecs(args.bvals, args.bvecs)
     gtab = gradient_table(bvals, bvecs)
 
-    mask = nib.load(args.brain_mask).get_data()
+    mask = nib.load(args.brain_mask).get_fdata()
     masked_brain = data
     masked_brain[mask < 0.5] = 0
 

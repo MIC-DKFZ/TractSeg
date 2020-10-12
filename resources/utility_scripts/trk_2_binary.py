@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     ref_img = nib.load(ref_img_path)
     ref_affine = ref_img.affine
-    ref_shape = ref_img.get_data().shape
+    ref_shape = ref_img.get_fdata().shape
 
     streams, hdr = trackvis.read(file_in)
     streamlines = [s[0] for s in streams]  # list of 2d ndarrays

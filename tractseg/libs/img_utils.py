@@ -274,7 +274,7 @@ def create_multilabel_mask(classes, subject, labels_type=np.int16, dataset_folde
     # first bundle is background -> already considered by setting np.ones in the beginning
     for idx, bundle in enumerate(bundles[1:]):
         mask = nib.load(join(C.HOME, dataset_folder, subject, labels_folder, bundle + ".nii.gz"))
-        mask_data = mask.get_data()  # dtype: uint8
+        mask_data = mask.get_fdata().astype(np.uint8)
         mask_ml[:, :, :, idx + 1] = mask_data
         background[mask_data == 1] = 0  # remove this bundle from background
 
@@ -409,7 +409,7 @@ def probs_to_binary_bundle_specific(seg, bundles):
 
 def dilate_binary_mask(file_in, file_out, dilation=2):
     img = nib.load(file_in)
-    data = img.get_data()
+    data = img.get_fdata()
 
     for i in range(dilation):
         data = binary_dilation(data)
@@ -435,7 +435,7 @@ def peaks2fixel(peaks_file_in, fixel_dir_out):
     exp_utils.make_dir(fixel_dir_out)
 
     peaks_img = nib.load(peaks_file_in)
-    peaks = peaks_img.get_data()
+    peaks = peaks_img.get_fdata()
     s = peaks.shape
 
     directions = []
@@ -504,7 +504,7 @@ def change_spacing_4D(img_in, new_spacing=1.25):
     """
     Note: Only works properly if affine is all 0 except for diagonal and offset (=no rotation and sheering)
     """
-    data = img_in.get_data()
+    data = img_in.get_fdata()
     old_shape = data.shape
     img_spacing = abs(img_in.affine[0, 0])
 
@@ -514,7 +514,7 @@ def change_spacing_4D(img_in, new_spacing=1.25):
     new_affine[1, 1] = new_spacing if img_in.affine[1, 1] > 0 else -new_spacing
     new_affine[2, 2] = new_spacing if img_in.affine[2, 2] > 0 else -new_spacing
 
-    new_shape = np.floor(np.array(img_in.get_data().shape) * (img_spacing / new_spacing))
+    new_shape = np.floor(np.array(img_in.get_fdata().shape) * (img_spacing / new_spacing))
     new_shape = new_shape[:3]  # drop last dim
 
     new_data = []
@@ -613,9 +613,9 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
     """
     if sys.version_info[0] < 3:
         print("INFO: Peak orientation check not working on python 2, therefore it is skipped.")
-        return peaks_input.get_data(), None
+        return peaks_input.get_fdata(), None
     else:
-        peaks = change_spacing_4D(peaks_input, new_spacing=2.).get_data()
+        peaks = change_spacing_4D(peaks_input, new_spacing=2.).get_fdata()
         #shape the classifier has been trained with
         peaks = enforce_shape(peaks, target_shape=(91, 109, 91, 9))
 
@@ -630,7 +630,7 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
         predicted_label = clf.predict(X)[0]
         # labels:
         #  ok: 0, x:1, y:2, z:3
-        peaks_input_data = peaks_input.get_data()
+        peaks_input_data = peaks_input.get_fdata()
         if do_flip:
             if predicted_label == 0:
                 return peaks_input_data, None

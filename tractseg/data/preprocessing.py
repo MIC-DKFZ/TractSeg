@@ -72,7 +72,7 @@ def create_preprocessed_files(subject):
         raise IOError("File missing")
 
     # Get bounding box
-    data = nib.load(bb_file_path).get_data()
+    data = nib.load(bb_file_path).get_fdata()
     _, _, bbox, _ = data_utils.crop_to_nonzero(np.nan_to_num(data))
 
     for idx, filename in enumerate(filenames_data):
@@ -82,7 +82,7 @@ def create_preprocessed_files(subject):
             print("Already done: {} - {}".format(subject, filename))
         elif os.path.exists(path_src):
             img = nib.load(path_src)
-            data = img.get_data()
+            data = img.get_fdata()
             affine = img.affine
             data = np.nan_to_num(data)
 
@@ -105,7 +105,7 @@ def create_preprocessed_files(subject):
             print("Already done: {} - {}".format(subject, filename))
         elif os.path.exists(path_src):
             img = nib.load(path_src)
-            data = img.get_data()
+            data = img.get_fdata()
             data, _, _, _ = data_utils.crop_to_nonzero(data, bbox=bbox)
             # np.save(join(C.DATA_PATH, DATASET_FOLDER_PREPROC, subject, filename + ".npy"), data)
             nib.save(nib.Nifti1Image(data, img.affine), path_target)

@@ -92,7 +92,7 @@ def peak_image_to_binary_mask_path(path_in, path_out, peak_length_threshold=0.1)
         void
     """
     peak_img = nib.load(path_in)
-    peak_data = peak_img.get_data()
+    peak_data = peak_img.get_fdata()
     peak_mask = peak_image_to_binary_mask(peak_data, len_thr=peak_length_threshold)
     peak_mask_img = nib.Nifti1Image(peak_mask.astype(np.uint8), peak_img.affine)
     nib.save(peak_mask_img, path_out)
@@ -206,7 +206,7 @@ def peaks_to_tensors_nifti(peaks_img):
     """
     Same as peak_image_to_tensor_image() but takes nifti img as input and outputs a nifti img
     """
-    tensors = peaks_to_tensors(peaks_img.get_data())
+    tensors = peaks_to_tensors(peaks_img.get_fdata())
     return nib.Nifti1Image(tensors, peaks_img.affine)
 
 
@@ -224,20 +224,20 @@ def load_bedpostX_dyads(path_dyads1, scale=True, tensor_model=False):
         peaks with shape: [x,y,z,9]
     """
     dyads1_img = nib.load(path_dyads1)
-    dyads1 = dyads1_img.get_data()
-    dyads2 = nib.load(join(dirname(path_dyads1), "dyads2_thr0.05.nii.gz")).get_data()
+    dyads1 = dyads1_img.get_fdata()
+    dyads2 = nib.load(join(dirname(path_dyads1), "dyads2_thr0.05.nii.gz")).get_fdata()
     dyads3_path = join(dirname(path_dyads1), "dyads3_thr0.05.nii.gz")
     if exists(dyads3_path):
-        dyads3 = nib.load(dyads3_path).get_data()
+        dyads3 = nib.load(dyads3_path).get_fdata()
     else:
         dyads3 = np.zeros(dyads2.shape, dtype=dyads2.dtype)
 
     if scale:
-        dyads1 *= nib.load(join(dirname(path_dyads1), "mean_f1samples.nii.gz")).get_data()[...,None]
-        dyads2 *= nib.load(join(dirname(path_dyads1), "mean_f2samples.nii.gz")).get_data()[...,None]
+        dyads1 *= nib.load(join(dirname(path_dyads1), "mean_f1samples.nii.gz")).get_fdata()[...,None]
+        dyads2 *= nib.load(join(dirname(path_dyads1), "mean_f2samples.nii.gz")).get_fdata()[...,None]
         f3_path = join(dirname(path_dyads1), "mean_f3samples.nii.gz")
         if exists(f3_path):
-            dyads3 *= nib.load(f3_path).get_data()[...,None]
+            dyads3 *= nib.load(f3_path).get_fdata()[...,None]
         else:
             dyads3 *= np.zeros(dyads2.shape[:3])[...,None]
 
@@ -261,7 +261,7 @@ def mask_and_normalize_peaks(peaks, tract_seg_path, bundles, dilation, nr_cpus=-
     def _process_bundle(idx, bundle):
         bundle_peaks = np.copy(peaks[:, :, :, idx * 3:idx * 3 + 3])  # [x, y, z, 3]
         img = nib.load(join(tract_seg_path, bundle + ".nii.gz"))
-        mask, flip_axis = img_utils.flip_axis_to_match_MNI_space(img.get_data(), img.affine)
+        mask, flip_axis = img_utils.flip_axis_to_match_MNI_space(img.get_fdata(), img.affine)
         mask = binary_dilation(mask, iterations=dilation).astype(np.uint8)  # [x, y, z]
         bundle_peaks[mask == 0] = 0
         bundle_peaks = normalize_peak_to_unit_length(bundle_peaks)

@@ -237,7 +237,7 @@ TractSeg -i peaks.nii.gz --tract_definition xtract
 import nibabel as nib
 import numpy as np
 from tractseg.python_api import run_tractseg
-peaks = nib.load("tests/reference_files/peaks.nii.gz").get_data()
+peaks = nib.load("tests/reference_files/peaks.nii.gz").get_fdata()
 segmentation = run_tractseg(peaks)
 ```
 

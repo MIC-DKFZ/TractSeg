@@ -375,7 +375,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
 
     # Load mask
     beginnings_img = nib.load(endings_path)
-    beginnings = beginnings_img.get_data()
+    beginnings = beginnings_img.get_fdata().astype(np.uint8)
     for i in range(1):
         beginnings = binary_dilation(beginnings)
 
@@ -469,7 +469,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     renderer.add(sl_actor)
 
     # plot brain mask
-    mask = nib.load(brain_mask_path).get_data()
+    mask = nib.load(brain_mask_path).get_fdata().astype(np.uint8)
     cont_actor = vtk_utils.contour_from_roi_smooth(mask, affine=beginnings_img.affine, color=[.9, .9, .9], opacity=.2,
                                                    smoothing=50)
     renderer.add(cont_actor)

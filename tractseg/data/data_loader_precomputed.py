@@ -33,8 +33,8 @@ class BatchGenerator2D_PrecomputedBatches(SlimDataLoaderBase):
         nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 1
         idx = int(random.uniform(0, int(nr_of_files / 2.)))
 
-        data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()
-        seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()
+        data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_fdata()
+        seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_fdata()
         return {"data": data, "seg": seg}
 
 
@@ -81,7 +81,7 @@ class DataLoaderPrecomputed():
             nr_of_files = len([name for name in os.listdir(path) if os.path.isfile(join(path, name))]) - 2
             idx = int(random.uniform(0, int(nr_of_files / 2.)))
 
-            data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_data()[:self.Config.BATCH_SIZE]
-            seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_data()[:self.Config.BATCH_SIZE]
+            data = nib.load(join(path, "batch_" + str(idx) + "_data.nii.gz")).get_fdata()[:self.Config.BATCH_SIZE]
+            seg = nib.load(join(path, "batch_" + str(idx) + "_seg.nii.gz")).get_fdata()[:self.Config.BATCH_SIZE]
             yield {"data": data, "seg": seg}
 

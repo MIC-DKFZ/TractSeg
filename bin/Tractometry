@@ -83,7 +83,7 @@ def main():
     results = []
     for bundle in tqdm(bundles):
         if args.peak_length:
-            predicted_peaks = nib.load(join(args.TOM_dir, bundle + ".nii.gz")).get_data()
+            predicted_peaks = nib.load(join(args.TOM_dir, bundle + ".nii.gz")).get_fdata()
         else:
             predicted_peaks = None
         beginnings = nib.load(join(args.endings_dir, bundle + "_b.nii.gz"))
@@ -104,8 +104,8 @@ def main():
                 streamlines = sl_file.streamlines
 
             if len(streamlines) >= 5 or args.test == 2:
-                mean, std = tractometry.evaluate_along_streamlines(np.nan_to_num(scalar_image.get_data()), streamlines,
-                                                               beginnings.get_data(), NR_POINTS, dilate=DILATION,
+                mean, std = tractometry.evaluate_along_streamlines(np.nan_to_num(scalar_image.get_fdata()), streamlines,
+                                                               beginnings.get_fdata(), NR_POINTS, dilate=DILATION,
                                                                predicted_peaks=predicted_peaks, affine=scalar_image.affine)
             else:
                 print("WARNING: bundle {} contains less than 5 streamlines. Saving value 0 for this bundle.".

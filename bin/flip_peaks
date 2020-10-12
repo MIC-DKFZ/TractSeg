@@ -23,7 +23,7 @@ def main():
     args = parser.parse_args()
 
     img = nib.load(args.file_in)
-    data = img.get_data()
+    data = img.get_fdata()
 
     nr_peaks = data.shape[3] // 3
 

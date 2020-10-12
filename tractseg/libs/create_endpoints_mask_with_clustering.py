@@ -79,7 +79,7 @@ file_in = args[1]
 file_out = args[2]
 
 ref_img = nib.load(ref_img_in)
-ref_img_shape = ref_img.get_data().shape
+ref_img_shape = ref_img.get_fdata().shape
 
 streams, hdr = trackvis.read(file_in)
 streamlines = [s[0] for s in streams]
