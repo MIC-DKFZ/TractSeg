@@ -40,8 +40,7 @@ class test_end_to_end(unittest.TestCase):
     def test_bundle_specific_postprocessing(self):
         # CA
         img_ref = np.zeros((144, 144, 144)).astype(np.uint8)
-        # img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
-        img_ref[10:30, 10:30, 10:30] = 0  # big blob 1
+        img_ref[10:30, 10:30, 10:30] = 1  # big blob 1
         img_ref[10:30, 10:30, 40:50] = 1  # big blob 2
         img_ref[20:25, 20:25, 30:40] = 1  # bridge
         img_ref = transform_to_output_space(img_ref)
