@@ -1,5 +1,6 @@
-dist: xenial
-sudo: required  # gives more RAM (otherwise memory error for TOM)
+os: ubuntu
+dist: bionic
+#sudo: required  # gives more RAM (otherwise memory error for TOM)
 language: python
 services:
   - docker
