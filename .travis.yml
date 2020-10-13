@@ -66,51 +66,51 @@ script:
     else
       echo "skipping docker upload"; fi
 
-  #Bundles
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --single_orientation
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
-
-  #Endings
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type endings_segmentation
-    --single_orientation --nr_cpus 1
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
- #- python tests/test_end_to_end.py test_end_to_end.test_endingsseg_output  # would also work
-
-  #TOM
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type TOM --nr_cpus 1
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
-
-  #Track
-  # Use docker if we want to test Mrtrix tracking
-#  # for python 3 it uses the online available container -> built from the previous commit
-#  - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master Tracking
-#    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples/tractseg_output
-#    --nr_fibers 2000 --tracking_dilation 0 --test
-  - Tracking -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output
-      --nr_fibers 10000 --test 3
-
-  #Tractometry
-  - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
-    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz --test 3
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
-
-  #Tractometry toy example
-  - mkdir -p tractometry_toy_example
-  - python tests/reference_files/create_toy_streamlines.py tractometry_toy_example
-  - Tractometry -i tractometry_toy_example/TOM_trackings -o tractometry_toy_example/Tractometry.csv
-    -e tractometry_toy_example/endings_segmentations/ -s tractometry_toy_example/toy_FA.nii.gz --test 2
-    --nr_points 10 --tracking_format trk_legacy
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry_toy_example
-
-  #Statistical analysis of tractometry
-  - plot_tractometry_results -i tests/reference_files/subjects_group.txt
-    -o examples/tractometry_result_group.png --mc --save_csv
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_statistical_analysis_group
-  - plot_tractometry_results -i tests/reference_files/subjects_correlation.txt
-    -o examples/tractometry_result_correlation.png --mc --save_csv
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_statistical_analysis_correlation
-
-  #Bundles SR noPP
-  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_noPP/tractseg_output --single_orientation
-    --super_resolution --no_postprocess
-  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_noPP
+#  #Bundles
+#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --single_orientation
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
+#
+#  #Endings
+#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type endings_segmentation
+#    --single_orientation --nr_cpus 1
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_endingsseg_output
+# #- python tests/test_end_to_end.py test_end_to_end.test_endingsseg_output  # would also work
+#
+#  #TOM
+#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output --output_type TOM --nr_cpus 1
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_peakreg_output
+#
+#  #Track
+#  # Use docker if we want to test Mrtrix tracking
+##  # for python 3 it uses the online available container -> built from the previous commit
+##  - docker run -v $TRAVIS_BUILD_DIR:/data -it wasserth/tractseg_container:master Tracking
+##    -i /data/tests/reference_files/peaks.nii.gz -o /data/examples/tractseg_output
+##    --nr_fibers 2000 --tracking_dilation 0 --test
+#  - Tracking -i tests/reference_files/peaks.nii.gz -o examples/tractseg_output
+#      --nr_fibers 10000 --test 3
+#
+#  #Tractometry
+#  - Tractometry -i examples/tractseg_output/TOM_trackings -o examples/Tractometry.csv
+#    -e examples/tractseg_output/endings_segmentations/ -s tests/reference_files/FA.nii.gz --test 3
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry
+#
+#  #Tractometry toy example
+#  - mkdir -p tractometry_toy_example
+#  - python tests/reference_files/create_toy_streamlines.py tractometry_toy_example
+#  - Tractometry -i tractometry_toy_example/TOM_trackings -o tractometry_toy_example/Tractometry.csv
+#    -e tractometry_toy_example/endings_segmentations/ -s tractometry_toy_example/toy_FA.nii.gz --test 2
+#    --nr_points 10 --tracking_format trk_legacy
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry_toy_example
+#
+#  #Statistical analysis of tractometry
+#  - plot_tractometry_results -i tests/reference_files/subjects_group.txt
+#    -o examples/tractometry_result_group.png --mc --save_csv
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_statistical_analysis_group
+#  - plot_tractometry_results -i tests/reference_files/subjects_correlation.txt
+#    -o examples/tractometry_result_correlation.png --mc --save_csv
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_statistical_analysis_correlation
+#
+#  #Bundles SR noPP
+#  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/SR_noPP/tractseg_output --single_orientation
+#    --super_resolution --no_postprocess
+#  - pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_SR_noPP
