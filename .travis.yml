@@ -3,7 +3,7 @@ sudo: required  # gives more RAM (otherwise memory error for TOM)
 language: python
 services:
   - docker
-matrix:
+jobs:
   include:
   - python: "3.6"
     env:
@@ -17,21 +17,19 @@ matrix:
     env:
       - PYTORCH_URL="torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
       - PYTHON_VERS=3.8
-before_install:
-  - pip install $PYTORCH_URL
-install:
-  - pip install .
+  - stage: deploy
+    python: "3.7"
+    env:
+      - PYTORCH_URL="torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
+      - PYTHON_VERS=3.7
+    script: echo "Deploy to docker"
+#before_install:
+#  - pip install $PYTORCH_URL
+#install:
+#  - pip install .
 script:
   - echo "test job"
 
-jobs:
-  include:
-    - stage: deploy
-      python: "3.7"
-      env:
-        - PYTORCH_URL="torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
-        - PYTHON_VERS=3.7
-      script: echo "Deploy to docker"
 
 #  #Bundle specific postprocessing
 #  - TractSeg -i tests/reference_files/peaks.nii.gz -o examples/BS_PP/tractseg_output --single_orientation --test
