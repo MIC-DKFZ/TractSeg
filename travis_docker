@@ -1,0 +1,2 @@
+echo "upload to dockerhub"
+echo $TRAVIS_BUILD_DIR
