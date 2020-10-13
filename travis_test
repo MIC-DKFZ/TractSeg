@@ -1,0 +1,2 @@
+- echo "test job 2"
+- echo $PYTHON_VERS

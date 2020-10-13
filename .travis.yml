@@ -27,8 +27,7 @@ jobs:
 #  - pip install $PYTORCH_URL
 #install:
 #  - pip install .
-script:
-  - echo "test job"
+script: ./travis_test
 
 
 #  #Bundle specific postprocessing
