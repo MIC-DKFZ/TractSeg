@@ -1,13 +1,13 @@
 set -e
 
-#Docker
+# Docker
 docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .
 docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg \
 -i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
 
-#pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
-# probably not working because generated peaks slightly different
-pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output
+pytest -v tests/test_end_to_end.py::test_end_to_end::test_csd_peaks
+pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractseg_output_docker
 
+# Upload to docker hub
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 docker push wasserth/tractseg_container:master

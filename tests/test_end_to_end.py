@@ -31,11 +31,19 @@ class test_end_to_end(unittest.TestCase):
     def setUp(self):
         pass
 
-    # def test_csd_peaks(self):
-    #     img_ref = nib.load("tests/reference_files/peaks.nii.gz").get_fdata()
-    #     img_new = nib.load("examples/tractseg_output/peaks.nii.gz").get_fdata()
-    #     images_equal = np.allclose(img_ref, img_new, rtol=1, atol=1)    #somehow not working; order of channels randomly changing?
-    #     self.assertTrue(images_equal, "CSD peaks not correct")
+    def test_csd_peaks(self):
+        img_ref = np.nan_to_num(nib.load("tests/reference_files/peaks.nii.gz").get_fdata())
+        img_new = np.nan_to_num(nib.load("examples/docker_test/peaks.nii.gz").get_fdata())
+        images_equal = np.equal(img_ref, img_new)
+        self.assertTrue(images_equal, "CSD peaks not correct")
+
+    def test_tractseg_output_docker(self):
+        bundles = dataset_specific_utils.get_bundle_names("All")[1:]
+        for bundle in bundles:
+            img_ref = nib.load("tests/reference_files/bundle_segmentations/" + bundle + ".nii.gz").get_fdata().astype(np.uint8)
+            img_new = nib.load("examples/docker_test/bundle_segmentations/" + bundle + ".nii.gz").get_fdata().astype(np.uint8)
+            images_equal = np.array_equal(img_ref, img_new)
+            self.assertTrue(images_equal, "Docker tract segmentations are not correct (bundle: " + bundle + ")")
 
     def test_bundle_specific_postprocessing(self):
         # CA
