@@ -1,4 +1,8 @@
+set -e
+
 #Bundle specific postprocessing
+#TractSeg -i tests/reference_files/peaks.nii.gz -o examples/BS_PP/tractseg_output --single_orientation --test
+#pytest -v tests/test_end_to_end.py::test_end_to_end::test_bundle_specific_postprocessing
 TractSeg -i tests/reference_files/peaks.nii.gz -o examples/BS_PP/tractseg_output --single_orientation --test
 pytest -v tests/test_end_to_end.py::test_end_to_end::test_bundle_specific_postprocessing
 

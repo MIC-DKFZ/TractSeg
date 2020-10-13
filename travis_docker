@@ -1,3 +1,5 @@
+set -e
+
 #Docker
 docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .
 docker run -v $TRAVIS_BUILD_DIR/examples:/data -it wasserth/tractseg_container:master TractSeg \

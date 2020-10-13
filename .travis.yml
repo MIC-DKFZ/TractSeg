@@ -1,4 +1,4 @@
-os: ubuntu
+os: linux
 dist: bionic
 #sudo: required  # gives more RAM (otherwise memory error for TOM)
 language: python
@@ -8,12 +8,12 @@ jobs:
   include:
   - python: "3.6"
     env:
-      - PYTORCH_URL="torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
+      - PYTORCH_URL="torch==1.4.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
       - PYTHON_VERS=3.6
     script: ./travis_test
   - python: "3.7"
     env:
-      - PYTORCH_URL="torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
+      - PYTORCH_URL="torch==1.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
       - PYTHON_VERS=3.7
     script: ./travis_test
   - python: "3.8"
