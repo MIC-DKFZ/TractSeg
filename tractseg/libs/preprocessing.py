@@ -115,8 +115,6 @@ def move_to_subject_space(output_dir, bundles, experiment_type, output_subdir, o
 def create_brain_mask(input_file, output_dir):
     print("Creating brain mask...")
 
-    os.system("export PATH=/usr/local/fsl/bin:$PATH")
-
     input_dir = os.path.dirname(input_file)
     input_file_without_ending = os.path.basename(input_file).split(".")[0]
     os.system("bet " + join(input_dir, input_file_without_ending) + " " +
@@ -127,7 +125,6 @@ def create_brain_mask(input_file, output_dir):
 
 
 def create_fods(input_file, output_dir, bvals, bvecs, brain_mask, csd_type, nr_cpus=-1):
-    os.system("export PATH=/code/mrtrix3/bin:$PATH")
 
     if nr_cpus > 0:
         nthreads = " -nthreads " + str(nr_cpus)
