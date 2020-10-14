@@ -1,16 +1,17 @@
 ## Master
-* minor improvements
 * 3D plot of streamlines with coloring according to tractometry FA
 * Add pretrained weights for XTRACT tract definitions
-* set range of y-axis in `plot_tractometry_results` (thanks to @elder-mama)
-* make `--preprocess` also work for endings_segmentation and TOM
+* Set range of y-axis in `plot_tractometry_results` (thanks to @elder-mama)
+* Make `--preprocess` also work for endings_segmentation and TOM
+* Simplified dockerfile
+* Minor improvements
 
 
 ## Release 2.1.1
 
 * Available on pypi
-* manually specify which bundles to track
-* minor improvements
+* Manually specify which bundles to track
+* Minor improvements
 
 
 ## Release 2.1
