@@ -34,7 +34,7 @@ class test_end_to_end(unittest.TestCase):
     def test_csd_peaks(self):
         img_ref = np.nan_to_num(nib.load("tests/reference_files/peaks.nii.gz").get_fdata())
         img_new = np.nan_to_num(nib.load("examples/docker_test/peaks.nii.gz").get_fdata())
-        images_equal = np.test_csd_peaks(img_ref, img_new)
+        images_equal = np.array_equal(img_ref, img_new)
         self.assertTrue(images_equal, "CSD peaks not correct")
 
     def test_tractseg_output_docker(self):
