@@ -309,6 +309,9 @@ Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output
 > NOTE: `--preprocess` does not work if you are using the option `--csd_type csd_msmt_5tt`, 
 because the T1 image will not automatically be registered to MNI space
 
+If you are not familiar with preprocessing of DWI images (e.g. correcting for artifacts) you can have a look at 
+[this](resources/utility_scripts/dwi_preprocessing.sh) preprocessing script.
+
 
 ## FAQ
 
