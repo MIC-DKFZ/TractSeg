@@ -1,4 +1,9 @@
 ## Master
+* Minor improvements
+
+
+## Release 2.2
+
 * 3D plot of streamlines with coloring according to tractometry FA
 * Add pretrained weights for XTRACT tract definitions
 * Set range of y-axis in `plot_tractometry_results` (thanks to @elder-mama)
