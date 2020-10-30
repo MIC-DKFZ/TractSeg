@@ -119,6 +119,10 @@ TractSeg -i peaks.nii.gz --output_type TOM
 Tracking -i peaks.nii.gz
 ```
 
+> NOTE: If you are not using MITK Diffusion for viewing your results you might want to use a different tracking format
+by adapting the option `--tracking_format`.
+
+
 #### Use bedpostX peaks instead of CSD peaks
 TractSeg also works with bedpostX as input. You have to pass `dyads1.nii.gz` as input and TractSeg will automatically
  find all the other necessary bedpostX files (`dyads2_thr0.05.nii.gz` & `dyads3_thr0.05.nii.gz`. `mean_f1-3samples` 

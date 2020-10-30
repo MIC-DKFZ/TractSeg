@@ -41,6 +41,7 @@ GPU: 2min ~14s)
 5. Run tractometry:  
 `cd tractseg_output`  
 `Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
+> NOTE: if you set the option `--tracking_format` for `Tracking` you also have to set it for `Tractometry`.    
 6. Repeat step 1-4 for every subject (use a shell script for that)
 7. To test for statistical significance and plot the results run the following command:  
 `plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png --mc`   
