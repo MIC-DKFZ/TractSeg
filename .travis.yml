@@ -13,12 +13,12 @@ jobs:
     script: ./travis_test
   - python: "3.7"
     env:
-      - PYTORCH_URL="torch==1.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
+      - PYTORCH_URL="torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
       - PYTHON_VERS=3.7
     script: ./travis_test
   - python: "3.8"
     env:
-      - PYTORCH_URL="torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
+      - PYTORCH_URL="torch==1.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
       - PYTHON_VERS=3.8
     script: ./travis_test
   - stage: Deploy to Dockerhub
