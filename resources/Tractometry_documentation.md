@@ -14,7 +14,7 @@ In our implementation of Tractometry we do the following:
 5. For each centroid segment average the FA for all assigned streamline segments  
 
 This approach is based on the Bundle Analytics paper from 
-[Chandio et al](https://ww5.aievolution.com/hbm1901/index.cfm?do=abs.viewAbs&abs=1914). Please cite their work if you
+[Chandio et al](https://www.nature.com/articles/s41598-020-74054-4). Please cite their work if you
 use this.
 
 An easier approach (which we used previously in TractSeg) would be to evaluate the FA along 20 equality distant 
