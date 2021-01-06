@@ -19,6 +19,8 @@ set -e  # stop on error
 # (If you run TractSeg with the options `--raw_diffusion_input --preprocess` then TractSeg will automatically
 # perform steps 5 to 8 internally. You will still have to do steps 1 to 4 manually.)
 #
+# IMPORTANT: Look for all "todo" comments and adapt those parts according to your data.
+#
 #######################################################################################################################
 
 
