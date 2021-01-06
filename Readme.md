@@ -304,7 +304,7 @@ fslmaths my_bundle_subject_space.nii.gz -thr 0.5 -bin my_bundle_subject_space.ni
 
 The option `--preprocess` will automatically rigidly register the input image to MNI space, run TractSeg and then 
 convert the output back to subject space. For TOMs and trackings the `--preprocess` option has to be used as 
-follows (currently this only works in the `master` branch):
+follows:
 ```shell
 # in first step --raw_diffusion_input has to be used together with --preprocess
 TractSeg -i Diffusion.nii.gz -o tractseg_output --output_type tract_segmentation --raw_diffusion_input --preprocess
