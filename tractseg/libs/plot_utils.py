@@ -79,7 +79,7 @@ def plot_tracts(classes, bundle_segmentations, affine, out_dir, brain_mask=None)
     WINDOW_SIZE = (800, 800)
     bundles = ["CST_right", "CA", "IFO_right"]
 
-    renderer = window.Renderer()
+    renderer = window.Scene()
     renderer.projection('parallel')
 
     rows = len(bundles)
@@ -450,7 +450,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     # Add extra point otherwise coloring BUG
     streamlines = _add_extra_point_to_last_streamline(streamlines)
 
-    renderer = window.Renderer()
+    renderer = window.Scene()
     colors_all = []  # final shape will be [nr_streamlines, nr_points, 3]
     for jdx, sl in enumerate(streamlines):
         colors_sl = []

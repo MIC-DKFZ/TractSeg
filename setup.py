@@ -21,6 +21,7 @@ setup(name='TractSeg',
             'six',
             'psutil',
             'dipy>=1.0.0',
+            'fury',
             'joblib>=0.13.2',
             'seaborn'
         ],
