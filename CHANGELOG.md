@@ -1,5 +1,9 @@
 ## Master
-* Minor improvements
+* Update documentation
+
+
+## Release 2.3
+* Update documentation
 * Update 3d tract visualization in `plot_tractometry_results` to use fury
 * Updated pytorch to 1.8.1
 
