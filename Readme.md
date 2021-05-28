@@ -20,7 +20,7 @@ TractSeg is the code for the following papers. Please cite the papers if you use
 [Combined tract segmentation and orientation mapping for bundle-specific tractography](https://www.sciencedirect.com/science/article/pii/S136184151930101X)
 [Medical Image Analysis 2019]
 * Tractometry:  
-[Multiparametric mapping of white matter microstructure in catatonia]([free preprint](resources/Wasserthal2020_Multiparametric_mapping_of_white_matter.pdf))(https://www.nature.com/articles/s41386-020-0691-2)
+[Multiparametric mapping of white matter microstructure in catatonia](https://www.nature.com/articles/s41386-020-0691-2) ([free preprint](resources/Wasserthal2020_Multiparametric_mapping_of_white_matter.pdf))
 [Nature Neuropsychopharmacology 2020]
 
 [![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
