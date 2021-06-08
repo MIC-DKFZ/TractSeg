@@ -366,8 +366,9 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
 
     metrics_max = metrics.max()
     metrics_min = metrics.min()
+    # If all values identical, then scale_to_range does not work. Manually rescale to 0 if 0 or 99 if 1.
     if metrics_max == metrics_min:
-        metrics = np.zeros(len(metrics))
+        metrics *= 99
     else:
         metrics = img_utils.scale_to_range(metrics, range=(0, 99))  # range needs to be same as segments in colormap
 

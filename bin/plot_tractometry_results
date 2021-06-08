@@ -212,10 +212,10 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             ax2.set(xlabel='position', ylabel='-log10(p)')
         else:
             if FWE_method == "alphaFWE":
-                sig_areas = get_significant_areas(pvalues, 1, alphaFWE)
+                sig_areas_0_1 = get_significant_areas(pvalues, 1, alphaFWE)
             else:
-                sig_areas = get_significant_areas(pvalues, clusterFWE, alpha)
-            sig_areas = sig_areas * np.quantile(np.array(data["fa"]), 0.98)
+                sig_areas_0_1 = get_significant_areas(pvalues, clusterFWE, alpha)
+            sig_areas = sig_areas_0_1 * np.quantile(np.array(data["fa"]), 0.98)
             sig_areas[sig_areas == 0] = np.quantile(np.array(data["fa"]), 0.02)
             axes[i].plot(range(len(sig_areas)), sig_areas, color="red", linestyle=":")
 
@@ -247,8 +247,8 @@ def plot_tractometry_with_pvalue(values, meta_data, bundles, selected_bundles, o
             if plot_3D_type == "metric":
                 metric = np.array([values[s][b_idx] for s in subjects_A + subjects_B]).mean(axis=0)
             else:
-                # metric = pvalues  # use this code if you want to plot the pvalues instead of the FA
-                metric = sig_areas
+                # metric = pvalues  # use this code if you want to plot the pvalues instead of sig_areas
+                metric = sig_areas_0_1
                 show_color_bar = False  # colorbar not meaningful if showing binary significant areas
 
             bundle = bundles[b_idx]
