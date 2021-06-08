@@ -254,7 +254,7 @@ Probabilistic means that at each step a small random factor will be added to the
 If not doing this on low resolution data it sometimes gets difficult finding fibers running from start to end and
 covering the whole bundle.
 
-* Probabilistic tracking on original FODs.    
+* Probabilistic tracking on original FODs.
 `Tracking -i WM_FODs.nii.gz --track_FODs iFOD2`  
 Is calling Mrtrix iFOD2 tracking internally. Does not use TOM peaks but the original FODs. The results will get 
 filtered by the bundle mask and have to start and end in the endings masks.
@@ -262,9 +262,8 @@ filtered by the bundle mask and have to start and end in the endings masks.
 
 #### Tracking formats
 You can use the option `--tracking_format` to define the file format of the streamline files.
-The default is `trk_legacy`. The resulting streamlines are displayed correctly in MITK Diffusion. 
-If you are using TrackVis you should use the format `trk`.
-> NOTE: When calling `Tractometry` you have to set the same tracking format as was used in `Tracking`. 
+`tck` is the most stable tracking format and recommended. `trk` might get displayed differently in different viewers.  
+> NOTE: When calling `Tractometry` and `plot_tractometry_results` you have to set the same tracking format as was used in `Tracking`. 
 
 
 #### Aligning image to MNI space
