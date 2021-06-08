@@ -37,7 +37,7 @@ GPU: 2min ~14s)
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM` (runtime on GPU: ~1min 30s)  
 `Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 5000 --tracking_format tck` (runtime on CPU: ~12min)  
  > NOTE: As the streamline seeding is random, results will be slightly different everytime you run it. 
- A high number of streamlines like 5000 will lower this variation.
+ A high number of streamlines like 5000 will lower this variation.  
  > NOTE: `tck` is the most stable tracking format. `trk` might get displayed differently in different viewers.
 5. Run tractometry:  
 `cd tractseg_output`  
