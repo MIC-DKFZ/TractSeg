@@ -116,11 +116,8 @@ Tracks on TOMs and only keeps fibers not leaving the bundle mask and starting an
 TractSeg -i peaks.nii.gz --output_type tract_segmentation
 TractSeg -i peaks.nii.gz --output_type endings_segmentation
 TractSeg -i peaks.nii.gz --output_type TOM 
-Tracking -i peaks.nii.gz
+Tracking -i peaks.nii.gz --tracking_format tck
 ```
-
-> NOTE: If you are not using MITK Diffusion for viewing your results you might want to use a different tracking format
-by adapting the option `--tracking_format`.
 
 
 #### Use bedpostX peaks instead of CSD peaks

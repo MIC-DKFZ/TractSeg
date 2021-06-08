@@ -26,25 +26,26 @@ leads to more blurring of the segments as can be seen in the following figure:
 Run the following steps:
 1. Go to the folder where you have your `Diffusion.nii.gz`, `Diffusion.bvals`, `Diffusion.bvecs` and `FA.nii.gz` files. 
 They should rigidly be aligned to [MNI space](https://github.com/MIC-DKFZ/TractSeg#aligning-image-to-mni-space) and 
-already be preprocessed (motion and distortion correction, ...).
+already be preprocessed (motion and distortion correction, ...). If they are not rigidly aligned to MNI space results might be significantly worse!
 2. Create segmentation of bundles:  
 `TractSeg -i Diffusion.nii.gz -o tractseg_output --raw_diffusion_input --output_type tract_segmentation` (runtime on 
 GPU: 2min ~14s)  
-(**Note**: if you already have the MRtrix CSD peaks you can also pass those as input and remove the option `--raw_diffusion_input`)
+> NOTE: if you already have the MRtrix CSD peaks you can also pass those as input and remove the option `--raw_diffusion_input`
 3. Create segmentation of start and end regions of bundles:  
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation` (runtime on GPU: ~42s)
 4. Create Tract Orientation Maps and use them to do bundle-specific tracking:  
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM` (runtime on GPU: ~1min 30s)  
-`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 5000` (runtime on CPU: ~12min)  
- **Note**: As the streamline seeding is random, results will be slightly different everytime you run it. 
+`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 5000 --tracking_format tck` (runtime on CPU: ~12min)  
+ > NOTE: As the streamline seeding is random, results will be slightly different everytime you run it. 
  A high number of streamlines like 5000 will lower this variation.
+ > NOTE: `tck` is the most stable tracking format. `trk` might get displayed differently in different viewers.
 5. Run tractometry:  
 `cd tractseg_output`  
-`Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
-> NOTE: if you set the option `--tracking_format` for `Tracking` you also have to set it for `Tractometry`.    
+`Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz --tracking_format tck` (runtime on CPU: ~20s)  
+> NOTE: if you set the option `--tracking_format` for `Tracking` you also have to set it for `Tractometry` and `plot_tractometry_results`.
 6. Repeat step 1-4 for every subject (use a shell script for that)
 7. To test for statistical significance and plot the results run the following command:  
-`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png --mc`   
+`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png --mc --tracking_format tck`
 (runtime on CPU for group analysis: ~4min for 100 subjects)  
 (runtime on CPU for correlation analysis: ~7min for 40 subjects)
 Adapt `subjects.txt` with your data path, subject IDs and confounds. `tractseg/examples/subjects.txt` contains more 

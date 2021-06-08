@@ -12,14 +12,15 @@ def run_tractseg(subject_id):
     sp.call(f"TractSeg -i {dir}/peaks.nii.gz --preview", shell=True)
     sp.call(f"TractSeg -i {dir}/peaks.nii.gz --output_type endings_segmentation --preview", shell=True)
     sp.call(f"TractSeg -i {dir}/peaks.nii.gz --output_type TOM --preview", shell=True)
-    sp.call(f"Tracking -i {dir}/peaks.nii.gz", shell=True)
+    sp.call(f"Tracking -i {dir}/peaks.nii.gz --tracking_format tck", shell=True)
     sp.call(f"Tractometry -i {dir}/tractseg_output/TOM_trackings " +
             f"-o {dir}/tractseg_output/Tractometry.csv " +
-            f"-e {dir}/tractseg_output/endings_segmentations -s {dir}/FA.nii.gz", shell=True)
+            f"-e {dir}/tractseg_output/endings_segmentations -s {dir}/FA.nii.gz --tracking_format tck", 
+            shell=True)
 
 
 if __name__ == '__main__':
-    base = Path("/mnt/nvme/data/dwi/tractometry_test")
+    base = Path("/mnt/nvme/data/dwi/tractometry_test_subjectSpace")
     subjects = ["s01", "s02", "s03", "s04"]
 
     def process_subject(subject_id):
