@@ -67,6 +67,9 @@ def parse_subjects_file(file_path):
 
 
 def correct_for_confounds(values, meta_data, bundles, selected_bun_indices, NR_POINTS, analysis_type, confound_names):
+    if len(confound_names) == 0:
+        return values
+
     values_cor = np.zeros([len(bundles), NR_POINTS, len(meta_data)])
     for b_idx in selected_bun_indices:
         for jdx in range(NR_POINTS):
