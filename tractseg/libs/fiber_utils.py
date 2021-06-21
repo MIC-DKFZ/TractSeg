@@ -398,11 +398,12 @@ def invert_streamlines(streamlines, reference_img, affine, axis="x"):
         streamlines
     """
 
-    img_shape = np.array(reference_img.shape)
-    img_center_voxel_space = (img_shape - 1) / 2.
-    img_center_mm_space = transform_point(img_center_voxel_space, affine)
+    # This change of the origin is actually not needed. I do not remember why I added it in the 
+    # first place :|.
+    # img_shape = np.array(reference_img.shape)
+    # img_center_voxel_space = (img_shape - 1) / 2.
+    # img_center_mm_space = transform_point(img_center_voxel_space, affine)
 
-    # affine_invert = np.eye(4)
     affine_invert = np.copy(affine)
     affine_invert[0, 3] = 0
     affine_invert[1, 3] = 0
@@ -414,13 +415,13 @@ def invert_streamlines(streamlines, reference_img, affine, axis="x"):
 
     if axis == "x":
         affine_invert[0, 0] = -1
-        affine_invert[0, 3] = img_center_mm_space[1] * 2
+        # affine_invert[0, 3] = img_center_mm_space[1] * 2
     elif axis == "y":
         affine_invert[1, 1] = -1
-        affine_invert[1, 3] = img_center_mm_space[1] * 2
+        # affine_invert[1, 3] = img_center_mm_space[1] * 2
     elif axis == "z":
         affine_invert[2, 2] = -1
-        affine_invert[2, 3] = img_center_mm_space[1] * 2
+        # affine_invert[2, 3] = img_center_mm_space[1] * 2
     else:
         raise ValueError("invalid axis")
 

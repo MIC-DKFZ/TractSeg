@@ -42,6 +42,8 @@ def main():
     bvecs = read_bvecs(args.bvecs_in)
 
     affine = parse_fsl_affine(args.affine_in)
+
+    # Almost identical code to img_utils.apply_rotation_to_peaks except for order of peak array dims
     affine = affine[:3, :3]
 
     # Get rotation component of affine transformation
@@ -52,9 +54,8 @@ def main():
     rotation[:, 2] = affine[:, 2] / len[2]
 
     # Apply rotation to bvecs
-    bvecs = np.array(bvecs).T
-    rotated_bvecs = np.matmul(rotation, bvecs)
-
+    bvecs = np.array(bvecs).T  # change shape from [nr_vecs, 3] to [3, nr_vecs]
+    rotated_bvecs = np.matmul(rotation, bvecs)  # output shape [3, nr_vecs]
     np.savetxt(args.bvecs_out, rotated_bvecs, fmt='%1.6f')
 
 

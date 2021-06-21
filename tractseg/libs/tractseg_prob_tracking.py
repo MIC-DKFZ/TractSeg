@@ -203,8 +203,23 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     - calculating fiber length on the fly instead of using extra function which has to iterate over entire fiber a
     second time
     """
+    # If orientation is not same as MNI we flip the image to make it the same. Therefore we now also have to flip
+    # the affine (which is used to map the peaks from world space to voxel space) the same way
+    flip_axes = img_utils.get_flip_axis_to_match_MNI_space(affine)
+    affine_MNI_ori = img_utils.flip_affine(affine, flip_axes)
 
-    peaks[:, :, :, 0] *= -1  # have to flip along x axis to work properly
+    # Have to flip along x axis to work properly  (== moving HCP peaks to voxel spacing)
+    # This works if no rotation in affine.
+    # Not needed anymore because now doing properly with apply_rotation_to_peaks.
+    # peaks[:, :, :, 0] *= -1  
+
+    # Move peaks from world space (model predicts TOMs in world space because training data are 
+    # also in world space) to voxel space. This flips the peaks (e.g. for HCP space a x-flip is needed to
+    # make peaks align with array properly) and applies rotation from affine.
+    # (Enough to move rotation to voxel space. Length anyways being normalize to 1 and offset does 
+    # not matter for peak orientation.)
+    peaks = img_utils.apply_rotation_to_peaks(peaks, affine_MNI_ori)
+
     # Add +1 dilation for start and end mask to be more robust
     start_mask = binary_dilation(start_mask, iterations=dilation + 1).astype(np.uint8)
     end_mask = binary_dilation(end_mask, iterations=dilation + 1).astype(np.uint8)
@@ -275,15 +290,15 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     # half of the spacing and consider the sign of the affine (not needed here).
     streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
-    # move streamlines to coordinate space
-    #  This is doing: streamlines(coordinate_space) = affine * streamlines(voxel_space)
-    streamlines = list(transform_streamlines(streamlines, affine))
+    # move streamlines from voxel space to coordinate space
+    streamlines = list(transform_streamlines(streamlines, affine_MNI_ori))
 
     # If the original image was not in MNI space we have to flip back to the original space
-    # before saving the streamlines
-    flip_axes = img_utils.get_flip_axis_to_match_MNI_space(affine)
-    for axis in flip_axes:
-        streamlines = fiber_utils.invert_streamlines(streamlines, bundle_mask, affine, axis=axis)
+    # before saving the streamlines.
+    # This is not needed anymore when using affine_MNI_ori in transform_streamlines because this already 
+    # contains the flipping.
+    # for axis in flip_axes:
+        # streamlines = fiber_utils.invert_streamlines(streamlines, bundle_mask, affine, axis=axis)
 
     # Smoothing does not change overall results at all because is just little smoothing. Just removes small unevenness.
     if smooth:

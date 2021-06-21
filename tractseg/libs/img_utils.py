@@ -460,23 +460,6 @@ def peaks2fixel(peaks_file_in, fixel_dir_out):
     nib.save(nib.Nifti2Image(np.array(amplitudes), np.eye(4)), join(fixel_dir_out, "amplitudes.nii.gz"))
 
 
-def flip_peaks(data, axis="x"):
-    if axis == "x":
-        # flip x Axis  (9 channel image)  (3 peaks)
-        data[:, :, :, 0] *= -1
-        data[:, :, :, 3] *= -1
-        data[:, :, :, 6] *= -1
-    elif axis == "y":
-        data[:, :, :, 1] *= -1
-        data[:, :, :, 4] *= -1
-        data[:, :, :, 7] *= -1
-    elif axis == "z":
-        data[:, :, :, 2] *= -1
-        data[:, :, :, 5] *= -1
-        data[:, :, :, 8] *= -1
-    return data
-
-
 def enforce_shape(data, target_shape=(91, 109, 91, 9)):
     """
     Cut and pad image to have same shape as target_shape (adapts first 3 dimensions, all further dimensions
@@ -498,6 +481,30 @@ def enforce_shape(data, target_shape=(91, 109, 91, 9)):
     # pad with zero if too small
     data_new[:data.shape[0], :data.shape[1], :data.shape[2]] = data
     return data_new
+
+
+def apply_rotation_to_peaks(peaks, affine):
+    """
+    peaks: [x, y, z, 3]      image with one peak
+    affine: [4, 4]
+    """
+    shape = peaks.shape
+    peaks = peaks.reshape([-1, shape[3]])  # flatten spatial dim for matrix multiplication
+
+    affine = affine[:3, :3]
+
+    # Get rotation component of affine transformation
+    len = np.linalg.norm(affine, axis=0)
+    rotation = np.zeros((3,3))
+    rotation[:, 0] = affine[:, 0] / len[0]
+    rotation[:, 1] = affine[:, 1] / len[1]
+    rotation[:, 2] = affine[:, 2] / len[2]
+
+    # Apply rotation to bvecs
+    rotated_peaks = peaks @ rotation
+
+    rotated_peaks = rotated_peaks.reshape(shape)  # reshape back to 3d spatial dim
+    return rotated_peaks
 
 
 def change_spacing_4D(img_in, new_spacing=1.25):
@@ -533,35 +540,42 @@ def change_spacing_4D(img_in, new_spacing=1.25):
     return img_new
 
 
-def flip_axis_to_match_MNI_space(data, affine):
+def flip_peaks(data, axis="x"):
     """
-    Checks if affine of the image has the same signs on the diagonal as MNI space. If this is not the case it will
-    invert the sign of the affine (not returned here) and invert the axis accordingly.
-    If displayed in an medical image viewer the image will look the same, but the order by the data in the image
-    array will be changed.
+    Will flip sign of every third element in the 4th dimension.
     """
-    # newAffine = affine.copy()  # could be returned if needed
-    flip_axis = []
+    if axis == "x":
+        data[:, :, :, list(range(0,data.shape[3],3))] *= -1
+    elif axis == "y":
+        data[:, :, :, list(range(1,data.shape[3],3))] *= -1
+    elif axis == "z":
+        data[:, :, :, list(range(2,data.shape[3],3))] *= -1
+    return data
 
-    if affine[0, 0] > 0:
-        flip_axis.append("x")
+
+def flip_axis(data, flip_axis, flip_peaks=False):
+    """
+    Will flip array ordering and if data is 4D (=peak image) will flip sign of every
+    third element in the 4th dimension.
+    """
+    # todo important: change
+    # is_peak_image = True if len(data.shape) > 3 else False
+    # # is_peak_image = False
+    # if is_peak_image:
+    #     print(f"Flipping peaks: {is_peak_image}")
+    if flip_axis == "x":
         data = data[::-1, :, :]
-        # newAffine[0, 0] = newAffine[0, 0] * -1
-        # newAffine[0, 3] = newAffine[0, 3] * -1  # this is needed to make it still align with unaltered fibers correctly
-
-    if affine[1, 1] < 0:
-        flip_axis.append("y")
+        if flip_peaks:
+            data = flip_peaks(data, "x")
+    elif flip_axis == "y":
         data = data[:, ::-1, :]
-        # newAffine[1, 1] = newAffine[1, 1] * -1
-        # newAffine[1, 3] = newAffine[1, 3] * -1
-
-    if affine[2, 2] < 0:
-        flip_axis.append("z")
+        if flip_peaks:
+            data = flip_peaks(data, "y")
+    elif flip_axis == "z":
         data = data[:, :, ::-1]
-        # newAffine[2, 2] = newAffine[2, 2] * -1
-        # newAffine[2, 3] = newAffine[2, 3] * -1
-
-    return data, flip_axis
+        if flip_peaks:
+            data = flip_peaks(data, "z")
+    return data
 
 
 def get_flip_axis_to_match_MNI_space(affine):
@@ -579,14 +593,40 @@ def get_flip_axis_to_match_MNI_space(affine):
     return flip_axis
 
 
-def flip_axis(data, flip_axis):
-    if flip_axis == "x":
-        data = data[::-1, :, :]
-    elif flip_axis == "y":
-        data = data[:, ::-1, :]
-    elif flip_axis == "z":
-        data = data[:, :, ::-1]
-    return data
+def flip_axis_to_match_MNI_space(data, affine, flip_peaks=False):
+    """
+    Checks if affine of the image has the same signs on the diagonal as MNI space. If this is not the case it will
+    invert the sign of the affine (not returned here) and invert the axis accordingly.
+    Optionally can also flip the sign of the peaks in a peak image. But this is actually never needed, because
+    the peaks themselves are in world space.
+    """
+    flip_axis_list = get_flip_axis_to_match_MNI_space(affine)
+
+    for axis in flip_axis_list:
+        data = flip_axis(data, axis, flip_peaks=flip_peaks)
+
+    return data, flip_axis_list
+
+
+def flip_affine(affine, flip_axis_list):
+    """
+    apply flipping to affine
+    """
+    affine_flipped = affine.copy()  # could be returned if needed
+
+    if "x" in flip_axis_list:
+        affine_flipped[0, 0] = affine_flipped[0, 0] * -1
+        affine_flipped[0, 3] = affine_flipped[0, 3] * -1  # this is needed to make it still align with unaltered fibers correctly
+
+    if "y" in flip_axis_list:
+        affine_flipped[1, 1] = affine_flipped[1, 1] * -1
+        affine_flipped[1, 3] = affine_flipped[1, 3] * -1
+
+    if "z" in flip_axis_list:
+        affine_flipped[2, 2] = affine_flipped[2, 2] * -1
+        affine_flipped[2, 3] = affine_flipped[2, 3] * -1
+
+    return affine_flipped
 
 
 def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):

@@ -96,7 +96,7 @@ def main():
                         help="Number of CPUs to use. -1 means all available CPUs (default: -1)",
                         default=-1)
 
-    parser.add_argument("--test", metavar="0|1|2", choices=[0, 1, 2, 3], type=int,
+    parser.add_argument("--test", metavar="0|1|2|3", choices=[0, 1, 2, 3], type=int,
                         help="Only needed for unittesting.",
                         default=0)
 
