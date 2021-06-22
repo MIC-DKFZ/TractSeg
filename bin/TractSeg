@@ -156,7 +156,7 @@ def main():
                         help="Only needed for unittesting.",
                         default=False)
 
-    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output.",
+    parser.add_argument("--verbose", action="store_true", help="Show more intermediate output",
                         default=False)
 
     parser.add_argument('--version', action='version', version=require("TractSeg")[0].version)
