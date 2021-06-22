@@ -6,10 +6,10 @@ services:
   - docker
 jobs:
   include:
-  - python: "3.6"
+  - python: "3.7"
     env:
       - PYTORCH_URL="torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html"
-      - PYTHON_VERS=3.6
+      - PYTHON_VERS=3.7
     script: ./travis_test
   - python: "3.7"
     env:
