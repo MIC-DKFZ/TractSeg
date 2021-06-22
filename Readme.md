@@ -23,7 +23,7 @@ TractSeg is the code for the following papers. Please cite the papers if you use
 [Multiparametric mapping of white matter microstructure in catatonia](https://www.nature.com/articles/s41386-020-0691-2) ([free preprint](resources/Wasserthal2020_Multiparametric_mapping_of_white_matter.pdf))
 [Nature Neuropsychopharmacology 2020]
 
-[![Build Status](https://travis-ci.org/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.org/MIC-DKFZ/TractSeg)
+[![Build Status](https://travis-ci.com/MIC-DKFZ/TractSeg.svg?branch=master)](https://travis-ci.com/MIC-DKFZ/TractSeg)
 [![Brainlife](https://brainlife.io/api/warehouse/app/5b82d7f4e2f4f800275e020f/badge)](https://brainlife.io/app/5b82d7f4e2f4f800275e020f#)
 
 ## Table of contents
