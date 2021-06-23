@@ -1,5 +1,6 @@
 ## Master
 * Update documentation
+* Bugfix when tracking in non-MNI space
 
 
 ## Release 2.3
