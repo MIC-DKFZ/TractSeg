@@ -36,11 +36,9 @@ RUN tar -zxf /code/mrtrix3_RC3.tar.gz -C code \
 
 # Uncomment if we want to rebuild the following commands (otherwise using cache)
 #RUN echo "rebuild"
-COPY TractSeg/ /tmp/TractSeg/
+RUN git clone -b cythonize https://github.com/inaccel/TractSeg.git /tmp/TractSeg
 RUN pip3 install cython && \
-    cd /tmp/TractSeg/inaccel_track/ && \
-    python3 setup.py install && \
-    cd && \
+    pip3 install /tmp/TractSeg/inaccel_track/ && \
     pip3 install /tmp/TractSeg
 
 # Sometimes fails if running everything from cache -> uncomment line "RUN echo 'rebuild'"
