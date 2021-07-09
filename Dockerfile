@@ -1,0 +1,62 @@
+# Neurodocker version 0.4.0
+FROM neurodebian:stretch-non-free
+
+ARG DEBIAN_FRONTEND="noninteractive"
+
+# Libraries needed to compile python
+RUN apt-get update -qq \
+    && apt-get install -qq build-essential libbz2-dev zlib1g-dev libncurses5-dev libgdbm-dev \
+    && apt-get install -qq libnss3-dev libssl-dev libreadline-dev libffi-dev wget \
+    && apt-get install -qq software-properties-common git curl
+
+# Compiling python 3.7
+RUN cd /usr/src \
+    && wget -q https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz \
+    && tar xzf Python-3.7.9.tgz \
+    && cd Python-3.7.9 \
+    && ./configure --enable-optimizations >/dev/null \
+    && make install > /dev/null
+
+# Install fsl (needed for bet and flirt)
+RUN apt-get update -qq \
+    && apt-get install -qq --no-install-recommends fsl-core \
+    && apt-get clean -qq \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN pip3.7 install -q --upgrade pip \
+    && pip3.7 install -q wheel numpy scipy nilearn matplotlib scikit-image nibabel \
+    && pip3.7 install -q torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+
+RUN mkdir -p ~/.tractseg \
+    && mkdir -p /code \
+    && curl -sSL -o /code/mrtrix3_RC3.tar.gz https://zenodo.org/record/1415322/files/mrtrix3_RC3.tar.gz?download=1
+
+RUN tar -zxf /code/mrtrix3_RC3.tar.gz -C code \
+    && /code/mrtrix3/set_path
+
+# Uncomment if we want to rebuild the following commands (otherwise using cache)
+#RUN echo "rebuild"
+COPY TractSeg/ /tmp/TractSeg/
+RUN pip3 install cython && \
+    cd /tmp/TractSeg/inaccel_track/ && \
+    python3 setup.py install && \
+    cd && \
+    pip3 install /tmp/TractSeg
+
+# Sometimes fails if running everything from cache -> uncomment line "RUN echo 'rebuild'"
+RUN download_all_pretrained_weights
+
+# Setup environment (make all commands available)
+ENV ND_ENTRYPOINT="/code/startup.sh"
+RUN touch "$ND_ENTRYPOINT" \
+    && echo '#!/bin/bash' >> "$ND_ENTRYPOINT"  \
+    && echo 'set -e' >> "$ND_ENTRYPOINT" \
+    && echo 'source /etc/fsl/fsl.sh' >> "$ND_ENTRYPOINT" \
+    && echo 'export PATH=/code/mrtrix3/bin:$PATH' >> "$ND_ENTRYPOINT" \
+    && echo 'exec "$@"' >> "$ND_ENTRYPOINT" \
+    && chmod -R 777 /code && chmod a+s /code
+
+# This will be executed. Arguments passed on the command line will be passed as arguments to this
+# script. So in this script we first setup the environment and then we execute (using exec) the
+# commands which were provided on the command line (available via $@)
+ENTRYPOINT ["/code/startup.sh"]
