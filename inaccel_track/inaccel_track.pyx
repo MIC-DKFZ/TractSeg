@@ -240,7 +240,7 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
         seeds[i] = np_seeds[i]
 
     for i in range(2000):
-        random[i] = np.random.normal(0, 0.15, 1)
+        random[i] = np.random.normal(0, 0.15, 1)[0]
 
     pool(seeds, spacing, peaks, bundle_mask, start_mask, end_mask, random, streamline_c, total_count)
 
