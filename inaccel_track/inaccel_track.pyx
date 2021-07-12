@@ -173,7 +173,7 @@ cdef int process_seedpoint(double* seed_point,double spacing,double* peaks,unsig
         streamline_c[cnt + 1] = streamline_part1[i*3 + 1]
         streamline_c[cnt + 2] = streamline_part1[i*3 + 2]
         cnt = cnt + 3
-    total_count = total_count + count_1 - 1
+    total_count = total_count + count_1
 
     # Filter by start and end mask
     for i in range(3):
