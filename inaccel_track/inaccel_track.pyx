@@ -6,21 +6,21 @@ import numpy as np
 
 #################################################################################
 # Has to be sub-method otherwise not working
-cdef int process_one_way(float* peaks, float* seed_point, float* random, float max_tract_len, unsigned int* bundle_mask, bint reverse, float* streamline, float* str_length):
-    cdef float angle
-    cdef float last_dir[3]
-    cdef float dir_raw[3]
-    cdef float last_point[3]
-    cdef float  dir_scaled[3]
-    cdef float next_point[3]
+cdef int process_one_way(double* peaks, double* seed_point, double* random, double max_tract_len, unsigned int* bundle_mask, bint reverse, double* streamline, double* str_length):
+    cdef double angle
+    cdef double last_dir[3]
+    cdef double dir_raw[3]
+    cdef double last_point[3]
+    cdef double  dir_scaled[3]
+    cdef double next_point[3]
     cdef int MAX_NR_STEPS = 1000, MASK_SHAPE_0 = 73, MASK_SHAPE_1 = 87, MASK_SHAPE_2 = 73
     cdef float PEAK_LEN_THR = 0.1, STEP_SIZE = 0.7
     cdef int offset, count
-    cdef float sl_len = 0
-    cdef float tmp_0, tmp_1, tmp_2
+    cdef double sl_len = 0
+    cdef double tmp_0, tmp_1, tmp_2
     cdef unsigned int value
     cdef int i = 0
-    #cdef float displacement[3]
+    #cdef double displacement[3]
     streamline[0] = seed_point[0]
     streamline[1] = seed_point[1]
     streamline[2] = seed_point[2]
@@ -94,7 +94,7 @@ cdef int process_one_way(float* peaks, float* seed_point, float* random, float m
     str_length[0] = sl_len
     return count
 
-cdef bint streamline_ends_in_masks(float* first,float* last,unsigned int* start_mask,unsigned int* end_mask):
+cdef bint streamline_ends_in_masks(double* first,double* last,unsigned int* start_mask,unsigned int* end_mask):
     cdef int MASK_SHAPE_1 = 87, MASK_SHAPE_2 = 73
     cdef int offset_first = int(first[0])*MASK_SHAPE_2*MASK_SHAPE_1 + int(first[1])*MASK_SHAPE_2 + int(first[2])
     cdef int offset_last = int(last[0])*MASK_SHAPE_2*MASK_SHAPE_1 + int(last[1])*MASK_SHAPE_2 + int(last[2])
@@ -111,7 +111,7 @@ cdef bint streamline_ends_in_masks(float* first,float* last,unsigned int* start_
 
     return False
 
-cdef int process_seedpoint(float* seed_point,float spacing,float* peaks,unsigned int* bundle_mask,unsigned int* start_mask,unsigned int* end_mask,float* random, float* streamline_c):
+cdef int process_seedpoint(double* seed_point,double spacing,double* peaks,unsigned int* bundle_mask,unsigned int* start_mask,unsigned int* end_mask,double* random, double* streamline_c):
     """
     Create one streamline from one seed point.
 
@@ -128,15 +128,15 @@ cdef int process_seedpoint(float* seed_point,float spacing,float* peaks,unsigned
     cdef int max_tract_len = 200  # mm
     cdef int total_count = 0
     cdef int cnt = 0
-    cdef float start_point[3]
-    cdef float end_point[3]
+    cdef double start_point[3]
+    cdef double end_point[3]
 
-    cdef float streamline_part1[250]
-    cdef float streamline_part2[250]
-    cdef float length_1[1]
-    cdef float length_2[1]
+    cdef double streamline_part1[250]
+    cdef double streamline_part2[250]
+    cdef double length_1[1]
+    cdef double length_2[1]
     cdef int count_1, count_2
-    cdef float point_0, point_1, point_2
+    cdef double point_0, point_1, point_2
 
     # transform length to voxel space
     min_tract_len = <int>(min_tract_len / spacing)
@@ -185,7 +185,7 @@ cdef int process_seedpoint(float* seed_point,float spacing,float* peaks,unsigned
     return 0
 
 
-cdef void pool(float* seeds, float spacing, float* peaks, unsigned int* bundle_mask, unsigned int* start_mask, unsigned int* end_mask, float* random, float* streamline_c, int* total_count):
+cdef void pool(double* seeds, float spacing, double* peaks, unsigned int* bundle_mask, unsigned int* start_mask, unsigned int* end_mask, double* random, double* streamline_c, int* total_count):
     for k in range(5000):
         total_count[k] = process_seedpoint(&seeds[k*3], spacing, peaks, bundle_mask, start_mask, end_mask, random, &streamline_c[k*250])
     return
@@ -196,15 +196,15 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
     num_points_each = []
     streamlines = []
 
-    cdef float* seeds = <float*>malloc(5000*3*sizeof(float))
-    cdef float* peaks = <float*>malloc(73*87*73*3*sizeof(float))
+    cdef double* seeds = <double*>malloc(5000*3*sizeof(double))
+    cdef double* peaks = <double*>malloc(73*87*73*3*sizeof(double))
     cdef unsigned int* bundle_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
     cdef unsigned int* start_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
     cdef unsigned int* end_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
-    cdef float* streamline_c = <float*>malloc(5000*250*sizeof(float))
+    cdef double* streamline_c = <double*>malloc(5000*250*sizeof(double))
     cdef int total_count[5000]
 
-    cdef float random[2000]
+    cdef double random[2000]
 
     np_peaks = np_peaks.reshape(73*87*73*3)
     np_bundle_mask = np_bundle_mask.reshape(73*87*73)
@@ -246,15 +246,15 @@ def pool_process_seedpoint_np_random(np_seeds, spacing, np_peaks, np_bundle_mask
     num_points_each = []
     streamlines = []
 
-    cdef float* seeds = <float*>malloc(5000*3*sizeof(float))
-    cdef float* peaks = <float*>malloc(73*87*73*3*sizeof(float))
+    cdef double* seeds = <double*>malloc(5000*3*sizeof(double))
+    cdef double* peaks = <double*>malloc(73*87*73*3*sizeof(double))
     cdef unsigned int* bundle_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
     cdef unsigned int* start_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
     cdef unsigned int* end_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
-    cdef float* streamline_c = <float*>malloc(5000*250*sizeof(float))
+    cdef double* streamline_c = <double*>malloc(5000*250*sizeof(double))
     cdef int total_count[5000]
 
-    cdef float random[2000]
+    cdef double random[2000]
 
     np_peaks = np_peaks.reshape(73*87*73*3)
     np_bundle_mask = np_bundle_mask.reshape(73*87*73)
