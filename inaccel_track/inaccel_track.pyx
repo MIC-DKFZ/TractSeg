@@ -4,18 +4,6 @@ from libc.stdlib cimport malloc, free
 
 import numpy as np
 
-cdef float norm(float a, float b, float c):
-    cdef float result = 0, abs_img
-    abs_img = fabs(a)
-    result += abs_img*abs_img
-    abs_img = fabs(b)
-    result += abs_img*abs_img
-    abs_img = fabs(c)
-    result += abs_img*abs_img
-
-    result = sqrt(result)
-    return result
-
 #################################################################################
 # Has to be sub-method otherwise not working
 cdef int process_one_way(float* peaks, float* seed_point, float* random, float max_tract_len, unsigned int* bundle_mask, bint reverse, float* streamline, float* str_length):
@@ -49,7 +37,7 @@ cdef int process_one_way(float* peaks, float* seed_point, float* random, float m
             for j in range(3):
                 dir_raw[j] = -dir_raw[j]  # inverse first step
 
-        dir_raw_len = norm(dir_raw[0], dir_raw[1], dir_raw[2])
+        dir_raw_len = np.linalg.norm(np.array([dir_raw[0], dir_raw[1], dir_raw[2]]))
         # first normalize to length=1 then set to length of step_size
         for j in range(3):
             dir_scaled[j] = (dir_raw[j] / (dir_raw_len + 1e-20)) * STEP_SIZE
@@ -86,7 +74,7 @@ cdef int process_one_way(float* peaks, float* seed_point, float* random, float m
         tmp_0 = peaks[offset + 0]
         tmp_1 = peaks[offset + 1]
         tmp_2 = peaks[offset + 2]
-        next_peak_len = norm(tmp_0, tmp_1, tmp_2)
+        next_peak_len =  np.linalg.norm(np.array([tmp_0, tmp_1, tmp_2]))
 
         if next_peak_len < PEAK_LEN_THR:
             break
