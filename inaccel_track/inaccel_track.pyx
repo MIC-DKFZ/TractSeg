@@ -145,7 +145,8 @@ cdef int process_seedpoint(float* seed_point,float spacing,float* peaks,unsigned
 
     cdef float streamline_part1[250]
     cdef float streamline_part2[250]
-    cdef float length_1[1], length_2[1]
+    cdef float length_1[1]
+    cdef float length_2[1]
     cdef int count_1, count_2
     cdef float point_0, point_1, point_2
 
@@ -234,6 +235,56 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
 
     for i in range(2000):
         random[i] = np.random.normal(0, 0.15, 1)[0]
+
+    pool(seeds, spacing, peaks, bundle_mask, start_mask, end_mask, random, streamline_c, total_count)
+
+    for k in range(5000):
+        streamline = []
+        for i in range(total_count[k]):
+            streamline.append([streamline_c[k*250 + i*3 + 0], streamline_c[k*250 + i*3 + 1], streamline_c[k*250 + i*3 + 2]])
+        streamlines.append(streamline)
+
+    free(seeds)
+    free(peaks)
+    free(bundle_mask)
+    free(start_mask)
+    free(end_mask)
+
+    return streamlines
+
+def pool_process_seedpoint_np_random(np_seeds, spacing, np_peaks, np_bundle_mask, np_start_mask, np_end_mask, np_random):
+    cdef int i;
+    cdef int count = 0;
+    num_points_each = []
+    streamlines = []
+
+    cdef float* seeds = <float*>malloc(5000*3*sizeof(float))
+    cdef float* peaks = <float*>malloc(73*87*73*3*sizeof(float))
+    cdef unsigned int* bundle_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
+    cdef unsigned int* start_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
+    cdef unsigned int* end_mask = <unsigned int*>malloc(73*87*73*sizeof(unsigned int))
+    cdef float* streamline_c = <float*>malloc(5000*250*sizeof(float))
+    cdef int total_count[5000]
+
+    cdef float random[2000]
+
+    np_peaks = np_peaks.reshape(73*87*73*3)
+    np_bundle_mask = np_bundle_mask.reshape(73*87*73)
+    np_start_mask = np_start_mask.reshape(73*87*73)
+    np_end_mask = np_end_mask.reshape(73*87*73)
+    np_seeds = np_seeds.reshape(5000*3)
+
+    for i in range(73*87*73*3):
+        peaks[i] = np_peaks[i]
+    for i in range(73*87*73):
+        bundle_mask[i] = np_bundle_mask[i]
+        start_mask[i] = np_start_mask[i]
+        end_mask[i] = np_end_mask[i]
+    for i in range(5000*3):
+        seeds[i] = np_seeds[i]
+
+    for i in range(2000):
+        random[i] = np_random[i]
 
     pool(seeds, spacing, peaks, bundle_mask, start_mask, end_mask, random, streamline_c, total_count)
 
