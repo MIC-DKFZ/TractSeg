@@ -31,7 +31,6 @@ cdef int process_one_way(float* peaks, float* seed_point, float* random, float m
     cdef float sl_len = 0
     cdef float tmp_0, tmp_1, tmp_2
     cdef unsigned int value
-    cdef bint stop = False
     cdef int i = 0
     #cdef float displacement[3]
     streamline[0] = seed_point[0]
@@ -42,8 +41,7 @@ cdef int process_one_way(float* peaks, float* seed_point, float* random, float m
     last_point[2] = seed_point[2]
     count = 1
 
-    #for i in range(MAX_NR_STEPS):
-    while i < MAX_NR_STEPS and stop == False:
+    for i in range(MAX_NR_STEPS):
         offset = (<int>last_point[0])*3*MASK_SHAPE_2*MASK_SHAPE_1 + (<int>last_point[1])*3*MASK_SHAPE_2 + (<int>last_point[2])*3
         for j in range(3):
             dir_raw[j] = peaks[offset + j]
@@ -75,13 +73,11 @@ cdef int process_one_way(float* peaks, float* seed_point, float* random, float m
 
         # stop fiber if running out of image or out of bundle mask
         if int(next_point[0]) >= MASK_SHAPE_0 or int(next_point[1]) >= MASK_SHAPE_1 or int(next_point[2]) >= MASK_SHAPE_2:
-            stop = True
-            #break
+            break
         offset = (<int>next_point[0])*MASK_SHAPE_2*MASK_SHAPE_1 + (<int>next_point[1])*MASK_SHAPE_2 + (<int>next_point[2])
         value = bundle_mask[offset]
         if value == 0:
-            stop = True
-            #break
+            break
 
         # This does not take too much runtime, because most of these cases already caught by previous bundle_mask
         #  check. Here it is mainly only the good fibers (a lot less than all fibers seeded).
@@ -93,9 +89,8 @@ cdef int process_one_way(float* peaks, float* seed_point, float* random, float m
         next_peak_len = norm(tmp_0, tmp_1, tmp_2)
 
         if next_peak_len < PEAK_LEN_THR:
-            stop = True
-            #break
-        elif stop == False:
+            break
+        else:
             if sl_len < max_tract_len:
                 streamline[count*3 + 0] = next_point[0]
                 streamline[count*3 + 1] = next_point[1]
@@ -106,9 +101,7 @@ cdef int process_one_way(float* peaks, float* seed_point, float* random, float m
                 sl_len += dir_raw_len
                 count = count + 1
             else:
-                stop = True
-                #break
-        i = i + 1
+                break
 
     str_length[0] = sl_len
     return count
