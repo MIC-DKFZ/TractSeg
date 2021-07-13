@@ -36,8 +36,9 @@ RUN tar -zxf /code/mrtrix3_RC3.tar.gz -C code \
 
 # Uncomment if we want to rebuild the following commands (otherwise using cache)
 #RUN echo "rebuild"
-
-RUN pip3.7 install -q --upgrade https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
+RUN git clone -b cythonize https://github.com/inaccel/TractSeg.git /tmp/TractSeg && \
+    pip3 install cython /tmp/TractSeg && \
+    rm -rf /tmp/TractSeg
 
 # Sometimes fails if running everything from cache -> uncomment line "RUN echo 'rebuild'"
 RUN download_all_pretrained_weights

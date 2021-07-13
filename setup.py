@@ -1,5 +1,17 @@
 from setuptools import setup, find_packages
 
+from setuptools import Extension, setup
+from Cython.Build import cythonize
+import numpy
+
+ext_modules = [
+    Extension("tractseg.libs.tractseg_prob_tracking",
+              sources=["tractseg/libs/tractseg_prob_tracking.pyx"],
+              include_dirs=[numpy.get_include()],
+              libraries=["m"]  # Unix-like specific
+              )
+]
+
 setup(name='TractSeg',
         version='2.3',
         description='Fast and accurate segmentation of white matter bundles',
@@ -10,6 +22,7 @@ setup(name='TractSeg',
         python_requires='>=3.5',
         license='Apache 2.0',
         packages=find_packages(),
+        ext_modules=cythonize(ext_modules),
         install_requires=[
             'future',
             'numpy',
