@@ -270,58 +270,15 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
     pool(seeds, spacing_c, peaks, bundle_mask, start_mask, end_mask, random, streamline_c, total_count, nr_processes)
 
     for k in range(5000):
-        streamline = []
+        streamline = np.ndarray((total_count[k],3), dtype=np.float64)
         for i in range(total_count[k]):
-            streamline.append([streamline_c[k*250 + i*3 + 0], streamline_c[k*250 + i*3 + 1], streamline_c[k*250 + i*3 + 2]])
+            streamline[i][0] = streamline_c[k*250 + i*3 + 0] - 0.5
+            streamline[i][1] = streamline_c[k*250 + i*3 + 1] - 0.5
+            streamline[i][2] = streamline_c[k*250 + i*3 + 2] - 0.5
         streamlines.append(streamline)
 
     return streamlines
 
-# Function to be used with fixed 2000 random values
-def pool_process_seedpoint_np_random(np_seeds, spacing, np_peaks, np_bundle_mask, np_start_mask, np_end_mask, np_random, nr_processes):
-    cdef int i;
-    cdef int count = 0;
-    num_points_each = []
-    streamlines = []
-
-    cdef double* streamline_c = <double*>malloc(5000*250*sizeof(double))
-    cdef int total_count[5000]
-
-    np_peaks = np_peaks.reshape(73*87*73*3)
-    np_bundle_mask = np_bundle_mask.reshape(73*87*73)
-    np_start_mask = np_start_mask.reshape(73*87*73)
-    np_end_mask = np_end_mask.reshape(73*87*73)
-    np_seeds = np_seeds.reshape(5000*3)
-
-    cdef np.ndarray[double,mode="c"] buff_peaks = np.array(np_peaks,dtype=np.float64)
-    cdef double* peaks = &buff_peaks[0]
-
-    cdef np.ndarray[double,mode="c"] buff_seeds = np.array(np_seeds,dtype=np.float64)
-    cdef double* seeds = &buff_seeds[0]
-
-    cdef np.ndarray[unsigned char,mode="c"] buff_bundle_mask = np.array(np_bundle_mask,dtype=np.uint8)
-    cdef unsigned char* bundle_mask = &buff_bundle_mask[0]
-
-    cdef np.ndarray[unsigned char,mode="c"] buff_start_mask = np.array(np_start_mask,dtype=np.uint8)
-    cdef unsigned char* start_mask = &buff_start_mask[0]
-
-    cdef np.ndarray[unsigned char,mode="c"] buff_end_mask = np.array(np_end_mask,dtype=np.uint8)
-    cdef unsigned char* end_mask = &buff_end_mask[0]
-
-    cdef np.ndarray[double, mode="c"] buff_random = np.array(np_random,dtype=np.float64)
-    cdef double* random = &buff_random[0]
-
-    cdef float spacing_c = spacing
-
-    pool(seeds, spacing_c, peaks, bundle_mask, start_mask, end_mask, random, streamline_c, total_count, nr_processes)
-
-    for k in range(5000):
-        streamline = []
-        for i in range(total_count[k]):
-            streamline.append([streamline_c[k*250 + i*3 + 0], streamline_c[k*250 + i*3 + 1], streamline_c[k*250 + i*3 + 2]])
-        streamlines.append(streamline)
-
-    return streamlines
 
 ################ Cython code END ################
 
@@ -414,7 +371,7 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     # convention "0mm is in voxel center".
     # We have to add 0.5 before applying affine otherwise 0.5 is not half a voxel anymore. Then we would have to add
     # half of the spacing and consider the sign of the affine (not needed here).
-    streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
+    #streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
     # move streamlines from voxel space to coordinate space
     streamlines = list(transform_streamlines(streamlines, affine_MNI_ori))
