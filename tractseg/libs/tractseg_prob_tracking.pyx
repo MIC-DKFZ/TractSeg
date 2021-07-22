@@ -85,7 +85,7 @@ cdef int process_one_way(double* peaks, double* seed_point, double* random, doub
                     dir_scaled[j] = -dir_scaled[j]
 
         for j in range(3):
-            dir_scaled[j] = dir_scaled[j] + random[((i+1)*3+j)%2000]
+            dir_scaled[j] = dir_scaled[j] + random[((i+1)*3+j)%4000]
 
         for j in range(3):
             next_point[j] = last_point[j] + dir_scaled[j]
@@ -164,8 +164,8 @@ cdef int process_seedpoint(double* seed_point,double spacing,double* peaks,unsig
     cdef double start_point[3]
     cdef double end_point[3]
 
-    cdef double streamline_part1[250]
-    cdef double streamline_part2[250]
+    cdef double streamline_part1[500]
+    cdef double streamline_part2[500]
     cdef double length_1[1]
     cdef double length_2[1]
     cdef int count_1, count_2
@@ -222,7 +222,7 @@ cdef void pool(double* seeds, float spacing, double* peaks, unsigned char* bundl
     cdef int num_threads = nr_processes
     cdef Py_ssize_t k
     for k in prange(5000, num_threads = num_threads, nogil=True):
-        total_count[k] = process_seedpoint(&seeds[k*3], spacing, peaks, bundle_mask, start_mask, end_mask, random, &streamline_c[k*250], MASK_SHAPE_0, MASK_SHAPE_1, MASK_SHAPE_2)
+        total_count[k] = process_seedpoint(&seeds[k*3], spacing, peaks, bundle_mask, start_mask, end_mask, random, &streamline_c[k*500], MASK_SHAPE_0, MASK_SHAPE_1, MASK_SHAPE_2)
     return
 
 def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start_mask, np_end_mask, nr_processes):
@@ -231,13 +231,12 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
     cdef int MASK_SHAPE_1
     cdef int MASK_SHAPE_2
 
-    num_points_each = []
     streamlines = []
 
-    cdef double* streamline_c = <double*>malloc(5000*250*sizeof(double))
+    cdef double* streamline_c = <double*>malloc(5000*500*sizeof(double))
     cdef int total_count[5000]
 
-    cdef double random[2000]
+    cdef double random[4000]
 
     MASK_SHAPE_0 = <int> np_bundle_mask.shape[0]
     MASK_SHAPE_1 = <int> np_bundle_mask.shape[1]
@@ -264,7 +263,7 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
     cdef np.ndarray[unsigned char,mode="c"] buff_end_mask = np.array(np_end_mask,dtype=np.uint8)
     cdef unsigned char* end_mask = &buff_end_mask[0]
 
-    for i in range(2000):
+    for i in range(4000):
         random[i] = np.random.normal(0, 0.15, 1)[0]
 
     cdef float spacing_c = spacing
@@ -272,12 +271,13 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
     pool(seeds, spacing_c, peaks, bundle_mask, start_mask, end_mask, random, streamline_c, total_count, nr_processes, MASK_SHAPE_0, MASK_SHAPE_1, MASK_SHAPE_2)
 
     for k in range(5000):
-        streamline = np.ndarray((total_count[k],3), dtype=np.float64)
-        for i in range(total_count[k]):
-            streamline[i][0] = streamline_c[k*250 + i*3 + 0] - 0.5
-            streamline[i][1] = streamline_c[k*250 + i*3 + 1] - 0.5
-            streamline[i][2] = streamline_c[k*250 + i*3 + 2] - 0.5
-        streamlines.append(streamline)
+        if total_count[k] > 0:
+            streamline = np.ndarray((total_count[k],3), dtype=np.float64)
+            for i in range(total_count[k]):
+                streamline[i][0] = streamline_c[k*500 + i*3 + 0] - 0.5
+                streamline[i][1] = streamline_c[k*500 + i*3 + 1] - 0.5
+                streamline[i][2] = streamline_c[k*500 + i*3 + 2] - 0.5
+            streamlines.append(streamline)
 
     return streamlines
 
@@ -358,7 +358,7 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
         if verbose:
             print("nr_fibs: {}".format(fiber_ctr))
         seed_ctr += seeds_per_batch
-        if seed_ctr > max_nr_seeds:
+        if seed_ctr > max_nr_seeds and fiber_ctr > 0:
             if verbose:
                 print("Early stopping because max nr of seeds reached.")
             break
