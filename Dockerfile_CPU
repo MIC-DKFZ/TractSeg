@@ -24,7 +24,7 @@ RUN apt-get update -qq \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN pip3.7 install -q --upgrade pip \
-    && pip3.7 install -q wheel numpy scipy nilearn matplotlib scikit-image nibabel \
+    && pip3.7 install -q wheel numpy scipy nilearn matplotlib scikit-image nibabel cython \
     && pip3.7 install -q torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN mkdir -p ~/.tractseg \
@@ -36,10 +36,8 @@ RUN tar -zxf /code/mrtrix3_RC3.tar.gz -C code \
 
 # Uncomment if we want to rebuild the following commands (otherwise using cache)
 #RUN echo "rebuild"
-RUN git clone -b cythonize https://github.com/inaccel/TractSeg.git /tmp/TractSeg && \
-    pip3 install cython && \
-    pip3 install /tmp/TractSeg && \
-    rm -rf /tmp/TractSeg
+
+RUN pip3.7 install -q --upgrade https://github.com/MIC-DKFZ/TractSeg/archive/master.zip
 
 # Sometimes fails if running everything from cache -> uncomment line "RUN echo 'rebuild'"
 RUN download_all_pretrained_weights
