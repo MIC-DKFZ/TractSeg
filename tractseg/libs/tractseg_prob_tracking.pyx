@@ -12,7 +12,6 @@ from tractseg.libs import img_utils
 
 ################ Cython code START ################
 
-from libc.math cimport sqrt
 from libc.stdlib cimport malloc
 
 cimport numpy as cnp
@@ -31,8 +30,8 @@ cdef float norm(double a, double b, double c) nogil:
     result += abs_img*abs_img
     abs_img = fabs(c)
     result += abs_img*abs_img
-
-    result = sqrt(result)
+    with gil:
+        result = np.sqrt(result)
     return result
 
 cdef int process_one_way(double* peaks, double* seed_point, double* random, double max_tract_len, unsigned char* bundle_mask, bint reverse, double* streamline, double* str_length, int MASK_SHAPE_0, int MASK_SHAPE_1, int MASK_SHAPE_2) nogil:
