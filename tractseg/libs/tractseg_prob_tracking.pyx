@@ -15,7 +15,6 @@ from tractseg.libs import img_utils
 from libc.math cimport fabs
 from libc.math cimport sqrt
 from libc.stdlib cimport malloc, free
-from cython.parallel import prange
 
 cimport numpy as np
 import ctypes
@@ -164,8 +163,8 @@ cdef int process_seedpoint(double* seed_point,double spacing,double* peaks,unsig
     cdef double start_point[3]
     cdef double end_point[3]
 
-    cdef double streamline_part1[500]
-    cdef double streamline_part2[500]
+    cdef double streamline_part1[3000]
+    cdef double streamline_part2[3000]
     cdef double length_1[1]
     cdef double length_2[1]
     cdef int count_1, count_2
@@ -218,7 +217,7 @@ cdef int process_seedpoint(double* seed_point,double spacing,double* peaks,unsig
     return 0
 
 
-def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start_mask, np_end_mask, nr_processes):
+def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start_mask, np_end_mask):
     cdef Py_ssize_t k
     cdef Py_ssize_t i
     cdef int MASK_SHAPE_0
@@ -227,7 +226,7 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
 
     streamlines = []
 
-    cdef double* streamline_c = <double*>malloc(5000*500*sizeof(double))
+    cdef double* streamline_c = <double*>malloc(5000*3000*sizeof(double))
     cdef int total_count[5000]
 
     MASK_SHAPE_0 = <int> np_bundle_mask.shape[0]
@@ -255,25 +254,22 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
     cdef np.ndarray[unsigned char,mode="c"] buff_end_mask = np.array(np_end_mask,dtype=np.uint8)
     cdef unsigned char* end_mask = &buff_end_mask[0]
 
-    rand = np.random.normal(0, 0.15, (5000,1000))
-    rand = rand.reshape(-1)
+    rand = np.random.normal(0, 0.15, (5000*1000))
     cdef np.ndarray[double,mode="c"] buff_rand = np.array(rand,dtype=np.float64)
     cdef double* random = &buff_rand[0]
 
     cdef float spacing_c = spacing
 
-    cdef int num_threads = nr_processes
-
-    for k in prange(5000, num_threads = num_threads, nogil=True):
-        total_count[k] = process_seedpoint(&seeds[k*3], spacing_c, peaks, bundle_mask, start_mask, end_mask, &random[k*1000], &streamline_c[k*500], MASK_SHAPE_0, MASK_SHAPE_1, MASK_SHAPE_2)
+    for k in range(5000):
+        total_count[k] = process_seedpoint(&seeds[k*3], spacing_c, peaks, bundle_mask, start_mask, end_mask, &random[k*1000], &streamline_c[k*3000], MASK_SHAPE_0, MASK_SHAPE_1, MASK_SHAPE_2)
 
     for k in range(5000):
         if total_count[k] > 0:
             streamline = np.ndarray((total_count[k],3), dtype=np.float64)
             for i in range(total_count[k]):
-                streamline[i][0] = streamline_c[k*500 + i*3 + 0] - 0.5
-                streamline[i][1] = streamline_c[k*500 + i*3 + 1] - 0.5
-                streamline[i][2] = streamline_c[k*500 + i*3 + 2] - 0.5
+                streamline[i][0] = streamline_c[k*3000 + i*3 + 0] - 0.5
+                streamline[i][1] = streamline_c[k*3000 + i*3 + 1] - 0.5
+                streamline[i][2] = streamline_c[k*3000 + i*3 + 2] - 0.5
             streamlines.append(streamline)
 
     return streamlines
@@ -335,11 +331,6 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     # How many seeds to process in each pool.map iteration
     seeds_per_batch = 5000
 
-    if nr_cpus == -1:
-        nr_processes = psutil.cpu_count()
-    else:
-        nr_processes = nr_cpus
-
     streamlines = []
     fiber_ctr = 0
     seed_ctr = 0
@@ -347,7 +338,7 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     #   optimised by more multiprocessing fanciness.
     while fiber_ctr < max_nr_fibers:
         seeds = seed_generator(mask_coords, seeds_per_batch)
-        streamlines_tmp = pool_process_seedpoint(seeds,spacing, peaks, bundle_mask, start_mask, end_mask, nr_processes)
+        streamlines_tmp = pool_process_seedpoint(seeds,spacing, peaks, bundle_mask, start_mask, end_mask)
 
         streamlines_tmp = [sl for sl in streamlines_tmp if len(sl) > 0]  # filter empty ones
         streamlines += streamlines_tmp

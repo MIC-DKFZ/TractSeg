@@ -7,8 +7,6 @@ ext_modules = [
     Extension('tractseg.libs.tractseg_prob_tracking',
             sources=['tractseg/libs/tractseg_prob_tracking.pyx'],
             include_dirs=[numpy.get_include()],
-            extra_compile_args=['-fopenmp'],
-            extra_link_args=['-fopenmp'],
             libraries=['m']  # Unix-like specific
         )
 ]
