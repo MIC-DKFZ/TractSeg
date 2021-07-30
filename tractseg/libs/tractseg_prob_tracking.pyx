@@ -12,7 +12,7 @@ from tractseg.libs import img_utils
 
 ################ Cython code START ################
 
-from libc.stdlib cimport malloc
+from libc.stdlib cimport malloc, free
 
 cimport numpy as cnp
 import ctypes
@@ -305,6 +305,7 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
                 streamline[i][1] = streamline_c[k*3000 + i*3 + 1] - 0.5
                 streamline[i][2] = streamline_c[k*3000 + i*3 + 2] - 0.5
             streamlines.append(streamline)
+    free(streamline_c)
 
     return streamlines
 
