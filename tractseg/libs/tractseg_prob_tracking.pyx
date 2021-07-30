@@ -297,6 +297,10 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
         total_count[k] = process_seedpoint(&seeds[k*3], spacing_c, peaks, bundle_mask, start_mask, end_mask, &random[k*1000], &streamline_c[k*3000], MASK_SHAPE_0, MASK_SHAPE_1, MASK_SHAPE_2)
 
     # Create the python list with all the generated streamlines
+    # Also move from convention "0mm is in voxel corner" to convention "0mm is in voxel center". Most toolkits use the
+    # convention "0mm is in voxel center".
+    # We have to add 0.5 before applying affine otherwise 0.5 is not half a voxel anymore. Then we would have to add
+    # half of the spacing and consider the sign of the affine (not needed here).
     for k in range(5000):
         if total_count[k] > 0:
             streamline = np.ndarray((total_count[k],3), dtype=np.float64)
@@ -327,7 +331,6 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
           next_step_displacement_std=0.15, nr_cpus=-1, affine=None, spacing=None, verbose=True):
     """
     Generate streamlines.
-
     Great speedup was archived by:
     - only seeding in bundle_mask instead of entire image (seeding took very long)
     - calculating fiber length on the fly instead of using extra function which has to iterate over entire fiber a
@@ -341,12 +344,12 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     # Have to flip along x axis to work properly  (== moving HCP peaks to voxel spacing)
     # This works if no rotation in affine.
     # Not needed anymore because now doing properly with apply_rotation_to_peaks.
-    # peaks[:, :, :, 0] *= -1
+    # peaks[:, :, :, 0] *= -1  
 
-    # Move peaks from world space (model predicts TOMs in world space because training data are
+    # Move peaks from world space (model predicts TOMs in world space because training data are 
     # also in world space) to voxel space. This flips the peaks (e.g. for HCP space a x-flip is needed to
     # make peaks align with array properly) and applies rotation from affine.
-    # (Enough to move rotation to voxel space. Length anyways being normalize to 1 and offset does
+    # (Enough to move rotation to voxel space. Length anyways being normalize to 1 and offset does 
     # not matter for peak orientation.)
     peaks = img_utils.apply_rotation_to_peaks(peaks, affine_MNI_ori)
 
@@ -392,19 +395,12 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     streamlines = streamlines[:max_nr_fibers]   # remove surplus of fibers (comes from multiprocessing)
     streamlines = Streamlines(streamlines)  # Generate streamlines object
 
-    # Move from convention "0mm is in voxel corner" to convention "0mm is in voxel center". Most toolkits use the
-    # convention "0mm is in voxel center".
-    # We have to add 0.5 before applying affine otherwise 0.5 is not half a voxel anymore. Then we would have to add
-    # half of the spacing and consider the sign of the affine (not needed here).
-    # This part is done at the generation of the python list at pool_process_seedpoint function
-    #streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
-
     # move streamlines from voxel space to coordinate space
     streamlines = list(transform_streamlines(streamlines, affine_MNI_ori))
 
     # If the original image was not in MNI space we have to flip back to the original space
     # before saving the streamlines.
-    # This is not needed anymore when using affine_MNI_ori in transform_streamlines because this already
+    # This is not needed anymore when using affine_MNI_ori in transform_streamlines because this already 
     # contains the flipping.
     # for axis in flip_axes:
         # streamlines = fiber_utils.invert_streamlines(streamlines, bundle_mask, affine, axis=axis)
