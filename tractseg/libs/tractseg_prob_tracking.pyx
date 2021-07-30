@@ -12,12 +12,16 @@ from tractseg.libs import img_utils
 
 ################ Cython code START ################
 
-from libc.math cimport fabs
 from libc.math cimport sqrt
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport malloc
 
-cimport numpy as np
+cimport numpy as cnp
 import ctypes
+
+cdef float fabs(double a) nogil:
+    if a >= 0:
+        return a
+    return -a
 
 cdef float norm(double a, double b, double c) nogil:
     cdef double result = 0, abs_img
@@ -149,9 +153,17 @@ cdef int process_seedpoint(double* seed_point,double spacing,double* peaks,unsig
     Args:
         seed_point: 3d point
         spacing: Only one value. Assumes isotropic images.
-        next_step_displacement_std: stddev for gaussian distribution
+        peaks: double array
+        bundle_mask: unsigned char array
+        start_mask: unsigned char array
+        end_mask: unsigned char array
+        random: double array with 1000 random normal values with mean = 0.0 and standard deviation = 0.15
+        streamline_c: double array on which will be stored the points of the generated streamline
+        MASK_SHAPE_0: 1rst dimension of mask
+        MASK_SHAPE_1: 2nd dimension of mask
+        MASK_SHAPE_2: 3rd dimension of mask
     Returns:
-        (streamline, streamline_length)
+        The total number of 3d points of the generated streamline.
     """
 
     # Parameters
@@ -218,44 +230,66 @@ cdef int process_seedpoint(double* seed_point,double spacing,double* peaks,unsig
 
 
 def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start_mask, np_end_mask):
+    """
+    Create one streamline for each seed point.
+
+    Args:
+        np_seeds: numpy array with 5000 3d-points
+        spacing: Only one value. Assumes isotropic images.
+        peaks: numpy array
+        bundle_mask: numpy array
+        start_mask: numpy array
+        end_mask: numpy array
+    Returns:
+        List with all the generated streamlines
+    """
     cdef Py_ssize_t k
     cdef Py_ssize_t i
     cdef int MASK_SHAPE_0
     cdef int MASK_SHAPE_1
     cdef int MASK_SHAPE_2
 
+    # Initialization of the output list
     streamlines = []
 
+    # Allocate memory for all the streamlines
     cdef double* streamline_c = <double*>malloc(5000*3000*sizeof(double))
+
+    # Array on which will be stored the total number of 3d-points of each streamline
     cdef int total_count[5000]
 
     MASK_SHAPE_0 = <int> np_bundle_mask.shape[0]
     MASK_SHAPE_1 = <int> np_bundle_mask.shape[1]
     MASK_SHAPE_2 = <int> np_bundle_mask.shape[2]
 
+    # Reshape each numpy array to 1d
     np_peaks = np_peaks.reshape(-1)
     np_bundle_mask = np_bundle_mask.reshape(-1)
     np_start_mask = np_start_mask.reshape(-1)
     np_end_mask = np_end_mask.reshape(-1)
     np_seeds = np_seeds.reshape(-1)
 
-    cdef np.ndarray[double,mode="c"] buff_peaks = np.array(np_peaks,dtype=np.float64)
+    # Generate random normal values with mean = 0.0 and standard deviation = 0.15
+    # we generate 1000 random normal values for each seed point (in total 5000 seed points)
+    rand = np.random.normal(0, 0.15, (5000*1000))
+
+    # Get the c pointers of the numpy arrays
+    cdef cnp.ndarray[double,mode="c"] buff_peaks = np_peaks
     cdef double* peaks = &buff_peaks[0]
 
-    cdef np.ndarray[double,mode="c"] buff_seeds = np.array(np_seeds,dtype=np.float64)
+    cdef cnp.ndarray[double,mode="c"] buff_seeds = np.array(np_seeds,dtype=np.float64)
     cdef double* seeds = &buff_seeds[0]
 
-    cdef np.ndarray[unsigned char,mode="c"] buff_bundle_mask = np.array(np_bundle_mask,dtype=np.uint8)
+    cdef cnp.ndarray[unsigned char,mode="c"] buff_bundle_mask = np_bundle_mask
     cdef unsigned char* bundle_mask = &buff_bundle_mask[0]
 
-    cdef np.ndarray[unsigned char,mode="c"] buff_start_mask = np.array(np_start_mask,dtype=np.uint8)
+    cdef cnp.ndarray[unsigned char,mode="c"] buff_start_mask = np_start_mask
     cdef unsigned char* start_mask = &buff_start_mask[0]
 
-    cdef np.ndarray[unsigned char,mode="c"] buff_end_mask = np.array(np_end_mask,dtype=np.uint8)
+    cdef cnp.ndarray[unsigned char,mode="c"] buff_end_mask = np_end_mask
     cdef unsigned char* end_mask = &buff_end_mask[0]
 
-    rand = np.random.normal(0, 0.15, (5000*1000))
-    cdef np.ndarray[double,mode="c"] buff_rand = np.array(rand,dtype=np.float64)
+    cdef cnp.ndarray[double,mode="c"] buff_rand = rand
     cdef double* random = &buff_rand[0]
 
     cdef float spacing_c = spacing
@@ -263,6 +297,7 @@ def pool_process_seedpoint(np_seeds, spacing, np_peaks, np_bundle_mask, np_start
     for k in range(5000):
         total_count[k] = process_seedpoint(&seeds[k*3], spacing_c, peaks, bundle_mask, start_mask, end_mask, &random[k*1000], &streamline_c[k*3000], MASK_SHAPE_0, MASK_SHAPE_1, MASK_SHAPE_2)
 
+    # Create the python list with all the generated streamlines
     for k in range(5000):
         if total_count[k] > 0:
             streamline = np.ndarray((total_count[k],3), dtype=np.float64)
@@ -361,6 +396,7 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     # convention "0mm is in voxel center".
     # We have to add 0.5 before applying affine otherwise 0.5 is not half a voxel anymore. Then we would have to add
     # half of the spacing and consider the sign of the affine (not needed here).
+    # This part is done at the generation of the python list at pool_process_seedpoint function
     #streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
     # move streamlines from voxel space to coordinate space
