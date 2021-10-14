@@ -106,7 +106,8 @@ def main():
             if len(streamlines) >= 5 or args.test == 2:
                 mean, std = tractometry.evaluate_along_streamlines(np.nan_to_num(scalar_image.get_fdata()), streamlines,
                                                                beginnings.get_fdata(), NR_POINTS, dilate=DILATION,
-                                                               predicted_peaks=predicted_peaks, affine=scalar_image.affine)
+                                                               predicted_peaks=predicted_peaks, affine=scalar_image.affine,
+                                                               bundle_name=bundle)
             else:
                 print("WARNING: bundle {} contains less than 5 streamlines. Saving value 0 for this bundle.".
                       format(bundle))

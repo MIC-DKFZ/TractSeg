@@ -47,7 +47,7 @@ def _orient_to_same_start_region(streamlines, beginnings):
 
 
 def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, dilate=0, predicted_peaks=None,
-                               affine=None):
+                               affine=None, bundle_name=None):
     # Runtime:
     # - default:                2.7s (test),    56s (all),      10s (test 4 bundles, 100 points)
     # - map_coordinate order 1: 1.9s (test),    26s (all),       6s (test 4 bundles, 100 points)
@@ -91,6 +91,13 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         qb = QuickBundles(threshold=100., metric=metric)
         clusters = qb.cluster(streamlines)
         centroids = Streamlines(clusters.centroids)
+
+        my_reference_image = nib.load("my_path/brainmask.nii.gz").get_fdata()
+        fiber_utils.save_streamlines(
+                        f"centroids_{bundle_name}.tck",
+                        centroids, my_reference_image.affine,
+                        my_reference_image.get_fdata().shape)
+
         if len(centroids) > 1:
             print("WARNING: number clusters > 1 ({})".format(len(centroids)))
         _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)  # (2000, 100)
