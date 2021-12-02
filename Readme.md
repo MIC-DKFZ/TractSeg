@@ -409,6 +409,7 @@ To build a docker container with all dependencies run the following command in p
 ```
 sudo docker build -t tractseg_container -f Dockerfile_CPU .
 ```
+> NOTE: With docker the option `--plot3D` of the command `plot_tractometry_results` might not work.
 
 ## Copyright
 Copyright © German Cancer Research Center (DKFZ), Division of Medical Image Computing (MIC).
