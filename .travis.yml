@@ -34,6 +34,7 @@ jobs:
     script: ./travis_docker
 before_install:
   - pip install $PYTORCH_URL
+  - pip install Cython
 install:
   - pip install .
 
