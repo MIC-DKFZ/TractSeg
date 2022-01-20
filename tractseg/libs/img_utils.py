@@ -608,7 +608,7 @@ def flip_axis_to_match_MNI_space(data, affine, flip_peaks=False):
     return data, flip_axis_list
 
 
-def flip_affine(affine, flip_axis_list):
+def flip_affine(affine, flip_axis_list, data_shape):
     """
     apply flipping to affine
     """
@@ -616,15 +616,15 @@ def flip_affine(affine, flip_axis_list):
 
     if "x" in flip_axis_list:
         affine_flipped[0, 0] = affine_flipped[0, 0] * -1
-        affine_flipped[0, 3] = affine_flipped[0, 3] * -1  # this is needed to make it still align with unaltered fibers correctly
+        affine_flipped[0, 3] -= (data_shape[0] - 1)  # this is needed to make it still align with unaltered fibers correctly
 
     if "y" in flip_axis_list:
         affine_flipped[1, 1] = affine_flipped[1, 1] * -1
-        affine_flipped[1, 3] = affine_flipped[1, 3] * -1
+        affine_flipped[1, 3] -= (data_shape[1] - 1)
 
     if "z" in flip_axis_list:
         affine_flipped[2, 2] = affine_flipped[2, 2] * -1
-        affine_flipped[2, 3] = affine_flipped[2, 3] * -1
+        affine_flipped[2, 3] -= (data_shape[2] - 1)
 
     return affine_flipped
 

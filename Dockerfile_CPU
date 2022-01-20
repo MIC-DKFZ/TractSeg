@@ -24,7 +24,7 @@ RUN apt-get update -qq \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN pip3.7 install -q --upgrade pip \
-    && pip3.7 install -q wheel numpy scipy nilearn matplotlib scikit-image nibabel cython \
+    && pip3.7 install -q wheel numpy scipy nilearn matplotlib scikit-image nibabel dipy fury joblib seaborn cython \
     && pip3.7 install -q torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN mkdir -p ~/.tractseg \
