@@ -1,0 +1,10 @@
+name: Run tests
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run build script
+        # run: ./.github/scripts/build.sh
+        run: echo "hello world."
+        shell: bash
