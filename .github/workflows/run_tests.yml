@@ -5,32 +5,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
+        # python-version: [3.8, 3.9]
+        python-version: [3.8]   # for experimenting with actions
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{matrix.python-version}}
         uses: actions/setup-python@v2
         with:
-          # python-version: "3.8"
           python-version: ${{matrix.python-version}}
-      # - name: Run Test
-      #   run: wget https://zenodo.org/record/3634539/files/best_weights_ep266.npz\?download\=1
-      #   shell: bash
-
-      # - name: Install dependencies
-      #   run: |
-      #     python -m pip install --upgrade pip
-      #     pip install pytest
-      #     pip install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
-      #     pip install .
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          pip install .
       - name: Run hello world
         run: echo "hello world 3."
         shell: bash
-
-      # Not necessary
-      # - name: Run Test
-      #   run: download_all_pretrained_weights
-      #   shell: bash
 
       # - name: Run test script
       #   run: ./travis_test
@@ -42,8 +33,6 @@ jobs:
         run: echo $(pwd)
       - name: Run Docker image
         run: docker run -v $(pwd)/examples:/data wasserth/tractseg_container:master TractSeg \-i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
-      # - name: Run Docker image
-      #   run: docker run -v ./examples:/data wasserth/tractseg_container:master TractSeg \-i /data/Diffusion.nii.gz -o /data/docker_test --raw_diffusion_input --single_orientation
       - name: Test csd peaks
         run: pytest -v tests/test_end_to_end.py::test_end_to_end::test_csd_peaks
       - name: Test tractseg docker
