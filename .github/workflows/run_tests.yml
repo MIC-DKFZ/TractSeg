@@ -16,16 +16,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest Cython
           pip install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
           pip install .
       - name: Run hello world
         run: echo "hello world 3."
         shell: bash
 
-      # - name: Run test script
-      #   run: ./travis_test
-      #   shell: bash
+      - name: Run test script
+        run: ./travis_test
+        shell: bash
 
       - name: Build Docker image
         run: docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .
