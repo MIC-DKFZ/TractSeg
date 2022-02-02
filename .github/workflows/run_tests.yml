@@ -19,5 +19,5 @@ jobs:
         run: echo "hello world 3."
         shell: bash
       - name: Run test script
-        run: ./.github/scripts/build.sh
+        run: ./travis_test
         shell: bash
