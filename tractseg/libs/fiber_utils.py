@@ -456,3 +456,17 @@ def get_idxs_of_closest_points(streamlines, target_point):
             dists.append(dist)
         idxs.append(np.array(dists).argmin())
     return idxs
+
+
+def orient_to_same_start_region(streamlines, beginnings):
+    # (we could also use dipy.tracking.streamline.orient_by_streamline instead)
+    streamlines = add_to_each_streamline(streamlines, 0.5)
+    streamlines_new = []
+    for idx, sl in enumerate(streamlines):
+        startpoint = sl[0]
+        # Flip streamline if not in right order
+        if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
+            sl = sl[::-1, :]
+        streamlines_new.append(sl)
+    streamlines_new = add_to_each_streamline(streamlines_new, -0.5)
+    return streamlines_new

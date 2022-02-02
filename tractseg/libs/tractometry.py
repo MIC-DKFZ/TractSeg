@@ -32,20 +32,6 @@ def _get_length_best_orig_peak(predicted_img, orig_img, x, y, z):
     return best_peak_len
 
 
-def _orient_to_same_start_region(streamlines, beginnings):
-    # (we could also use dipy.tracking.streamline.orient_by_streamline instead)
-    streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
-    streamlines_new = []
-    for idx, sl in enumerate(streamlines):
-        startpoint = sl[0]
-        # Flip streamline if not in right order
-        if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
-            sl = sl[::-1, :]
-        streamlines_new.append(sl)
-    streamlines_new = fiber_utils.add_to_each_streamline(streamlines_new, -0.5)
-    return streamlines_new
-
-
 def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, dilate=0, predicted_peaks=None,
                                affine=None):
     # Runtime:
@@ -61,7 +47,7 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
     for i in range(dilate):
         beginnings = binary_dilation(beginnings)
     beginnings = beginnings.astype(np.uint8)
-    streamlines = _orient_to_same_start_region(streamlines, beginnings)
+    streamlines = fiber_utils.orient_to_same_start_region(streamlines, beginnings)
     if predicted_peaks is not None:
         # scalar img can also be orig peaks
         best_orig_peaks = fiber_utils.get_best_original_peaks(predicted_peaks, scalar_img, peak_len_thr=0.00001)

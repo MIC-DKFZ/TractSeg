@@ -392,15 +392,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     streamlines = streamlines[::2]
 
     # Reorder to make all streamlines have same start region
-    streamlines = fiber_utils.add_to_each_streamline(streamlines, 0.5)
-    streamlines_new = []
-    for idx, sl in enumerate(streamlines):
-        startpoint = sl[0]
-        # Flip streamline if not in right order
-        if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
-            sl = sl[::-1, :]
-        streamlines_new.append(sl)
-    streamlines = fiber_utils.add_to_each_streamline(streamlines_new, -0.5)
+    streamlines = fiber_utils.orient_to_same_start_region(streamlines, beginnings)
 
     if algorithm == "distance_map" or algorithm == "equal_dist":
         streamlines = fiber_utils.resample_fibers(streamlines, NR_SEGMENTS * ANTI_INTERPOL_MULT)

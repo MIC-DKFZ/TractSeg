@@ -1,0 +1,23 @@
+# name: Run tests
+# on: [push]
+# jobs:
+#   build-docker:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+#       # - name: Set up Python 3.8
+#       #   uses: actions/setup-python@v2
+#       #   with:
+#       #     python-version: "3.8"
+#       # - name: Install dependencies
+#       #   run: |
+#       #     python -m pip install --upgrade pip
+#       #     pip install pytest
+#       #     pip install torch==1.8.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+#       #     pip install .
+#       - name: Run hello world
+#         run: echo "Building docker."
+#         shell: bash
+#       # - name: Run test script
+#       #   run: ./travis_test
+#       #   shell: bash
