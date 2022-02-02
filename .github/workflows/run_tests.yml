@@ -24,9 +24,9 @@ jobs:
       - name: Run Test
         run: download_all_pretrained_weights
         shell: bash
-      # - name: Run test script
-      #   run: ./travis_test
-      #   shell: bash
+      - name: Run test script
+        run: ./travis_test
+        shell: bash
 
       # - name: Build Docker image
       #   run: docker build -t wasserth/tractseg_container:master -f Dockerfile_CPU .
