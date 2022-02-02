@@ -21,9 +21,9 @@ jobs:
       - name: Run hello world
         run: echo "hello world 3."
         shell: bash
-      - name: Run Test
-        run: download_all_pretrained_weights
-        shell: bash
+      # - name: Run Test
+      #   run: download_all_pretrained_weights
+      #   shell: bash
       - name: Run test script
         run: ./travis_test
         shell: bash
