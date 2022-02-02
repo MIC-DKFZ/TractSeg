@@ -10,7 +10,7 @@ jobs:
         with:
           python-version: "3.8"
       - name: Run Test
-        run: ping zenodo.org -c 2
+        run: wget https://zenodo.org/record/3634539/files/best_weights_ep266.npz\?download\=1
         shell: bash
       # - name: Install dependencies
       #   run: |
