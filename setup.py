@@ -11,7 +11,7 @@ ext_modules = [
 ]
 
 setup(name='TractSeg',
-        version='2.3',
+        version='2.4',
         description='Fast and accurate segmentation of white matter bundles',
         long_description="See Readme.md on github for more details.",
         url='https://github.com/MIC-DKFZ/TractSeg/',

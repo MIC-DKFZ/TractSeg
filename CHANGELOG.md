@@ -1,5 +1,9 @@
 ## Master
 * Update documentation
+
+
+## Release 2.4
+* Update documentation
 * Bugfix when tracking in non-MNI space
 * Use Cython for Tracking. This will speed up tracking by roughly 2x and only require 1 CPU core instead of all CPU cores. Thanks to @StavrAspa and @eliaskoromilas for this contribution.
 
