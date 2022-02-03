@@ -12,6 +12,15 @@ from tractseg.libs import img_utils
 
 ################ Cython code START ################
 
+"""
+This Cython version will roughly speed up the tracking by 2x. At the same time it only
+needs 1 CPU core. The python version used all CPU cores and was still ~2x slower.
+
+When installing TractSeg (e.g. pip install -e .) it will generate the c files:
+tractseg/libs/tractseg_prob_tracking.c
+tractseg/libs/tractseg_prob_tracking.cpython-37m-x86_64-linux-gnu.so
+"""
+
 from libc.stdlib cimport malloc, free
 
 cimport numpy as cnp
