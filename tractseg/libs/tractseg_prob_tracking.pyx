@@ -339,7 +339,7 @@ def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None
     # If orientation is not same as MNI we flip the image to make it the same. Therefore we now also have to flip
     # the affine (which is used to map the peaks from world space to voxel space) the same way
     flip_axes = img_utils.get_flip_axis_to_match_MNI_space(affine)
-    affine_MNI_ori = img_utils.flip_affine(affine, flip_axes)
+    affine_MNI_ori = img_utils.flip_affine(affine, flip_axes, peaks.shape)
 
     # Have to flip along x axis to work properly  (== moving HCP peaks to voxel spacing)
     # This works if no rotation in affine.
