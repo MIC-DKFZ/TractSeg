@@ -23,7 +23,7 @@ jobs:
           pip install .
 
       - name: Run test script
-        run: ./travis_test
+        run: ./tests.sh
         shell: bash
 
       - name: Build Docker image
