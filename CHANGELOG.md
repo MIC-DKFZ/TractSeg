@@ -5,7 +5,7 @@
 ## Release 2.4
 * Update documentation
 * Bugfix when tracking in non-MNI space
-* Use Cython for Tracking. This will speed up tracking by roughly 2x and only require 1 CPU core instead of all CPU cores. Thanks to @StavrAspa and @eliaskoromilas for this contribution.
+* Use Cython for Tracking. This will speed up tracking by roughly 2x and only require 1 CPU core instead of all CPU cores. Available in the `cython_tracking` branch. It is not part of the main branch and pip package because building the cython binaries for all possible operating system is a lot of pain. If people want to use it they can install from the `cython_tracking` branch directly which will automatically compile the cython code on their sytem. Thanks to @StavrAspa and @eliaskoromilas for this contribution.
 
 
 ## Release 2.3

@@ -45,7 +45,13 @@ Latest stable version:
 ```
 pip install TractSeg
 ```
-> NOTE: See [CHANGELOG](CHANGELOG.md) for (breaking) changes of each version
+> NOTE: See [CHANGELOG](CHANGELOG.md) for (breaking) changes of each version  
+
+If you want to use Cython for `Tracking` (speedup 2x) then install via 
+```
+pip install https://github.com/MIC-DKFZ/TractSeg/archive/cython_tracking.zip
+```
+
 
 #### Docker
 You can also directly use TractSeg via Docker (contains all prerequisites).
