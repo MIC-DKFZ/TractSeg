@@ -11,6 +11,12 @@ from dipy.tracking.streamline import Streamlines
 from tractseg.libs import fiber_utils
 from tractseg.libs import img_utils
 
+"""
+Original tracking code in pure python.
+This was replaced by Cython version which is doing exactly the same.
+Keeping this here for reference and as this might be easier to understand as
+the Cython code.
+"""
 
 global _PEAKS
 _PEAKS = None

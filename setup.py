@@ -1,4 +1,14 @@
 from setuptools import Extension, setup, find_packages
+from Cython.Build import cythonize
+
+import numpy
+
+ext_modules = [
+    Extension('tractseg.libs.tractseg_prob_tracking',
+            sources=['tractseg/libs/tractseg_prob_tracking.pyx'],
+            include_dirs=[numpy.get_include()],
+        )
+]
 
 setup(name='TractSeg',
         version='2.4',
@@ -10,6 +20,7 @@ setup(name='TractSeg',
         python_requires='>=3.5',
         license='Apache 2.0',
         packages=find_packages(),
+        ext_modules=cythonize(ext_modules),
         install_requires=[
             'future',
             'numpy',
