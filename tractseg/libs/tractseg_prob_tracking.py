@@ -11,12 +11,6 @@ from dipy.tracking.streamline import Streamlines
 from tractseg.libs import fiber_utils
 from tractseg.libs import img_utils
 
-"""
-Original tracking code in pure python.
-This was replaced by Cython version which is doing exactly the same.
-Keeping this here for reference and as this might be easier to understand as
-the Cython code.
-"""
 
 global _PEAKS
 _PEAKS = None
@@ -199,9 +193,9 @@ def seed_generator(mask_coords, nr_seeds):
     return res
 
 
-def track_pure_python(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None,
-                      start_mask=None, end_mask=None, tracking_uncertainties=None, dilation=0,
-                      next_step_displacement_std=0.15, nr_cpus=-1, affine=None, spacing=None, verbose=True):
+def track(peaks, max_nr_fibers=2000, smooth=None, compress=0.1, bundle_mask=None,
+            start_mask=None, end_mask=None, tracking_uncertainties=None, dilation=0,
+            next_step_displacement_std=0.15, nr_cpus=-1, affine=None, spacing=None, verbose=True):
     """
     Generate streamlines.
 
