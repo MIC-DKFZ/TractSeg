@@ -121,6 +121,8 @@ def create_brain_mask(input_file, output_dir):
               output_dir + "/nodif_brain_mask.nii.gz  -f 0.3 -g 0 -m")
     os.system("rm " + output_dir + "/nodif_brain_mask.nii.gz")  # masked brain
     os.system("mv " + output_dir + "/nodif_brain_mask_mask.nii.gz " + output_dir + "/nodif_brain_mask.nii.gz")
+    # For newer fsl versions bet will create 4D brainmask. Causes error in mrtrix. Only keep the first 3D volume.
+    os.system("fslroi " + output_dir + "/nodif_brain_mask.nii.gz " + output_dir + "/nodif_brain_mask.nii.gz " + "0 " + "1" )
     return join(output_dir, "nodif_brain_mask.nii.gz")
 
 
