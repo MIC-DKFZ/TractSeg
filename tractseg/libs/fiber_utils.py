@@ -7,7 +7,8 @@ import multiprocessing
 from os import getpid
 import numpy as np
 import nibabel as nib
-from dipy.tracking.streamline import compress_streamlines as compress_streamlines_dipy
+# from dipy.tracking.streamline import compress_streamlines as compress_streamlines_dipy  # for dipy 1.5 resulting in import error (issue: https://github.com/dipy/dipy/issues/2565)
+from dipy.tracking.streamlinespeed import compress_streamlines as compress_streamlines_dipy
 from dipy.segment.metric import ResampleFeature
 from dipy.tracking.metrics import spline
 from dipy.tracking import utils as utils_trk
