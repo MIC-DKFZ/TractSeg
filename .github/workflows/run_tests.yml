@@ -6,8 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
-        # python-version: [3.8]   # for experimenting with actions
+        # python-version: [3.8, 3.9]  # too many calls to zenodo download -> request limit
+        python-version: [3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{matrix.python-version}}

@@ -1,7 +1,7 @@
 from setuptools import Extension, setup, find_packages
 
 setup(name='TractSeg',
-        version='2.5',
+        version='2.6',
         description='Fast and accurate segmentation of white matter bundles',
         long_description="See Readme.md on github for more details.",
         url='https://github.com/MIC-DKFZ/TractSeg/',
@@ -20,7 +20,7 @@ setup(name='TractSeg',
             'tqdm',
             'six',
             'psutil',
-            'dipy>=1.0.0',
+            'dipy>=1.5.0',
             'fury',
             'joblib>=0.13.2',
             'seaborn'

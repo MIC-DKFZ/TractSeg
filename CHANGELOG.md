@@ -1,6 +1,11 @@
 ## Master
+* None
+
+
+## Release 2.6
 * Update documentation
 * fixed bug with newer fsl bet (thanks to @CarolynMcNabb)
+* fix bug with import of `compress_streamline()` from dipy
 
 
 ## Release 2.5
