@@ -558,11 +558,6 @@ def flip_axis(data, flip_axis, flip_peaks=False):
     Will flip array ordering and if data is 4D (=peak image) will flip sign of every
     third element in the 4th dimension.
     """
-    # todo important: change
-    # is_peak_image = True if len(data.shape) > 3 else False
-    # # is_peak_image = False
-    # if is_peak_image:
-    #     print(f"Flipping peaks: {is_peak_image}")
     if flip_axis == "x":
         data = data[::-1, :, :]
         if flip_peaks:
@@ -590,6 +585,8 @@ def get_flip_axis_to_match_MNI_space(affine):
     if affine[2, 2] < 0:
         flip_axis.append("z")
 
+    # print(f"flip_axis: {flip_axis}")
+
     return flip_axis
 
 
@@ -611,20 +608,29 @@ def flip_axis_to_match_MNI_space(data, affine, flip_peaks=False):
 def flip_affine(affine, flip_axis_list, data_shape):
     """
     apply flipping to affine
+
+    When flipping the data array, then we have to do the following to the 
+    affine to undo the flipping of data array. (in the image viewer the
+    image will look the same)
     """
     affine_flipped = affine.copy()  # could be returned if needed
+    zooms = affine.diagonal()
+
+    # note: this will only properly work if off-diagonal elements are 0. If they non-zero
+    # (which means there is a rotation), then this might not properly work anymore. Not
+    # tested yet.
 
     if "x" in flip_axis_list:
         affine_flipped[0, 0] = affine_flipped[0, 0] * -1
-        affine_flipped[0, 3] -= (data_shape[0] - 1)  # this is needed to make it still align with unaltered fibers correctly
+        affine_flipped[0, 3] += (data_shape[0] - 1) * zooms[0]
 
     if "y" in flip_axis_list:
         affine_flipped[1, 1] = affine_flipped[1, 1] * -1
-        affine_flipped[1, 3] -= (data_shape[1] - 1)
+        affine_flipped[1, 3] += (data_shape[1] - 1) * zooms[1]
 
     if "z" in flip_axis_list:
         affine_flipped[2, 2] = affine_flipped[2, 2] * -1
-        affine_flipped[2, 3] -= (data_shape[2] - 1)
+        affine_flipped[2, 3] += (data_shape[2] - 1) * zooms[2]
 
     return affine_flipped
 
