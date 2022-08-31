@@ -48,12 +48,19 @@ def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
 
     template_path = resource_filename('tractseg.resources', 'MNI_FA_template.nii.gz')
 
+    # Calculate the transformation
     os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
               "/FA_MNI.nii.gz -omat " + output_dir + "/FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo")
 
+    # Transform FA with applyisoxfm to make it have the same spacing as Diffusion image
+    # Actually FA_MNI.nii.gz is not really needed for anything but some people might use it.
+    os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
+              "/FA_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir +
+              "/FA_2_MNI.mat -dof 6 -interp spline")
+              
     os.system("flirt -ref " + template_path + " -in " + input_file + " -out " + output_dir +
               "/Diffusion_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir +
-              "/FA_2_MNI.mat -dof 6 -interp trilinear")
+              "/FA_2_MNI.mat -dof 6 -interp spline")
     os.system("cp " + bvals + " " + output_dir + "/Diffusion_MNI.bvals")
     os.system("rotate_bvecs -i " + bvecs + " -t " + output_dir + "/FA_2_MNI.mat" +
               " -o " + output_dir + "/Diffusion_MNI.bvecs")
@@ -81,7 +88,7 @@ def move_to_subject_space_single_file(output_dir, experiment_type, output_subdir
     os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
     os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
               " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
-              " -interp trilinear")
+              " -interp spline")
     if not output_float:
         os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
 
@@ -107,7 +114,7 @@ def move_to_subject_space(output_dir, bundles, experiment_type, output_subdir, o
             # do not use spline interpolation because makes a lot of holes into masks
             os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
                       " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
-                      " -interp trilinear")
+                      " -interp spline")
         if not output_float:
             os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
 

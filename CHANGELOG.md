@@ -1,6 +1,11 @@
 ## Master
+* None
+
+
+## Release 2.7
 * Bugfix when tracking in non-MNI space
 * **Interface change**: make `tck` the default tracking format since `trackvis` api is no longer supported by nibabel
+* use spline interpolation instead of trilinear interpolation in flirt for option `--preprocess`
 
 
 ## Release 2.6
