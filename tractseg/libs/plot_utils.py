@@ -8,7 +8,6 @@ import math
 
 import numpy as np
 import nibabel as nib
-from nibabel import trackvis
 from dipy.tracking.streamline import transform_streamlines
 from scipy.ndimage.morphology import binary_dilation
 from dipy.tracking.streamline import set_number_of_points
@@ -340,7 +339,7 @@ def plot_result_trixi(trixi, x, y, probs, loss, f1, epoch_nr):
 
 
 def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle, metrics, output_path,
-                             tracking_format="trk_legacy", show_color_bar=True):
+                             tracking_format="tck", show_color_bar=True):
     import seaborn as sns  # import in function to avoid error if not installed (this is only needed in this function)
     from dipy.viz import actor, window
     from tractseg.libs import vtk_utils
@@ -382,6 +381,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
 
     # Load trackings
     if tracking_format == "trk_legacy":
+        from nibabel import trackvis
         streams, hdr = trackvis.read(bundle_path)
         streamlines = [s[0] for s in streams]
     else:

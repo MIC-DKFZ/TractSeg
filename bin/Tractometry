@@ -10,7 +10,6 @@ import argparse
 
 import nibabel as nib
 import numpy as np
-from nibabel import trackvis
 from tqdm import tqdm
 
 from tractseg.libs import tractometry
@@ -53,10 +52,9 @@ def main():
                              "Needed if using the '--peak_length' option.")
 
     parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
-                        help="Set output format of tracking. For trk also the option trk_legacy is available. This "
-                             "uses the older trk convention (streamlines are stored in coordinate space and affine is "
-                             "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
-                        default="trk_legacy")
+                        help="Set output format of tracking. trk_legacy is not suppurted by newer nibabel "
+                             "anymore. (default: tck)",
+                        default="tck")
 
     parser.add_argument("--test", metavar="1|2|3", choices=[0, 1, 2, 3], type=int,
                         help="Only needed for unittesting.",
@@ -97,6 +95,7 @@ def main():
             std = np.zeros(NR_POINTS)
         else:
             if args.tracking_format == "trk_legacy":
+                from nibabel import trackvis
                 streams, hdr = trackvis.read(trk_path)
                 streamlines = [s[0] for s in streams]
             else:

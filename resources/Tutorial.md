@@ -43,7 +43,7 @@ TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM
 ```
 * This will add another subdirectory `TOM` containing the Tract Orientation Maps (TOMs).  
 ```
-Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --tracking_format tck
+Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output
 ```
 * This will run tracking on the TOMs. The tracking algorithm places a gaussian distribution with fixed standard
 deviation on each peak. Then FACT tracking is run but the orientation is sampled from the gaussian distribution. This
@@ -96,5 +96,5 @@ TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM
 
 Now we can run the tracking:
 ```
-Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --tracking_format tck
+Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output
 ```

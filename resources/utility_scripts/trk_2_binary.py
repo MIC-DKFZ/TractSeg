@@ -12,7 +12,6 @@ Example:
 
 import os, sys, inspect
 from dipy.tracking import utils as utils_trk
-from nibabel import trackvis
 import nibabel as nib
 import numpy as np
 from scipy import ndimage
@@ -71,10 +70,8 @@ if __name__ == '__main__':
     ref_affine = ref_img.affine
     ref_shape = ref_img.get_fdata().shape
 
-    streams, hdr = trackvis.read(file_in)
-    streamlines = [s[0] for s in streams]  # list of 2d ndarrays
-
     if tracking_format == "trk_legacy":
+        from nibabel import trackvis
         streams, hdr = trackvis.read(file_in)
         streamlines = [s[0] for s in streams]
     else:

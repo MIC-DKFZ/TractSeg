@@ -1,5 +1,6 @@
 ## Master
-* None
+* Bugfix when tracking in non-MNI space
+* **Interface change**: make `tck` the default tracking format since `trackvis` api is no longer supported by nibabel
 
 
 ## Release 2.6

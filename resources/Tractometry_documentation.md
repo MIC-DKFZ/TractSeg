@@ -35,17 +35,16 @@ GPU: 2min ~14s)
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation` (runtime on GPU: ~42s)
 4. Create Tract Orientation Maps and use them to do bundle-specific tracking:  
 `TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM` (runtime on GPU: ~1min 30s)  
-`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 5000 --tracking_format tck` (runtime on CPU: ~12min)  
+`Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output --nr_fibers 5000` (runtime on CPU: ~12min)  
  > NOTE: As the streamline seeding is random, results will be slightly different everytime you run it. 
  A high number of streamlines like 5000 will lower this variation.  
  > NOTE: `tck` is the most stable tracking format. `trk` might get displayed differently in different viewers.
 5. Run tractometry:  
 `cd tractseg_output`  
-`Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz --tracking_format tck` (runtime on CPU: ~20s)  
-> NOTE: if you set the option `--tracking_format` for `Tracking` you also have to set it for `Tractometry` and `plot_tractometry_results`.
+`Tractometry -i TOM_trackings/ -o Tractometry_subject1.csv -e endings_segmentations/ -s ../FA.nii.gz` (runtime on CPU: ~20s)  
 6. Repeat step 1-4 for every subject (use a shell script for that)
 7. To test for statistical significance and plot the results run the following command:  
-`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png --mc --tracking_format tck`
+`plot_tractometry_results -i tractseg/examples/subjects.txt -o tractometry_result.png --mc`
 (runtime on CPU for group analysis: ~4min for 100 subjects)  
 (runtime on CPU for correlation analysis: ~7min for 40 subjects)
 Adapt `subjects.txt` with your data path, subject IDs and confounds. `tractseg/examples/subjects.txt` contains more 

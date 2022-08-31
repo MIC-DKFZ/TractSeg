@@ -121,7 +121,7 @@ Tracks on TOMs and only keeps fibers not leaving the bundle mask and starting an
 TractSeg -i peaks.nii.gz --output_type tract_segmentation
 TractSeg -i peaks.nii.gz --output_type endings_segmentation
 TractSeg -i peaks.nii.gz --output_type TOM 
-Tracking -i peaks.nii.gz --tracking_format tck
+Tracking -i peaks.nii.gz
 ```
 
 

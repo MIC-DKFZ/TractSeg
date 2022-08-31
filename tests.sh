@@ -45,7 +45,7 @@ mkdir -p tractometry_toy_example
 python tests/reference_files/create_toy_streamlines.py tractometry_toy_example
 Tractometry -i tractometry_toy_example/TOM_trackings -o tractometry_toy_example/Tractometry.csv \
 -e tractometry_toy_example/endings_segmentations/ -s tractometry_toy_example/toy_FA.nii.gz --test 2 \
---nr_points 10 --tracking_format trk_legacy
+--nr_points 10 --tracking_format tck
 pytest -v tests/test_end_to_end.py::test_end_to_end::test_tractometry_toy_example
 
 #Statistical analysis of tractometry

@@ -20,7 +20,6 @@ import sys
 
 import nibabel as nib
 import numpy as np
-from nibabel import trackvis
 
 from dipy.tracking.streamline import transform_streamlines
 from sklearn.cluster import KMeans
@@ -81,8 +80,15 @@ file_out = args[2]
 ref_img = nib.load(ref_img_in)
 ref_img_shape = ref_img.get_fdata().shape
 
-streams, hdr = trackvis.read(file_in)
-streamlines = [s[0] for s in streams]
+tracking_format = "tck"
+if tracking_format == "trk_legacy":
+    from nibabel import trackvis
+    streams, hdr = trackvis.read(file_in)
+    streamlines = [s[0] for s in streams]
+else:
+    sl_file = nib.streamlines.load(file_in)
+    streamlines = sl_file.streamlines
+
 streamlines = transform_streamlines(streamlines, np.linalg.inv(ref_img.affine))
 
 mask_start = np.zeros(ref_img_shape)

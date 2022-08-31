@@ -321,8 +321,8 @@ def main():
                         default="auto")
     parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
                         help="If using --plot3D you have to specify the format of the trackings which will get loaded."
-                             "(default: trk_legacy)",
-                        default="trk_legacy")
+                             "(default: tck)",
+                        default="tck")
     parser.add_argument('--range', '-r', metavar='l u', default=None, type=two_floats,
                         help='Range of metric (y-axis) to plot. Specify lower (l) and upper (u) bound'
                         '(default: None)')

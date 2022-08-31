@@ -77,10 +77,9 @@ def main():
                         default=2000)
 
     parser.add_argument("--tracking_format", metavar="tck|trk|trk_legacy", choices=["tck", "trk", "trk_legacy"],
-                        help="Set output format of tracking. For trk also the option trk_legacy is available. This "
-                             "uses the older trk convention (streamlines are stored in coordinate space and affine is "
-                             "not applied. See nibabel.trackvis.read. (default: trk_legacy)",
-                        default="trk_legacy")
+                        help="Set output format of tracking. trk_legacy is not suppurted by newer nibabel "
+                             "anymore. (default: tck)",
+                        default="tck")
 
     parser.add_argument("--no_filtering_by_endpoints", action="store_true",
                         help="Run tracking on TOMs without filtering results by tract mask and endpoint masks."
