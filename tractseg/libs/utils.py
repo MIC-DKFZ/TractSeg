@@ -86,6 +86,13 @@ def mem_usage(print_usage=True):
     return gb
 
 
+def download_url(url, save_path, chunk_size=128):
+    r = requests.get(url, stream=True)
+    with open(save_path, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=chunk_size):
+            f.write(chunk)
+
+
 def download_pretrained_weights(experiment_type, dropout_sampling=False,
                                 part="Part1", tract_definition="TractQuerier+"):
 
@@ -142,11 +149,8 @@ def download_pretrained_weights(experiment_type, dropout_sampling=False,
         print("Downloading pretrained weights (~140MB) ...")
         if not os.path.exists(C.WEIGHTS_DIR):
             os.makedirs(C.WEIGHTS_DIR)
-
-        data = requests.get(WEIGHTS_URL).content
-        with open(weights_path, "wb") as weight_file:
-            weight_file.write(data)
-
+        download_url(WEIGHTS_URL, weights_path)
+        
 
 class bcolors:
     HEADER = '\033[95m'
