@@ -23,7 +23,8 @@ setup(name='TractSeg',
             'dipy>=1.5.0',
             'fury',
             'joblib>=0.13.2',
-            'seaborn'
+            'seaborn',
+            'requests'
         ],
         zip_safe=False,
         classifiers=[

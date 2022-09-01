@@ -1,17 +1,9 @@
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
+
+import requests
 import numpy as np
 
 from tractseg.libs.system_config import SystemConfig as C
-
-try:
-    from urllib.request import urlopen     # For Python 3.0 and later
-except ImportError:
-    from urllib2 import urlopen            # Fall back to Python 2's urllib2
 
 
 def invert_x_and_y(affineMatrix):
@@ -151,10 +143,7 @@ def download_pretrained_weights(experiment_type, dropout_sampling=False,
         if not os.path.exists(C.WEIGHTS_DIR):
             os.makedirs(C.WEIGHTS_DIR)
 
-        #This results in an SSL Error on CentOS
-        # urllib.urlretrieve(WEIGHTS_URL, weights_path)
-
-        data = urlopen(WEIGHTS_URL).read()
+        data = requests.get(WEIGHTS_URL).content
         with open(weights_path, "wb") as weight_file:
             weight_file.write(data)
 
