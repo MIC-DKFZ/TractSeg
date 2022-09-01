@@ -79,7 +79,7 @@ def evaluate_along_streamlines(scalar_img, streamlines, beginnings, nr_points, d
         centroids = Streamlines(clusters.centroids)
         if len(centroids) > 1:
             print("WARNING: number clusters > 1 ({})".format(len(centroids)))
-        _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)  # (2000, 100)
+        _, segment_idxs = cKDTree(centroids.get_data(), 1, copy_data=True).query(streamlines, k=1)  # (2000, 100)
 
         values_t = np.array(values).T  # (2000, 100)
 

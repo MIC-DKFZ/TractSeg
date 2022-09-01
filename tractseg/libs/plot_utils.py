@@ -417,7 +417,7 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
         qb = QuickBundles(threshold=100., metric=metric)
         clusters = qb.cluster(streamlines)
         centroids = Streamlines(clusters.centroids)
-        _, segment_idxs = cKDTree(centroids.data, 1, copy_data=True).query(streamlines, k=1)
+        _, segment_idxs = cKDTree(centroids.get_data(), 1, copy_data=True).query(streamlines, k=1)
 
     elif algorithm == "cutting_plane":
         streamlines_resamp = fiber_utils.resample_fibers(streamlines, NR_SEGMENTS * ANTI_INTERPOL_MULT)
