@@ -74,10 +74,10 @@ def main():
     # streamlines = fiber_utils.add_to_each_streamline_axis(streamlines, 0.5 * spacing, axis="y")
     # streamlines = fiber_utils.add_to_each_streamline_axis(streamlines, -0.5 * spacing, axis="z")
 
-    fiber_utils.save_streamlines_as_trk_legacy(join(out_dir, "TOM_trackings", "toy.trk"),
-                                               streamlines, affine, data.shape)
-    # fiber_utils.save_streamlines(join(out_dir, "TOM_trackings", "toy.trk"),
-    #                             streamlines, affine, data.shape)
+    # fiber_utils.save_streamlines_as_trk_legacy(join(out_dir, "TOM_trackings", "toy.trk"),
+    #                                            streamlines, affine, data.shape)
+    fiber_utils.save_streamlines(join(out_dir, "TOM_trackings", "toy.tck"),
+                                streamlines, affine, data.shape)
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ import math
 import numpy as np
 import nibabel as nib
 from dipy.tracking.streamline import transform_streamlines
-from scipy.ndimage.morphology import binary_dilation
+from scipy.ndimage import binary_dilation
 from dipy.tracking.streamline import set_number_of_points
 from dipy.tracking.streamline import length as sl_length
 from dipy.tracking.streamline import Streamlines

@@ -5,7 +5,7 @@ import multiprocessing
 from functools import partial
 
 from dipy.tracking.streamline import transform_streamlines
-from scipy.ndimage.morphology import binary_dilation
+from scipy.ndimage import binary_dilation
 from dipy.tracking.streamline import Streamlines
 
 from tractseg.libs import fiber_utils

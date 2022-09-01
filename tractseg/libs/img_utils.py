@@ -13,7 +13,7 @@ import psutil
 import numpy as np
 import nibabel as nib
 from scipy import ndimage
-from scipy.ndimage.morphology import binary_dilation
+from scipy.ndimage import binary_dilation
 from dipy.align.imaffine import AffineMap
 
 from tractseg.libs.system_config import SystemConfig as C

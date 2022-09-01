@@ -58,10 +58,10 @@ def main():
     # will be displayed incorrectly in image viewers (e.g. MITK) and dipy functions (e.g. near_roi) will give wrong results.
     streamlines = fiber_utils.add_to_each_streamline(streamlines, -0.5)
 
-    fiber_utils.save_streamlines_as_trk_legacy(join(out_dir, "TOM_trackings", "toy.trk"),
-                                               streamlines, affine, data.shape)
-    # fiber_utils.save_streamlines(join(out_dir, "TOM_trackings", "toy.trk"),
-    #                             streamlines, affine, data.shape)
+    # fiber_utils.save_streamlines_as_trk_legacy(join(out_dir, "TOM_trackings", "toy.trk"),
+    #                                            streamlines, affine, data.shape)
+    fiber_utils.save_streamlines(join(out_dir, "TOM_trackings", "toy.tck"),
+                                streamlines, affine, data.shape)
 
     # tractometry_result = [np.mean([data[0, 0, 0], data[0, 0, 0]]),
     #                       np.mean([data[2, 2, 2], data[0, 2, 2]])]

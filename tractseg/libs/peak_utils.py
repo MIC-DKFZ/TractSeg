@@ -11,7 +11,7 @@ import psutil
 import numpy as np
 import nibabel as nib
 from joblib import Parallel, delayed
-from scipy.ndimage.morphology import binary_dilation
+from scipy.ndimage import binary_dilation
 
 from tractseg.libs import img_utils
 
