@@ -86,11 +86,27 @@ def mem_usage(print_usage=True):
     return gb
 
 
-def download_url(url, save_path, chunk_size=128):
-    r = requests.get(url, stream=True)
-    with open(save_path, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=chunk_size):
-            f.write(chunk)
+# def download_url(url, save_path, chunk_size=128):
+#     r = requests.get(url, stream=True)
+#     with open(save_path, 'wb') as f:
+#         for chunk in r.iter_content(chunk_size=chunk_size):
+#             f.write(chunk)
+
+
+def download_url(url, save_path):
+    import http.client
+    # helps to solve incomplete read erros
+    # https://stackoverflow.com/questions/37816596/restrict-request-to-only-ask-for-http-1-0-to-prevent-chunking-error
+    http.client.HTTPConnection._http_vsn = 10
+    http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+    try:
+        with open(save_path, 'wb') as f:
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                for chunk in r.iter_content(chunk_size=8192 * 16):
+                    f.write(chunk)
+    except Exception as e:
+        raise e
 
 
 def download_pretrained_weights(experiment_type, dropout_sampling=False,
