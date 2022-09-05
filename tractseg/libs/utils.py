@@ -1,4 +1,5 @@
 import os
+import time 
 
 import requests
 import numpy as np
@@ -163,9 +164,11 @@ def download_pretrained_weights(experiment_type, dropout_sampling=False,
 
     if WEIGHTS_URL is not None and not os.path.exists(weights_path):
         print("Downloading pretrained weights (~140MB) ...")
+        st = time.time()
         if not os.path.exists(C.WEIGHTS_DIR):
             os.makedirs(C.WEIGHTS_DIR)
         download_url(WEIGHTS_URL, weights_path)
+        print(f"  downloaded in {time.time()-st:.2f}s")
         
 
 class bcolors:
