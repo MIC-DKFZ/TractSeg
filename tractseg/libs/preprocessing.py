@@ -82,13 +82,14 @@ def move_to_subject_space_single_file(output_dir, experiment_type, output_subdir
 
     os.system("mv " + output_dir + "/" + output_subdir + ".nii.gz " + output_dir + "/" + output_subdir + "_MNI.nii.gz")
 
+    interp = "spline" if output_float else "nearestneighbour"
     file_path_in = output_dir + "/" + output_subdir + "_MNI.nii.gz"
     file_path_out = output_dir + "/" + output_subdir + ".nii.gz"
     dwi_spacing = img_utils.get_image_spacing(file_path_in)
     os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
     os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
               " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
-              " -interp spline")
+              f" -interp {interp}")
     if not output_float:
         os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
 
@@ -99,6 +100,8 @@ def move_to_subject_space(output_dir, bundles, experiment_type, output_subdir, o
     os.system("mkdir -p " + output_dir + "/" + output_subdir + "_MNI")
     os.system("mv " + output_dir + "/" + output_subdir + "/* " + output_dir + "/" + output_subdir + "_MNI")
     os.system("convert_xfm -omat " + output_dir + "/MNI_2_FA.mat -inverse " + output_dir + "/FA_2_MNI.mat")
+
+    interp = "spline" if output_float else "nearestneighbour"
 
     for bundle in tqdm(bundles):
         file_path_in = output_dir + "/" + output_subdir + "_MNI/" + bundle + ".nii.gz"
@@ -114,7 +117,7 @@ def move_to_subject_space(output_dir, bundles, experiment_type, output_subdir, o
             # do not use spline interpolation because makes a lot of holes into masks
             os.system("flirt -ref " + output_dir + "/FA.nii.gz -in " + file_path_in + " -out " + file_path_out +
                       " -applyisoxfm " + dwi_spacing + " -init " + output_dir + "/MNI_2_FA.mat -dof 6" +
-                      " -interp spline")
+                      f" -interp {interp}")
         if not output_float:
             os.system("fslmaths " + file_path_out + " -thr 0.5 -bin " + file_path_out)
 
