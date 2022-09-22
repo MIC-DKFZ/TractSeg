@@ -29,7 +29,6 @@ def main():
 
     #We only flip data, not affine
     if args.axis == "x":
-        # flip x Axis  (9 channel image)  (3 peaks)
         for i in range(nr_peaks):
             data[ :, :, :, (i*3)+0] *= -1
     elif args.axis == "y":
