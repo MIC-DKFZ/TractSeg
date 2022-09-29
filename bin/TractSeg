@@ -229,6 +229,9 @@ def main():
 
     ####################################### Preprocessing #######################################
 
+    if args.preprocess and args.output_type == "TOM":
+        raise ValueError("The preprocess option does not working with output_type TOM.")
+
     if args.raw_diffusion_input:
         brain_mask = exp_utils.get_brain_mask_path(Config.PREDICT_IMG_OUTPUT, args.brain_mask, args.input)
 

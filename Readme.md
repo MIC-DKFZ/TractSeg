@@ -74,8 +74,7 @@ TractSeg -i Diffusion.nii.gz --raw_diffusion_input
 This will create a folder `tractseg_ouput` inside of the same directory as your input file with one binary segmentation nifti image
 for each bundle.
  
-> NOTE: Your input image should have the same orientation as MNI space. Moreover it should have isotropic 
-spacing. See [here](#aligning-image-to-mni-space) for more details.
+> NOTE: If results look bad you probably have to align your images to have the same orientation as MNI space. Moreover it should have isotropic spacing. See [here](#aligning-image-to-mni-space) for more details.
 
 #### Custom input and output path:
 ```
@@ -272,12 +271,12 @@ You can use the option `--tracking_format` to define the file format of the stre
 
 
 #### Aligning image to MNI space
-The input image must have the same "orientation" as the Human Connectome Project data (MNI space) 
+For best results the input image must have the same "orientation" as the Human Connectome Project data (MNI space) 
 (LEFT must be on the same side as LEFT of the HCP data) and have isotropic spacing. 
 If the image orientation and the gradient orientation of your data is the same as in `examples/Diffusion.nii.gz`
 you are fine. Otherwise you should use `fslreorient2std` or rigidly register your image to MNI space (the brains
 do not have to be perfectly aligned but must have the same LEFT/RIGHT orientation).
-You can use the following FSL commands to rigidly register you image to MNI space (uses 
+You can use the following FSL commands to rigidly register your image to MNI space (uses 
 the FA to calculate the transformation as this is more stable):
 ```shell
 calc_FA -i Diffusion.nii.gz -o FA.nii.gz --bvals Diffusion.bvals --bvecs Diffusion.bvecs \
@@ -304,15 +303,12 @@ fslmaths my_bundle_subject_space.nii.gz -thr 0.5 -bin my_bundle_subject_space.ni
 ```
 
 The option `--preprocess` will automatically rigidly register the input image to MNI space, run TractSeg and then 
-convert the output back to subject space. For TOMs and trackings the `--preprocess` option has to be used as 
-follows:
+convert the output back to subject space. This only works for `tract_segmentation` and `endings_segmentation`. For `TOMs` and trackings you have to register you data manually to MNI space:
 ```shell
 # in first step --raw_diffusion_input has to be used together with --preprocess
 TractSeg -i Diffusion.nii.gz -o tractseg_output --output_type tract_segmentation --raw_diffusion_input --preprocess
-# -o has to be set in all following steps
+# -o has to be set in all following step
 TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type endings_segmentation --preprocess
-TractSeg -i tractseg_output/peaks.nii.gz -o tractseg_output --output_type TOM --preprocess
-Tracking -i tractseg_output/peaks.nii.gz -o tractseg_output
 ```
 > NOTE: `--preprocess` does not work if you are using the option `--csd_type csd_msmt_5tt`, 
 because the T1 image will not automatically be registered to MNI space
