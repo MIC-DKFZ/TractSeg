@@ -464,11 +464,23 @@ def orient_to_same_start_region(streamlines, beginnings):
     # (we could also use dipy.tracking.streamline.orient_by_streamline instead)
     streamlines = add_to_each_streamline(streamlines, 0.5)
     streamlines_new = []
+    ss = beginnings.shape
     for idx, sl in enumerate(streamlines):
         startpoint = sl[0]
         # Flip streamline if not in right order
-        if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
-            sl = sl[::-1, :]
-        streamlines_new.append(sl)
+        #
+        # Somehow somtimes the startpoint is outside of the image dimensions. This should
+        # not happen since the tracking was all done within these image dimensions. Maybe
+        # the smoothing or compression slightly moves it out of image. Therefore we check
+        # here if it is within the image and if not we discard this streamline
+        x, y, z = int(startpoint[0]), int(startpoint[1]), int(startpoint[2])
+        if x >= 0 and x < ss[0] and \
+            y >= 0 and y < ss[1] and \
+            z >= 0 and z < ss[2]:
+            if beginnings[int(startpoint[0]), int(startpoint[1]), int(startpoint[2])] == 0:
+                sl = sl[::-1, :]
+            streamlines_new.append(sl)
+        else:
+            print("WARNING: steamline startpoint out of image. Discarding this streamline.")
     streamlines_new = add_to_each_streamline(streamlines_new, -0.5)
     return streamlines_new
