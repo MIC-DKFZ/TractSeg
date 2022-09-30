@@ -391,8 +391,11 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     # Reduce streamline count
     streamlines = streamlines[::2]
 
+    # Grab affine inverse for coordinate space transformations
+    mm2vox = np.linalg.inv(beginnings_img.affine).dot(sl_file.affine)
+
     # Reorder to make all streamlines have same start region
-    streamlines = fiber_utils.orient_to_same_start_region(streamlines, beginnings)
+    streamlines = fiber_utils.orient_to_same_start_region(streamlines, beginnings, mm2vox)
 
     if algorithm == "distance_map" or algorithm == "equal_dist":
         streamlines = fiber_utils.resample_fibers(streamlines, NR_SEGMENTS * ANTI_INTERPOL_MULT)
