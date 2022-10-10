@@ -392,7 +392,9 @@ def plot_bundles_with_metric(bundle_path, endings_path, brain_mask_path, bundle,
     streamlines = streamlines[::2]
 
     # Reorder to make all streamlines have same start region
+    streamlines = list(transform_streamlines(streamlines, np.linalg.inv(beginnings_img.affine)))  # convert to voxel space
     streamlines = fiber_utils.orient_to_same_start_region(streamlines, beginnings)
+    streamlines = list(transform_streamlines(streamlines, beginnings_img.affine))  # convert back to mm space
 
     if algorithm == "distance_map" or algorithm == "equal_dist":
         streamlines = fiber_utils.resample_fibers(streamlines, NR_SEGMENTS * ANTI_INTERPOL_MULT)
