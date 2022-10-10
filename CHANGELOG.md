@@ -1,5 +1,6 @@
 ## Master
-* None
+* bugfix: reorient streamline in plot_tractometry_results was not in voxel space
+* xvfb for plotting
 
 
 ## Release 2.7

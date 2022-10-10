@@ -39,6 +39,7 @@ TractSeg only runs on Linux and OSX. It works with Python >= 3.6.
 * [Mrtrix 3](http://mrtrix.readthedocs.io/en/latest/installation/linux_install.html) (>= 3.0 RC3)
 * [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation) (if you already have a brain mask and do not use the 
 option `--preprocess` this is not needed)
+* xvfb (`apt-get install xvfb`) (only needed if you use `plot_tractometry_results`)
 
 #### Install TractSeg
 Latest stable version:

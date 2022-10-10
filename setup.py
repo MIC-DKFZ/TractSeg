@@ -24,7 +24,8 @@ setup(name='TractSeg',
             'fury',
             'joblib>=0.13.2',
             'seaborn',
-            'requests'
+            'requests',
+            'xvfbwrapper'
         ],
         zip_safe=False,
         classifiers=[

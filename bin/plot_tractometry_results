@@ -370,12 +370,14 @@ def main():
         raw = np.loadtxt(base_path.replace("SUBJECT_ID", subject), delimiter=";", skiprows=1).transpose()
         values[subject] = raw
 
-    plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
-                                 args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
-                                 show_detailed_p, nperm=nperm, hide_legend=hide_legend,
-                                 plot_3D_path=plot_3D_path, plot_3D_type=args.plot3D,
-                                 tracking_format=args.tracking_format, tracking_dir=args.tracking_dir,
-                                 show_color_bar=show_color_bar, save_csv=args.save_csv, y_range=args.range)
+    from xvfbwrapper import Xvfb
+    with Xvfb() as xvfb:
+        plot_tractometry_with_pvalue(values, meta_data, all_bundles, selected_bundles, args.output_path,
+                                    args.alpha, FWE_method, analysis_type, correct_mult_tract_comp,
+                                    show_detailed_p, nperm=nperm, hide_legend=hide_legend,
+                                    plot_3D_path=plot_3D_path, plot_3D_type=args.plot3D,
+                                    tracking_format=args.tracking_format, tracking_dir=args.tracking_dir,
+                                    show_color_bar=show_color_bar, save_csv=args.save_csv, y_range=args.range)
 
 
 if __name__ == '__main__':
