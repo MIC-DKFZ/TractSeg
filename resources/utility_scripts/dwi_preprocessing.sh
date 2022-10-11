@@ -60,7 +60,7 @@ function eddy_correct_extract_mask_denoise() {
     rm nodif_brain_mask.nii.gz      #only b0 not all gradients
     mv nodif_brain_mask_mask.nii.gz nodif_brain_mask.nii.gz
 
-    python ~/dev/bsp/scripts/misc/apply_brain_mask.py Diffusion_denoise_unr_eddy_bias.nii.gz \
+    python apply_brain_mask.py Diffusion_denoise_unr_eddy_bias.nii.gz \
     Diffusion_denoise_unr_eddy_bias_brain.nii.gz nodif_brain_mask.nii.gz
     cp -v Diffusion_denoise_unr_eddy_bias.bvals Diffusion_denoise_unr_eddy_bias_brain.bvals
     cp -v Diffusion_denoise_unr_eddy_bias.bvecs Diffusion_denoise_unr_eddy_bias_brain.bvecs
