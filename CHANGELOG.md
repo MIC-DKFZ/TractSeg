@@ -1,4 +1,7 @@
 ## Master
+
+
+## Release 2.8
 * bugfix: reorient streamline in plot_tractometry_results was not in voxel space
 * bugfix: use correct interpolation with flirt on binary masks
 * xvfb for plotting
