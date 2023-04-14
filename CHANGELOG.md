@@ -1,4 +1,5 @@
 ## Master
+* change sklearn to scikit-learn in setup.py
 
 
 ## Release 2.8
