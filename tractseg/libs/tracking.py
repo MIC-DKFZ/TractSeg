@@ -90,6 +90,8 @@ def track(bundle, peaks, output_dir, tracking_on_FODs, tracking_software, tracki
                                                 output_dir + "/bundle_segmentations" + dir_postfix + "/" +
                                                 bundle + ".nii.gz",
                                                 tracking_format=output_format)
+            shutil.rmtree(tmp_dir)
+            return
 
         # Filtering
 
