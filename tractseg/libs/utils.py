@@ -95,11 +95,6 @@ def mem_usage(print_usage=True):
 
 
 def download_url(url, save_path):
-    import http.client
-    # helps to solve incomplete read erros
-    # https://stackoverflow.com/questions/37816596/restrict-request-to-only-ask-for-http-1-0-to-prevent-chunking-error
-    http.client.HTTPConnection._http_vsn = 10
-    http.client.HTTPConnection._http_vsn_str = 'HTTP/1.0'
     try:
         with open(save_path, 'wb') as f:
             with requests.get(url, stream=True) as r:
