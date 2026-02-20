@@ -7,7 +7,7 @@ import sys
 import joblib
 from joblib import Parallel, delayed
 from os.path import join
-from pkg_resources import resource_filename
+from importlib.resources import files, as_file
 
 import psutil
 import numpy as np
@@ -671,8 +671,9 @@ def flip_peaks_to_correct_orientation_if_needed(peaks_input, do_flip=False):
         X = [list(peaks_x.flatten()) + list(peaks_y.flatten()) + list(peaks_z.flatten())]
         X = np.nan_to_num(X)
 
-        random_forest_path = resource_filename('tractseg.resources', 'random_forest_peak_orientation_detection.pkl')
-        clf = joblib.load(random_forest_path)
+        resource = files('tractseg.resources').joinpath('random_forest_peak_orientation_detection.pkl')
+        with as_file(resource) as random_forest_path:
+            clf = joblib.load(random_forest_path)
         predicted_label = clf.predict(X)[0]
         # labels:
         #  ok: 0, x:1, y:2, z:3
