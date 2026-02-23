@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import os
 from os.path import join
-from pkg_resources import resource_filename
+from importlib.resources import files, as_file
 from tqdm import tqdm
 
 from tractseg.libs import img_utils
@@ -46,28 +46,30 @@ def move_to_MNI_space(input_file, bvals, bvecs, brain_mask, output_dir):
 
     dwi_spacing = img_utils.get_image_spacing(input_file)
 
-    template_path = resource_filename('tractseg.resources', 'MNI_FA_template.nii.gz')
+    template_resource = files('tractseg.resources').joinpath('MNI_FA_template.nii.gz')
+    with as_file(template_resource) as template_path:
+        template_path = str(template_path)
 
-    # Calculate the transformation
-    os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
-              "/FA_MNI.nii.gz -omat " + output_dir + "/FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo")
+        # Calculate the transformation
+        os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
+                  "/FA_MNI.nii.gz -omat " + output_dir + "/FA_2_MNI.mat -dof 6 -cost mutualinfo -searchcost mutualinfo")
 
-    # Transform FA with applyisoxfm to make it have the same spacing as Diffusion image
-    # Actually FA_MNI.nii.gz is not really needed for anything but some people might use it.
-    os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
-              "/FA_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir +
-              "/FA_2_MNI.mat -dof 6 -interp spline")
-              
-    os.system("flirt -ref " + template_path + " -in " + input_file + " -out " + output_dir +
-              "/Diffusion_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir +
-              "/FA_2_MNI.mat -dof 6 -interp spline")
-    os.system("cp " + bvals + " " + output_dir + "/Diffusion_MNI.bvals")
-    os.system("rotate_bvecs -i " + bvecs + " -t " + output_dir + "/FA_2_MNI.mat" +
-              " -o " + output_dir + "/Diffusion_MNI.bvecs")
+        # Transform FA with applyisoxfm to make it have the same spacing as Diffusion image
+        # Actually FA_MNI.nii.gz is not really needed for anything but some people might use it.
+        os.system("flirt -ref " + template_path + " -in " + output_dir + "/FA.nii.gz -out " + output_dir +
+                  "/FA_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir +
+                  "/FA_2_MNI.mat -dof 6 -interp spline")
 
-    os.system("flirt -ref " + template_path + " -in " + brain_mask +
-              " -out " + output_dir + "/nodif_brain_mask_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " +
-              output_dir + "/FA_2_MNI.mat -dof 6 -interp nearestneighbour")
+        os.system("flirt -ref " + template_path + " -in " + input_file + " -out " + output_dir +
+                  "/Diffusion_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " + output_dir +
+                  "/FA_2_MNI.mat -dof 6 -interp spline")
+        os.system("cp " + bvals + " " + output_dir + "/Diffusion_MNI.bvals")
+        os.system("rotate_bvecs -i " + bvecs + " -t " + output_dir + "/FA_2_MNI.mat" +
+                  " -o " + output_dir + "/Diffusion_MNI.bvecs")
+
+        os.system("flirt -ref " + template_path + " -in " + brain_mask +
+                  " -out " + output_dir + "/nodif_brain_mask_MNI.nii.gz -applyisoxfm " + dwi_spacing + " -init " +
+                  output_dir + "/FA_2_MNI.mat -dof 6 -interp nearestneighbour")
 
     new_input_file = join(output_dir, "Diffusion_MNI.nii.gz")
     bvecs = join(output_dir, "Diffusion_MNI.bvecs")
