@@ -1,5 +1,11 @@
 ## Master
+
+
+## Release 2.10
 * change sklearn to scikit-learn in setup.py
+* make work with newer importlib
+* make work with newer dipy
+* in tests update python version to 3.9 and pytorch to 2.5.1
 
 
 ## Release 2.9
