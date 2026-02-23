@@ -531,7 +531,7 @@ def change_spacing_4D(img_in, new_spacing=1.25):
                                old_shape, img_in.affine
                                )
         # Generally "nearest" a bit better results than "linear" interpolation
-        res = affine_map.transform(data[:, :, :, i], interp="nearest")
+        res = affine_map.transform(data[:, :, :, i], interpolation="nearest")
         new_data.append(res)
 
     new_data = np.array(new_data).transpose(1, 2, 3, 0)
