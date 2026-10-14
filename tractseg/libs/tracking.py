@@ -24,7 +24,7 @@ def _mrtrix_tck_to_trk(output_dir, tracking_folder, dir_postfix, bundle, output_
                                    output_dir + "/" + tracking_folder + "/" + bundle + ".trk",
                                    reference_affine, reference_shape, compress_err_thr=0.1, smooth=None,
                                    nr_cpus=nr_cpus, tracking_format=output_format)
-    subprocess.call("rm -f " + output_dir + "/" + tracking_folder + "/" + bundle + ".tck", shell=True)
+    subprocess.call(["rm", "-f", "--", output_dir + "/" + tracking_folder + "/" + bundle + ".tck"])
 
 
 def get_tracking_folder_name(tracking_algorithm, use_best_original_peaks):
