@@ -88,7 +88,7 @@ TractSeg -i my/path/my_diffusion_image.nii.gz
 Use `--help` to see all options.
 
 #### Use existing peaks
-To avoid generating the MRtrix CSD peaks every time you `run TractSeg you can also provide them directly by skipping the 
+To avoid generating the MRtrix CSD peaks every time you run TractSeg you can also provide them directly by skipping the 
 option `--raw_diffusion_input`.
 ```
 TractSeg -i my/path/my_mrtrix_csd_peaks.nii.gz
